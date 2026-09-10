@@ -1,8 +1,2180 @@
+<section class="app-container hero-banner-section">
+	<div class="profile-banner animate__animated animate__fadeIn">
+		<div class="profile-banner--pattern">
+			<div class="row">
+				<div class="col-12">
+					<h2>
+						<svg class="pc-icon pr-3 link-icon me-3" width="40" height="40"
+							style="color: rgb(255, 255, 255); fill: rgb(255, 255, 255)">
+                    <use xlink:href="#tadawul-arrow-icon"></use>
+                  </svg>
+						<label style="color: #FFFFFF"><fmt:message
+								key="tasi.heading.mainmarket" /></label>
+					</h2>
+					<label><fmt:message key="tasi.description.mainmarket" /></label>
+				</div>
 
-  // --- native submit (avoids jQuery submit handlers loop) ---
-  var formEl = document.getElementById('searchForm');
-  if (!formEl) return;
-  formEl.setAttribute('action', action);
-   console.log('before  formEl.submit();');
-  formEl.submit();
-  console.log('after  formEl.submit();');
+				<div class="row">
+					<!-- LEFT COLUMN -->
+					<div class="col-lg-12 col-sm-12 col-md-12 col-xs-12">
+						<section class="company-profile-details">
+							<div class="company-info animate__animated animate__fadeInUp">
+								<h4>Tadawul All Share Index (TASI)</h4>
+							</div>
+							
+							<c:choose>
+								<c:when
+									test="${requestScope.tasiIndexPrice gt 0}">
+									<c:set var="requiredClass" value="price-up" />
+									<c:set var="shareIndex" value="#custom-arrow-up-right" />
+								</c:when>
+								<c:when
+									test="${requestScope.tasiIndexPrice lt 0}">
+									<c:set var="requiredClass" value="price-down" />
+									<c:set var="shareIndex" value="#custom-arrow-down-right" />
+								</c:when>
+							</c:choose>
+							<div
+								class="stock-market-current-price animate__animated animate__fadeInUp animate__delay-1s">
+								<div class="company-market-price">
+								<h1>
+								<span id="indexPrice"></span>
+										<%-- <fmt:formatNumber maxFractionDigits="2" minFractionDigits="2"
+											pattern="#,###,###.##"
+											value="${requestScope.tasiIndexPrice }">
+										</fmt:formatNumber> --%>
+									</h1>
+									<h5 class="${requiredClass}">
+									<div id="indexValueDiv">
+						
+						<div id="indexValueDiv">
+					    <i></i>
+					    <svg class="pc-icon pr-3 link-icon ml-2" width="20"
+											height="20">
+                          <use xlink:href="${shareIndex}"></use>
+                        </svg>
+						<span id="indexNetChange"></span>
+						(
+						<span id="indexPercentChange"></span>
+						%)
+
+					</div>
+					</h5> 
+									
+								</div>
+
+								<div
+									class="invest-compare-button animate__animated animate__fadeInUp animate__delay-1s mt-4">
+
+<div class="historical">
+					<wps:urlGeneration
+						contentNode="tadawul.eportal.news.reports.historical.reports.v2"
+						layoutNode="tadawul.eportal.news.reports.historical.reports.v2.node"
+						portletParameterType="render" keepNavigationalState="false">
+						<wps:urlParam name="selectedMarket" value="INDICES" type="render"></wps:urlParam>
+						<wps:urlParam name="selectedSector" value="M" type="render"></wps:urlParam>
+						<wps:urlParam name="selectedEntity" value="TASI" type="render"></wps:urlParam>						
+						<a href="<%wpsURL.write(out);%>" class="arrow-button"><fmt:message key="tasi.view.historical" /> <svg class="pc-icon" width="18" height="18">
+			                          <use
+												xlink:href="#custom-arrow-chevron-right"></use>
+			                        </svg></a>
+					</wps:urlGeneration>
+					
+				</div>
+
+									<button type="button" class="arrow-button">
+										<fmt:message
+								key="peer.comparison" />
+										<svg class="pc-icon" width="18" height="18">
+			                          <use
+												xlink:href="#custom-arrow-chevron-right"></use>
+			                        </svg>
+									</button>
+									
+								</div>
+						</section>
+					</div>
+					<!-- RIGHT COLUMN -->
+
+				</div>
+			</div>
+		</div>
+	</div>
+</section>
+
+
+
+
+
+<div class="intro-section">
+		
+
+		<section>
+			<div class="app-container performance-layout mt-5">
+				<div class="performance-panel performance-panel--chart">
+					<!-- Chart -->
+					<section class="chart-container" data-chart
+						data-chart-company-name="tasi"
+						data-chart-company-symbol="${requestScope.chart_tasi_current_sector}"
+						data-chart-page-name="MainMarketWatch"
+					
+					 data-chart-token="eyJhbGciOiJIUzI1NiJ9.eyJqdGkiOiI2YzlkZDA2ZTU4OGI0MTM5YjEyZDViMzU0ZDg3ZDllMyIsInN1YiI6IlRhZGF3dWxTdWJqZWN0IiwiaXNzIjoiVGFkYXd1bElzc3VlciIsImlhdCI6MTc2OTY4OTc5NSwibmJmIjoxNzY5Njg5Nzk1LCJleHAiOjE3Njk2OTAwOTV9._o70mU7Vgv4xQi-YvzgN9cbFOojHOtSqE6Cg7WOoSdk"
+		
+						aria-label="Time series chart"
+						data-chart-intrady="SQL_MI_MSPV"
+						data-chart-historical="SQL_T_IC_ALL_PER">
+						<!-- Toolbar -->
+						<header class="chart-toolbar chart-toolbar--stacked">
+
+							<!-- ================= TOP ROW ================= -->
+							<div class="chart-toolbar__top">
+
+								<h2 class="chart-toolbar__title">
+									<svg class="pc-icon pr-3 link-icon ms-3 me-3" width="40"
+										height="40" style="color: blue; fill: blue">
+						                <use xlink:href="#tadawul-arrow-icon"></use>
+						              </svg>
+									<fmt:message
+								key="performance.chart" />
+								</h2>
+
+								<!-- <button type="button" class="chart-btn chart-btn--top">
+									Compare <span class="chart-btn__icon" aria-hidden="true">+</span>
+								</button> -->
+
+							</div>
+
+							<!-- ================= BOTTOM ROW ================= -->
+							<div class="chart-toolbar__bottom">
+
+								<!-- Range controls -->
+								<div class="chart-toolbar__ranges" role="tablist"
+									aria-label="Chart range selector">
+
+									<button type="button" class="chart-range" data-range="1D"
+										role="tab">1D</button>
+
+									<button type="button" class="chart-range is-active"
+										data-range="1W" role="tab">1W</button>
+
+									<button type="button" class="chart-range" data-range="1M"
+										role="tab">1M</button>
+
+									<button type="button" class="chart-range" data-range="3M"
+										role="tab">3M</button>
+
+									<button type="button" class="chart-range" data-range="1Y"
+										role="tab">1Y</button>
+
+									<button type="button" class="chart-range" data-range="ALL"
+										role="tab">All</button>
+
+									<span class="chart-range-indicator" aria-hidden="true"></span>
+
+								</div>
+
+								<!-- Actions -->
+								<div class="chart-toolbar__actions">
+
+									<button id="exportBtn" type="button" class="chart-btn">
+										<fmt:message
+								key="export.chart" /></button>
+<!-- 
+									<button id="compareBtn" type="button" class="chart-btn">
+										Compare <span class="chart-btn__icon" aria-hidden="true">+</span>
+									</button> -->
+
+								</div>
+
+							</div>
+
+						</header>
+						<!-- Chart surface -->
+						<div class="chart-surface">
+							<div id="drawGraph" class="chart-canvas" role="img"
+								aria-label="Chart visualization"></div>
+						
+						</div>
+							
+						<div class="notes">
+<ul>
+<li><svg class="pc-icon pr-3 link-icon ml-2" width="20"
+									height="20">
+<use xlink:href="#custom-checkmark-icon"></use>
+</svg>
+	<fmt:message key="tasi.quote.delay" /></li>
+</ul>
+</div>
+					
+						
+						
+						
+					
+						 <%-- 
+						  	<div class="market-summary-stats content-bg-color">
+						  	
+						  	
+						
+					<div class="market-stat d-none d-md-block">
+						<span class="label"> <fmt:message key="market.valueTraded" />
+							( <svg class="pc-icon pr-3 link-icon" width="15" height="15">
+                        <use xlink:href="#custom-riyal-icon"></use>
+                      </svg> )
+						</span> <span class="value"><fmt:formatNumber type="number"
+								pattern="##,###,###.##" minFractionDigits="2"
+								maxFractionDigits="2"
+								value="${requestScope.tasiBean.tasiTodaysSummaryBean.turnOver}" /></span>
+					</div>
+					<div class="market-stat d-none d-md-block">
+						<span class="label"><fmt:message key="market.volumeTraded" /></span>
+						<span class="value"><fmt:formatNumber type="number"
+								pattern="##,###,###"
+								value="${requestScope.tasiBean.tasiTodaysSummaryBean.volumeTraded}" /></span>
+					</div>
+					<div class="market-stat">
+						<span class="label"> <fmt:message key="market.marketCap" />
+							(<fmt:message key="market.marketCap.million" />&nbsp; <svg
+								class="pc-icon pr-3 link-icon" width="15" height="15">
+                        <use xlink:href="#custom-riyal-icon"></use>
+                      </svg> )
+						</span> <span class="value">${requestScope.marketCapBean.marketCap_Main}</span>
+					</div>
+					<div class="market-stat">
+						<span class="label"><fmt:message
+								key="market.symbols.listed" /></span> <span class="value">${requestScope.marketCapBean.noOfSymbolsListed_Main}</span>
+					</div>
+					<div class="market-stat">
+						<span class="label text-negative"><fmt:message
+								key="market.symbolsdown" /></span> <span class="value">${requestScope.marketBean.noOfDowns}</span>
+					</div>
+					<div class="market-stat">
+						<span class="label text-positive"><fmt:message
+								key="market.symbolsup" /></span> <span class="value">${requestScope.marketBean.noOfUps}</span>
+					</div>
+
+					<div class="market-stat">
+					10	<span class="label"><fmt:message
+								key="market.index.change.daily" /></span> <span class="value">
+							<c:choose>
+								<c:when
+									test="${requestScope.tasibeanDetails.tasiYearToDateBean.change == 0}">
+									<strong><fmt:message key="N/A" /></strong>
+								</c:when>
+								<c:when
+									test="${requestScope.tasibeanDetails.tasiYearToDateBean.change > 0}">
+									<strong class="price-up"><fmt:formatNumber
+											type="number" minFractionDigits="2" maxFractionDigits="2"
+											value="${requestScope.tasibeanDetails.tasiYearToDateBean.change }"></fmt:formatNumber></strong>
+								</c:when>
+								<c:otherwise>
+									<strong class="price-down"><fmt:formatNumber
+											type="number" minFractionDigits="2" maxFractionDigits="2"
+											value="${requestScope.tasibeanDetails.tasiYearToDateBean.change }"></fmt:formatNumber></strong>
+								</c:otherwise>
+							</c:choose>
+
+						</span>
+					</div>
+					
+					<div class="market-stat">
+						<span class="label"><fmt:message
+								key="market.funds.etfs.change.percentage" /></span> <span class="value">
+							<c:choose>
+								<c:when
+									test="${requestScope.tasibeanDetails.tasiYearToDateBean.percentChange == 0}">
+									<strong><fmt:message key="N/A" /></strong>
+								</c:when>
+								<c:when
+									test="${requestScope.tasibeanDetails.tasiYearToDateBean.percentChange > 0}">
+									<strong class="price-up"><fmt:formatNumber
+											type="number" minFractionDigits="2" maxFractionDigits="2"
+											value="${requestScope.tasibeanDetails.tasiYearToDateBean.percentChange }"></fmt:formatNumber></strong>
+								</c:when>
+								<c:otherwise>
+									<strong class="price-down"><fmt:formatNumber
+											type="number" minFractionDigits="2" maxFractionDigits="2"
+											value="${requestScope.tasibeanDetails.tasiYearToDateBean.percentChange }"></fmt:formatNumber></strong>
+								</c:otherwise>
+							</c:choose>
+
+						</span>
+					</div>
+
+				</div> --%>
+						
+						 
+						 
+						 
+					<section class="info-summary mt-1">
+						<dl class="row info-summary__list">
+
+							<div class="col-xl-2 col-lg-3 col-md-4 col-6 info-summary__item">
+								<dt>
+									 <fmt:message key="market.valueTraded" />
+							( <svg class="pc-icon pr-3 link-icon" width="15" height="15">
+                        <use xlink:href="#custom-riyal-icon"></use>
+                      </svg> )
+						
+								</dt>
+								<dd><fmt:formatNumber type="number"
+								pattern="##,###,###.##" minFractionDigits="2"
+								maxFractionDigits="2"
+								value="${requestScope.tasiBean.tasiTodaysSummaryBean.turnOver}" /></dd>
+								
+								
+								
+							</div>
+
+							<div class="col-xl-2 col-lg-3 col-md-4 col-6 info-summary__item">
+								<dt>
+									<fmt:message key="market.volumeTraded" />
+								</dt>
+								
+									<dd><fmt:formatNumber type="number"
+								pattern="##,###,###"
+								value="${requestScope.tasiBean.tasiTodaysSummaryBean.volumeTraded}" /></dd>
+							
+								
+								
+							</div>
+
+							<div class="col-xl-2 col-lg-3 col-md-4 col-6 info-summary__item">
+								<dt>
+									<fmt:message key="market.marketCap" />
+							(<fmt:message key="market.marketCap.million" />&nbsp; <svg
+								class="pc-icon pr-3 link-icon" width="15" height="15">
+                        <use xlink:href="#custom-riyal-icon"></use>
+                      </svg> )
+								</dt>
+								<dd>
+									${requestScope.marketCapBean.marketCap_Main}
+								</dd>
+								
+								
+								
+							</div>
+
+							<div class="col-xl-2 col-lg-3 col-md-4 col-6 info-summary__item">
+								<dt>
+								<fmt:message
+								key="market.symbols.listed" />
+								</dt>
+								<dd>
+									${requestScope.marketCapBean.noOfSymbolsListed_Main}
+								</dd>
+								
+						
+								
+							</div>
+							
+							
+							<div class="col-xl-2 col-lg-3 col-md-4 col-6 info-summary__item">
+								<dt>
+									<span class="label text-negative"><fmt:message
+								key="market.symbolsdown" /></span>
+								</dt>
+								<dd>
+									${requestScope.marketBean.noOfDowns}
+								</dd>
+								
+								
+							</div>
+							
+								<div class="col-xl-2 col-lg-3 col-md-4 col-6 info-summary__item">
+								<dt>
+									<span class="label text-positive"><fmt:message
+								key="market.symbolsup" /></span>
+								</dt>
+								<dd>
+									${requestScope.marketBean.noOfUps}
+								</dd>
+								
+								
+							</div>
+							
+							
+							
+						</dl>
+					</section>
+
+						 
+						 
+						
+						
+					</section>
+					<script src="${pageContext.request.contextPath}/js/saudiCableGraph.js"></script>
+						<script src="${pageContext.request.contextPath}/js/sukuk-market-watch-script.js"></script>
+				</div>
+				
+				<div class="content-bg-color performance-panel">
+				
+				<div class="performance-panel performance-panel--announcements">
+					<h2>
+						<svg class="pc-icon pr-3 link-icon ms-3 me-3" width="40"
+							height="40" style="color: blue; fill: blue">
+                <use xlink:href="#tadawul-arrow-icon"></use>
+              </svg>
+						<fmt:message key="tadawul.eportal.mw.ta.title" />
+			
+					</h2>
+					<input type="hidden" id="requestLocale" name="requestLocale"
+				value="${pageContext.request.locale.language}" />
+					<div class="announcements-details" id="market-news">
+
+						<ul class="nav nav-tabs" id="todaysactivitytab" role="tablist">
+				<li id="gainersDivId" class="nav-item">
+					<button class="nav-link active" data-bs-toggle="tab"
+						data-bs-target="#TopGainers" type="button" role="tab"
+						aria-controls="TopGainers" aria-selected="true">
+						<fmt:message key="tadawul.eportal.mw.ta.top.gainers" />
+					</button>
+				</li>
+				<li id="loosersDivId" class="nav-item">
+					<button class="nav-link" data-bs-toggle="tab"
+						data-bs-target="#timeksa" type="button" role="tab"
+						aria-controls="timeksa" aria-selected="false">
+						<fmt:message key="tadawul.eportal.mw.ta.top.loosers" />
+					</button>
+				</li>
+				<li id="moversbyVolumeDivId" class="nav-item">
+					<button class="nav-link" data-bs-toggle="tab"
+						data-bs-target="#Perticular" type="button" role="tab"
+						aria-controls="Perticular" aria-selected="false">
+						<fmt:message key="tadawul.eportal.mw.ta.moversby.volume" />
+					</button>
+				</li>
+				<li id="moversbyValueDivId" class="nav-item">
+					<button class="nav-link" data-bs-toggle="tab"
+						data-bs-target="#timeksa2" type="button" role="tab"
+						aria-controls="timeksa2" aria-selected="false">
+						<fmt:message key="tadawul.eportal.mw.ta.moversby.value" />
+					</button>
+				</li>
+			</ul>
+			
+			
+			<div class="tab-content" id="todaysactivitytable">
+                                    <div class="tab-pane fade show active" id="TopGainers" role="tabpanel"
+                                        aria-labelledby="Top-Gainers">
+                                        
+                                       <div class="table-responsive d-none d-md-block"> 
+                                            <table id ="topGainersTableId" class="table table-bordered align-middle text-left mb-0">
+                                                <thead class="">
+                                                    
+                                                    <tr>
+			                                            <th><fmt:message key="tadawul.eportal.mw.ta.symbol" /></th>
+			                                            <th><fmt:message key="tadawul.eportal.mw.ta.company" /></th>
+			                                            <th class="numeric text-center"><fmt:message key="tadawul.eportal.mw.ta.price" /></th>
+			                                            <th class="numeric text-center"><fmt:message key="tadawul.eportal.mw.ta.change" /></th>
+			                                            <th class="numeric text-center"><fmt:message key="tadawul.eportal.mw.ta.change" /> %</th>
+			                                            <th class="numeric text-center"><fmt:message key="tadawul.eportal.mw.ta.5dayperformance" /></th>
+			                                            <%--  <th class="numeric text-center"><fmt:message key="tadawul.eportal.mw.ta.watchlist" /></th>  --%>
+			                                        </tr>
+                                                </thead>
+                                                <tbody>
+                                                    
+                                                </tbody>
+                                            </table>
+                                         </div>
+                                    </div>
+                                    <div class="tab-pane fade" id="timeksa" role="tabpanel"
+                                        aria-labelledby="timeksa-tab">
+                                        <div class="todaysactivity_mobile_section d-block d-md-none">
+                                            <div class="activity_card">
+                                                <div class="left-card">
+                                                    <p><span class="gray-bk-box">4072</span></p>
+                                                    <p>MBC Group</p>
+                                                    <div class="performence-star">
+                                                        <span class="grnRound"></span><span
+                                                            class="grnRound"></span><span class="redRound"></span><span
+                                                            class="grnRound"></span><span class="redRound"></span>
+                                                    </div>
+                                                </div>
+                                                <div class="right-card">
+                                                    <p>45.00</p>
+                                                    <p><span class="change price-up ms-2">2.55</span>
+                                                        <span class="change price-up ms-2">▲ 6.01%</span>
+                                                    </p>
+                                                    <p><span class="star">☆</span></p>
+                                                </div>
+                                            </div>
+                                            <div class="activity_card">
+                                                <div class="left-card">
+                                                    <p><span class="gray-bk-box">4072</span></p>
+                                                    <p>MBC Group</p>
+                                                    <div class="performence-star">
+                                                        <span class="grnRound"></span><span
+                                                            class="grnRound"></span><span class="redRound"></span><span
+                                                            class="grnRound"></span><span class="redRound"></span>
+                                                    </div>
+                                                </div>
+                                                <div class="right-card">
+                                                    <p>45.00</p>
+                                                    <p><span class="change price-up ms-2">2.55</span>
+                                                        <span class="change price-up ms-2">▲ 6.01%</span>
+                                                    </p>
+                                                    <p><span class="star">☆</span></p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="table-responsive d-none d-md-block">
+                                            <table class="table table-bordered align-middle text-center mb-0"  id ="loosersTableId">
+                                                <thead class="">
+                                                   
+                                                    <tr>
+			                                            <th><fmt:message key="tadawul.eportal.mw.ta.symbol" /></th>
+			                                            <th><fmt:message key="tadawul.eportal.mw.ta.company" /></th>
+			                                            <th class="numeric text-center"><fmt:message key="tadawul.eportal.mw.ta.price" /></th>
+			                                            <th class="numeric text-center"><fmt:message key="tadawul.eportal.mw.ta.change" /></th>
+			                                            <th class="numeric text-center"><fmt:message key="tadawul.eportal.mw.ta.change" /> %</th>
+			                                            <th class="numeric text-center"><fmt:message key="tadawul.eportal.mw.ta.5dayperformance" /></th>
+			                                           <%--  <th class="numeric text-center"><fmt:message key="tadawul.eportal.mw.ta.watchlist" /></th>  --%>
+			                                        </tr>
+                                                </thead>
+                                                <tbody>
+                                                    
+                                                </tbody>
+                                            </table>
+                                       </div>
+                                    </div>
+                                    <div class="tab-pane fade" id="Perticular" role="tabpanel"
+                                        aria-labelledby="Perticular-tab">
+                                        <div class="todaysactivity_mobile_section d-block d-md-none">
+                                            <div class="activity_card">
+                                                <div class="left-card">
+                                                    <p><span class="gray-bk-box">4072</span></p>
+                                                    <p>MBC Group</p>
+                                                    <div class="performence-star">
+                                                        <span class="grnRound"></span><span
+                                                            class="grnRound"></span><span class="redRound"></span><span
+                                                            class="grnRound"></span><span class="redRound"></span>
+                                                    </div>
+                                                </div>
+                                                <div class="right-card">
+                                                    <p>45.00</p>
+                                                    <p><span class="change price-up ms-2">2.55</span>
+                                                        <span class="change price-up ms-2">▲ 6.01%</span>
+                                                    </p>
+                                                    <p><span class="star">☆</span></p>
+                                                </div>
+                                            </div>
+                                            <div class="activity_card">
+                                                <div class="left-card">
+                                                    <p><span class="gray-bk-box">4072</span></p>
+                                                    <p>MBC Group</p>
+                                                    <div class="performence-star">
+                                                        <span class="grnRound"></span><span
+                                                            class="grnRound"></span><span class="redRound"></span><span
+                                                            class="grnRound"></span><span class="redRound"></span>
+                                                    </div>
+                                                </div>
+                                                <div class="right-card">
+                                                    <p>45.00</p>
+                                                    <p><span class="change price-up ms-2">2.55</span>
+                                                        <span class="change price-up ms-2">▲ 6.01%</span>
+                                                    </p>
+                                                    <p><span class="star">☆</span></p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                     <div class="table-responsive d-none d-md-block"> 
+                                            <table class="table table-bordered align-middle text-center mb-0" id="moversbyVolumeTableId">
+                                                <thead class="">
+                                                    <tr>
+			                                            <th><fmt:message key="tadawul.eportal.mw.ta.symbol" /></th>
+			                                            <th><fmt:message key="tadawul.eportal.mw.ta.company" /></th>
+			                                            <th class="numeric text-center"><fmt:message key="tadawul.eportal.mw.ta.price" /></th>
+			                                            <th class="numeric text-center"><fmt:message key="tadawul.eportal.mw.ta.change" /></th>
+			                                            <th class="numeric text-center"><fmt:message key="tadawul.eportal.mw.ta.change" /> %</th>
+			                                            <th class="numeric text-center"><fmt:message key="tadawul.eportal.mw.ta.volume" /></th>
+			                                            <th class="numeric text-center"><fmt:message key="tadawul.eportal.mw.ta.5dayperformance" /></th>
+			                                             <%--  <th class="numeric text-center"><fmt:message key="tadawul.eportal.mw.ta.watchlist" /></th>  --%>
+			                                        </tr>
+                                                    
+                                                </thead>
+                                                <tbody>
+                                                </tbody>
+                                            </table>
+                                        </div> 
+                                    </div>
+                                    <div class="tab-pane fade" id="timeksa2" role="tabpanel"
+                                        aria-labelledby="timeksa-tab2">
+                                        <div class="todaysactivity_mobile_section d-block d-md-none">
+                                            <div class="activity_card">
+                                                <div class="left-card">
+                                                    <p><span class="gray-bk-box">4072</span></p>
+                                                    <p>MBC Group</p>
+                                                    <div class="performence-star">
+                                                        <span class="grnRound"></span><span
+                                                            class="grnRound"></span><span class="redRound"></span><span
+                                                            class="grnRound"></span><span class="redRound"></span>
+                                                    </div>
+                                                </div>
+                                                <div class="right-card">
+                                                    <p>45.00</p>
+                                                    <p><span class="change price-up ms-2">2.55</span>
+                                                        <span class="change price-up ms-2">▲ 6.01%</span>
+                                                    </p>
+                                                    <p><span class="star">☆</span></p>
+                                                </div>
+                                            </div>
+                                            <div class="activity_card">
+                                                <div class="left-card">
+                                                    <p><span class="gray-bk-box">4072</span></p>
+                                                    <p>MBC Group</p>
+                                                    <div class="performence-star">
+                                                        <span class="grnRound"></span><span
+                                                            class="grnRound"></span><span class="redRound"></span><span
+                                                            class="grnRound"></span><span class="redRound"></span>
+                                                    </div>
+                                                </div>
+                                                <div class="right-card">
+                                                    <p>45.00</p>
+                                                    <p><span class="change price-up ms-2">2.55</span>
+                                                        <span class="change price-up ms-2">▲ 6.01%</span>
+                                                    </p>
+                                                    <p><span class="star">☆</span></p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                         <div class="table-responsive d-none d-md-block"> 
+                                            <table class="table table-bordered align-middle text-center mb-0" id="moversbyValueTableId">
+                                                <thead class="">
+                                                    <tr>
+			                                            <th><fmt:message key="tadawul.eportal.mw.ta.symbol" /></th>
+			                                            <th><fmt:message key="tadawul.eportal.mw.ta.company" /></th>
+			                                            <th class="numeric text-center"><fmt:message key="tadawul.eportal.mw.ta.price" /></th>
+			                                            <th class="numeric text-center"><fmt:message key="tadawul.eportal.mw.ta.change" /></th>
+			                                            <th class="numeric text-center"><fmt:message key="tadawul.eportal.mw.ta.change" /> %</th>
+			                                            <th class="numeric text-center"><fmt:message key="tadawul.eportal.mw.ta.value" /></th>
+			                                            <th class="numeric text-center"><fmt:message key="tadawul.eportal.mw.ta.5dayperformance" /></th>
+			                                          <%--   <th class="numeric text-center"><fmt:message key="tadawul.eportal.mw.ta.watchlist" /></th>  --%>
+			                                        </tr>
+                                                </thead>
+                                                <tbody>
+                                                </tbody>
+                                            </table>
+                                         </div> 
+                                    </div>
+                                    <!-- <div id="tab-loader" style="display: none;">
+                                        <div class="spinner-border text-primary" role="status">
+                                            <span class="visually-hidden">Loading...</span>
+                                        </div>
+                                    </div> -->
+                                </div>
+
+					</div>
+				</div>
+			
+			</div>
+			
+			</div>
+		</section>
+	</div>
+
+<script>
+  
+$(document).ready(function() {
+
+	<portlet:namespace/>getTopGainersTableIdDetails();
+    
+	// Range DatePicker
+	$('#gainersDivId').click(function(event){
+		event.preventDefault();
+				<portlet:namespace/>getTopGainersTableIdDetails();
+	});
+	
+	$('#loosersDivId').click(function(event){
+		event.preventDefault();
+				<portlet:namespace/>getTopLosersDetails();
+	});
+	
+	
+	$('#moversbyVolumeDivId').click(function(event){
+		event.preventDefault();
+				<portlet:namespace/>getMoversByVolumeDetails();
+	});
+	
+	$('#moversbyValueDivId').click(function(event){
+		event.preventDefault();
+				<portlet:namespace/>getMoversByValueDetails();
+	});
+	
+});
+
+function <portlet:namespace/>getTopGainersTableIdDetails(){
+
+		$('#topGainersTableId').dataTable().fnClearTable();
+		$('#topGainersTableId').dataTable().fnDestroy();
+		console.log("------");
+		var requestLocale =$("#requestLocale").val();
+	
+	$('#topGainersTableId').dataTable({
+		responsive: true,
+		//"sPaginationType": "combobox",
+		ajax:{
+			url: '<portlet:resourceURL id="getTopGainersDetails"></portlet:resourceURL>',
+			type: 'GET',
+			data:{			
+				requestLocale:requestLocale
+			}
+		},
+		columns: [
+		      {"data":"symbol","className":""},
+		      {"data":"companyName","className":""},
+              {"data":"lastTradedPrice","className":"text-center"},
+              {"data":"netChange","className":"text-center priceId"},
+              {"data":"netPercentChange","className":"text-center","sClass": "priceId text-center","data-title": "2017"},
+              {"data":"day1Performance","className":"text-center","sClass": "numeric text-center","data-title": "2017"},
+            /*   {"data":"watchListId","className":"text-center"} */
+        ],
+        "pagingType": "full_numbers",
+        "bPaginate": false,
+        "pageLength": 10,
+        "searching": false,
+        "bFilter": false,
+        "bInfo": false,
+        "bSort":false,
+		"aaSorting": [],
+         oLanguage: {
+       		sLengthMenu: "_MENU_"
+    	 },
+    	 fnRowCallback: function( nRow, aData, iIndex ) {
+    	 console.log("---nRow---"+nRow);//,"data-title": "2017"
+	    	    
+	    	    if(aData.companyStatus == 1){
+	    	       $('td:eq(1)', nRow).html('<a class="ellipsis" href="'+aData.companyURL+'">'+aData.companyName+'</a><span class="ylwSymbol"></span>');
+	    	    }else if(aData.companyStatus == 2){
+	    	       $('td:eq(1)', nRow).html('<a class="ellipsis" href="'+aData.companyURL+'">'+aData.companyName+'</a><span class="orgSymbol"></span>');
+	    	    }else if(aData.companyStatus == 3){
+	    	       $('td:eq(1)', nRow).html('<a class="ellipsis" href="'+aData.companyURL+'">'+aData.companyName+'</a><span class="redSymbol"></span>');
+	    	    }else{
+	    	       $('td:eq(1)', nRow).html('<a class="ellipsis" href="'+aData.companyURL+'">'+aData.companyName+'</a>');
+	    	    }
+	    	    
+             	 
+             	 $('td:eq(2)', nRow).html(parseFloat(aData.lastTradedPrice).toFixed(2));
+             	 $('td:eq(3)', nRow).html('<div class="price-up">'+parseFloat(aData.netChange).toFixed(2)+'</div>');
+             	 $('td:eq(4)', nRow).html('<div class="price-up">'+ '<svg class="pc-icon pr-3 link-icon ml-2" width="20" height="20">'
+    + '<use xlink:href="#custom-arrow-up-right"></use>'
+    + '</svg>'+parseFloat(aData.netPercentChange).toFixed(2)+'% ' +' <i></i></div>');
+             	 
+             	 var grnRoundClass = "grnRound";
+             	 var redRoundClass = "redRound";
+             	 var text ='<span class="';
+             	
+             	  if(aData.day1Performance == null ){
+             	 text = text + '"></span>-<span class="';
+             	 }else{
+             	 
+             	 if(aData.day1Performance >= 0){
+             	   text = text + grnRoundClass;
+             	 }
+             	 if(aData.day1Performance < 0){
+             	     text = text + redRoundClass;
+             	 }
+             	 
+             	 text = text + '"></span><span class="';
+             	 }
+             	 
+             	 if(aData.day2Performance == null ){
+             	 text = text + '"></span>-<span class="';
+             	 }else{
+             	if(aData.day2Performance >= 0){
+             	   text = text + grnRoundClass;
+             	 }
+             	 if(aData.day2Performance < 0){
+             	     text = text + redRoundClass;
+             	 }
+             	 text = text + '"></span><span class="';
+             	 }
+             	 
+             	 if(aData.day3Performance == null ){
+             	 text = text + '"></span>-<span class="';
+             	 }else{
+             	 if(aData.day3Performance >= 0){
+             	   text = text + grnRoundClass;
+             	 }
+             	 if(aData.day3Performance < 0){
+             	     text = text + redRoundClass;
+             	 }
+             	 text = text + '"></span><span class="';
+             	 }
+             	 
+             	 
+             	 if(aData.day4Performance == null ){
+             	 text = text + '"></span>-<span class="';
+             	 }else{
+             	 if(aData.day4Performance >= 0){
+             	   text = text + grnRoundClass;
+             	 }
+             	 if(aData.day4Performance < 0){
+             	     text = text + redRoundClass;
+             	 }
+             	 text = text + '"></span><span class="';
+             	 }
+             	 
+             	 if(aData.day5Performance == null ){
+             	 text = text + '"></span>-<span class="';
+             	 }else{
+             	 if(aData.day5Performance >= 0){
+             	   text = text + grnRoundClass;
+             	 }
+             	 if(aData.day5Performance < 0){
+             	     text = text + redRoundClass;
+             	 }
+             	 text = text + '"></span>';
+             	 }
+             	$('td:eq(5)', nRow).html(text);
+             	 
+             	 var userValid = $("#isUserValidated").val();
+             	 if(userValid == "YES"){
+             	    if(aData.watchListId == 0 || aData.watchListId == "0"){
+             	    var tdData ='<i id="WL_Btn_add-'+aData.symbol+'" onclick="showAddToWatchListPopup('+aData.symbol+')" class="fa fa-star-o add_watchlist watchlistBox10"></i>';
+                  	   tdData = tdData + '<i id="WL_Btn_del-'+aData.symbol+'" onclick="deleteCompanyFromWatchlist('+aData.watchListId+','+aData.symbol+')" class="fa fa-star edit_watchlist watchlistBox10 d-none"></i>';
+             	     /*   $('td:eq(6)', nRow).html(tdData); */
+             	    }else{
+             	    
+             	    var tdData ='<i id="WL_Btn_add-'+aData.symbol+'" onclick="showAddToWatchListPopup('+aData.symbol+')" class="fa fa-star-o add_watchlist watchlistBox10 d-none"></i>';
+                  	   tdData = tdData + '<i id="WL_Btn_del-'+aData.symbol+'" onclick="deleteCompanyFromWatchlist('+aData.watchListId+','+aData.symbol+')" class="fa fa-star edit_watchlist watchlistBox10"></i>';
+                  	   $('td:eq(6)', nRow).html(tdData);
+             	    }
+             	 }else{
+             	  var tdData ='<i id="WL_Btn_add-'+aData.symbol+'" onclick="showAddToWatchListPopup('+aData.symbol+')" class="fa fa-star-o add_watchlist watchlistBox10 d-none"></i>';
+                  	   tdData = tdData + '<i id="WL_Btn_del-'+aData.symbol+'" onclick="deleteCompanyFromWatchlist('+aData.watchListId+','+aData.symbol+')" class="fa fa-star edit_watchlist watchlistBox10 d-none"></i>';
+                  	   tdData = tdData + '<i onclick="showLoginForm('+aData.symbol+')" id="WL_Btn-'+aData.symbol+'" class="fa fa-star-o add_watchlist watchlistBox10"></i>';
+                  	 /*   $('td:eq(6)', nRow).html(tdData); */
+             	 } 
+         $('td', nRow).attr('style', 'position: static;');
+          return nRow;
+         },
+         "initComplete": function(settings, json) {
+         }
+	});
+
+	$('#topGainersTableId_paginate').addClass('tablePaginantion');
+    		$('#topGainersTableId').removeClass('dataTable');
+		    $('select[name="topGainersTableId_length"] option').each(function() {
+		    	this.text='Display '+this.value+' Rows';
+			});
+}
+
+
+function <portlet:namespace/>getTopLosersDetails(){
+
+		$('#loosersTableId').dataTable().fnClearTable();
+		$('#loosersTableId').dataTable().fnDestroy();
+		var requestLocale =$("#requestLocale").val();
+	
+	$('#loosersTableId').dataTable({
+		responsive: true,
+		//"sPaginationType": "combobox",
+		ajax:{
+			url: '<portlet:resourceURL id="getTopLosersDetails"></portlet:resourceURL>',
+			type: 'GET',
+			data:{			
+				requestLocale:requestLocale
+			}
+		},
+		columns: [
+		      {"data":"symbol","className":""},
+		      {"data":"companyName","className":""},
+              {"data":"lastTradedPrice","className":"text-center"},
+              {"data":"netChange","className":"priceId text-center"},
+              {"data":"netPercentChange","className":"text-center","sClass": "priceId text-center","data-title": "2017"},
+              {"data":"day1Performance","className":"text-center","sClass": "numeric text-center","data-title": "2017"},
+            /*   {"data":"watchListId","className":"text-center"} */
+        ],
+        "pagingType": "full_numbers",
+        "bPaginate": false,
+        "pageLength": 10,
+        "searching": false,
+        "bFilter": false,
+        "bInfo": false,
+        "bSort":false,
+		"aaSorting": [],
+         oLanguage: {
+       		sLengthMenu: "_MENU_"
+    	 },
+    	 fnRowCallback: function( nRow, aData, iIndex ) {
+    	         if(aData.companyStatus == 1){
+	    	       $('td:eq(1)', nRow).html('<a class="ellipsis" href="'+aData.companyURL+'">'+aData.companyName+'</a><span class="ylwSymbol"></span>');
+	    	    }else if(aData.companyStatus == 2){
+	    	       $('td:eq(1)', nRow).html('<a class="ellipsis" href="'+aData.companyURL+'">'+aData.companyName+'</a><span class="orgSymbol"></span>');
+	    	    }else if(aData.companyStatus == 3){
+	    	       $('td:eq(1)', nRow).html('<a class="ellipsis" href="'+aData.companyURL+'">'+aData.companyName+'</a><span class="redSymbol"></span>');
+	    	    }else{
+	    	       $('td:eq(1)', nRow).html('<a class="ellipsis" href="'+aData.companyURL+'">'+aData.companyName+'</a>');
+	    	    }
+	    	    $('td:eq(1)', nRow).css
+             	 
+             	 $('td:eq(2)', nRow).html(parseFloat(aData.lastTradedPrice).toFixed(2));
+             	 $('td:eq(3)', nRow).html('<div class="price-down">'+parseFloat(aData.netChange).toFixed(2)+'</div>');
+             	 $('td:eq(4)', nRow).html('<div class="price-down">'+ '<svg class="pc-icon pr-3 link-icon ml-2" width="20" height="20">'
+    + '<use xlink:href="#custom-arrow-down-right"></use>'
+    + '</svg>'+parseFloat(aData.netPercentChange).toFixed(2)+'%'+'<i></i></div>');
+             	 
+             	 var grnRoundClass = "grnRound";
+             	 var redRoundClass = "redRound";
+             	 
+             	<%-- var text ='<span class="';
+             	 
+             	 if(aData.day1Performance >= 0){
+             	   text = text + grnRoundClass;
+             	 }
+             	 if(aData.day1Performance < 0){
+             	     text = text + redRoundClass;
+             	 }
+             	 text = text + '"></span><span class="';
+             	 
+             	if(aData.day2Performance >= 0){
+             	   text = text + grnRoundClass;
+             	 }
+             	 if(aData.day2Performance < 0){
+             	     text = text + redRoundClass;
+             	 }
+             	 text = text + '"></span><span class="';
+             	 
+             	 if(aData.day3Performance >= 0){
+             	   text = text + grnRoundClass;
+             	 }
+             	 if(aData.day3Performance < 0){
+             	     text = text + redRoundClass;
+             	 }
+             	 text = text + '"></span><span class="';
+             	 
+             	 if(aData.day4Performance >= 0){
+             	   text = text + grnRoundClass;
+             	 }
+             	 if(aData.day4Performance < 0){
+             	     text = text + redRoundClass;
+             	 }
+             	 text = text + '"></span><span class="';
+             	 
+             	 if(aData.day5Performance >= 0){
+             	   text = text + grnRoundClass;
+             	 }
+             	 if(aData.day5Performance < 0){
+             	     text = text + redRoundClass;
+             	 }
+             	 text = text + '"></span>'; --%>
+             	 
+             	  var text ='<span class="';
+             	 
+             	  if(aData.day1Performance == null ){
+             	 text = text + '"></span>-<span class="';
+             	 }else{
+             	  if(aData.day1Performance >= 0){
+             	   text = text + grnRoundClass;
+             	 }
+             	 if(aData.day1Performance < 0){
+             	     text = text + redRoundClass;
+             	 }
+             	 
+             	 text = text + '"></span><span class="';
+             	 }
+             	 
+             	 if(aData.day2Performance == null ){
+             	 text = text + '"></span>-<span class="';
+             	 }else{
+             	if(aData.day2Performance >= 0){
+             	   text = text + grnRoundClass;
+             	 }
+             	 if(aData.day2Performance < 0){
+             	     text = text + redRoundClass;
+             	 }
+             	 text = text + '"></span><span class="';
+             	 }
+             	 
+             	 if(aData.day3Performance == null ){
+             	 text = text + '"></span>-<span class="';
+             	 }else{
+             	 if(aData.day3Performance >= 0){
+             	   text = text + grnRoundClass;
+             	 }
+             	 if(aData.day3Performance < 0){
+             	     text = text + redRoundClass;
+             	 }
+             	 text = text + '"></span><span class="';
+             	 }
+             	 
+             	 
+             	 if(aData.day4Performance == null ){
+             	 text = text + '"></span>-<span class="';
+             	 }else{
+             	 if(aData.day4Performance >= 0){
+             	   text = text + grnRoundClass;
+             	 }
+             	 if(aData.day4Performance < 0){
+             	     text = text + redRoundClass;
+             	 }
+             	 text = text + '"></span><span class="';
+             	 }
+             	 
+             	 if(aData.day5Performance == null ){
+             	 text = text + '"></span>-<span class="';
+             	 }else{
+             	 if(aData.day5Performance >= 0){
+             	   text = text + grnRoundClass;
+             	 }
+             	 if(aData.day5Performance < 0){
+             	     text = text + redRoundClass;
+             	 }
+             	 text = text + '"></span>';
+             	 }
+             	 
+             	 $('td:eq(5)', nRow).html(text);
+             	 
+             	 var userValid = $("#isUserValidated").val();
+             	 if(userValid == "YES"){
+             	    if(aData.watchListId == 0 || aData.watchListId == "0"){
+             	    var tdData ='<i id="WL_Btn_add-'+aData.symbol+'" onclick="showAddToWatchListPopup('+aData.symbol+')" class="fa fa-star-o add_watchlist watchlistBox10"></i>';
+                  	   tdData = tdData + '<i id="WL_Btn_del-'+aData.symbol+'" onclick="deleteCompanyFromWatchlist('+aData.watchListId+','+aData.symbol+')" class="fa fa-star edit_watchlist watchlistBox10 d-none"></i>';
+             	       $('td:eq(6)', nRow).html(tdData);
+             	    }else{
+             	    
+             	    var tdData ='<i id="WL_Btn_add-'+aData.symbol+'" onclick="showAddToWatchListPopup('+aData.symbol+')" class="fa fa-star-o add_watchlist watchlistBox10 d-none"></i>';
+                  	   tdData = tdData + '<i id="WL_Btn_del-'+aData.symbol+'" onclick="deleteCompanyFromWatchlist('+aData.watchListId+','+aData.symbol+')" class="fa fa-star edit_watchlist watchlistBox10"></i>';
+                  	/*    $('td:eq(6)', nRow).html(tdData); */
+             	    }
+             	 }else{
+             	  var tdData ='<i id="WL_Btn_add-'+aData.symbol+'" onclick="showAddToWatchListPopup('+aData.symbol+')" class="fa fa-star-o add_watchlist watchlistBox10 d-none"></i>';
+                  	   tdData = tdData + '<i id="WL_Btn_del-'+aData.symbol+'" onclick="deleteCompanyFromWatchlist('+aData.watchListId+','+aData.symbol+')" class="fa fa-star edit_watchlist watchlistBox10 d-none"></i>';
+                  	   tdData = tdData + '<i onclick="showLoginForm('+aData.symbol+')" id="WL_Btn-'+aData.symbol+'" class="fa fa-star-o add_watchlist watchlistBox10"></i>';
+                  	 /*   $('td:eq(6)', nRow).html(tdData); */
+             	 }    	 
+         $('td', nRow).attr('style', 'position: static;');
+          return nRow;
+         },
+         "initComplete": function(settings, json) {
+         }
+	});
+
+	$('#loosersTableId_paginate').addClass('tablePaginantion');
+    		$('#loosersTableId').removeClass('dataTable');
+		    $('select[name="loosersTableId_length"] option').each(function() {
+		    	this.text='Display '+this.value+' Rows';
+			});
+}
+
+function <portlet:namespace/>getMoversByVolumeDetails(){
+
+		$('#moversbyVolumeTableId').dataTable().fnClearTable();
+		$('#moversbyVolumeTableId').dataTable().fnDestroy();
+		var requestLocale =$("#requestLocale").val();
+	
+	$('#moversbyVolumeTableId').dataTable({
+		responsive: true,
+		//"sPaginationType": "combobox",
+		ajax:{
+			url: '<portlet:resourceURL id="getMoversByVolumeDetails"></portlet:resourceURL>',
+			type: 'GET',
+			data:{				
+				requestLocale:requestLocale
+			}
+		},
+		columns: [
+		      {"data":"symbol","className":""},
+		      {"data":"companyName","className":""},
+              {"data":"lastTradedPrice","className":"text-center"},
+              {"data":"netChange","className":" priceId text-center"},
+              {"data":"netPercentChange","className":"text-center","sClass": "priceId text-center","data-title": "2017"},
+              {"data":"volume","className":"text-center","num-fmt": "9,999,999,999", "mRender": function (data, type, full) {
+              return parseFloat(data).formatQuantity();
+              }},
+              {"data":"day1Performance","className":"text-center","sClass": "numeric text-center","data-title": "2017"},
+           /*    {"data":"watchListId","className":"text-center"} */
+        ],
+        "pagingType": "full_numbers",
+        "bPaginate": false,
+        "pageLength": 10,
+        "searching": false,
+        "bFilter": false,
+        "bInfo": false,
+        "bSort":false,
+		"aaSorting": [],
+         oLanguage: {
+       		sLengthMenu: "_MENU_"
+    	 },
+    	 fnRowCallback: function( nRow, aData, iIndex ) {
+    	         
+    	         if(aData.companyStatus == 1){
+	    	       $('td:eq(1)', nRow).html('<a class="ellipsis" href="'+aData.companyURL+'">'+aData.companyName+'</a><span class="ylwSymbol"></span>');
+	    	    }else if(aData.companyStatus == 2){
+	    	       $('td:eq(1)', nRow).html('<a class="ellipsis" href="'+aData.companyURL+'">'+aData.companyName+'</a><span class="orgSymbol"></span>');
+	    	    }else if(aData.companyStatus == 3){
+	    	       $('td:eq(1)', nRow).html('<a class="ellipsis" href="'+aData.companyURL+'">'+aData.companyName+'</a><span class="redSymbol"></span>');
+	    	    }else{
+	    	       $('td:eq(1)', nRow).html('<a class="ellipsis" href="'+aData.companyURL+'">'+aData.companyName+'</a>');
+	    	    }
+	    	    
+             	 $('td:eq(2)', nRow).html(parseFloat(aData.lastTradedPrice).toFixed(2));
+             	 if(aData.netPercentChange >0){
+             	    $('td:eq(3)', nRow).html('<div class="price-up">'+parseFloat(aData.netChange).toFixed(2)+'</div>');
+             	    $('td:eq(4)', nRow).html('<div class="price-up">'+ '<svg class="pc-icon pr-3 link-icon ml-2" width="20" height="20">'
+    + '<use xlink:href="#custom-arrow-up-right"></use>'
+    + '</svg>'+parseFloat(aData.netPercentChange).toFixed(2)+'%' +' <i></i></div>');
+             	 }else if(aData.netPercentChange <0){
+             	    $('td:eq(3)', nRow).html('<div class="price-down">'+parseFloat(aData.netChange).toFixed(2)+'</div>');
+             	    $('td:eq(4)', nRow).html('<div class="price-down">'+ '<svg class="pc-icon pr-3 link-icon ml-2" width="20" height="20">'
+    + '<use xlink:href="#custom-arrow-down-right"></use>'
+    + '</svg>'+parseFloat(aData.netPercentChange).toFixed(2)+'%' +'<i></i></div>');
+             	 }else{
+             	    $('td:eq(3)', nRow).html('<div class="priceEqual">'+parseFloat(aData.netChange).toFixed(2)+'</div>');
+             	    $('td:eq(4)', nRow).html('<div class="priceEqual">'+parseFloat(aData.netPercentChange).toFixed(2)+'% <i></i></div>');
+             	 }
+             	 
+             	 var grnRoundClass = "grnRound";
+             	 var redRoundClass = "redRound";
+             	 
+             	 
+             	 <%-- var text ='<span class="';
+             	 
+             	 if(aData.day1Performance >= 0){
+             	   text = text + grnRoundClass;
+             	 }
+             	 if(aData.day1Performance < 0){
+             	     text = text + redRoundClass;
+             	 }
+             	 text = text + '"></span><span class="';
+             	 
+             	if(aData.day2Performance >= 0){
+             	   text = text + grnRoundClass;
+             	 }
+             	 if(aData.day2Performance < 0){
+             	     text = text + redRoundClass;
+             	 }
+             	 text = text + '"></span><span class="';
+             	 
+             	 if(aData.day3Performance >= 0){
+             	   text = text + grnRoundClass;
+             	 }
+             	 if(aData.day3Performance < 0){
+             	     text = text + redRoundClass;
+             	 }
+             	 text = text + '"></span><span class="';
+             	 
+             	 if(aData.day4Performance >= 0){
+             	   text = text + grnRoundClass;
+             	 }
+             	 if(aData.day4Performance < 0){
+             	     text = text + redRoundClass;
+             	 }
+             	 text = text + '"></span><span class="';
+             	 
+             	 if(aData.day5Performance >= 0){
+             	   text = text + grnRoundClass;
+             	 }
+             	 if(aData.day5Performance < 0){
+             	     text = text + redRoundClass;
+             	 }
+             	 text = text + '"></span>';
+             	 --%>
+             	 
+             	 var text ='<span class="';
+             	 if(aData.day1Performance == null ){
+             	 text = text + '"></span>-<span class="';
+             	 }else{
+             	 
+             	 if(aData.day1Performance >= 0){
+             	   text = text + grnRoundClass;
+             	 }
+             	 if(aData.day1Performance < 0){
+             	     text = text + redRoundClass;
+             	 }
+             	 
+             	 text = text + '"></span><span class="';
+             	 }
+             	 
+             	 if(aData.day2Performance == null ){
+             	 text = text + '"></span>-<span class="';
+             	 }else{
+             	if(aData.day2Performance >= 0){
+             	   text = text + grnRoundClass;
+             	 }
+             	 if(aData.day2Performance < 0){
+             	     text = text + redRoundClass;
+             	 }
+             	 text = text + '"></span><span class="';
+             	 }
+             	 
+             	 if(aData.day3Performance == null ){
+             	 text = text + '"></span>-<span class="';
+             	 }else{
+             	 if(aData.day3Performance >= 0){
+             	   text = text + grnRoundClass;
+             	 }
+             	 if(aData.day3Performance < 0){
+             	     text = text + redRoundClass;
+             	 }
+             	 text = text + '"></span><span class="';
+             	 }
+             	 
+             	 
+             	 if(aData.day4Performance == null ){
+             	 text = text + '"></span>-<span class="';
+             	 }else{
+             	 if(aData.day4Performance >= 0){
+             	   text = text + grnRoundClass;
+             	 }
+             	 if(aData.day4Performance < 0){
+             	     text = text + redRoundClass;
+             	 }
+             	 text = text + '"></span><span class="';
+             	 }
+             	 
+             	 if(aData.day5Performance == null ){
+             	 text = text + '"></span>-<span class="';
+             	 }else{
+             	 if(aData.day5Performance >= 0){
+             	   text = text + grnRoundClass;
+             	 }
+             	 if(aData.day5Performance < 0){
+             	     text = text + redRoundClass;
+             	 }
+             	 text = text + '"></span>';
+             	 }
+             	 
+             	 $('td:eq(6)', nRow).html(text);    
+             	 
+             	 var userValid = $("#isUserValidated").val();
+             	 if(userValid == "YES"){
+             	    if(aData.watchListId == 0 || aData.watchListId == "0"){
+             	    var tdData ='<i id="WL_Btn_add-'+aData.symbol+'" onclick="showAddToWatchListPopup('+aData.symbol+')" class="fa fa-star-o add_watchlist watchlistBox10"></i>';
+                  	   tdData = tdData + '<i id="WL_Btn_del-'+aData.symbol+'" onclick="deleteCompanyFromWatchlist('+aData.watchListId+','+aData.symbol+')" class="fa fa-star edit_watchlist watchlistBox10 d-none"></i>';
+             	    /*    $('td:eq(7)', nRow).html(tdData); */
+             	    }else{
+             	    
+             	    var tdData ='<i id="WL_Btn_add-'+aData.symbol+'" onclick="showAddToWatchListPopup('+aData.symbol+')" class="fa fa-star-o add_watchlist watchlistBox10 d-none"></i>';
+                  	   tdData = tdData + '<i id="WL_Btn_del-'+aData.symbol+'" onclick="deleteCompanyFromWatchlist('+aData.watchListId+','+aData.symbol+')" class="fa fa-star edit_watchlist watchlistBox10"></i>';
+                  	 /*   $('td:eq(7)', nRow).html(tdData); */
+             	    }
+             	 }else{
+             	  var tdData ='<i id="WL_Btn_add-'+aData.symbol+'" onclick="showAddToWatchListPopup('+aData.symbol+')" class="fa fa-star-o add_watchlist watchlistBox10 d-none"></i>';
+                  	   tdData = tdData + '<i id="WL_Btn_del-'+aData.symbol+'" onclick="deleteCompanyFromWatchlist('+aData.watchListId+','+aData.symbol+')" class="fa fa-star edit_watchlist watchlistBox10 d-none"></i>';
+                  	   tdData = tdData + '<i onclick="showLoginForm('+aData.symbol+')" id="WL_Btn-'+aData.symbol+'" class="fa fa-star-o add_watchlist watchlistBox10"></i>';
+                  	 /*   $('td:eq(7)', nRow).html(tdData); */
+             	 }
+             	 $('td', nRow).attr('style', 'position: static;');
+          return nRow;
+         },
+         "initComplete": function(settings, json) {
+         }
+	});
+
+	$('#moversbyVolumeTableId_paginate').addClass('tablePaginantion');
+    		$('#moversbyVolumeTableId').removeClass('dataTable');
+		    $('select[name="moversbyVolumeTableId_length"] option').each(function() {
+		    	this.text='Display '+this.value+' Rows';
+			});
+}
+                                        
+function <portlet:namespace/>getMoversByValueDetails(){
+
+		$('#moversbyValueTableId').dataTable().fnClearTable();
+		$('#moversbyValueTableId').dataTable().fnDestroy();
+		var requestLocale =$("#requestLocale").val();
+	
+	$('#moversbyValueTableId').dataTable({
+		responsive: true,
+		//"sPaginationType": "combobox",
+		ajax:{
+			url: '<portlet:resourceURL id="getMoversByValueDetails"></portlet:resourceURL>',
+			type: 'GET',
+			data:{			
+				requestLocale:requestLocale
+			}
+		},
+		columns: [
+		      {"data":"symbol","className":""},
+		      {"data":"companyName","className":""},
+              {"data":"lastTradedPrice","className":"text-center"},
+              {"data":"netChange","className":"priceId text-center"},
+              {"data":"netPercentChange","className":"text-center","sClass": "priceId text-center","data-title": "2017"},
+              {"data":"turnover","className":"text-center"},
+              {"data":"day1Performance","className":"text-center","sClass": "numeric text-center","data-title": "2017"},
+             /*  {"data":"watchListId","className":"text-center"} */
+        ],
+        "pagingType": "full_numbers",
+        "bPaginate": false,
+        "pageLength": 10,
+        "searching": false,
+        "bFilter": false,
+        "bInfo": false,
+        "bSort":false,
+		"aaSorting": [],
+         oLanguage: {
+       		sLengthMenu: "_MENU_"
+    	 },
+    	 fnRowCallback: function( nRow, aData, iIndex ) {
+    	         
+    	         if(aData.companyStatus == 1){
+	    	       $('td:eq(1)', nRow).html('<a class="ellipsis" href="'+aData.companyURL+'">'+aData.companyName+'</a><span class="ylwSymbol"></span>');
+	    	    }else if(aData.companyStatus == 2){
+	    	       $('td:eq(1)', nRow).html('<a class="ellipsis" href="'+aData.companyURL+'">'+aData.companyName+'</a><span class="orgSymbol"></span>');
+	    	    }else if(aData.companyStatus == 3){
+	    	       $('td:eq(1)', nRow).html('<a class="ellipsis" href="'+aData.companyURL+'">'+aData.companyName+'</a><span class="redSymbol"></span>');
+	    	    }else{
+	    	       $('td:eq(1)', nRow).html('<a class="ellipsis" href="'+aData.companyURL+'">'+aData.companyName+'</a>');
+	    	    }
+	    	    
+             	 $('td:eq(2)', nRow).html(parseFloat(aData.lastTradedPrice).toFixed(2));
+             	 if(aData.netPercentChange >0){
+             	    $('td:eq(3)', nRow).html('<div class="price-up">'+parseFloat(aData.netChange).toFixed(2)+'</div>');
+             	    $('td:eq(4)', nRow).html('<div class="price-up">'+ '<svg class="pc-icon pr-3 link-icon ml-2" width="20" height="20">'
+    + '<use xlink:href="#custom-arrow-up-right"></use>'
+    + '</svg>'+parseFloat(aData.netPercentChange).toFixed(2)+'%' +'<i></i></div>');
+             	 }else if(aData.netPercentChange <0){
+             	    $('td:eq(3)', nRow).html('<div class="price-down">'+parseFloat(aData.netChange).toFixed(2)+'</div>');
+             	    $('td:eq(4)', nRow).html('<div class="price-down">'+ '<svg class="pc-icon pr-3 link-icon ml-2" width="20" height="20">'
+    + '<use xlink:href="#custom-arrow-down-right"></use>'
+    + '</svg>'+parseFloat(aData.netPercentChange).toFixed(2)+'%' +'<i></i></div>');
+             	 }else{
+             	    $('td:eq(3)', nRow).html('<div class="priceEqual">'+parseFloat(aData.netChange).toFixed(2)+'</div>');
+             	    $('td:eq(4)', nRow).html('<div class="priceEqual">'+parseFloat(aData.netPercentChange).toFixed(2)+'% <i></i></div>');
+             	 }
+             	 
+             	
+             	$('td:eq(5)', nRow).html(parseFloat(aData.turnover).toFixed(2).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","));
+             	 
+             	 
+             	 var grnRoundClass = "grnRound";
+             	 var redRoundClass = "redRound";
+             	 
+             	 <%--
+             	 var text ='<span class="';
+             	 
+             	 if(aData.day1Performance >= 0){
+             	   text = text + grnRoundClass;
+             	 }
+             	 if(aData.day1Performance < 0){
+             	     text = text + redRoundClass;
+             	 }
+             	 text = text + '"></span><span class="';
+             	 
+             	if(aData.day2Performance >= 0){
+             	   text = text + grnRoundClass;
+             	 }
+             	 if(aData.day2Performance < 0){
+             	     text = text + redRoundClass;
+             	 }
+             	 text = text + '"></span><span class="';
+             	 
+             	 if(aData.day3Performance >= 0){
+             	   text = text + grnRoundClass;
+             	 }
+             	 if(aData.day3Performance < 0){
+             	     text = text + redRoundClass;
+             	 }
+             	 text = text + '"></span><span class="';
+             	 
+             	 if(aData.day4Performance >= 0){
+             	   text = text + grnRoundClass;
+             	 }
+             	 if(aData.day4Performance < 0){
+             	     text = text + redRoundClass;
+             	 }
+             	 text = text + '"></span><span class="';
+             	 
+             	 if(aData.day5Performance >= 0){
+             	   text = text + grnRoundClass;
+             	 }
+             	 if(aData.day5Performance < 0){
+             	     text = text + redRoundClass;
+             	 }
+             	 text = text + '"></span>'; --%>
+             	 
+             	 var text ='<span class="';
+             	 if(aData.day1Performance == null ){
+             	 text = text + '"></span>-<span class="';
+             	 }else{
+             	 
+             	 if(aData.day1Performance >= 0){
+             	   text = text + grnRoundClass;
+             	 }
+             	 if(aData.day1Performance < 0){
+             	     text = text + redRoundClass;
+             	 }
+             	 
+             	 text = text + '"></span><span class="';
+             	 }
+             	 
+             	 if(aData.day2Performance == null ){
+             	 text = text + '"></span>-<span class="';
+             	 }else{
+             	if(aData.day2Performance >= 0){
+             	   text = text + grnRoundClass;
+             	 }
+             	 if(aData.day2Performance < 0){
+             	     text = text + redRoundClass;
+             	 }
+             	 text = text + '"></span><span class="';
+             	 }
+             	 
+             	 if(aData.day3Performance == null ){
+             	 text = text + '"></span>-<span class="';
+             	 }else{
+             	 if(aData.day3Performance >= 0){
+             	   text = text + grnRoundClass;
+             	 }
+             	 if(aData.day3Performance < 0){
+             	     text = text + redRoundClass;
+             	 }
+             	 text = text + '"></span><span class="';
+             	 }
+             	 
+             	 
+             	 if(aData.day4Performance == null ){
+             	 text = text + '"></span>-<span class="';
+             	 }else{
+             	 if(aData.day4Performance >= 0){
+             	   text = text + grnRoundClass;
+             	 }
+             	 if(aData.day4Performance < 0){
+             	     text = text + redRoundClass;
+             	 }
+             	 text = text + '"></span><span class="';
+             	 }
+             	 
+             	 if(aData.day5Performance == null ){
+             	 text = text + '"></span>-<span class="';
+             	 }else{
+             	 if(aData.day5Performance >= 0){
+             	   text = text + grnRoundClass;
+             	 }
+             	 if(aData.day5Performance < 0){
+             	     text = text + redRoundClass;
+             	 }
+             	 text = text + '"></span>';
+             	 }
+             	 
+             	 $('td:eq(6)', nRow).html(text);    
+             	 
+             	 var userValid = $("#isUserValidated").val();
+             	 if(userValid == "YES"){
+             	    if(aData.watchListId == 0 || aData.watchListId == "0"){
+             	    var tdData ='<i id="WL_Btn_add-'+aData.symbol+'" onclick="showAddToWatchListPopup('+aData.symbol+')" class="fa fa-star-o add_watchlist watchlistBox10"></i>';
+                  	   tdData = tdData + '<i id="WL_Btn_del-'+aData.symbol+'" onclick="deleteCompanyFromWatchlist('+aData.watchListId+','+aData.symbol+')" class="fa fa-star edit_watchlist watchlistBox10 d-none"></i>';
+             	     /*   $('td:eq(7)', nRow).html(tdData); */
+             	    }else{
+             	    
+             	    var tdData ='<i id="WL_Btn_add-'+aData.symbol+'" onclick="showAddToWatchListPopup('+aData.symbol+')" class="fa fa-star-o add_watchlist watchlistBox10 d-none"></i>';
+                  	   tdData = tdData + '<i id="WL_Btn_del-'+aData.symbol+'" onclick="deleteCompanyFromWatchlist('+aData.watchListId+','+aData.symbol+')" class="fa fa-star edit_watchlist watchlistBox10"></i>';
+                  	/*    $('td:eq(7)', nRow).html(tdData); */
+             	    }
+             	 }else{
+             	  var tdData ='<i id="WL_Btn_add-'+aData.symbol+'" onclick="showAddToWatchListPopup('+aData.symbol+')" class="fa fa-star-o add_watchlist watchlistBox10 d-none"></i>';
+                  	   tdData = tdData + '<i id="WL_Btn_del-'+aData.symbol+'" onclick="deleteCompanyFromWatchlist('+aData.watchListId+','+aData.symbol+')" class="fa fa-star edit_watchlist watchlistBox10 d-none"></i>';
+                  	   tdData = tdData + '<i onclick="showLoginForm('+aData.symbol+')" id="WL_Btn-'+aData.symbol+'" class="fa fa-star-o add_watchlist watchlistBox10"></i>';
+                  	 /*   $('td:eq(7)', nRow).html(tdData); */
+             	 }	 
+         $('td', nRow).attr('style', 'position: static;');
+          return nRow;
+         },
+         "initComplete": function(settings, json) {
+         }
+	});
+
+	$('#moversbyValueTableId_paginate').addClass('tablePaginantion');
+    		$('#moversbyValueTableId').removeClass('dataTable');
+		    $('select[name="moversbyValueTableId_length"] option').each(function() {
+		    	this.text='Display '+this.value+' Rows';
+			});
+}
+</script>
+
+<section class="hero-section surface-hero"
+	aria-labelledby="TASI market summary"
+	aria-describedby="view market summary details for TASI ">
+	<div class="hero-section__background" aria-hidden="true"></div>
+	<div class="container hero-section__content">
+		<div class="hero-intro">
+			<!-- ====================================================================
+           Market Identity
+           ================================================================= -->
+
+			<header class="hero-intro__header">
+				<div class="hero-intro__brand">
+					<span class="hero-intro__icon has-icon icon-tadawul"
+						aria-hidden="true"></span>
+
+					<h1 id="main-market-title" class="hero-intro__title">
+						<fmt:message key="tasi.heading.mainmarket" />
+					</h1>
+				</div>
+
+				<p id="main-market-description" class="hero-intro__description">
+					<fmt:message key="tasi.description.mainmarket" />
+				</p>
+			</header>
+
+			<!-- ====================================================================
+           Market Index and Actions
+           ================================================================= -->
+
+			<footer class="hero-intro__footer">
+				<!-- TASI Index -->
+
+				<div class="instrument-price"
+					aria-label="TASI Index: 00,000.00 points. Increased by 00.00 points, or 0.00 percent.">
+					<p class="instrument-price__label"></p>
+
+					<div class="instrument-price__current">
+						<data id="indexPrice" class="instrument-price__value"
+							value="00,000.00"> </data>
+					</div>
+
+					<div class="instrument-price__change ">
+						<span class="instrument-price__change-icon" aria-hidden="true"></span>
+
+						<data id="indexNetChange" class="instrument-price__change-value"
+							value="00.00"> </data>
+
+						<span id="indexPercentChange"
+							class="instrument-price__change-percentage"> </span>
+					</div>
+				</div>
+
+				<!-- Main Market Actions -->
+
+				<nav class="hero-intro__actions" aria-label="Main Market actions">
+					<a class="btn btn-light btn-arrow" href="#"> <span>Invest
+							Now</span> <span
+						class="has-icon icon-chevron-right icon-flip-rtl icon-end"
+						aria-hidden="true"></span>
+					</a> <a class="btn btn-outline-light btn-arrow" href="#"> <span>Compare</span>
+
+						<span class="has-icon icon-chevron-right icon-flip-rtl"
+						aria-hidden="true"></span>
+					</a>
+				</nav>
+			</footer>
+		</div>
+	</div>
+</section>
+
+<section class="market-dashboard section"
+	aria-labelledby="market-dashboard-title">
+	<div class="container">
+		<div class="market-dashboard__surface">
+			<h2 id="market-dashboard-title" class="visually-hidden">Main
+				Market Dashboard</h2>
+
+			<!-- ===============================================================
+           Main dashboard columns
+           =============================================================== -->
+
+			<div class="market-dashboard__grid">
+				<!-- =============================================================
+             Market performance
+             ============================================================= -->
+
+
+				<div class="market-dashboard__primary">
+					<section class="performance-chart market-index-chart"
+						data-performance-chart aria-labelledby="main-market-chart-title"
+						aria-busy="true"
+						data-chart-company-name="<fmt:message key="tasi.portlet.title" />"
+						data-chart-company-symbol="${requestScope.chart_tasi_current_sector}"
+						data-chart-page-name="MainMarketWatch"
+						data-chart-x-label="<fmt:message key='tasi.chart.label.date' />"
+						data-chart-y-label="<fmt:message key='tasi.char.yaxis.title' />"
+						data-chart-t-label="<fmt:message key='tasi.char.xaxis.title' />"
+						data-chart-empty-label="<fmt:message key='tasi.empty.label' />"
+						data-chart-token="eyJhbGciOiJIUzI1NiJ9.eyJqdGkiOiI2YzlkZDA2ZTU4OGI0MTM5YjEyZDViMzU0ZDg3ZDllMyIsInN1YiI6IlRhZGF3dWxTdWJqZWN0IiwiaXNzIjoiVGFkYXd1bElzc3VlciIsImlhdCI6MTc2OTY4OTc5NSwibmJmIjoxNzY5Njg5Nzk1LCJleHAiOjE3Njk2OTAwOTV9._o70mU7Vgv4xQi-YvzgN9cbFOojHOtSqE6Cg7WOoSdk"
+						aria-label="Time series chart" data-chart-intrady="SQL_MI_MSPV"
+						data-chart-historical="SQL_T_IC_ALL_PER">
+						<!-- =========================================================
+         Header / Toolbar
+         ========================================================= -->
+
+						<header class="performance-chart__header chart-toolbar">
+							<!-- =======================================================
+           Top Row
+           ======================================================= -->
+
+							<div class="chart-toolbar__top">
+								<div class="chart-toolbar__heading">
+									<span class="chart-toolbar__title-icon has-icon icon-tadawul"
+										aria-hidden="true"></span>
+
+									<div class="chart-toolbar__heading-content">
+										<h3 id="main-market-chart-title" class="chart-toolbar__title">
+											Main Market Performance</h3>
+
+										<div class="chart-toolbar__meta" aria-label="Market status">
+											<!-- Live Status -->
+
+											<span class="chart-toolbar__live"> <span
+												class="market-status market-status--open" aria-hidden="true"></span>
+
+												<span data-chart-live-status> Live </span>
+											</span> <span class="chart-toolbar__meta-separator"
+												aria-hidden="true"></span>
+
+											<!-- Last Updated -->
+
+											<span class="chart-toolbar__updated"> <span>Updated</span>
+
+												<time data-chart-updated-time> — </time>
+											</span>
+										</div>
+									</div>
+								</div>
+
+								<!-- Historical Page -->
+
+								<a class="btn btn-primary btn-sm chart-toolbar__historical"
+									href="/market-data/historical"> <span>View
+										Historical</span> <span
+									class="has-icon icon-chevron-right icon-flip-rtl"
+									aria-hidden="true"></span>
+								</a>
+							</div>
+
+							<!-- =======================================================
+           Bottom Row
+           ======================================================= -->
+
+							<div class="chart-toolbar__bottom">
+								<!-- =====================================================
+             Range Controls
+             ===================================================== -->
+
+								<div class="chart-toolbar__ranges" role="group"
+									aria-label="Chart time range" data-chart-ranges>
+									<button class="chart-range is-active" type="button"
+										aria-pressed="true" data-chart-range="1D">
+										1D</button>
+
+									<button class="chart-range" type="button" aria-pressed="false"
+										data-chart-range="1W">1W</button>
+
+									<button class="chart-range" type="button" aria-pressed="false"
+										data-chart-range="1M">1M</button>
+
+									<button class="chart-range" type="button" aria-pressed="false"
+										data-chart-range="3M">3M</button>
+
+									<button class="chart-range" type="button" aria-pressed="false"
+										data-chart-range="6M">6M</button>
+
+									<button class="chart-range" type="button" aria-pressed="false"
+										data-chart-range="1Y">1Y</button>
+
+									<button class="chart-range" type="button" aria-pressed="false"
+										data-chart-range="5Y">5Y</button>
+
+									<button class="chart-range" type="button" aria-pressed="false"
+										title="Since inception" data-chart-range="ALL">
+										All</button>
+								</div>
+
+								<!-- =====================================================
+             Utilities
+             ===================================================== -->
+
+								<div class="chart-toolbar__utilities">
+									<!-- ===================================================
+               Chart Mode
+               =================================================== -->
+
+									<div class="chart-toolbar__type">
+										<div class="market-chart-toggle" role="group"
+											aria-label="Chart type" data-chart-modes>
+											<!-- Trend -->
+
+											<button class="market-chart-toggle__button is-active"
+												type="button" aria-label="Show trend chart"
+												aria-pressed="true" data-chart-type="trend">
+												<span class="has-icon icon-trend-up" aria-hidden="true"></span>
+
+												<span class="visually-hidden"> Trend chart </span>
+											</button>
+
+											<!-- Candlestick -->
+
+											<button class="market-chart-toggle__button" type="button"
+												aria-label="Show candlestick chart" aria-pressed="false"
+												data-chart-type="candlestick">
+												<span class="has-icon icon-chart-bar" aria-hidden="true"></span>
+
+												<span class="visually-hidden"> Candlestick chart </span>
+											</button>
+										</div>
+									</div>
+
+									<!-- ===================================================
+               Chart Actions
+               =================================================== -->
+
+									<div class="chart-toolbar__actions" aria-label="Chart actions">
+										<!-- Compare -->
+
+										<button class="chart-btn chart-btn--compare" type="button"
+											aria-pressed="false" data-chart-compare>
+											<span>Compare</span> <span class="has-icon icon-add-plus"
+												aria-hidden="true"></span>
+										</button>
+
+										<!-- =================================================
+                 Custom Export
+                 ================================================= -->
+
+										<div class="chart-export" data-chart-export>
+											<button id="main-market-export-trigger"
+												class="chart-btn chart-export__trigger" type="button"
+												aria-haspopup="menu" aria-expanded="false"
+												aria-controls="main-market-export-menu"
+												data-chart-export-trigger>
+												<span>Export</span> <span
+													class="has-icon icon-menu-dots-vertical" aria-hidden="true"></span>
+											</button>
+
+											<ul id="main-market-export-menu" class="chart-export-menu"
+												role="menu" aria-labelledby="main-market-export-trigger"
+												data-chart-export-menu hidden>
+												<!-- Full Screen -->
+
+												<li role="none">
+													<button type="button" role="menuitem"
+														data-export-action="fullscreen">
+														<span class="has-icon icon-external-link"
+															aria-hidden="true"></span>
+
+														<span>View Full Screen</span>
+													</button>
+												</li>
+
+												<!-- Print -->
+
+												<li role="none">
+													<button type="button" role="menuitem"
+														data-export-action="print">
+														<span class="has-icon icon-print" aria-hidden="true"></span>
+
+														<span>Print Chart</span>
+													</button>
+												</li>
+
+												<li class="chart-export-menu__separator" role="separator"></li>
+
+												<!-- PNG -->
+
+												<li role="none">
+													<button type="button" role="menuitem"
+														data-export-action="png">
+														<span class="has-icon icon-file-download"
+															aria-hidden="true"></span>
+
+														<span>Download PNG</span>
+													</button>
+												</li>
+
+												<!-- PDF -->
+
+												<li role="none">
+													<button type="button" role="menuitem"
+														data-export-action="pdf">
+														<span class="has-icon icon-pdf-file" aria-hidden="true"></span>
+
+														<span>Download PDF</span>
+													</button>
+												</li>
+											</ul>
+										</div>
+									</div>
+								</div>
+							</div>
+						</header>
+
+						<!-- =========================================================
+         Chart
+         ========================================================= -->
+
+						<div class="performance-chart__body">
+							<div class="chart-surface" data-chart-viewport>
+								<div id="main-market-chart"
+									class="chart-canvas market-chart market-chart--performance"
+									data-market-chart data-chart-context="performance"
+									data-chart-state="loading"
+									aria-label="Live Main Market index performance chart"></div>
+							</div>
+						</div>
+					</section>
+				</div>
+
+				<!-- =============================================================
+             Today’s activity
+             ============================================================= -->
+
+				<section class="market-dashboard__secondary market-activity"
+					aria-labelledby="market-activity-title">
+					<header class="market-activity__header">
+						<span class="market-activity__heading-icon has-icon icon-tadawul"
+							aria-hidden="true"></span>
+
+						<h3 id="market-activity-title" class="market-activity__title">
+							<fmt:message key="tadawul.eportal.mw.ta.title" />
+						</h3>
+
+						<input type="hidden" id="requestLocale" name="requestLocale"
+							value="${pageContext.request.locale.language}" />
+					</header>
+
+					<div class="tabs market-activity__tabs" data-tabs>
+						<div class="tabs-nav market-activity__nav" role="tablist"
+							aria-label="Today’s market activity">
+							<button id="activity-gainers-tab"
+								class="tab-link market-activity__tab active" type="button"
+								role="tab" aria-selected="true"
+								aria-controls="activity-gainers-panel" tabindex="0"
+								data-tab-target="activity-gainers-panel">
+								<fmt:message key="tadawul.eportal.mw.ta.top.gainers" />
+							</button>
+
+							<button id="activity-losers-tab"
+								class="tab-link market-activity__tab" type="button" role="tab"
+								aria-selected="false" aria-controls="activity-losers-panel"
+								tabindex="-1" data-tab-target="activity-losers-panel">
+								<fmt:message key="tadawul.eportal.mw.ta.top.loosers" />
+							</button>
+
+							<button id="activity-volume-tab"
+								class="tab-link market-activity__tab" type="button" role="tab"
+								aria-selected="false" aria-controls="activity-volume-panel"
+								tabindex="-1" data-tab-target="activity-volume-panel">
+								<fmt:message key="tadawul.eportal.mw.ta.moversby.volume" />
+							</button>
+
+							<button id="activity-value-tab"
+								class="tab-link market-activity__tab" type="button" role="tab"
+								aria-selected="false" aria-controls="activity-value-panel"
+								tabindex="-1" data-tab-target="activity-value-panel">
+								<fmt:message key="tadawul.eportal.mw.ta.moversby.value" />
+							</button>
+						</div>
+
+						<div class="tabs-content market-activity__content">
+							<!-- Top gainers -->
+
+							<div id="activity-gainers-panel"
+								class="tab-pane market-activity__panel active" role="tabpanel"
+								aria-labelledby="activity-gainers-tab">
+								<div class="table-responsive market-activity-table"
+									role="region" aria-label="Top gaining companies" tabindex="0">
+									<table id="topGainersTableId"
+										class="table table-striped table-hover market-activity-table__table">
+										<thead>
+											<tr>
+												<th scope="col"><fmt:message
+														key="tadawul.eportal.mw.ta.company" /></th>
+												<th scope="col"><fmt:message
+														key="tadawul.eportal.mw.ta.price" /></th>
+												<th scope="col"><fmt:message
+														key="tadawul.eportal.mw.ta.change" /></th>
+												<th scope="col"><fmt:message
+														key="tadawul.eportal.mw.ta.change" /> %</th>
+												<th scope="col"><span
+													class="market-activity-table__heading-stack"> <span><fmt:message
+																key="tadawul.eportal.mw.ta.5day" /></span> <span><fmt:message
+																key="tadawul.eportal.mw.ta.5dayperformance" /></span>
+												</span></th>
+											</tr>
+										</thead>
+
+										<tbody>
+
+										</tbody>
+									</table>
+								</div>
+							</div>
+
+							<!-- Top losers -->
+
+							<div id="activity-losers-panel"
+								class="tab-pane market-activity__panel" role="tabpanel"
+								aria-labelledby="activity-losers-tab" hidden>
+								<div class="table-responsive market-activity-table"
+									role="region" aria-label="Top declining companies" tabindex="0">
+									<table id="loosersTableId"
+										class="table table-striped table-hover market-activity-table__table">
+										<thead>
+											<tr>
+												<th scope="col"><fmt:message
+														key="tadawul.eportal.mw.ta.company" /></th>
+												<th scope="col"><fmt:message
+														key="tadawul.eportal.mw.ta.price" /></th>
+												<th scope="col"><fmt:message
+														key="tadawul.eportal.mw.ta.change" /></th>
+												<th scope="col"><fmt:message
+														key="tadawul.eportal.mw.ta.change" /> %</th>
+												<th scope="col"><span
+													class="market-activity-table__heading-stack"> <span><fmt:message
+																key="tadawul.eportal.mw.ta.5day" /></span> <span><fmt:message
+																key="tadawul.eportal.mw.ta.5dayperformance" /></span>
+												</span></th>
+											</tr>
+										</thead>
+
+										<tbody data-market-activity-body="losers">
+
+										</tbody>
+
+
+
+
+
+									</table>
+								</div>
+							</div>
+
+							<!-- Most active by volume -->
+
+							<div id="activity-volume-panel"
+								class="tab-pane market-activity__panel" role="tabpanel"
+								aria-labelledby="activity-volume-tab" hidden>
+								<div class="table-responsive market-activity-table"
+									role="region" aria-label="Most active companies by volume"
+									tabindex="0">
+									<table id="moversbyVolumeTableId"
+										class="table table-striped table-hover market-activity-table__table col-6">
+										<thead>
+											<tr>
+												<th scope="col"><fmt:message
+														key="tadawul.eportal.mw.ta.company" /></th>
+												<th scope="col"><fmt:message
+														key="tadawul.eportal.mw.ta.price" /></th>
+												<th scope="col"><fmt:message
+														key="tadawul.eportal.mw.ta.change" /></th>
+												<th scope="col"><fmt:message
+														key="tadawul.eportal.mw.ta.change" /> %</th>
+												<th scope="col"><fmt:message
+														key="tadawul.eportal.mw.ta.volume" /></th>
+												<th scope="col"><span
+													class="market-activity-table__heading-stack"> <span><fmt:message
+																key="tadawul.eportal.mw.ta.5day" /></span> <span><fmt:message
+																key="tadawul.eportal.mw.ta.5dayperformance" /></span>
+												</span></th>
+											</tr>
+										</thead>
+
+
+										<tbody data-market-activity-body="volume"></tbody>
+									</table>
+								</div>
+							</div>
+
+							<!-- Most active by value -->
+
+							<div id="activity-value-panel"
+								class="tab-pane market-activity__panel" role="tabpanel"
+								aria-labelledby="activity-value-tab" hidden>
+								<div class="table-responsive market-activity-table"
+									role="region" aria-label="Most active companies by value"
+									tabindex="0">
+									<table id="moversbyValueTableId"
+										class="table table-striped table-hover market-activity-table__table">
+										<thead>
+											<tr>
+												<th scope="col"><fmt:message
+														key="tadawul.eportal.mw.ta.company" /></th>
+												<th scope="col"><fmt:message
+														key="tadawul.eportal.mw.ta.price" /></th>
+												<th scope="col"><fmt:message
+														key="tadawul.eportal.mw.ta.change" /></th>
+												<th scope="col"><fmt:message
+														key="tadawul.eportal.mw.ta.change" /> %</th>
+												<th scope="col"><fmt:message
+														key="tadawul.eportal.mw.ta.value" /></th>
+												<th scope="col"><span
+													class="market-activity-table__heading-stack"> <span><fmt:message
+																key="tadawul.eportal.mw.ta.5day" /></span> <span><fmt:message
+																key="tadawul.eportal.mw.ta.5dayperformance" /></span>
+												</span></th>
+											</tr>
+										</thead>
+
+										<tbody data-market-activity-body="value"></tbody>
+									</table>
+								</div>
+							</div>
+						</div>
+					</div>
+				</section>
+			</div>
+
+			<!-- ===============================================================
+           Dashboard trading summary: 3 columns × 2 rows
+           =============================================================== -->
+
+			<dl class="market-dashboard__metrics"
+				aria-label="Main Market trading summary">
+				<div class="market-dashboard__metric">
+					<dt class="market-dashboard__metric-label">
+						<fmt:message key="market.valueTraded" />
+						(<span class="has-icon icon-riyal"></span>)
+					</dt>
+					<dd class="market-dashboard__metric-value" dir="ltr">
+						<data
+							value="${requestScope.tasiBean.tasiTodaysSummaryBean.turnOver}">
+						<fmt:formatNumber type="number" pattern="##,###,###.##"
+							minFractionDigits="2" maxFractionDigits="2"
+							value="${requestScope.tasiBean.tasiTodaysSummaryBean.turnOver}" /></data>
+					</dd>
+				</div>
+
+				<div class="market-dashboard__metric">
+					<dt class="market-dashboard__metric-label">
+						<fmt:message key="market.volumeTraded" />
+					</dt>
+					<dd class="market-dashboard__metric-value" dir="ltr">
+						<data
+							value="${requestScope.tasiBean.tasiTodaysSummaryBean.volumeTraded}">
+						<fmt:formatNumber type="number" pattern="##,###,###"
+							value="${requestScope.tasiBean.tasiTodaysSummaryBean.volumeTraded}" /></data>
+					</dd>
+				</div>
+
+				<div class="market-dashboard__metric">
+					<dt class="market-dashboard__metric-label">
+						<fmt:message key="market.marketCap" />
+						(
+						<fmt:message key="market.marketCap.million" />
+						&nbsp; <span class="has-icon icon-riyal"></span>)
+					</dt>
+					<dd class="market-dashboard__metric-value" dir="ltr">
+						<data value="${requestScope.marketCapBean.marketCap_Main}">${requestScope.marketCapBean.marketCap_Main}</data>
+					</dd>
+				</div>
+
+				<div class="market-dashboard__metric">
+					<dt class="market-dashboard__metric-label price-up">
+						<fmt:message key="market.symbols.listed" />
+					</dt>
+					<dd class="market-dashboard__metric-value price-up" dir="ltr">
+						<data value="${requestScope.marketCapBean.noOfSymbolsListed_Main}">${requestScope.marketCapBean.noOfSymbolsListed_Main}</data>
+					</dd>
+				</div>
+
+				<div class="market-dashboard__metric">
+					<dt class="market-dashboard__metric-label price-down">
+						<fmt:message key="market.symbolsdown" />
+					</dt>
+					<dd class="market-dashboard__metric-value price-down" dir="ltr">
+						<data value="${requestScope.marketBean.noOfDowns}">${requestScope.marketBean.noOfDowns}</data>
+					</dd>
+				</div>
+
+				<div class="market-dashboard__metric">
+					<dt class="market-dashboard__metric-label">
+						<fmt:message key="market.symbolsup" />
+					</dt>
+					<dd class="market-dashboard__metric-value" dir="ltr">
+						<data value="${requestScope.marketBean.noOfUps}">${requestScope.marketBean.noOfUps}</data>
+					</dd>
+				</div>
+			</dl>
+
+			<!-- ===============================================================
+           Dashboard note
+           =============================================================== -->
+
+			<aside class="chart-notes" aria-label="Chart information">
+				<ul class="chart-notes__list">
+					<li class="chart-notes__item"><span
+						class="chart-notes__status has-icon icon-check" aria-hidden="true"></span>
+
+						<span class="chart-notes__text"> Prices are delayed by a
+							minimum of five minutes. </span></li>
+				</ul>
+			</aside>
+		</div>
+	</div>
+</section>
+
+
+<script>
+	$(function() {
+
+		var autoRefreshTimeInSec = 60;
+
+		// initial call
+		getTasiIndexValues();
+
+		function getTasiIndexValues() {
+			$.ajax({
+						url : getMarketIndexUrl,
+						type : 'GET',
+						dataType : "json", // Note: jQuery 4 strictly handles data types and no longer promotes JSON to JSONP automatically
+						success : function(response) {
+							// jQuery 4 breaking change: $.parseJSON was removed. Use native JSON.parse()
+							var jsonResponse = (typeof response === "string") ? JSON
+									.parse(response)
+									: response;
+
+							var indexDivClass = "instrument-price__change"; // Default parent class
+							var iconClass = "instrument-price__change-icon has-icon";
+
+							if (jsonResponse.netChange > 0) {
+								indexDivClass += " price-up";
+								iconClass += " has-icon icon-trending-up";
+							} else if (jsonResponse.netChange < 0) {
+								indexDivClass += " price-down";
+								iconClass += " has-icon icon-trending-down";
+							} else {
+								indexDivClass += " price-neutral";
+							}
+
+							$('.instrument-price__change').attr('class',
+									indexDivClass);
+							;
+
+							$('.instrument-price__change-icon').attr('class',
+									iconClass);
+
+							$('#indexPrice').text(
+									(jsonResponse.indexPrice).toLocaleString(
+											undefined, {
+												minimumFractionDigits : 2
+											}));
+							$('#indexNetChange').text(
+									(jsonResponse.netChange).toLocaleString(
+											undefined, {
+												minimumFractionDigits : 2
+											}));
+
+							var percentChange = (jsonResponse.percentChange)
+									.toLocaleString(undefined, {
+										minimumFractionDigits : 2
+									});
+							if (!percentChange || percentChange == 0) {
+								percentChange = '(-)';
+							} else {
+								percentChange = '(' + percentChange + '%)';
+							}
+							$('#indexPercentChange').text(percentChange);
+							$('#indexPercentChange').text(percentChange);
+
+							// This is for arealabels
+							var accessibilityText = "TASI Index: "
+									+ jsonResponse.indexPrice.toLocaleString()
+									+ " points. "
+									+ (jsonResponse.netChange >= 0 ? "Increased"
+											: "Decreased")
+									+ " by "
+									+ Math.abs(jsonResponse.netChange)
+											.toLocaleString() + " points, or "
+									+ percentChange + ".";
+							$('.instrument-price').attr('aria-label',
+									accessibilityText);
+						},
+						complete : function() {
+							setTimeout(function() {
+								getTasiIndexValues();
+							}, autoRefreshTimeInSec * 1000);
+						}
+					});
+		}
+	});
+</script>

@@ -21,9 +21,9 @@
  *
  * Company image fallback:
  *
- * /abu-ibrahim/{companyCode}.jpg
+ * https://www.tadawulgroup.sa/Resources/SEMOBILELOGOS/{companyCode}.jpg
  *        ↓
- * /abu-ibrahim/default-Logo.png
+ * https://www.tadawulgroup.sa/Resources/SEMOBILELOGOS/default-Logo.png
  *        ↓
  * initials
  */
@@ -34,7 +34,7 @@
 
 const RESULT_LIMIT = 100;
 
-const COMPANY_IMAGE_BASE_PATH = "/abu-ibrahim";
+const COMPANY_IMAGE_BASE_PATH = "https://www.tadawulgroup.sa/Resources/SEMOBILELOGOS";
 
 const DEFAULT_COMPANY_IMAGE = `${COMPANY_IMAGE_BASE_PATH}/default-Logo.png`;
 
@@ -222,8 +222,8 @@ function primaryCompanyImageUrl(company) {
   }
 
   return `${COMPANY_IMAGE_BASE_PATH}/${encodeURIComponent(
-    String(company.companyCode),
-  )}.jpg`;
+    String(company.symbol),
+  )}.png`;
 }
 
 function initialImageStage(company) {
