@@ -1264,3 +1264,512 @@ function getChartExportFileName() {
 function getCurrentXAxisLabel(range){
 	return range === "1D" ? tAxisLabel : xAxisLabel;
 }
+
+
+
+
+
+
+<script type="text/javascript">
+
+/**
+ * Renders financial charts using Highcharts
+ * Compatible with JSP environments (avoids EL conflicts)
+ */
+
+// Language translations
+const chartTranslations = {
+  en: {
+    time: "Time",
+    index: "Index",
+    chartError: " Chart Loading Error",
+    noData: "Empty chart for {CHART} index (no data available)",
+    priceChart: "Price chart for {CHART} index",
+    tasi: "Tadawul All Share Index (TASI)",
+    nomuc: "Parallel Market Capped Index (NomuC)",
+    sukuk: "Sukuk/Bonds Market Index",
+    reits: "REITs", 
+    mt30: "MT30"
+  },
+  ar: {
+    time: "الوقت",
+    index: "المؤشر",
+    chartError: " خطأ في تحميل الرسم البياني",
+    noData: "مخطط فارغ لمؤشر {CHART} (لا توجد بيانات متاحة)",
+    priceChart: "الرسم البياني للسعر لمؤشر {CHART}",
+    tasi: "مؤشر السوق الرئيسية (تاسي)",
+    nomuc: "مؤشر السوق الموازية (نمو حد أعلى)",
+    sukuk: "مؤشر سوق الصكوك / السندات",
+    reits: "صناديق الإستثمار العقارية",
+     mt30: "إم تي 30"
+  }
+};
+
+
+// Detect language (from <html lang="..."> or fallback to English)
+let chartLang = document.documentElement.lang === "ar" ? "ar" : "en";
+
+function renderChart(chartId, targetElement) {
+  const safeId = String(chartId || 'tasi').trim().toLowerCase();
+  if (!safeId) {
+    console.error('Invalid chartId received');
+    renderErrorState(targetElement, chartTranslations[chartLang].chartError);
+    return;
+  }
+
+  const apiUrl = buildApiUrl(safeId);
+  if (!apiUrl) {
+    console.warn('Failed to build API URL, rendering empty chart');
+    drawEmptyChart(safeId, targetElement);
+    return;
+  }
+
+  console.log('Fetching data for:', safeId);
+
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 8000);
+
+  fetch(apiUrl, { signal: controller.signal })
+    .then(response => {
+      clearTimeout(timeoutId);
+      if (!response.ok) throw new Error('HTTP ' + response.status);
+      return response.json();
+    })
+    .then(data => {
+      if (!isValidData(data)) {
+        console.warn('Invalid data structure, rendering empty chart');
+        drawEmptyChart(safeId, targetElement);
+      } else {
+        drawChart(data, safeId, targetElement);
+      }
+    })
+    .catch(error => {
+      console.error('Fetch failed:', error.message);
+      drawEmptyChart(safeId, targetElement);
+    });
+}
+
+// Helper Functions ============================================
+
+function buildApiUrl(safeId) {
+  try {
+    const params = new URLSearchParams();
+    params.append('methodType', 'parsingMethod');
+
+    const sid = safeId.toLowerCase();
+    let chartType = "SQL_MI_MSPV";
+    if (sid === "nomuc") {
+      chartType = "SQL_MI_MSPV_SME";
+    } else if (sid === "sukuk") {
+      chartType = "SQL_MI_MSPV_SUKUK";
+    }
+    params.append('chart-type', chartType);
+
+    let chartParam;
+    if (sid === "sukuk") {
+      chartParam = "tsbi";
+    } else if (sid === "reits") {
+      chartParam = "trti";
+    } else {
+      chartParam = safeId;
+    }
+    params.append('chart-parameter', chartParam);
+
+    params.append('format', 'json');
+    params.append('pageName', 'MarketSummaryHomePageGraph');
+    params.append('jwtToken', '<%=JwtBean.getJwtToken("marketStatusHomeGraph")%>');
+
+    return '/tadawul.eportal.charts.v2/ChartGenerator?' + params.toString();
+  } catch (e) {
+    console.error('URL build failed:', e);
+    return null;
+  }
+}
+
+function isValidData(data) {
+  return Array.isArray(data) && data.length > 0 && 
+         data.every(item => item.dateTime && item.indexPrice !== undefined);
+}
+
+function renderErrorState(element, message) {
+  element.innerHTML = '<div class="chart-error">' +
+    '<p>' + chartTranslations[chartLang].chartError + '</p>' +
+    '<small>' + message + '</small>' +
+    '</div>';
+}
+
+// Empty Chart Rendering ======================================
+function drawEmptyChart(chartId, targetElement) {
+  try {
+    Highcharts.chart(targetElement, getEmptyChartConfig(chartId));
+  } catch (e) {
+    console.error('Empty chart render failed:', e);
+    renderErrorState(targetElement, 'Technical error in chart rendering');
+  }
+}
+
+function getEmptyChartConfig(chartId) {
+  const style = getChartStyles();
+  const t = chartTranslations[chartLang];
+  
+  const now = new Date();
+  const categories = [];
+  for (let i = 6; i >= 0; i--) {
+    const time = new Date(now.getTime() - i * 3600000);
+    categories.push(formatTime(time));
+  }
+  var chartName = t[chartId] || chartId.toUpperCase();
+  
+  return {
+    chart: {
+      type: 'area',
+      backgroundColor: 'transparent',
+      spacing: [10, 10, 10, 10]
+    },
+    exporting: {
+	  enabled: false
+	},
+	navigation: {
+	  buttonOptions: {
+	    enabled: false
+	  }
+	},
+    title: { text: null },
+    xAxis: {
+      categories: categories,
+      labels: {
+        style: { color: style.axisText },
+        step: 1
+      },
+      lineColor: style.axisLine,
+      title: {
+        text: t.time, 
+        style: { color: style.axisText }
+      }
+    },
+    yAxis: {
+      min: 0,
+      max: 100,
+      opposite: true,
+      title: { 
+        text: t.index,
+        style: { color: style.axisText } 
+      },
+      labels: {
+        style: { color: style.axisText },
+        formatter: function() {
+          return Highcharts.numberFormat(this.value, 0, '.', ',');
+        }
+      },
+      gridLineColor: style.gridLine
+    },
+    tooltip: { enabled: false },
+    plotOptions: {
+      area: {
+        fillOpacity: 0,
+        lineWidth: 0
+      }
+    },
+    
+    series: [{
+    
+      name: chartName,
+      data: []
+    }],
+    legend: {
+      itemStyle: {
+        color: 'rgb(156, 179, 201)',
+        fontWeight: 'normal'
+      },
+      itemHoverStyle: {
+        color: 'rgb(156, 179, 201)',
+        cursor: 'pointer'
+      }
+    },
+    credits: { enabled: false },
+    accessibility: {
+      enabled: true,
+      description: t.noData.replace("{CHART}", chartId.toUpperCase())
+    },
+    rangeSelector: {
+      buttonSpacing: 70
+    },
+    responsive: {
+      rules: [{
+        condition: { maxWidth: 1400 },
+        chartOptions: {
+          rangeSelector: {
+            dropdown: "always",
+            buttonSpacing: 50
+          }
+        }
+      }]
+    }
+  };
+}
+
+// Chart Rendering ============================================
+function drawChart(data, chartId, targetElement) {
+  try {
+    const formattedData = data.map(item => ({
+      x: new Date(item.dateTime).getTime(), // timestamp
+      y: item.indexPrice,
+      //name: chartId.toUpperCase()
+    }));
+    
+    Highcharts.setOptions({
+	  time: {
+	    useUTC: false
+	  }
+	});
+
+    Highcharts.chart(targetElement, getChartConfig(formattedData, chartId));
+    
+  } catch (e) {
+    console.error('Chart render failed:', e);
+    renderErrorState(targetElement, 'Technical error in chart rendering');
+  }
+}
+
+function getChartConfig(data, chartId) {
+  const range = calculateAxisRange(data.map(item => item.y));
+  const style = getChartStyles();
+  const t = chartTranslations[chartLang];
+  var chartName = t[chartId] || chartId.toUpperCase();
+
+  return {
+    chart: {
+      type: 'area',
+      backgroundColor: 'transparent',
+      spacing: [10, 10, 10, 10]
+    },
+    exporting: {
+  enabled: false
+},
+navigation: {
+  buttonOptions: {
+    enabled: false
+  }
+},
+    title: { text: null },
+    xAxis: {
+  type: 'datetime',
+  labels: {
+    style: { color: style.axisText },
+    formatter: function () {
+      const date = new Date(this.value);
+      return date.toLocaleTimeString([], {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true
+      });
+    }
+  },
+  lineColor: style.axisLine,
+  title: {
+    text: t.time,
+    style: { color: style.axisText }
+  },
+  crosshair: {
+    width: 1,
+    color: style.gridLine,
+    label: {
+      enabled: true,
+      backgroundColor: style.tooltipBackground,
+      borderColor: style.lineColor,
+      borderRadius: 3,
+      padding: 5,
+      style: {
+        color: '#ffffff',
+        fontSize: '11px'
+      },
+      format: '{value:%A, %b %e, %H:%M}'
+    }
+  }
+},
+      yAxis: {
+      min: range.min,
+      max: range.max,
+      opposite: true,
+      title: {
+        text: t.index,
+        style: { color: style.axisText }
+      },
+      labels: {
+        style: { color: style.axisText },
+        formatter: function () {
+          // Automatically sets 2 decimal places if the axis value is a fraction
+          const decimals = (this.value % 1 !== 0) ? 2 : 0;
+          return Highcharts.numberFormat(this.value, decimals, '.', ',');
+        }
+      },
+      gridLineColor: style.gridLine
+    },
+  
+tooltip: {
+  split: true,
+  useHTML: true,
+  backgroundColor: style.tooltipBackground,
+  borderColor: style.lineColor,
+  style: { color: '#ffffff' },
+  
+  headerFormat: '<span style="font-size:11px;">{point.key:%A, %b %e, %H:%M}</span><br/>',
+  
+  pointFormatter: function () {
+  
+    return '<b>' + this.series.name  + ':</b> ' + Highcharts.numberFormat(this.y, 2);
+  }
+},
+    plotOptions: {
+      area: {
+        fillOpacity: 0.3,
+        lineColor: style.lineColor,
+        fillColor: {
+          linearGradient: { x1: 0, y1: 0, x2: 0, y2: 1 },
+          stops: [
+            [0, style.fillColor],
+            [1, style.fillColorEnd]
+          ]
+        },
+        marker: { radius: 0 },
+        lineWidth: 2
+      }
+    },
+    series: [{
+   
+      name: chartName,
+      data: data
+    }],
+    legend: {
+      itemStyle: {
+        color: 'rgb(156, 179, 201)',
+        fontWeight: 'normal'
+      },
+      itemHoverStyle: {
+        color: 'rgb(156, 179, 201)',
+        cursor: 'pointer'
+      }
+    },
+    credits: { enabled: false },
+    accessibility: {
+      enabled: true,
+      description: t.priceChart.replace("{CHART}", chartId.toUpperCase())
+    },
+    navigator: {
+      enabled: true,
+      adaptToUpdatedData: false,
+     backgroundColor: '#f0f0f0',  
+      maskFill: 'rgba(0, 0, 0, 0.1)',
+     outlineColor: '#677985',
+     
+     xAxis: {
+            labels: {
+                style: {
+                    textOutline: 'none', // Removes the text shadow
+                    color: '#ffffff'     // Optional: Set a clean text color
+                }
+            }
+        }
+     
+    },
+    rangeSelector: {
+      buttonSpacing: 70
+    },
+    responsive: {
+      rules: [{
+        condition: { maxWidth: 1400 },
+        chartOptions: {
+          rangeSelector: {
+            dropdown: "always",
+            buttonSpacing: 50
+          }
+        }
+      }]
+    }
+  };
+}
+
+
+function getChartStyles() {
+  const css = getComputedStyle(document.documentElement);
+  return {
+    lineColor: css.getPropertyValue('--highcharts-line-color') || '#00e0b5',
+    fillColor: css.getPropertyValue('--highcharts-fill-color') || 'rgba(0, 224, 181, 0.35)',
+    fillColorEnd: 'rgba(0, 224, 181, 0)',
+    axisText: '#9cb3c9',
+    axisLine: '#435c72',
+    gridLine: '#2f3e4e',
+    tooltipBackground: '#1a3c5f'
+  };
+}
+
+function formatTime(date) {
+  return isNaN(date) ? '' : date.toLocaleTimeString([], { 
+    hour: '2-digit', 
+    minute: '2-digit',
+    hour12: true
+  });
+}
+
+function calculateAxisRange(values) {
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  const delta = max - min;
+  const padding = delta * 0.05;
+
+  // If the total variation is less than 2 points, preserve exact decimal ranges
+  if (delta < 2) {
+    return {
+      min: Number((min - (padding || 0.01)).toFixed(4)),
+      max: Number((max + (padding || 0.01)).toFixed(4))
+    };
+  }
+
+  // Otherwise, safely continue using whole numbers for large-scale charts
+  return {
+    min: Math.floor(min - padding),
+    max: Math.ceil(max + padding)
+  };
+}
+
+
+
+
+function showTab(targetId, dataKey) {
+    console.log('inside showTab');
+ 
+    const allCharts = ['tasi', 'nomuc', 'mt30', 'sukuk', 'reits'];
+ 
+    allCharts.forEach(function(id) {
+        const el = document.getElementById(id);
+        if (el) {
+            el.style.display = (id === targetId) ? 'block' : 'none';
+        }
+    });
+    const targetElement = document.getElementById(targetId);
+ renderChart(dataKey, targetElement);
+    console.log("after allCharts.forEach(id)");
+    
+    console.log('targetElement: ' + targetElement);
+ 
+ 
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  // Default to first tab
+  showTab('tasi', 'tasi');
+ 
+  document.querySelectorAll('.tab-button').forEach(button => {
+  console.log('before button.addEventListener');
+    button.addEventListener('click', () => {
+    console.log('after button.addEventListener');
+      const key = button.getAttribute('data-key');
+      const target = button.getAttribute('data-target');
+      showTab(target, key);
+    });
+  });
+});
+
+
+
+</script>
