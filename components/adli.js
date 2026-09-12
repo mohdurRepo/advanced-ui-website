@@ -2896,3 +2896,218 @@ function ResetFormFields() {
     getFilteredDataByAlphabet('All');
 }
 </script>
+(function ($) {
+    $.fn.pxpaginate = function (_options, _callback) {
+        var _self = $(this);
+        var _op = _options;
+
+        var defaults = {
+            currentpage: 1,
+            totalPageCount: 10,
+            maxBtnCount: 5,
+
+            align: 'left',
+
+            nextPrevBtnShow: true,
+            firstLastBtnShow: true,
+
+            prevPageName: '<',
+            nextPageName: '>',
+            lastPageName: '',
+            firstPageName: '',
+			
+            callback: null
+        }
+
+        if (_op !== undefined && _op != null)
+            _op = $.extend(defaults, _op);
+        else
+            _op = defaults;
+
+        if (_callback !== undefined)
+            _op.callback = _callback;
+
+        if (_op.maxBtnCount <= 0) {
+            _op.maxBtnCount = 5;
+        }
+        if ("left|center|right".indexOf(_op.align) == -1) {
+            console.error("aling error -> current = " + _op.align + " , [left, center, right]");
+            _op.align = "left";
+        }
+
+        _op.currentpage = Math.ceil(_op.currentpage);
+        _op.maxBtnCount = Math.ceil(_op.maxBtnCount);
+        // _op.totalPageCount = Math.ceil(_op.totalPageCount);
+        _op.totalPageCount = Math.ceil($("#recordsCountId").val());
+        
+        // var pageLimitId = $("#pageLimitId").val();
+        if (_op.totalPageCount <= _op.maxBtnCount) {
+            _op.maxBtnCount = _op.totalPageCount;
+        }
+        
+
+        _self.attr("data-total", _op.totalPageCount).attr("data-max", _op.maxBtnCount);
+
+        _self.addClass("px-paginate-container").addClass("px-" + _op.align);
+        _self.html('');
+
+        if (_op.totalPageCount > _op.maxBtnCount) {
+            _self.append('<li ><a class="px-points d-none" data-point="0" href="javascript:void(0)">...</a></li>');
+        }
+//(_op.totalPageCount > _op.maxBtnCount ? _op.maxBtnCount : _op.totalPageCount)
+        for (let i = 0; i < (_op.totalPageCount > _op.maxBtnCount ? _op.maxBtnCount : _op.totalPageCount); i++) {
+            _self.append(__templaterow(0, (i + 1), " px-btn-page px-btn-" + i));
+        }
+
+
+        if (_op.totalPageCount > _op.maxBtnCount) {
+            _self.append('<li ><a class="px-points d-none" data-point="1" href="javascript:void(0)">...</a></li>');
+           //commented on 1st march _self.append(__templaterow(_op.totalPageCount, _op.totalPageCount, " px-btn-page"));
+        }
+
+        if (_op.nextPrevBtnShow) {
+            _self.prepend(__templaterow(0, _op.prevPageName, "px-btn-prev"));
+             _self.append(__templaterow(0, _op.nextPageName, "px-btn-next"));
+        }
+
+// if (_op.firstLastBtnShow) {
+// _self.prepend(__templaterow(1, _op.lastPageName, "px-btn-last"));
+// _self.append(__templaterow(_op.totalPageCount, _op.firstPageName,
+// "px-btn-first"));
+// }
+
+        __calcpagenumber(_op.currentpage, true);
+
+        /*
+		 * $("body").on("click", ".button-px[data-page]", function () {
+		 * __calcpagenumber($(this).attr("data-page"), false); });
+		 */
+
+        $(".button-px").click(function() {
+        	__calcpagenumber($(this).attr("data-page"), false);
+        });
+        
+        function __templaterow(_pageno, _pagetext, _class = "") {
+        	if(_pagetext==='<'){
+        		 return '<li class="prev " id="prev-toggle-id"><a class="button-px px-btn' + (_class != '' ? ' ' + _class : '') + '" data-page="' + _pageno + '" href="javascript:void(0)" ><i> <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 14.188 24.32"> <g id="Group_5453" data-name="Group 5453" transform="translate(-44.703 2.117)"><g id="Group_2869" data-name="Group 2869" transform="translate(46.604 0)"><g id="Group_2862" data-name="Group 2862" transform="translate(0.22 0)"><path id="Path_12442" data-name="Path 12442" d="M.931,0,10,10.272,0,20.082" transform="translate(0 0)" fill="none" stroke="#0045e3"stroke-linecap="round" stroke-width="3" /></g></g></g></svg></i></a></li>';
+        	}else if(_pagetext==='>'){
+        		 return '<li class="next" id="next-toggle-id"><a class="button-px px-btn' + (_class != '' ? ' ' + _class : '') + '" data-page="' + _pageno + '" href="javascript:void(0)" ><i> <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 14.188 24.32"><g id="Group_5453"data-name="Group 5453" transform="translate(-44.703 2.117)"><g id="Group_2869"data-name="Group 2869" transform="translate(46.604 0)"><g id="Group_2862"data-name="Group 2862" transform="translate(0.22 0)"><path id="Path_12442"data-name="Path 12442" d="M.931,0,10,10.272,0,20.082"transform="translate(0 0)" fill="none" stroke="#0045e3"stroke-linecap="round" stroke-width="3" /></g></g></g></svg></i></a></li>';
+        	}else{
+        		 return '<li ><a class="button-px px-btn' + (_class != '' ? ' ' + _class : '') + '" data-page="' + _pageno + '" href="javascript:void(0)" >' + _pagetext + '</a></li>';
+        	}
+           
+        }
+        function __calcpagenumber(currentpage, isfirst) {
+
+            if ($(".px-btn.select").attr("data-page") == currentpage) {
+                return;
+            }
+            
+            _op.totalPageCount = Math.ceil($("#recordsCountId").val());
+             // pageLimitId = $("#pageLimitId").val();
+            if (_op.totalPageCount <= _op.maxBtnCount) {
+                _op.maxBtnCount = _op.totalPageCount;
+            }
+             _self = $("#pagination-ul");
+            let start = 0;
+
+            if (_op.totalPageCount <= _op.maxBtnCount) {
+                start = 0;
+                for (let i = 0; i < _op.totalPageCount; i++) {
+                    start++;
+                    $(".px-btn-page.px-btn-" + i, _self).attr("data-page", start).html(start);
+                }
+                
+                let prev = parseInt(currentpage) - 1;
+                let next = parseInt(currentpage) + 1;
+
+                if (prev < 1) prev = 1;
+                if (next > _op.totalPageCount) next = _op.totalPageCount;
+
+                if (_op.nextPrevBtnShow) {
+                    $(".px-btn-prev", _self).attr("data-page", prev);
+                    $(".px-btn-next", _self).attr("data-page", next);
+                }
+                
+            } else {
+                let prev = parseInt(currentpage) - 1;
+                let next = parseInt(currentpage) + 1;
+
+                if (prev < 1) prev = 1;
+                if (next > _op.totalPageCount) next = _op.totalPageCount;
+
+                if (_op.nextPrevBtnShow) {
+                    $(".px-btn-prev", _self).attr("data-page", prev);
+                    $(".px-btn-next", _self).attr("data-page", next);
+                }
+
+                let _blockchange = ($(".px-btn-page[data-page='" + prev + "']", _self).length == 0 || $(".px-btn-page[data-page='" + next + "']", _self).length == 0);
+                if (_blockchange) {
+                    let lastpagenm = (_op.totalPageCount - 1);
+                    start = prev - Math.round(_op.maxBtnCount / 2);
+
+                    if (start < 0) {
+                        start = 0;
+                    }
+                    if ((start + _op.maxBtnCount) > lastpagenm) {
+                        start = (_op.totalPageCount - 1) - _op.maxBtnCount;
+                    }
+
+                    for (let i = 0; i < _op.maxBtnCount; i++) {
+                        start++;
+                        $(".px-btn-page.px-btn-" + i, _self).attr("data-page", start).html(start);
+                    }
+
+                    let blockfirst = parseInt($(".px-btn-page.px-btn-0", _self).attr("data-page"));
+                    let blocklast = parseInt($(".px-btn-page.px-btn-" + (_op.maxBtnCount - 1), _self).attr("data-page"));
+
+                    let pointzero = ".px-points[data-point='0']";
+                    let pointone = ".px-points[data-point='1']";
+
+                    if (blockfirst == 1) {
+                        if (!$(pointzero, _self).hasClass("d-none"))
+                            $(pointzero, _self).addClass("d-none");
+                    } else {
+                        if ($(pointzero, _self).hasClass("d-none"))
+                            $(pointzero, _self).removeClass("d-none");
+                    }
+                    if (blocklast == lastpagenm) {
+                        if (!$(pointone, _self).hasClass("d-none"))
+                            $(pointone, _self).addClass("d-none");
+                    } else {
+                        if ($(pointone, _self).hasClass("d-none"))
+                            $(pointone, _self).removeClass("d-none");
+                    }
+                }
+            }
+         
+            if(Number(currentpage)>1){
+         	   $("#prev-toggle-id").removeClass("disable");
+            }else{
+         	   $("#prev-toggle-id").addClass("disable");
+            }
+            if(Number(currentpage)<(Number(_op.totalPageCount)-1)){
+         	   $("#next-toggle-id").removeClass("disable");
+            }else{
+         	   $("#next-toggle-id").addClass("disable");
+         	  //$("#next-toggle-id a").click(function(e){e.preventDefault();});
+         	   
+            }
+            $(".select", _self).removeClass("select");
+            /*
+			 * $( ".px-btn-page" ).each(function() { $( this ).removeClass(
+			 * "select" ); });
+			 */
+            $(".px-btn-page[data-page=" + currentpage + "]").addClass("select");
+
+           if (!isfirst && _op.callback != undefined && _op.callback != null) {
+                if (_op.callback.length > 0) {
+                    _op.callback(currentpage);
+                } else {
+                    _op.callback();
+                }
+            }
+           
+        }
+    }
+})(jQuery);
