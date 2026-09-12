@@ -1,23 +1,39 @@
 /* ==========================================================================
    Market Chart Theme
-   ========================================================================== */
+   ==========================================================================
 
-/**
- * Visual bridge between the application's CSS design tokens and Highcharts.
- *
- * CSS remains the source of truth for theme values. This module only resolves
- * those values into the small shape required by market-chart-options.js.
- *
- * Responsibilities:
- * - read chart design tokens from the rendered chart element;
- * - provide safe theme fallbacks when a token is missing;
- * - resolve directional colors (up / down / neutral);
- * - create main-series and navigator presentation options;
- * - build Highcharts-compatible alpha colors and gradients.
- *
- * This module deliberately does not own layout, data, ranges, polling,
- * navigator behavior, or viewport state.
- */
+   Bridges the *actual* design-system tokens (see market-chart.scss) into the
+   shape market-chart-options.js needs. CSS is the source of truth:
+
+   - `--chart-direction-color` / `--chart-line` are already resolved by CSS
+     itself via `.market-chart[data-chart-direction="up|down|neutral"]`
+     selectors. This module does NOT re-implement that switch — it just
+     reads the already-resolved value. The controller is responsible for
+     setting `data-chart-direction` on the element *before* this module
+     reads computed styles, or the value will be one step stale.
+
+   - Several navigator tokens are *opacity fractions* meant to be blended
+     with a base color (`--chart-navigator-line-opacity`,
+     `--chart-navigator-fill-start/end-opacity`,
+     `--chart-navigator-mask-opacity`, `--chart-navigator-outline-opacity`,
+     `--chart-navigator-handle-border-opacity`), not literal colors. This
+     module does that blending; nothing upstream needs to.
+
+   - Candlesticks get four literal colors directly (`--chart-candle-up`,
+     `--chart-candle-up-line`, `--chart-candle-down`,
+     `--chart-candle-down-line`) — no opacity math, no derivation from
+     positive/negative. If a consumer's stylesheet doesn't define these,
+     this module falls back to deriving them from success/danger.
+
+   Note on `color-mix()`: several tokens (e.g. `--chart-grid`) are defined
+   in SCSS using `color-mix()`. Whether `getComputedStyle` returns a fully
+   resolved color or the raw function string depends on the browser engine
+   and whether the property is registered via `@property`. `colorWithOpacity()`
+   below degrades gracefully either way: if the string can't be parsed for
+   further opacity blending, it's passed through unchanged rather than
+   breaking — worst case a token doesn't get an extra opacity multiplier
+   applied on top, it never renders broken.
+   ========================================================================== */
 
 /* ==========================================================================
    Defaults
@@ -27,33 +43,42 @@ const DEFAULT_THEME = Object.freeze({
   background: "#ffffff",
 
   text: "#1f2933",
+  heading: "#101828",
   muted: "#667085",
 
   border: "#d0d5dd",
+  borderStrong: "#98a2b3",
   grid: "#eaecf0",
   crosshair: "#98a2b3",
 
-  positive: "#16865c",
-  negative: "#c53b3b",
+  success: "#16865c",
+  danger: "#c53b3b",
+  warning: "#b54708",
   neutral: "#667085",
+
+  /* Already-resolved direction color, mirrors CSS's --chart-line. */
+  line: null,
+
+  candleUp: null,
+  candleUpLine: null,
+  candleDown: null,
+  candleDownLine: null,
 
   tooltipBackground: "#ffffff",
   tooltipBorder: "#d0d5dd",
 
-  navigatorMask: "rgba(102, 112, 133, 0.12)",
+  focus: "#2563eb",
+
+  areaStartOpacity: 0.2,
+  areaEndOpacity: 0,
+
+  navigatorLineOpacity: 0.72,
+  navigatorFillStartOpacity: 0.1,
+  navigatorFillEndOpacity: 0.015,
+  navigatorMaskOpacity: 0.06,
+  navigatorOutlineOpacity: 0.22,
+  navigatorHandleBorderOpacity: 0.52,
   navigatorHandleBackground: "#ffffff",
-  navigatorHandleBorder: "#98a2b3",
-
-  lineWidth: 2,
-  navigatorLineWidth: 1.5,
-
-  areaStartOpacity: 0.24,
-  areaEndOpacity: 0.02,
-
-  navigatorAreaStartOpacity: 0.18,
-  navigatorAreaEndOpacity: 0.02,
-
-  candleFillOpacity: 0.9,
 });
 
 /* ==========================================================================
@@ -144,7 +169,7 @@ function getComputedStyles(element) {
 }
 
 /* ==========================================================================
-   Direction
+   Direction (fallback only — CSS resolves this first via --chart-line)
    ========================================================================== */
 
 function normalizeDirection(direction) {
@@ -164,14 +189,23 @@ function normalizeDirection(direction) {
 }
 
 function resolveDirectionColor(theme, direction) {
+  /*
+   * Preferred path: CSS already resolved --chart-line based on the
+   * data-chart-direction attribute. Only fall back to picking a color by
+   * hand if that token is missing (e.g. an older stylesheet).
+   */
+  if (theme.line) {
+    return theme.line;
+  }
+
   const normalizedDirection = normalizeDirection(direction);
 
   if (normalizedDirection === "up") {
-    return theme.positive;
+    return theme.success;
   }
 
   if (normalizedDirection === "down") {
-    return theme.negative;
+    return theme.danger;
   }
 
   return theme.neutral;
@@ -191,11 +225,7 @@ function parseHexColor(color) {
       .split("")
       .map((component) => Number.parseInt(component + component, 16));
 
-    return {
-      r,
-      g,
-      b,
-    };
+    return { r, g, b };
   }
 
   const full = /^#([0-9a-f]{6})(?:[0-9a-f]{2})?$/i.exec(value);
@@ -206,9 +236,7 @@ function parseHexColor(color) {
 
   return {
     r: Number.parseInt(full[1].slice(0, 2), 16),
-
     g: Number.parseInt(full[1].slice(2, 4), 16),
-
     b: Number.parseInt(full[1].slice(4, 6), 16),
   };
 }
@@ -225,9 +253,7 @@ function parseRGBColor(color) {
 
   return {
     r: clamp(Number(match[1]), 0, 255),
-
     g: clamp(Number(match[2]), 0, 255),
-
     b: clamp(Number(match[3]), 0, 255),
   };
 }
@@ -235,23 +261,32 @@ function parseRGBColor(color) {
 function colorWithOpacity(Highcharts, color, opacity) {
   const alpha = clamp(toFiniteNumber(opacity, 1), 0, 1);
 
-  /*
-   * Prefer Highcharts' own color parser.
-   *
-   * This supports theme colors beyond
-   * simple hex/rgb values.
-   */
   if (typeof Highcharts?.color === "function") {
     try {
-      return Highcharts.color(color).setOpacity(alpha).get();
+      const parsed = Highcharts.color(color);
+
+      /*
+       * Highcharts.color() never throws on an unparseable string — it
+       * returns an object whose internal rgba defaults to black. Detect
+       * that failure mode explicitly rather than silently returning a
+       * wrong color.
+       */
+      if (parsed && Array.isArray(parsed.rgba) && parsed.input !== undefined) {
+        return parsed.setOpacity(alpha).get();
+      }
     } catch {
-      // Fall through.
+      // Fall through to the manual parser.
     }
   }
 
   const parsed = parseHexColor(color) || parseRGBColor(color);
 
   if (!parsed) {
+    /*
+     * Unparseable (e.g. an unresolved color-mix() string, or a named
+     * color). Pass it through unchanged rather than breaking — the
+     * opacity multiplier is lost, but nothing renders broken.
+     */
     return color;
   }
 
@@ -260,16 +295,10 @@ function colorWithOpacity(Highcharts, color, opacity) {
 
 function createVerticalGradient(Highcharts, color, startOpacity, endOpacity) {
   return {
-    linearGradient: {
-      x1: 0,
-      y1: 0,
-      x2: 0,
-      y2: 1,
-    },
+    linearGradient: { x1: 0, y1: 0, x2: 0, y2: 1 },
 
     stops: [
       [0, colorWithOpacity(Highcharts, color, startOpacity)],
-
       [1, colorWithOpacity(Highcharts, color, endOpacity)],
     ],
   };
@@ -284,165 +313,126 @@ export function getMarketChartTheme(element) {
 
   const background = readCSSVariableAny(
     styles,
-
-    ["--chart-background", "--chart-bg"],
-
+    ["--chart-bg", "--chart-background"],
     DEFAULT_THEME.background,
   );
 
-  const text = readCSSVariableAny(
+  const text = readCSSVariableAny(styles, ["--chart-text"], DEFAULT_THEME.text);
+  const heading = readCSSVariableAny(
     styles,
-
-    ["--chart-text", "--chart-foreground"],
-
-    DEFAULT_THEME.text,
+    ["--chart-heading"],
+    text || DEFAULT_THEME.heading,
   );
-
   const muted = readCSSVariableAny(
     styles,
-
-    ["--chart-muted", "--chart-text-muted"],
-
+    ["--chart-muted"],
     DEFAULT_THEME.muted,
   );
 
   const border = readCSSVariableAny(
     styles,
-
-    ["--chart-border", "--chart-axis"],
-
+    ["--chart-border"],
     DEFAULT_THEME.border,
   );
-
-  const grid = readCSSVariableAny(
+  const borderStrong = readCSSVariableAny(
     styles,
-
-    ["--chart-grid", "--chart-grid-line"],
-
-    DEFAULT_THEME.grid,
+    ["--chart-border-strong"],
+    border || DEFAULT_THEME.borderStrong,
   );
+  const grid = readCSSVariableAny(styles, ["--chart-grid"], DEFAULT_THEME.grid);
 
-  const positive = readCSSVariableAny(
+  const success = readCSSVariableAny(
     styles,
-
-    ["--chart-positive", "--chart-up", "--chart-success"],
-
-    DEFAULT_THEME.positive,
+    ["--chart-success", "--chart-positive"],
+    DEFAULT_THEME.success,
   );
-
-  const negative = readCSSVariableAny(
+  const danger = readCSSVariableAny(
     styles,
-
-    ["--chart-negative", "--chart-down", "--chart-danger"],
-
-    DEFAULT_THEME.negative,
+    ["--chart-danger", "--chart-negative"],
+    DEFAULT_THEME.danger,
   );
-
+  const warning = readCSSVariableAny(
+    styles,
+    ["--chart-warning"],
+    DEFAULT_THEME.warning,
+  );
   const neutral = readCSSVariableAny(
     styles,
-
-    ["--chart-neutral", "--chart-series"],
-
+    ["--chart-neutral"],
     DEFAULT_THEME.neutral,
   );
 
   return {
     background,
     text,
+    heading,
     muted,
+
     border,
+    borderStrong,
     grid,
 
-    /*
-     * Dedicated crosshair fallback.
-     *
-     * Do not fall back to border here.
-     */
     crosshair: readCSSVariableAny(
       styles,
-
       ["--chart-crosshair"],
-
       DEFAULT_THEME.crosshair,
     ),
 
-    positive,
-    negative,
+    success,
+    danger,
+    warning,
     neutral,
+
+    /*
+     * Already resolved by CSS based on data-chart-direction. null if the
+     * stylesheet doesn't define it — callers fall back to success/danger.
+     */
+    line: readCSSVariableAny(
+      styles,
+      ["--chart-line", "--chart-direction-color"],
+      DEFAULT_THEME.line,
+    ),
+
+    /* Literal candle colors — no opacity math intended by the design system. */
+    candleUp: readCSSVariableAny(
+      styles,
+      ["--chart-candle-up"],
+      DEFAULT_THEME.candleUp,
+    ),
+    candleUpLine: readCSSVariableAny(
+      styles,
+      ["--chart-candle-up-line"],
+      DEFAULT_THEME.candleUpLine,
+    ),
+    candleDown: readCSSVariableAny(
+      styles,
+      ["--chart-candle-down"],
+      DEFAULT_THEME.candleDown,
+    ),
+    candleDownLine: readCSSVariableAny(
+      styles,
+      ["--chart-candle-down-line"],
+      DEFAULT_THEME.candleDownLine,
+    ),
 
     tooltipBackground: readCSSVariableAny(
       styles,
-
-      ["--chart-tooltip-background", "--chart-tooltip-bg"],
-
+      ["--chart-tooltip-bg", "--chart-tooltip-background"],
       background || DEFAULT_THEME.tooltipBackground,
     ),
 
     tooltipBorder: readCSSVariableAny(
       styles,
-
       ["--chart-tooltip-border"],
-
       border || DEFAULT_THEME.tooltipBorder,
     ),
 
-    navigatorMask: readCSSVariableAny(
-      styles,
-
-      ["--chart-navigator-mask", "--chart-navigator-mask-fill"],
-
-      DEFAULT_THEME.navigatorMask,
-    ),
-
-    navigatorHandleBackground: readCSSVariableAny(
-      styles,
-
-      ["--chart-navigator-handle-background", "--chart-navigator-handle-bg"],
-
-      background || DEFAULT_THEME.navigatorHandleBackground,
-    ),
-
-    navigatorHandleBorder: readCSSVariableAny(
-      styles,
-
-      ["--chart-navigator-handle-border"],
-
-      border || DEFAULT_THEME.navigatorHandleBorder,
-    ),
-
-    lineWidth: readCSSNumber(
-      styles,
-
-      ["--chart-line-width"],
-
-      DEFAULT_THEME.lineWidth,
-
-      {
-        minimum: 0,
-        maximum: 8,
-      },
-    ),
-
-    navigatorLineWidth: readCSSNumber(
-      styles,
-
-      ["--chart-navigator-line-width"],
-
-      DEFAULT_THEME.navigatorLineWidth,
-
-      {
-        minimum: 0,
-        maximum: 8,
-      },
-    ),
+    focus: readCSSVariableAny(styles, ["--chart-focus"], DEFAULT_THEME.focus),
 
     areaStartOpacity: readCSSNumber(
       styles,
-
-      ["--chart-area-start-opacity", "--chart-area-opacity"],
-
+      ["--chart-area-start-opacity"],
       DEFAULT_THEME.areaStartOpacity,
-
       {
         minimum: 0,
         maximum: 1,
@@ -451,57 +441,60 @@ export function getMarketChartTheme(element) {
 
     areaEndOpacity: readCSSNumber(
       styles,
-
       ["--chart-area-end-opacity"],
-
       DEFAULT_THEME.areaEndOpacity,
-
       {
         minimum: 0,
         maximum: 1,
       },
     ),
 
-    navigatorAreaStartOpacity: readCSSNumber(
+    navigatorLineOpacity: readCSSNumber(
       styles,
-
-      [
-        "--chart-navigator-area-start-opacity",
-        "--chart-navigator-area-opacity",
-      ],
-
-      DEFAULT_THEME.navigatorAreaStartOpacity,
-
-      {
-        minimum: 0,
-        maximum: 1,
-      },
+      ["--chart-navigator-line-opacity"],
+      DEFAULT_THEME.navigatorLineOpacity,
+      { minimum: 0, maximum: 1 },
     ),
 
-    navigatorAreaEndOpacity: readCSSNumber(
+    navigatorFillStartOpacity: readCSSNumber(
       styles,
-
-      ["--chart-navigator-area-end-opacity"],
-
-      DEFAULT_THEME.navigatorAreaEndOpacity,
-
-      {
-        minimum: 0,
-        maximum: 1,
-      },
+      ["--chart-navigator-fill-start-opacity"],
+      DEFAULT_THEME.navigatorFillStartOpacity,
+      { minimum: 0, maximum: 1 },
     ),
 
-    candleFillOpacity: readCSSNumber(
+    navigatorFillEndOpacity: readCSSNumber(
       styles,
+      ["--chart-navigator-fill-end-opacity"],
+      DEFAULT_THEME.navigatorFillEndOpacity,
+      { minimum: 0, maximum: 1 },
+    ),
 
-      ["--chart-candle-fill-opacity"],
+    navigatorMaskOpacity: readCSSNumber(
+      styles,
+      ["--chart-navigator-mask-opacity"],
+      DEFAULT_THEME.navigatorMaskOpacity,
+      { minimum: 0, maximum: 1 },
+    ),
 
-      DEFAULT_THEME.candleFillOpacity,
+    navigatorOutlineOpacity: readCSSNumber(
+      styles,
+      ["--chart-navigator-outline-opacity"],
+      DEFAULT_THEME.navigatorOutlineOpacity,
+      { minimum: 0, maximum: 1 },
+    ),
 
-      {
-        minimum: 0,
-        maximum: 1,
-      },
+    navigatorHandleBorderOpacity: readCSSNumber(
+      styles,
+      ["--chart-navigator-handle-border-opacity"],
+      DEFAULT_THEME.navigatorHandleBorderOpacity,
+      { minimum: 0, maximum: 1 },
+    ),
+
+    navigatorHandleBackground: readCSSVariableAny(
+      styles,
+      ["--chart-navigator-handle-bg"],
+      background || DEFAULT_THEME.navigatorHandleBackground,
     ),
   };
 }
@@ -522,40 +515,40 @@ export function getMarketChartSeriesTheme(
     .trim()
     .toLowerCase();
 
-  const directionColor = resolveDirectionColor(source, direction);
-
   /* ------------------------------------------------------------------------
-     Candlestick
+     Candlestick — literal colors, no opacity blending, with a graceful
+     fallback to success/danger if the stylesheet doesn't define them.
      ------------------------------------------------------------------------ */
 
   if (normalizedMode === "candlestick") {
-    const positive = source.positive || DEFAULT_THEME.positive;
+    const downFill = source.candleDown || source.danger || DEFAULT_THEME.danger;
+    const downLine =
+      source.candleDownLine ||
+      source.candleDown ||
+      source.danger ||
+      DEFAULT_THEME.danger;
 
-    const negative = source.negative || DEFAULT_THEME.negative;
-
-    const fillOpacity =
-      source.candleFillOpacity ?? DEFAULT_THEME.candleFillOpacity;
+    const upFill = source.candleUp || source.success || DEFAULT_THEME.success;
+    const upLine =
+      source.candleUpLine ||
+      source.candleUp ||
+      source.success ||
+      DEFAULT_THEME.success;
 
     return {
-      /*
-       * Down candle.
-       */
-      color: colorWithOpacity(Highcharts, negative, fillOpacity),
+      /* Down candle. */
+      color: downFill,
+      lineColor: downLine,
 
-      lineColor: negative,
-
-      /*
-       * Up candle.
-       */
-      upColor: colorWithOpacity(Highcharts, positive, fillOpacity),
-
-      upLineColor: positive,
+      /* Up candle. */
+      upColor: upFill,
+      upLineColor: upLine,
 
       lineWidth: 1,
     };
   }
 
-  const lineWidth = toFiniteNumber(source.lineWidth, DEFAULT_THEME.lineWidth);
+  const directionColor = resolveDirectionColor(source, direction);
 
   /* ------------------------------------------------------------------------
      Line
@@ -564,10 +557,8 @@ export function getMarketChartSeriesTheme(
   if (normalizedMode === "line") {
     return {
       color: directionColor,
-
       lineColor: directionColor,
-
-      lineWidth,
+      lineWidth: 2,
     };
   }
 
@@ -577,18 +568,13 @@ export function getMarketChartSeriesTheme(
 
   return {
     color: directionColor,
-
     lineColor: directionColor,
-
-    lineWidth,
+    lineWidth: 2,
 
     fillColor: createVerticalGradient(
       Highcharts,
-
       directionColor,
-
       source.areaStartOpacity ?? DEFAULT_THEME.areaStartOpacity,
-
       source.areaEndOpacity ?? DEFAULT_THEME.areaEndOpacity,
     ),
   };
@@ -604,40 +590,59 @@ export function getMarketChartNavigatorTheme(
   direction = "neutral",
 ) {
   const source = theme || DEFAULT_THEME;
-
   const color = resolveDirectionColor(source, direction);
+
+  /*
+   * The mask/outline/handle-border are neutral UI chrome, not tinted by
+   * market direction — only the line and fill (the actual data) follow
+   * up/down/neutral. Using borderStrong as the neutral base matches the
+   * "dimmed chrome" look these opacity tokens are meant for.
+   */
+  const neutralBase =
+    source.borderStrong || source.border || DEFAULT_THEME.borderStrong;
 
   return {
     color,
 
-    lineColor: color,
-
-    lineWidth: toFiniteNumber(
-      source.navigatorLineWidth,
-
-      DEFAULT_THEME.navigatorLineWidth,
+    lineColor: colorWithOpacity(
+      Highcharts,
+      color,
+      source.navigatorLineOpacity ?? DEFAULT_THEME.navigatorLineOpacity,
     ),
+
+    lineWidth: 1.5,
 
     fillColor: createVerticalGradient(
       Highcharts,
-
       color,
-
-      source.navigatorAreaStartOpacity ??
-        DEFAULT_THEME.navigatorAreaStartOpacity,
-
-      source.navigatorAreaEndOpacity ?? DEFAULT_THEME.navigatorAreaEndOpacity,
+      source.navigatorFillStartOpacity ??
+        DEFAULT_THEME.navigatorFillStartOpacity,
+      source.navigatorFillEndOpacity ?? DEFAULT_THEME.navigatorFillEndOpacity,
     ),
 
-    maskFill: source.navigatorMask || DEFAULT_THEME.navigatorMask,
+    maskFill: colorWithOpacity(
+      Highcharts,
+      neutralBase,
+      source.navigatorMaskOpacity ?? DEFAULT_THEME.navigatorMaskOpacity,
+    ),
+
+    outlineColor: colorWithOpacity(
+      Highcharts,
+      neutralBase,
+      source.navigatorOutlineOpacity ?? DEFAULT_THEME.navigatorOutlineOpacity,
+    ),
 
     handles: {
       backgroundColor:
         source.navigatorHandleBackground ||
         DEFAULT_THEME.navigatorHandleBackground,
 
-      borderColor:
-        source.navigatorHandleBorder || DEFAULT_THEME.navigatorHandleBorder,
+      borderColor: colorWithOpacity(
+        Highcharts,
+        neutralBase,
+        source.navigatorHandleBorderOpacity ??
+          DEFAULT_THEME.navigatorHandleBorderOpacity,
+      ),
     },
   };
 }

@@ -4,7 +4,7 @@ import {
   destroyMarketChart,
   getMarketChart,
   MarketChartController,
-} from "./market-chart";
+} from "./market-chart.js";
 
 /* ==========================================================================
    Public API
@@ -24,11 +24,8 @@ export {
 
 const marketChartsAPI = Object.freeze({
   create: createMarketChart,
-
   get: getMarketChart,
-
   destroy: destroyMarketChart,
-
   destroyAll: destroyAllMarketCharts,
 });
 
@@ -39,10 +36,8 @@ const marketChartsAPI = Object.freeze({
 /**
  * Registers the browser-facing Market Chart API.
  *
- * This function is intentionally explicit.
- *
- * Importing this module alone does not mutate window.
- * The application bootstrap decides when initialization happens:
+ * Importing this module alone does not touch `window` — the app bootstrap
+ * decides when initialization happens:
  *
  *   import { initMarketCharts } from "./components/market-chart";
  *
@@ -55,10 +50,6 @@ export function initMarketCharts() {
 
   return marketChartsAPI;
 }
-
-/* ==========================================================================
-   Exports
-   ========================================================================== */
 
 export { marketChartsAPI };
 

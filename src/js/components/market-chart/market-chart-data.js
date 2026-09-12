@@ -7,18 +7,22 @@
  *
  * Highcharts receives only these shapes:
  *
- * Trend / line:
- *   [timestamp, value]
- *
- * Candlestick:
- *   [timestamp, open, high, low, close]
+ *   Trend / line:  [timestamp, value]
+ *   Candlestick:   [timestamp, open, high, low, close]
  *
  * Responsibilities:
- * - normalize modes, ranges, capabilities and timestamps;
- * - normalize trend/line and OHLC input;
- * - sort points by timestamp and de-duplicate them;
- * - normalize range records and range collections;
- * - provide small mutation helpers used by the chart controller.
+ * - normalize modes, ranges, capabilities and timestamps
+ * - normalize trend/line and OHLC input
+ * - sort points by timestamp and de-duplicate them
+ * - normalize range records and range collections
+ *
+ * A range record stores exactly two arrays:
+ *
+ *   { comparisonValue, trend, candlestick }
+ *
+ * `trend` is the single source of truth for scalar data. "line" mode is a
+ * *presentation* of the same trend array (a different Highcharts series
+ * `type`), not a second stored dataset — there is nothing to keep in sync.
  *
  * This module does not know about Highcharts instances, DOM elements,
  * requests, live polling, navigator state or viewport behavior.
@@ -34,11 +38,6 @@ const DEFAULT_MODE = "trend";
 const DEFAULT_RANGE = "1D";
 const DEFAULT_INTRADAY_RANGE = "1D";
 
-/*
- * Compatibility constants still consumed by market-chart.js.
- * They can move to the controller/configuration layer after that file is
- * simplified.
- */
 const DEFAULT_MAX_POINTS = 1_000;
 const DEFAULT_CANDLE_BUCKET_SIZE = 60_000;
 
@@ -80,12 +79,9 @@ function toFiniteNumber(value) {
 }
 
 function createEmptyRangeRecord() {
-  const trend = [];
-
   return {
     comparisonValue: null,
-    trend,
-    line: trend,
+    trend: [],
     candlestick: [],
   };
 }
@@ -197,6 +193,10 @@ export function normalizeMarketChartTimestamp(value) {
     /*
      * Contemporary Unix timestamps below this threshold are seconds.
      * Highcharts datetime x-values use milliseconds.
+     *
+     * This is a heuristic: it assumes real-world contemporary dates.
+     * A raw millisecond timestamp before ~1973 would be misread as
+     * seconds. Market data never predates that, so this is safe here.
      */
     return Math.abs(numericValue) < 100_000_000_000
       ? numericValue * 1_000
@@ -294,8 +294,8 @@ function normalizeCandlestickPoint(point) {
   }
 
   /*
-   * Reject impossible OHLC geometry.
-   * Open and close must both sit inside the low/high interval.
+   * Reject impossible OHLC geometry. Open and close must both sit
+   * inside the low/high interval.
    */
   if (
     normalizedHigh < normalizedLow ||
@@ -356,25 +356,17 @@ export function normalizeMarketChartData(data, mode = DEFAULT_MODE) {
    ========================================================================== */
 
 /**
- * Normalize one range into the canonical internal record.
+ * Normalize one range into the canonical internal record:
  *
- * `trend` and `line` intentionally reference the same normalized array.
+ *   { comparisonValue, trend, candlestick }
  *
- * Both modes use exactly the same [timestamp, value] data shape.
- * Maintaining two copies would increase memory usage and require unnecessary
- * synchronization during live updates.
+ * A plain array is treated as trend data for convenience.
  */
 export function normalizeMarketChartRangeRecord(record) {
-  /*
-   * A plain array is treated as trend/line data for backward compatibility.
-   */
   if (Array.isArray(record)) {
-    const trend = normalizeMarketChartData(record, "trend");
-
     return {
       comparisonValue: null,
-      trend,
-      line: trend,
+      trend: normalizeMarketChartData(record, "trend"),
       candlestick: [],
     };
   }
@@ -385,21 +377,17 @@ export function normalizeMarketChartRangeRecord(record) {
 
   const trendSource = record.trend ?? record.line ?? record.data ?? [];
 
-  const trend = normalizeMarketChartData(trendSource, "trend");
-
-  const candlestick = normalizeMarketChartData(
-    record.candlestick ?? record.candles ?? record.ohlc ?? [],
-    "candlestick",
-  );
-
   return {
     comparisonValue: toFiniteNumber(
       record.comparisonValue ?? record.previousClose,
     ),
 
-    trend,
-    line: trend,
-    candlestick,
+    trend: normalizeMarketChartData(trendSource, "trend"),
+
+    candlestick: normalizeMarketChartData(
+      record.candlestick ?? record.candles ?? record.ohlc ?? [],
+      "candlestick",
+    ),
   };
 }
 
@@ -415,9 +403,6 @@ export function normalizeMarketChartRanges(
     return {};
   }
 
-  /*
-   * Normalize capabilities once for the whole collection.
-   */
   const normalizedCapabilities = normalizeMarketChartCapabilities(capabilities);
 
   const normalizedRanges = {};
@@ -479,7 +464,6 @@ export function getFirstAvailableMarketChartRange(
   capabilities = DEFAULT_CAPABILITIES,
 ) {
   const available = getAvailableMarketChartRanges(ranges, capabilities);
-
   const preferred = normalizeMarketChartRange(preferredRange);
 
   return available.includes(preferred) ? preferred : (available[0] ?? null);
@@ -512,16 +496,10 @@ export function getMarketChartRangeComparisonValue(
    ========================================================================== */
 
 /**
- * Replace one complete range record after normalization.
+ * Replace one complete range record after normalization. This is the only
+ * write API — a range is always replaced atomically as:
  *
- * Preferred for page/API adapters when the full range payload is already
- * available:
- *
- * {
- *   comparisonValue,
- *   trend,
- *   candlestick
- * }
+ *   { comparisonValue, trend, candlestick }
  */
 export function setMarketChartRangeRecord(ranges, range, record) {
   if (!isPlainObject(ranges)) {
@@ -534,61 +512,13 @@ export function setMarketChartRangeRecord(ranges, range, record) {
     return false;
   }
 
-  const normalizedRange = normalizeMarketChartRange(range);
-
-  ranges[normalizedRange] = normalizedRecord;
-
-  return true;
-}
-
-/**
- * Update one presentation mode inside an existing range.
- *
- * Kept for compatibility with the current market-chart.js controller.
- *
- * Trend and line both replace the same shared scalar dataset.
- * Candlestick data remains independent.
- */
-export function setMarketChartRangeData(ranges, range, mode, data) {
-  if (!isPlainObject(ranges)) {
-    return false;
-  }
-
-  const normalizedRange = normalizeMarketChartRange(range);
-  const normalizedMode = normalizeMarketChartMode(mode);
-
-  const normalizedData = normalizeMarketChartData(data, normalizedMode);
-
-  const currentRecord =
-    normalizeMarketChartRangeRecord(ranges[normalizedRange]) ??
-    createEmptyRangeRecord();
-
-  /*
-   * OHLC data is independent from scalar trend/line data.
-   */
-  if (normalizedMode === "candlestick") {
-    ranges[normalizedRange] = {
-      ...currentRecord,
-      candlestick: normalizedData,
-    };
-
-    return true;
-  }
-
-  /*
-   * Trend and line are two visual modes over the same scalar dataset.
-   */
-  ranges[normalizedRange] = {
-    ...currentRecord,
-    trend: normalizedData,
-    line: normalizedData,
-  };
+  ranges[normalizeMarketChartRange(range)] = normalizedRecord;
 
   return true;
 }
 
 /* ==========================================================================
-   Compatibility Exports
+   Public Constants
    ========================================================================== */
 
 export {
@@ -597,4 +527,5 @@ export {
   DEFAULT_CANDLE_BUCKET_SIZE,
   DEFAULT_INTRADAY_RANGE,
   DEFAULT_MAX_POINTS,
+  createEmptyRangeRecord,
 };

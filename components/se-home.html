@@ -9850,7 +9850,12 @@
 
       const POLL_INTERVAL = 5_000;
       const MARKET_STEP = 60_000;
-      const MAX_POINTS = 360;
+      /*
+       * See main-market-performance.mock.js for why this needs real
+       * headroom above a full session's minute-bar count, not just enough
+       * for the initial seed window.
+       */
+      const MAX_POINTS = 900;
       const INITIAL_MINUTES = 60;
       const API_TIMEOUT = 10_000;
       const TIME_ZONE = "Asia/Riyadh";
@@ -9953,9 +9958,8 @@
       );
 
       /*
-       * Persistent per-market objects.
-       *
-       * Charts are NOT destroyed when changing tabs.
+       * Persistent per-market objects. Charts are NOT destroyed when
+       * changing tabs.
        */
       const feeds = new Map();
       const runtimes = new Map();
@@ -10009,16 +10013,12 @@
         return arabic()
           ? {
               loading: `جارٍ تحميل بيانات ${name}…`,
-
               empty: `بيانات ${name} غير متاحة حالياً.`,
-
               error: `تعذر تحميل بيانات ${name}.`,
             }
           : {
               loading: `Loading ${name} data…`,
-
               empty: `${name} data is currently unavailable.`,
-
               error: `${name} data could not be loaded.`,
             };
       }
@@ -10042,7 +10042,6 @@
           let value = state;
 
           value = Math.imul(value ^ (value >>> 15), value | 1);
-
           value ^= value + Math.imul(value ^ (value >>> 7), value | 61);
 
           return ((value ^ (value >>> 14)) >>> 0) / 4_294_967_296;
@@ -10058,11 +10057,8 @@
 
         const formatter = new Intl.DateTimeFormat("en-US", {
           timeZone: TIME_ZONE,
-
           year: "numeric",
-
           month: "2-digit",
-
           day: "2-digit",
         });
 
@@ -10072,10 +10068,7 @@
           }
         }
 
-        /*
-         * 10:00 Riyadh
-         * = 07:00 UTC.
-         */
+        /* 10:00 Riyadh = 07:00 UTC. */
         return Date.UTC(parts.year, parts.month - 1, parts.day, 7, 0, 0, 0);
       }
 
@@ -10091,23 +10084,12 @@
 
           const spread = Math.max(
             Math.abs(close - open) * 0.5,
-
             market.noise * 0.2,
           );
 
-          const high = round(
-            Math.max(open, close) + spread,
-
-            market.decimals,
-          );
-
+          const high = round(Math.max(open, close) + spread, market.decimals);
           const low = round(
-            Math.max(
-              0.01,
-
-              Math.min(open, close) - spread,
-            ),
-
+            Math.max(0.01, Math.min(open, close) - spread),
             market.decimals,
           );
 
@@ -10115,12 +10097,9 @@
 
           return [
             timestamp,
-
             round(open, market.decimals),
-
             high,
             low,
-
             round(close, market.decimals),
           ];
         });
@@ -10130,16 +10109,10 @@
         const random = randomFrom(market.seed + seedOffset);
 
         const end = Date.now();
-
         const start = end - definition.duration;
-
         const step = definition.duration / Math.max(1, definition.points - 1);
 
-        const scale = Math.max(
-          1,
-
-          Math.log10(definition.duration / DAY + 10),
-        );
+        const scale = Math.max(1, Math.log10(definition.duration / DAY + 10));
 
         const data = [];
 
@@ -10160,12 +10133,7 @@
 
           price +=
             (target - price) * 0.18 + (random() - 0.5) * market.noise * scale;
-
-          price = round(
-            Math.max(0.01, price),
-
-            market.decimals,
-          );
+          price = round(Math.max(0.01, price), market.decimals);
 
           data.push([timestamp, price]);
         }
@@ -10174,12 +10142,13 @@
       }
 
       /*
-       * Important performance change:
+       * Historical ranges are generated ONCE when a market's feed is first
+       * created, not regenerated on every tab click.
        *
-       * Historical ranges are generated ONCE
-       * when that market's feed is first created.
-       *
-       * They are not regenerated on every tab click.
+       * Each range stores { comparisonValue, trend, candlestick } — this
+       * matches the controller's canonical shape exactly; there is no
+       * separate `line` array to keep in sync, since "line" mode is just a
+       * different Highcharts series type drawn from `trend`.
        */
       function createHistoricalRanges(market) {
         const ranges = {};
@@ -10191,14 +10160,7 @@
 
           ranges[range] = {
             comparisonValue: trend[0]?.[1] ?? market.previousClose,
-
             trend,
-
-            /*
-             * Same scalar geometry.
-             */
-            line: trend,
-
             candlestick: historicalCandles(trend, market),
           };
         }
@@ -10213,24 +10175,16 @@
       function createFeed(market) {
         const random = randomFrom(market.seed);
 
-        /*
-         * Generated only once.
-         */
+        /* Generated only once. */
         const history = createHistoricalRanges(market);
 
         const state = {
           timestamp: null,
-
           price: market.previousClose,
-
           sequence: 0,
-
           trend: [],
-
           candles: [],
-
           open: true,
-
           lastRealTickAt: Date.now(),
         };
 
@@ -10249,53 +10203,34 @@
           const close = round(
             Math.max(
               0.01,
-
               state.price +
                 (target - state.price) * 0.34 +
                 (random() - 0.5) * market.noise,
             ),
-
             market.decimals,
           );
 
           const wick = Math.max(
             Math.abs(close - open) * 0.45,
-
             market.noise * (0.15 + random() * 0.2),
           );
 
           const candle = [
             timestamp,
-
             round(open, market.decimals),
-
+            round(Math.max(open, close) + wick, market.decimals),
             round(
-              Math.max(open, close) + wick,
-
+              Math.max(0.01, Math.min(open, close) - wick),
               market.decimals,
             ),
-
-            round(
-              Math.max(
-                0.01,
-
-                Math.min(open, close) - wick,
-              ),
-
-              market.decimals,
-            ),
-
             close,
           ];
 
           state.timestamp = timestamp;
-
           state.price = close;
-
           state.sequence += 1;
 
           state.trend.push([timestamp, close]);
-
           state.candles.push(candle);
 
           if (state.trend.length > MAX_POINTS) {
@@ -10308,13 +10243,9 @@
           const start = riyadhSessionStart();
 
           state.timestamp = start - MARKET_STEP;
-
           state.price = market.previousClose;
-
           state.sequence = 0;
-
           state.trend.length = 0;
-
           state.candles.length = 0;
 
           for (let index = 0; index < INITIAL_MINUTES; index += 1) {
@@ -10329,12 +10260,7 @@
             return;
           }
 
-          const elapsed = Math.max(
-            0,
-
-            Date.now() - state.lastRealTickAt,
-          );
-
+          const elapsed = Math.max(0, Date.now() - state.lastRealTickAt);
           const steps = Math.floor(elapsed / POLL_INTERVAL);
 
           if (!steps) {
@@ -10348,16 +10274,11 @@
           state.lastRealTickAt += steps * POLL_INTERVAL;
         }
 
+        /* Same canonical shape as history: { comparisonValue, trend, candlestick }. */
         function intraday() {
-          const trend = state.trend.map((point) => [...point]);
-
           return {
             comparisonValue: market.previousClose,
-
-            trend,
-
-            line: trend,
-
+            trend: state.trend.map((point) => [...point]),
             candlestick: state.candles.map((point) => [...point]),
           };
         }
@@ -10365,23 +10286,14 @@
         seed();
 
         return {
-          /*
-           * First visit only.
-           */
+          /* First visit only. */
           initialRanges() {
-            return {
-              "1D": intraday(),
-
-              ...history,
-            };
+            return { "1D": intraday(), ...history };
           },
 
           /*
-           * Every subsequent tab click.
-           *
-           * Only 1D is refreshed.
-           * Historical data is already stored
-           * inside the controller.
+           * Every subsequent tab click. Only 1D is refreshed — historical
+           * data is already stored inside the controller.
            */
           tabRange() {
             sync();
@@ -10391,15 +10303,9 @@
 
           /*
            * Inclusive latest timestamp:
-           *
-           * same timestamp + same value
-           * -> noop
-           *
-           * same timestamp + changed value
-           * -> replace
-           *
-           * newer timestamp
-           * -> append
+           *   same timestamp + same value    -> noop
+           *   same timestamp + changed value -> replace
+           *   newer timestamp                -> append
            */
           pointsSince(since) {
             sync();
@@ -10419,7 +10325,6 @@
 
           correctLatest() {
             const candle = state.candles.at(-1);
-
             const trend = state.trend.at(-1);
 
             if (!candle || !trend) {
@@ -10428,40 +10333,27 @@
 
             const change = Math.max(
               market.noise * 0.35,
-
               10 ** -market.decimals,
             );
 
             const close = round(
               Math.max(
                 0.01,
-
                 candle[4] + (state.sequence % 2 ? -change : change),
               ),
-
               market.decimals,
             );
 
             candle[2] = round(
               Math.max(candle[1], candle[2], close),
-
               market.decimals,
             );
-
             candle[3] = round(
-              Math.max(
-                0.01,
-
-                Math.min(candle[1], candle[3], close),
-              ),
-
+              Math.max(0.01, Math.min(candle[1], candle[3], close)),
               market.decimals,
             );
-
             candle[4] = close;
-
             trend[1] = close;
-
             state.price = close;
 
             return true;
@@ -10473,18 +10365,14 @@
 
           open() {
             state.open = true;
-
             state.lastRealTickAt = Date.now() - POLL_INTERVAL;
           },
 
           state() {
             return {
               open: state.open,
-
               timestamp: state.timestamp,
-
               price: state.price,
-
               sequence: state.sequence,
             };
           },
@@ -10509,31 +10397,17 @@
         /*
          * Replace this function with the real API:
          *
-         * const response = await fetch(url);
-         * const payload = await response.json();
-         * return normalizePayload(payload);
+         *   const response = await fetch(url);
+         *   const payload = await response.json();
+         *   return normalizePayload(payload);
          *
-         * This function is called on EVERY market tab selection.
+         * Called on EVERY market tab selection.
          */
-
         await Promise.resolve();
 
-        /*
-         * First visit:
-         * supply all supported ranges.
-         *
-         * Later visits:
-         * refresh only the current 1D API data.
-         */
         return initial
-          ? {
-              ranges: feed.initialRanges(),
-            }
-          : {
-              ranges: {
-                "1D": feed.tabRange(),
-              },
-            };
+          ? { ranges: feed.initialRanges() }
+          : { ranges: { "1D": feed.tabRange() } };
       }
 
       /* ======================================================================
@@ -10562,9 +10436,7 @@
 
       function tabFor(market) {
         return overview?.querySelector(
-          `[data-market-tabs] [role="tab"][aria-controls="${market.panelSelector.slice(
-            1,
-          )}"]`,
+          `[data-market-tabs] [role="tab"][aria-controls="${market.panelSelector.slice(1)}"]`,
         );
       }
 
@@ -10574,14 +10446,11 @@
 
       function updateStatus(market, open) {
         const text = labels();
-
         const panel = document.querySelector(market.panelSelector);
 
         for (const root of [panel, tabFor(market)].filter(Boolean)) {
           const live = root.querySelector("[data-chart-live-status]");
-
           const status = root.querySelector(".market-card__status");
-
           const icon = root.querySelector(".market-status");
 
           if (live) {
@@ -10593,7 +10462,6 @@
           }
 
           icon?.classList.toggle("market-status--open", open);
-
           icon?.classList.toggle("market-status--closed", !open);
         }
       }
@@ -10606,144 +10474,83 @@
         const text = labels();
 
         return {
-          /*
-           * Correct compact context.
-           */
           context: "overview",
-
           symbol: market.symbol,
-
           name: marketName(market),
-
           currency: market.currency,
-
           previousClose: market.previousClose,
 
           mode: "trend",
-
           range: "1D",
 
           language: language(),
-
           timeZone: TIME_ZONE,
-
           decimals: market.decimals,
 
           maxPoints: MAX_POINTS,
-
           candleBucketSize: MARKET_STEP,
 
-          /*
-           * Keep complete session.
-           */
+          /* Keep the complete session visible. */
           liveWindowDuration: null,
 
           animation: false,
-
           ranges,
 
           capabilities: {
             intraday: true,
-
             historical: true,
-
             live: true,
-
             navigator: true,
-
             intradayRange: "1D",
           },
 
-          controls: {
-            root: panel,
-          },
+          controls: { root: panel },
 
           xAxisTitle: null,
-
           yAxisTitle: text.value,
 
           axis: {
             x: {
-              title: {
-                "1D": text.time,
-
-                default: text.date,
-              },
-
-              rotation: {
-                "1D": 0,
-
-                default: -20,
-              },
-
+              title: { "1D": text.time, default: text.date },
+              rotation: { "1D": 0, default: -20 },
               labels: true,
-
               showFirstLabel: true,
-
               showLastLabel: true,
-
               minPadding: 0,
-
               maxPadding: 0,
             },
-
             y: {
               opposite: true,
-
               labels: true,
-
               minPadding: 0.06,
-
               maxPadding: 0.06,
-
-              format: {
-                decimals: market.decimals,
-
-                useGrouping: true,
-              },
+              format: { decimals: market.decimals, useGrouping: true },
             },
           },
 
           navigatorEnabled: true,
-
           navigator: {
             enabled: true,
-
             height: 32,
-
             margin: 12,
-
             handles: true,
-
             handleWidth: 7,
-
             handleHeight: 14,
 
-            /*
-             * Compact Overview navigator.
-             */
-            labels: false,
-
+            /* Overview navigator — labels enabled to match the main performance chart. */
+            labels: true,
             showFirstLabel: false,
-
             showLastLabel: false,
-
             tickPixelInterval: 120,
-
             dataGrouping: false,
           },
 
           exporting: {
             enabled: true,
-
             showContextButton: false,
-
             fallbackToExportServer: false,
-
             sourceWidth: 1200,
-
             sourceHeight: 675,
-
             scale: 2,
           },
 
@@ -10755,17 +10562,11 @@
 
           live: {
             enabled: true,
-
             interval: POLL_INTERVAL,
-
             alignToInterval: false,
-
             immediate: false,
-
             pauseWhenHidden: true,
-
             retry: true,
-
             autostart: true,
 
             async fetchUpdates({ signal, since } = {}) {
@@ -10779,9 +10580,7 @@
                 return null;
               }
 
-              return {
-                points,
-              };
+              return { points };
             },
 
             onError(error, metadata) {
@@ -10808,7 +10607,6 @@
         }
 
         const chartElement = document.querySelector(market.chartSelector);
-
         const panel = document.querySelector(market.panelSelector);
 
         if (!chartElement || !panel) {
@@ -10820,22 +10618,15 @@
         try {
           let runtime = runtimes.get(market.key);
 
-          /*
-           * API call happens on every selection.
-           */
+          /* API call happens on every selection. */
           const snapshot = await requestMarketData(market, !runtime);
 
-          /*
-           * FIRST VISIT
-           *
-           * Create Highstock once.
-           */
           if (!runtime) {
+            /* FIRST VISIT: create Highstock once. */
             const feed = feedFor(market);
 
             const controller = chartAPI.create(
               chartElement,
-
               chartConfiguration(market, panel, feed, snapshot.ranges),
             );
 
@@ -10843,34 +10634,21 @@
               return null;
             }
 
-            runtime = {
-              market,
-              panel,
-              chartElement,
-              controller,
-              feed,
-            };
+            runtime = { market, panel, chartElement, controller, feed };
 
             runtimes.set(market.key, runtime);
-
             panel.marketChartController = controller;
           } else {
             /*
-             * NEXT VISITS
-             *
-             * Keep the existing Highcharts instance.
-             *
-             * Only replace the data returned
-             * by the selected-market API call.
+             * NEXT VISITS: keep the existing Highcharts instance, only
+             * replace the data returned by the selected-market API call.
              */
             for (const [range, record] of Object.entries(
               snapshot.ranges || {},
             )) {
               runtime.controller.setRangeRecord(range, record, {
                 preserveViewport: false,
-
                 redraw: true,
-
                 animation: false,
               });
             }
@@ -10878,17 +10656,9 @@
 
           activeMarketKey = market.key;
 
-          updateStatus(
-            market,
+          updateStatus(market, runtime.feed.state().open);
 
-            runtime.feed.state().open,
-          );
-
-          /*
-           * Tab panel is now visible.
-           *
-           * Only recalculate chart dimensions.
-           */
+          /* Tab panel is now visible — only recalculate chart dimensions. */
           runtime.controller.getChart()?.reflow();
 
           console.info(`[Market Chart] ${market.symbol} ready (${source}).`);
@@ -10914,13 +10684,8 @@
       function bindTabs() {
         overview.addEventListener(
           "click",
-
           (event) => {
-            /*
-             * Listen ONLY to actual market tabs.
-             *
-             * Range/export/compare clicks are ignored.
-             */
+            /* Listen ONLY to actual market tabs — range/export/compare clicks are ignored. */
             const tab = event.target?.closest?.(
               '[data-market-tabs] [role="tab"][aria-controls]',
             );
@@ -10940,21 +10705,12 @@
             }
 
             /*
-             * Give your existing tabs component
-             * one frame to display the selected panel.
-             *
-             * Then:
-             *
-             * API -> update/create -> reflow.
-             *
-             * Nothing else.
+             * Give the existing tabs component one frame to display the
+             * selected panel, then: API -> update/create -> reflow. Nothing else.
              */
             requestAnimationFrame(() => void showMarket(market, "tab-click"));
           },
-
-          {
-            signal: listeners.signal,
-          },
+          { signal: listeners.signal },
         );
       }
 
@@ -10975,7 +10731,6 @@
       function bindExport() {
         document.addEventListener(
           "click",
-
           (event) => {
             const trigger = event.target?.closest?.(
               "[data-chart-export-trigger]",
@@ -10988,14 +10743,12 @@
               const menu = trigger
                 .closest("[data-chart-export]")
                 ?.querySelector("[data-chart-export-menu]");
-
               const opening = menu?.hasAttribute("hidden");
 
               closeExportMenus();
 
               if (menu && opening) {
                 menu.removeAttribute("hidden");
-
                 trigger.setAttribute("aria-expanded", "true");
               }
 
@@ -11011,7 +10764,6 @@
               event.stopPropagation();
 
               const runtime = activeRuntime();
-
               const chart = runtime?.controller?.getChart();
 
               if (!chart) {
@@ -11022,7 +10774,6 @@
 
               const filename = [
                 runtime.market.symbol,
-
                 state.range,
                 state.mode,
                 "overview",
@@ -11035,32 +10786,16 @@
               switch (actionButton.dataset.exportAction) {
                 case "fullscreen":
                   chart.fullscreen?.toggle?.();
-
                   break;
-
                 case "print":
                   chart.print?.();
-
                   break;
-
                 case "png":
-                  chart.exportChart?.({
-                    type: "image/png",
-
-                    filename,
-                  });
-
+                  chart.exportChart?.({ type: "image/png", filename });
                   break;
-
                 case "pdf":
-                  chart.exportChart?.({
-                    type: "application/pdf",
-
-                    filename,
-                  });
-
+                  chart.exportChart?.({ type: "application/pdf", filename });
                   break;
-
                 default:
                   break;
               }
@@ -11072,24 +10807,17 @@
               closeExportMenus();
             }
           },
-
-          {
-            signal: listeners.signal,
-          },
+          { signal: listeners.signal },
         );
 
         document.addEventListener(
           "keydown",
-
           (event) => {
             if (event.key === "Escape") {
               closeExportMenus();
             }
           },
-
-          {
-            signal: listeners.signal,
-          },
+          { signal: listeners.signal },
         );
       }
 
@@ -11100,7 +10828,6 @@
       function bindCompare() {
         document.addEventListener(
           "click",
-
           (event) => {
             const button = event.target?.closest?.("[data-chart-compare]");
 
@@ -11111,29 +10838,19 @@
             const pressed = button.getAttribute("aria-pressed") !== "true";
 
             button.setAttribute("aria-pressed", String(pressed));
-
             button.classList.toggle("is-active", pressed);
 
             button.dispatchEvent(
-              new CustomEvent(
-                "marketperformancecomparechange",
-
-                {
-                  bubbles: true,
-
-                  detail: {
-                    active: pressed,
-
-                    controller: activeRuntime()?.controller || null,
-                  },
+              new CustomEvent("marketperformancecomparechange", {
+                bubbles: true,
+                detail: {
+                  active: pressed,
+                  controller: activeRuntime()?.controller || null,
                 },
-              ),
+              }),
             );
           },
-
-          {
-            signal: listeners.signal,
-          },
+          { signal: listeners.signal },
         );
       }
 
@@ -11156,7 +10873,6 @@
 
             if (window.SEMarketCharts?.create) {
               resolve(window.SEMarketCharts);
-
               return;
             }
 
@@ -11166,7 +10882,6 @@
                   "SEMarketCharts did not become available within 10 seconds.",
                 ),
               );
-
               return;
             }
 
@@ -11189,14 +10904,9 @@
         destroyed = true;
 
         listeners.abort();
-
         closeExportMenus();
 
-        /*
-         * Destroy only when page itself goes away.
-         *
-         * NOT during normal tab switching.
-         */
+        /* Destroy only when the page itself goes away, NOT during tab switching. */
         for (const runtime of runtimes.values()) {
           runtime.controller.destroy();
         }
@@ -11205,14 +10915,258 @@
         feeds.clear();
 
         activeMarketKey = null;
-
         chartAPI = null;
-
         overview = null;
       }
 
       /* ======================================================================
-       Test API
+       Test Helpers
+       ====================================================================== */
+
+      function wait(ms) {
+        return new Promise((resolve) => setTimeout(resolve, ms));
+      }
+
+      /*
+       * Polls a predicate until it's true or a timeout elapses. Used
+       * because live updates and controller state changes are async.
+       */
+      async function waitUntil(
+        predicate,
+        { timeout = 4_000, interval = 50 } = {},
+      ) {
+        const deadline = Date.now() + timeout;
+
+        while (Date.now() < deadline) {
+          if (predicate()) {
+            return true;
+          }
+
+          await wait(interval);
+        }
+
+        return predicate();
+      }
+
+      function assert(condition, description) {
+        return { pass: Boolean(condition), description };
+      }
+
+      /* ======================================================================
+       Automated Smoke Test
+       ======================================================================
+       Drives one market through every controller entry point and asserts on
+       controller.getState() / DOM after each step, rather than only eyeballing
+       the chart. Run from the console:
+
+         await marketChartTest.runAll()
+         await marketChartTest.runAll('nomu')   // test a specific market
+
+       Returns { passed, failed, total, results } and also console.tables it.
+       ====================================================================== */
+
+      async function runAll(key = "tasi") {
+        const market = marketByKey.get(String(key).toLowerCase());
+
+        if (!market) {
+          throw new Error(
+            `Unknown market key "${key}". Known keys: ${[...marketByKey.keys()].join(", ")}`,
+          );
+        }
+
+        const results = [];
+        const record = (description, pass) =>
+          results.push({ description, pass: Boolean(pass) });
+
+        console.group(`[Market Chart Test] ${market.symbol}`);
+
+        try {
+          /* 1. Initial load */
+          const runtime = await showMarket(market, "test:runAll");
+
+          record("chart created", Boolean(runtime?.controller));
+
+          if (!runtime) {
+            return finish();
+          }
+
+          const controller = runtime.controller;
+
+          record(
+            "initial state is ready",
+            controller.getState().state === "ready",
+          );
+          record("initial range is 1D", controller.getState().range === "1D");
+          record(
+            "navigator enabled",
+            controller.getState().navigator.enabled === true,
+          );
+          record("has intraday data", controller.getActiveData().length > 0);
+
+          /* 2. Range switching, every configured historical range plus 1D */
+          const ranges = ["1W", "1M", "3M", "6M", "1Y", "5Y", "ALL", "1D"];
+
+          for (const range of ranges) {
+            const ok = controller.setRange(range, { redraw: true });
+            const settled = ok && controller.getState().range === range;
+
+            record(`setRange("${range}") succeeds and updates state`, settled);
+          }
+
+          /* 3. Mode switching on the (now current) 1D range */
+          controller.setRange("1D", { redraw: true, resetViewport: true });
+
+          for (const mode of ["line", "candlestick", "trend"]) {
+            const ok = controller.setMode(mode);
+            const settled = ok && controller.getState().mode === mode;
+
+            record(`setMode("${mode}") succeeds and updates state`, settled);
+          }
+
+          /* 4. Live: force a tick and confirm the controller actually redraws */
+          const beforePoints = controller.getActiveData().length;
+          const beforeUpdatedAt =
+            controller.getState().live?.lastDataUpdatedAt ?? null;
+
+          record(
+            "live controller active before tick",
+            controller.getState().live?.active === true,
+          );
+
+          const ticked = await waitUntil(
+            () =>
+              (controller.getState().live?.lastDataUpdatedAt ?? null) !==
+              beforeUpdatedAt,
+            { timeout: POLL_INTERVAL * 3 },
+          );
+
+          record("live poll produced a data update within timeout", ticked);
+          record(
+            "chart data grew or stayed consistent after live update",
+            controller.getActiveData().length >= beforePoints,
+          );
+
+          /* 5. Manual point correction (same-timestamp replace path) */
+          const correctionApplied = runtime.feed.correctLatest();
+          const refreshed = correctionApplied
+            ? controller.refreshLive()
+            : false;
+
+          await wait(250);
+
+          record(
+            "correctLatest() + refreshLive() accepted",
+            correctionApplied && refreshed !== false,
+          );
+
+          /* 6. Market close / reopen */
+          runtime.feed.close();
+          controller.pauseLive("market-closed");
+
+          await wait(50);
+
+          record(
+            "live paused after market close",
+            controller.getState().live?.paused === true,
+          );
+
+          runtime.feed.open();
+          controller.resumeLiveUpdates("market-closed");
+
+          await wait(50);
+
+          record(
+            "live resumed after market reopen",
+            controller.getState().live?.active === true,
+          );
+
+          /* 7. Historical range pauses live automatically */
+          controller.setRange("1W", { redraw: true });
+
+          record(
+            "live paused while a historical range is selected",
+            controller
+              .getState()
+              .live?.pauseReasons?.includes("historical-range") === true,
+          );
+
+          controller.setRange("1D", { redraw: true });
+
+          record(
+            "live resumes when returning to 1D",
+            controller
+              .getState()
+              .live?.pauseReasons?.includes("historical-range") !== true,
+          );
+
+          /* 8. Destroy / recreate cleanliness */
+          controller.destroy();
+
+          record(
+            "controller reports destroyed after destroy()",
+            controller.getState().destroyed === true,
+          );
+          record(
+            "registry no longer returns a destroyed controller",
+            chartAPI.get(runtime.chartElement) === null,
+          );
+
+          runtimes.delete(market.key);
+
+          const recreated = await showMarket(market, "test:recreate");
+
+          record(
+            "chart recreates cleanly after destroy",
+            Boolean(recreated?.controller),
+          );
+        } catch (error) {
+          record(`unexpected error: ${error?.message || error}`, false);
+        }
+
+        return finish();
+
+        function finish() {
+          const passed = results.filter((result) => result.pass).length;
+          const failed = results.length - passed;
+
+          console.table(
+            results.map((result) => ({
+              pass: result.pass ? "✅" : "❌",
+              check: result.description,
+            })),
+          );
+          console.info(
+            `[Market Chart Test] ${market.symbol}: ${passed}/${results.length} passed.`,
+          );
+          console.groupEnd();
+
+          return { passed, failed, total: results.length, results };
+        }
+      }
+
+      async function runAllMarkets() {
+        const summary = [];
+
+        for (const market of MARKETS) {
+          const result = await runAll(market.key);
+
+          summary.push({ market: market.symbol, ...result });
+        }
+
+        console.table(
+          summary.map(({ market, passed, failed, total }) => ({
+            market,
+            passed,
+            failed,
+            total,
+          })),
+        );
+
+        return summary;
+      }
+
+      /* ======================================================================
+       Test / Debug API
        ====================================================================== */
 
       window.marketChartTest = {
@@ -11230,15 +11184,10 @@
 
             return {
               market: runtime.market.symbol,
-
               active: runtime.market.key === activeMarketKey,
-
               range: state.range,
-
               mode: state.mode,
-
               liveState: state.live?.state ?? "off",
-
               points: series?.data?.length ?? 0,
             };
           });
@@ -11272,9 +11221,7 @@
           }
 
           runtime.feed.close();
-
           runtime.controller.pauseLive("market-closed");
-
           updateStatus(runtime.market, false);
 
           return true;
@@ -11288,9 +11235,7 @@
           }
 
           runtime.feed.open();
-
           runtime.controller.resumeLiveUpdates("market-closed");
-
           updateStatus(runtime.market, true);
 
           return true;
@@ -11311,6 +11256,10 @@
 
           return market ? showMarket(market, "test") : Promise.resolve(null);
         },
+
+        /* Automated smoke test — see the block above for what it checks. */
+        runAll,
+        runAllMarkets,
 
         destroy,
       };
@@ -11345,35 +11294,18 @@
           bindExport();
           bindCompare();
 
-          /*
-           * Initial TASI is resolved from
-           * aria-selected="true".
-           */
-          await showMarket(
-            selectedMarket() || MARKETS[0],
+          /* Initial TASI is resolved from aria-selected="true". */
+          await showMarket(selectedMarket() || MARKETS[0], "initial");
 
-            "initial",
-          );
+          window.addEventListener("pagehide", destroy, { once: true });
 
-          window.addEventListener("pagehide", destroy, {
-            once: true,
+          console.info("[Market Chart] lightweight Market Overview ready.", {
+            createOncePerMarket: true,
+            apiCallOnTabSelection: true,
+            destroyOnTabSwitch: false,
+            context: "overview",
+            liveWindowDuration: null,
           });
-
-          console.info(
-            "[Market Chart] lightweight Market Overview ready.",
-
-            {
-              createOncePerMarket: true,
-
-              apiCallOnTabSelection: true,
-
-              destroyOnTabSwitch: false,
-
-              context: "overview",
-
-              liveWindowDuration: null,
-            },
-          );
         } catch (error) {
           console.error(
             "[Market Chart] Market Overview initialization failed.",

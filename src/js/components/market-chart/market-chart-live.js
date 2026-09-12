@@ -5,28 +5,20 @@
 /**
  * Network polling lifecycle for market-chart.
  *
- * This module deliberately does not know about:
- * - Highcharts;
- * - chart series;
- * - navigator state;
- * - chart ranges;
- * - DOM presentation.
+ * Highcharts has no equivalent of this: deciding *when* a request runs,
+ * pausing/resuming on visibility/connectivity changes, retrying with
+ * backoff, enforcing a request timeout, and reporting whether a response
+ * actually changed data are all application concerns. This module owns
+ * exactly that and nothing about rendering.
  *
- * The chart controller owns data reconciliation and rendering. This controller
- * only decides when a request runs, when it should pause/resume, how retries
- * behave, and whether an accepted response actually changed market data.
- *
- * Preferred callback contract:
+ * Contract:
  *
  *   fetchUpdates(metadata) -> payload
  *   onData(payload, metadata) -> boolean | Promise<boolean>
  *
- * `onData` should return true only when the payload changed canonical market
- * data. Returning false means the request succeeded but the market data was
- * unchanged.
- *
- * `fetchPoint` and `onPoint` remain supported as compatibility aliases while
- * market-chart.js is being migrated.
+ * `onData` must return `true` only when the payload changed canonical
+ * market data. Returning `false` (or omitting a return) means the request
+ * succeeded but nothing changed — no redraw, no "last updated" bump.
  */
 
 /* ==========================================================================
@@ -79,7 +71,7 @@ function isAbortError(error) {
   return error?.name === "AbortError" || error?.code === 20;
 }
 
-function resolveChangedResult(result, fallback = false) {
+function resolveChangedResult(result) {
   if (typeof result === "boolean") {
     return result;
   }
@@ -88,7 +80,7 @@ function resolveChangedResult(result, fallback = false) {
     return result.changed;
   }
 
-  return fallback;
+  return false;
 }
 
 /* ==========================================================================
@@ -99,29 +91,9 @@ export class MarketChartLiveController {
   constructor(configuration = {}) {
     const source = isPlainObject(configuration) ? configuration : {};
 
-    const fetchUpdates =
-      typeof source.fetchUpdates === "function"
-        ? source.fetchUpdates
-        : typeof source.fetchPoint === "function"
-          ? source.fetchPoint
-          : null;
-
-    if (!fetchUpdates) {
-      throw new TypeError(
-        "Market Chart Live requires fetchUpdates() or fetchPoint().",
-      );
+    if (typeof source.fetchUpdates !== "function") {
+      throw new TypeError("Market Chart Live requires fetchUpdates().");
     }
-
-    const onData =
-      typeof source.onData === "function"
-        ? source.onData
-        : typeof source.onPoint === "function"
-          ? source.onPoint
-          : null;
-
-    this.usingLegacyOnPoint =
-      typeof source.onData !== "function" &&
-      typeof source.onPoint === "function";
 
     this.configuration = {
       interval: DEFAULT_INTERVAL,
@@ -133,9 +105,8 @@ export class MarketChartLiveController {
       requestTimeout: 0,
       onStateChange: null,
       onError: null,
+      onData: null,
       ...source,
-      fetchUpdates,
-      onData,
     };
 
     /* ----------------------------------------------------------------------
@@ -220,39 +191,19 @@ export class MarketChartLiveController {
 
     /*
      * `sequence` counts successfully completed polling cycles.
-     *
-     * `requestSequence` counts every request attempt,
-     * including failed requests.
+     * `requestSequence` counts every request attempt, including failures.
      */
     this.sequence = 0;
     this.requestSequence = 0;
 
     /*
-     * Request/data timestamps intentionally have separate meanings:
-     *
-     * lastRequestedAt:
-     *   when the latest request started.
-     *
-     * lastResponseAt:
-     *   when the latest successful request returned.
-     *
-     * lastDataUpdatedAt:
-     *   when onData() last confirmed that canonical market data changed.
-     *
-     * A closed market may continue updating lastRequestedAt/lastResponseAt
-     * while lastDataUpdatedAt remains unchanged.
+     * lastRequestedAt / lastResponseAt track network activity.
+     * lastDataUpdatedAt only moves when onData() confirms a real change —
+     * a closed market can keep responding without ever moving it.
      */
     this.lastRequestedAt = null;
     this.lastResponseAt = null;
     this.lastDataUpdatedAt = null;
-
-    /*
-     * Compatibility property retained from the previous implementation.
-     *
-     * Its semantics are now corrected:
-     * it changes only when canonical market data changes.
-     */
-    this.lastUpdatedAt = null;
 
     this.nextUpdateAt = null;
 
@@ -263,10 +214,8 @@ export class MarketChartLiveController {
     this.listenerController = new AbortControllerConstructor();
 
     this.handleVisibilityChange = this.handleVisibilityChange.bind(this);
-
     this.handleOnline = this.handleOnline.bind(this);
     this.handleOffline = this.handleOffline.bind(this);
-
     this.handlePageHide = this.handlePageHide.bind(this);
     this.handlePageShow = this.handlePageShow.bind(this);
 
@@ -284,18 +233,11 @@ export class MarketChartLiveController {
     this.document?.addEventListener?.(
       "visibilitychange",
       this.handleVisibilityChange,
-      {
-        signal,
-      },
+      { signal },
     );
 
-    this.window?.addEventListener?.("online", this.handleOnline, {
-      signal,
-    });
-
-    this.window?.addEventListener?.("offline", this.handleOffline, {
-      signal,
-    });
+    this.window?.addEventListener?.("online", this.handleOnline, { signal });
+    this.window?.addEventListener?.("offline", this.handleOffline, { signal });
 
     /*
      * BFCache / page navigation lifecycle.
@@ -339,11 +281,8 @@ export class MarketChartLiveController {
     }
 
     /*
-     * Even when background polling is allowed,
-     * browsers may throttle timers.
-     *
-     * Reconcile immediately when the document
-     * becomes visible again.
+     * Background polling is allowed, but browsers throttle timers in
+     * hidden tabs. Reconcile immediately once visible again.
      */
     if (!this.document?.hidden) {
       this.refresh();
@@ -393,9 +332,7 @@ export class MarketChartLiveController {
 
     this.notifyStateChange({
       ...this.getState(),
-
       previousState,
-
       ...detail,
     });
 
@@ -435,15 +372,11 @@ export class MarketChartLiveController {
     this.pauseReasons.add(normalizedReason);
 
     this.clearTimer();
-
     this.refreshPending = false;
-
     this.abortRequest();
 
     if (this.active) {
-      this.emitState(this.getPausedState(), {
-        reason: normalizedReason,
-      });
+      this.emitState(this.getPausedState(), { reason: normalizedReason });
     }
 
     return true;
@@ -467,12 +400,8 @@ export class MarketChartLiveController {
     }
 
     /*
-     * A resumed live controller immediately
-     * reconciles what may have been missed
-     * while paused.
-     *
-     * Normal interval scheduling resumes
-     * after that request completes.
+     * Resuming immediately reconciles anything missed while paused.
+     * Normal interval scheduling resumes after that request completes.
      */
     this.schedule(0);
 
@@ -486,7 +415,6 @@ export class MarketChartLiveController {
   clearTimer() {
     if (this.timer !== null) {
       this.clearTimeout(this.timer);
-
       this.timer = null;
     }
 
@@ -499,7 +427,6 @@ export class MarketChartLiveController {
     }
 
     const now = this.now();
-
     const remainder = now % this.interval;
 
     return remainder === 0 ? this.interval : this.interval - remainder;
@@ -519,13 +446,11 @@ export class MarketChartLiveController {
 
     this.emitState("waiting", {
       nextUpdateAt: this.nextUpdateAt,
-
       nextUpdateIn: resolvedDelay,
     });
 
     this.timer = this.setTimeout(() => {
       this.timer = null;
-
       this.nextUpdateAt = null;
 
       void this.execute();
@@ -566,7 +491,6 @@ export class MarketChartLiveController {
     }
 
     this.clearTimeout(this.requestTimer);
-
     this.requestTimer = null;
   }
 
@@ -581,18 +505,7 @@ export class MarketChartLiveController {
       return false;
     }
 
-    const result = await onData(payload, metadata);
-
-    /*
-     * Preferred onData() contract requires
-     * an explicit changed result.
-     *
-     * Legacy onPoint() historically returned
-     * nothing, so undefined is treated as
-     * changed there until market-chart.js is
-     * migrated to return applyLiveData().
-     */
-    return resolveChangedResult(result, this.usingLegacyOnPoint);
+    return resolveChangedResult(await onData(payload, metadata));
   }
 
   async execute() {
@@ -612,18 +525,14 @@ export class MarketChartLiveController {
     this.requestController = controller;
 
     const requestId = ++this.requestSequence;
-
     const requestedAt = this.now();
-
     const nextSequence = this.sequence + 1;
 
     this.lastRequestedAt = requestedAt;
 
     this.emitState("updating", {
       requestedAt,
-
       sequence: nextSequence,
-
       requestId,
     });
 
@@ -644,11 +553,8 @@ export class MarketChartLiveController {
     try {
       const payload = await this.configuration.fetchUpdates({
         signal: controller.signal,
-
         requestedAt,
-
         sequence: nextSequence,
-
         requestId,
       });
 
@@ -664,9 +570,7 @@ export class MarketChartLiveController {
       }
 
       /*
-       * The network request succeeded even
-       * if the returned market data is
-       * unchanged.
+       * The request succeeded even if the returned data is unchanged.
        */
       const respondedAt = this.now();
 
@@ -674,18 +578,8 @@ export class MarketChartLiveController {
 
       const changed = await this.applyPayload(payload, {
         requestedAt,
-
         respondedAt,
-
-        /*
-         * Compatibility alias used by
-         * the previous onPoint()
-         * callback contract.
-         */
-        updatedAt: respondedAt,
-
         sequence: nextSequence,
-
         requestId,
       });
 
@@ -700,55 +594,26 @@ export class MarketChartLiveController {
 
       const completedAt = this.now();
 
-      /*
-       * Critical semantic difference:
-       *
-       * only actual canonical data mutation
-       * changes the data-updated timestamp.
-       *
-       * A successful request that returns
-       * the same market observation does not.
-       */
       if (changed) {
         this.lastDataUpdatedAt = completedAt;
-
-        this.lastUpdatedAt = completedAt;
       }
 
       this.sequence = nextSequence;
-
       this.failureCount = 0;
 
       this.emitState("live", {
         payload,
-
-        /*
-         * Compatibility field retained
-         * temporarily.
-         */
-        point: payload,
-
         changed,
-
         requestedAt,
-
         respondedAt,
-
         completedAt,
-
-        updatedAt: completedAt,
-
         sequence: this.sequence,
-
         requestId,
       });
 
       /*
-       * true means the polling cycle
-       * completed successfully.
-       *
-       * It does NOT mean the market data
-       * necessarily changed.
+       * `true` means the polling cycle completed successfully — it does
+       * NOT mean the market data necessarily changed.
        */
       return true;
     } catch (error) {
@@ -757,7 +622,6 @@ export class MarketChartLiveController {
         : null;
 
       const resolvedError = signalReason || error;
-
       const timedOut =
         requestTimedOut || resolvedError?.name === "TimeoutError";
 
@@ -765,14 +629,8 @@ export class MarketChartLiveController {
         !timedOut && (isAbortError(resolvedError) || controller.signal.aborted);
 
       /*
-       * Intentional lifecycle cancellation
-       * is not a polling failure.
-       *
-       * Examples:
-       * - chart destroyed;
-       * - range changed;
-       * - page hidden;
-       * - browser went offline.
+       * Intentional lifecycle cancellation (destroyed, range changed,
+       * page hidden, offline) is not a polling failure.
        */
       if (
         cancelled ||
@@ -787,21 +645,13 @@ export class MarketChartLiveController {
 
       const metadata = {
         requestedAt,
-
         failureCount: this.failureCount,
-
         sequence: this.sequence,
-
         requestId,
-
         timedOut,
       };
 
-      this.emitState("error", {
-        error: resolvedError,
-
-        ...metadata,
-      });
+      this.emitState("error", { error: resolvedError, ...metadata });
 
       if (typeof this.configuration.onError === "function") {
         try {
@@ -814,11 +664,6 @@ export class MarketChartLiveController {
         }
       }
 
-      /*
-       * retry:false converts a request
-       * failure into a stopped polling
-       * lifecycle.
-       */
       if (this.configuration.retry === false) {
         this.active = false;
       }
@@ -837,11 +682,6 @@ export class MarketChartLiveController {
         return;
       }
 
-      /*
-       * refresh() called during an active
-       * request should run exactly one
-       * immediate reconciliation afterward.
-       */
       if (this.refreshPending) {
         this.refreshPending = false;
 
@@ -850,10 +690,6 @@ export class MarketChartLiveController {
         return;
       }
 
-      /*
-       * Failure path uses capped
-       * exponential backoff.
-       */
       if (this.failureCount > 0) {
         this.schedule(this.getRetryDelay());
 
@@ -861,12 +697,9 @@ export class MarketChartLiveController {
       }
 
       /*
-       * Recursive setTimeout intentionally
-       * schedules only after the previous
-       * request and its data callback have
-       * completed.
-       *
-       * Requests therefore never overlap.
+       * Recursive setTimeout only schedules the next request after the
+       * previous request and its data callback finish. Requests never
+       * overlap.
        */
       this.schedule();
     }
@@ -886,15 +719,9 @@ export class MarketChartLiveController {
     }
 
     this.active = true;
-
     this.failureCount = 0;
-
     this.refreshPending = false;
 
-    /*
-     * Re-evaluate hidden/offline status every
-     * time polling starts.
-     */
     this.synchronizeEnvironment();
 
     if (this.pauseReasons.size > 0) {
@@ -931,18 +758,8 @@ export class MarketChartLiveController {
       return false;
     }
 
-    /*
-     * Remove the normal scheduled request.
-     * This refresh supersedes it.
-     */
     this.clearTimer();
 
-    /*
-     * Never overlap network requests.
-     *
-     * One immediate reconciliation will be
-     * queued after the in-flight request.
-     */
     if (this.inFlight) {
       this.refreshPending = true;
 
@@ -960,30 +777,17 @@ export class MarketChartLiveController {
     }
 
     this.active = false;
-
     this.refreshPending = false;
 
     this.clearTimer();
-
     this.abortRequest();
-
     this.clearRequestTimeout();
 
     this.failureCount = 0;
 
     /*
-     * A manual pause is a transient lifecycle
-     * action.
-     *
-     * Environment/application pause reasons
-     * are retained so a later start cannot
-     * accidentally poll while those reasons
-     * remain valid.
-     *
-     * Example:
-     * historical-range should survive
-     * stop/start until the controller
-     * explicitly removes that reason.
+     * Environment/application pause reasons survive stop/start; only the
+     * manual pause is transient.
      */
     this.pauseReasons.delete(PAUSE_REASON_MANUAL);
 
@@ -998,37 +802,19 @@ export class MarketChartLiveController {
     }
 
     this.active = false;
-
     this.refreshPending = false;
 
     this.clearTimer();
-
     this.clearRequestTimeout();
-
     this.abortRequest();
 
-    /*
-     * Removes visibility, online/offline,
-     * pagehide and pageshow listeners in
-     * one operation.
-     */
     this.listenerController.abort();
-
     this.pauseReasons.clear();
 
-    /*
-     * Emit before setting destroyed=true
-     * because emitState() intentionally
-     * ignores calls after destruction.
-     */
-    this.emitState("destroyed", {
-      destroyed: true,
-    });
+    this.emitState("destroyed", { destroyed: true });
 
     this.destroyed = true;
-
     this.requestController = null;
-
     this.inFlight = false;
 
     return true;
@@ -1041,53 +827,28 @@ export class MarketChartLiveController {
   getState() {
     return {
       state: this.state,
-
       active: this.active,
-
       destroyed: this.destroyed,
-
       inFlight: this.inFlight,
 
       paused: this.pauseReasons.size > 0,
-
       pauseReasons: [...this.pauseReasons],
 
       interval: this.interval,
-
       alignToInterval: this.configuration.alignToInterval !== false,
-
       pauseWhenHidden: this.configuration.pauseWhenHidden !== false,
-
       retry: this.configuration.retry !== false,
-
       requestTimeout: this.requestTimeout,
-
       maxRetryDelay: this.maxRetryDelay,
 
       failureCount: this.failureCount,
-
       sequence: this.sequence,
-
       requestSequence: this.requestSequence,
-
       refreshPending: this.refreshPending,
 
       lastRequestedAt: this.lastRequestedAt,
-
       lastResponseAt: this.lastResponseAt,
-
       lastDataUpdatedAt: this.lastDataUpdatedAt,
-
-      /*
-       * Compatibility alias.
-       *
-       * Unlike the old implementation,
-       * this now means:
-       *
-       * "the last time canonical market
-       * data actually changed."
-       */
-      lastUpdatedAt: this.lastDataUpdatedAt,
 
       nextUpdateAt: this.nextUpdateAt,
     };
