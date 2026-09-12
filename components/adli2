@@ -288,34 +288,39 @@
 
 										<c:when test="${pageContext.request.locale.language == 'ar'}">
 
-											<c:forEach
-												begin="1"
-												end="28"
-												varStatus="loop"
-											>
+	<c:forEach
+		begin="1"
+		end="28"
+		varStatus="loop"
+	>
 
-												<fmt:message
-													key="arabic.character.${loop.index}"
-													var="arabicLetter"
-												/>
+		<c:set
+			var="arabicCharacterKey"
+			value="arabic.character.${loop.index}"
+		/>
 
-												<li class="directory-alphabet__item">
+		<fmt:message
+			key="${arabicCharacterKey}"
+			var="arabicLetter"
+		/>
 
-													<button
-														class="directory-alphabet__control"
-														type="button"
-														aria-controls="issuer-directory-grid issuer-directory-list"
-														aria-pressed="false"
-														data-directory-letter="${arabicLetter}"
-													>
-														${arabicLetter}
-													</button>
+		<li class="directory-alphabet__item">
 
-												</li>
+			<button
+				class="directory-alphabet__control"
+				type="button"
+				aria-controls="issuer-directory-grid issuer-directory-list"
+				aria-pressed="false"
+				data-directory-letter="${arabicLetter}"
+			>
+				${arabicLetter}
+			</button>
 
-											</c:forEach>
+		</li>
 
-										</c:when>
+	</c:forEach>
+
+</c:when>
 
 
 										<!-- =============================================
