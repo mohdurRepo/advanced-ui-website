@@ -36,7 +36,7 @@ import {
       Highcharts auto-tick decisions.
    4. Historical edge labels are inset from the plot boundary so rotated
       labels are not clipped.
-   5. Navigator x-axis is explicitly bounded to its canonical data extent.
+   5. Navigator x-axis remains data-driven; never freeze live min/max.
    6. Navigator labels render inside the mini-chart.
    7. Navigator data itself is manually synchronized by the controller.
    ========================================================================== */
@@ -256,29 +256,6 @@ function resolveRangeValue(value, range, fallback) {
 }
 
 /* ==========================================================================
-   Data Bounds
-   ========================================================================== */
-
-function getSeriesBounds(data) {
-  if (!Array.isArray(data) || !data.length) {
-    return null;
-  }
-
-  const minimum = toFiniteNumber(data[0]?.[0]);
-
-  const maximum = toFiniteNumber(data[data.length - 1]?.[0]);
-
-  if (minimum === null || maximum === null || maximum < minimum) {
-    return null;
-  }
-
-  return {
-    minimum,
-    maximum,
-  };
-}
-
-/* ==========================================================================
    Context
    ========================================================================== */
 
@@ -487,6 +464,7 @@ function createDateFormatter({ language, timeZone, options }) {
  *
  * Highstock still owns:
  *
+ * - live dataMin/dataMax
  * - scale translation
  * - zooming
  * - navigator drag
@@ -715,6 +693,7 @@ function buildHistoricalTickPositions({
   edgeInsetRatio = HISTORICAL_EDGE_INSET_RATIO,
 }) {
   const min = toFiniteNumber(minimum);
+
   const max = toFiniteNumber(maximum);
 
   if (min === null || max === null || max < min) {
@@ -770,9 +749,11 @@ function buildHistoricalTickPositions({
 function createHistoricalTickPositioner(configuration = {}) {
   return function historicalTickPositioner() {
     const dataMinimum = toFiniteNumber(this.dataMin);
+
     const dataMaximum = toFiniteNumber(this.dataMax);
 
     const axisMinimum = toFiniteNumber(this.min);
+
     const axisMaximum = toFiniteNumber(this.max);
 
     if (
@@ -786,6 +767,7 @@ function createHistoricalTickPositioner(configuration = {}) {
     }
 
     const minimum = Math.max(dataMinimum, axisMinimum);
+
     const maximum = Math.min(dataMaximum, axisMaximum);
 
     return buildHistoricalTickPositions({
@@ -897,6 +879,7 @@ function createXAxisOptions({
     lineColor: theme.border,
 
     tickWidth: 1,
+
     tickLength: 4,
 
     tickColor: theme.border,
@@ -1073,6 +1056,7 @@ function createYAxisOptions({
     minRange: configuration.minRange ?? undefined,
 
     lineWidth: 0,
+
     tickWidth: 0,
 
     gridLineWidth: configuration.gridLineWidth ?? 1,
@@ -1145,7 +1129,76 @@ function createYAxisOptions({
       ...titleOptions,
     },
   };
-} /* ==========================================================================
+}
+
+/* ==========================================================================
+   Tooltip Helpers
+   ========================================================================== */
+
+function getTooltipLabels(language) {
+  return isArabicLanguage(language)
+    ? {
+        value: "القيمة",
+
+        open: "الافتتاح",
+
+        high: "الأعلى",
+
+        low: "الأدنى",
+
+        close: "الإغلاق",
+      }
+    : {
+        value: "Value",
+
+        open: "Open",
+
+        high: "High",
+
+        low: "Low",
+
+        close: "Close",
+      };
+}
+
+function getTooltipValues(point, mode) {
+  if (!point) {
+    return null;
+  }
+
+  if (mode === "candlestick") {
+    const open = toFiniteNumber(point.open);
+
+    const high = toFiniteNumber(point.high);
+
+    const low = toFiniteNumber(point.low);
+
+    const close = toFiniteNumber(point.close);
+
+    if (open === null || high === null || low === null || close === null) {
+      return null;
+    }
+
+    return {
+      open,
+      high,
+      low,
+      close,
+
+      value: close,
+    };
+  }
+
+  const value = toFiniteNumber(point.y);
+
+  return value === null
+    ? null
+    : {
+        value,
+      };
+}
+
+/* ==========================================================================
    Tooltip Options
    ========================================================================== */
 
@@ -1189,21 +1242,23 @@ function createTooltipOptions({
 
   const formatPercent = createNumberFormatter({
     language,
+
     decimals: 2,
+
     useGrouping: false,
   });
 
   const row = (label, value) => `
-    <div class="market-chart-tooltip__row">
-      <span class="market-chart-tooltip__label">
-        ${escapeHTML(label)}
-      </span>
+      <div class="market-chart-tooltip__row">
+        <span class="market-chart-tooltip__label">
+          ${escapeHTML(label)}
+        </span>
 
-      <span class="market-chart-tooltip__value">
-        ${escapeHTML(formatNumber(value))}
-      </span>
-    </div>
-  `;
+        <span class="market-chart-tooltip__value">
+          ${escapeHTML(formatNumber(value))}
+        </span>
+      </div>
+    `;
 
   return {
     enabled: configuration.enabled !== false,
@@ -1211,6 +1266,7 @@ function createTooltipOptions({
     useHTML: true,
 
     shared: false,
+
     split: false,
 
     followTouchMove: true,
@@ -1225,6 +1281,7 @@ function createTooltipOptions({
     backgroundColor: theme.tooltipBackground,
 
     borderWidth: 1,
+
     borderRadius: 10,
 
     padding: 0,
@@ -1326,60 +1383,6 @@ function createTooltipOptions({
 }
 
 /* ==========================================================================
-   Tooltip
-   ========================================================================== */
-
-function getTooltipLabels(language) {
-  return isArabicLanguage(language)
-    ? {
-        value: "القيمة",
-        open: "الافتتاح",
-        high: "الأعلى",
-        low: "الأدنى",
-        close: "الإغلاق",
-      }
-    : {
-        value: "Value",
-        open: "Open",
-        high: "High",
-        low: "Low",
-        close: "Close",
-      };
-}
-
-function getTooltipValues(point, mode) {
-  if (!point) {
-    return null;
-  }
-
-  if (mode === "candlestick") {
-    const open = toFiniteNumber(point.open);
-    const high = toFiniteNumber(point.high);
-    const low = toFiniteNumber(point.low);
-    const close = toFiniteNumber(point.close);
-
-    if (open === null || high === null || low === null || close === null) {
-      return null;
-    }
-
-    return {
-      open,
-      high,
-      low,
-      close,
-      value: close,
-    };
-  }
-
-  const value = toFiniteNumber(point.y);
-
-  return value === null
-    ? null
-    : {
-        value,
-      };
-}
-/* ==========================================================================
    Main Series
    ========================================================================== */
 
@@ -1474,14 +1477,6 @@ function createNavigatorOptions({
     direction,
   );
 
-  /*
-   * Canonical navigator data boundaries.
-   *
-   * Explicit min/max keep the navigator on the exact same temporal domain
-   * as the primary chart.
-   */
-  const navigatorBounds = getSeriesBounds(data);
-
   const navigatorDateFormats = isPlainObject(configuration.formats)
     ? configuration.formats
     : dateFormats;
@@ -1527,12 +1522,16 @@ function createNavigatorOptions({
     enabled: true,
 
     /*
-     * MarketChartController explicitly synchronizes navigator data.
+     * MarketChartController explicitly owns navigator data synchronization.
+     *
+     * We therefore do not ask Highstock to mirror the primary series
+     * automatically.
      */
     adaptToUpdatedData: false,
 
     /*
-     * MarketChartController owns follow-latest viewport behavior.
+     * MarketChartController owns follow-latest behavior for the primary
+     * viewport.
      */
     stickToMax: false,
 
@@ -1580,26 +1579,40 @@ function createNavigatorOptions({
       type: "datetime",
 
       /*
-       * Use true elapsed-time geometry for every range.
-       *
-       * Historical labels themselves are deliberately distributed by the
-       * shared historical tick model below.
+       * Preserve true elapsed-time geometry.
        */
       ordinal: configuration.ordinal ?? false,
 
       /*
-       * Exact canonical temporal extent.
+       * IMPORTANT:
+       *
+       * Do NOT set hard min/max here.
+       *
+       * The navigator series is updated directly by MarketChartController.
+       * Leaving the axis data-driven allows Highstock to recalculate its
+       * dataMin/dataMax naturally after:
+       *
+       * - live append
+       * - same-timestamp replacement
+       * - hidden-tab catch-up batch
+       * - complete range replacement
+       * - structural refresh
+       *
+       * This avoids:
+       *
+       * - stale navigator time domains
+       * - per-tick Axis.update()
+       * - per-tick setExtremes()
+       * - extra redraws
        */
-      min: navigatorBounds?.minimum,
-
-      max: navigatorBounds?.maximum,
-
       overscroll: 0,
 
       minPadding: 0,
+
       maxPadding: 0,
 
       startOnTick: false,
+
       endOnTick: false,
 
       offset: 0,
@@ -1607,6 +1620,7 @@ function createNavigatorOptions({
       lineWidth: 0,
 
       tickWidth: 0,
+
       tickLength: 0,
 
       gridLineWidth: 0,
@@ -1617,13 +1631,7 @@ function createNavigatorOptions({
       ),
 
       /*
-       * Same timestamp-selection contract as the primary x-axis.
-       *
-       * 1D:
-       *   shared clean intraday intervals.
-       *
-       * Historical:
-       *   shared equal visual cadence with safe edge insets.
+       * Main axis and navigator use the same timestamp-selection contract.
        */
       tickPositioner:
         configuration.tickPositioner === false
@@ -1642,14 +1650,11 @@ function createNavigatorOptions({
         enabled: labelsEnabled,
 
         /*
-         * Compact professional navigator:
-         * timestamps sit inside the mini-chart.
+         * Keep labels inside the navigator instead of reserving another row
+         * underneath it.
          */
         inside: true,
 
-        /*
-         * No external vertical space reserved for labels.
-         */
         reserveSpace: false,
 
         rotation: 0,
@@ -1665,8 +1670,7 @@ function createNavigatorOptions({
           : 0,
 
         /*
-         * Historical tick positions already contain their own edge inset.
-         * Do not crop or justify them again.
+         * Historical ticks already include edge-safe positioning.
          */
         overflow: intraday ? "justify" : "allow",
 
@@ -1706,9 +1710,11 @@ function createNavigatorOptions({
       gridLineWidth: 0,
 
       startOnTick: false,
+
       endOnTick: false,
 
       minPadding: 0.08,
+
       maxPadding: 0.08,
 
       labels: {
@@ -1734,12 +1740,13 @@ function createNavigatorOptions({
       /*
        * Always trend / close-price data.
        *
-       * Candlestick primary charts still use trend data here.
+       * Even when the primary chart is candlestick, navigator remains a
+       * lightweight trend representation.
        */
       data,
 
       /*
-       * Live navigator changes remain non-animated.
+       * Never animate live navigator updates.
        */
       animation: false,
 
@@ -1761,6 +1768,9 @@ function createNavigatorOptions({
 
       showInLegend: false,
 
+      /*
+       * Controller owns exact data resolution.
+       */
       dataGrouping: {
         enabled: configuration.dataGrouping === true,
       },
@@ -1827,8 +1837,11 @@ function createResponsiveOptions() {
         chartOptions: {
           chart: {
             spacingTop: 10,
+
             spacingRight: 14,
+
             spacingBottom: 20,
+
             spacingLeft: 14,
           },
 
@@ -1862,10 +1875,12 @@ function createResponsiveOptions() {
 
           navigator: {
             height: 34,
+
             margin: 12,
 
             handles: {
               width: 7,
+
               height: 16,
             },
 
@@ -1874,7 +1889,9 @@ function createResponsiveOptions() {
 
               labels: {
                 inside: true,
+
                 reserveSpace: false,
+
                 y: -5,
 
                 style: {
@@ -1894,8 +1911,11 @@ function createResponsiveOptions() {
         chartOptions: {
           chart: {
             spacingTop: 8,
+
             spacingRight: 12,
+
             spacingBottom: 18,
+
             spacingLeft: 12,
           },
 
@@ -1927,10 +1947,12 @@ function createResponsiveOptions() {
 
           navigator: {
             height: 32,
+
             margin: 10,
 
             handles: {
               width: 7,
+
               height: 14,
             },
 
@@ -1939,7 +1961,9 @@ function createResponsiveOptions() {
 
               labels: {
                 inside: true,
+
                 reserveSpace: false,
+
                 y: -4,
               },
             },
@@ -2113,10 +2137,9 @@ export function createMarketChartOptions({
 
   const historicalTicks = {
     /*
-     * Main axis is authoritative.
+     * Primary x-axis configuration is authoritative.
      *
-     * Navigator receives the same values so both axes generate the same
-     * historical timestamp cadence.
+     * Navigator receives the same historical cadence contract.
      */
     tickCount: resolveRangeValue(
       xAxisConfiguration.historicalTickCount,
@@ -2234,6 +2257,7 @@ export function createMarketChartOptions({
 
       panning: {
         enabled: true,
+
         type: "x",
       },
 
@@ -2440,7 +2464,7 @@ export function createMarketChartOptions({
 
       candlestick: {
         /*
-         * Candlestick transitions remain intentionally non-animated.
+         * Candlestick transitions intentionally remain non-animated.
          */
         animation: false,
 
@@ -2449,6 +2473,7 @@ export function createMarketChartOptions({
         },
 
         pointPadding: 0.08,
+
         groupPadding: 0.04,
       },
     },
@@ -2477,7 +2502,7 @@ export function createMarketChartOptions({
       },
 
       /*
-       * Application status UI handles live-market announcements.
+       * Application status UI owns live-market announcements.
        */
       announceNewData: {
         enabled: false,
