@@ -284,366 +284,349 @@
 									     Arabic Alphabet
 									     ================================================= -->
 
-									<c:choose>
 
-										<c:when test="${pageContext.request.locale.language == 'ar'}">
+                                    <c:choose>
+                                        <c:when test="${pageContext.request.locale.language == 'ar'}">
 
-	<c:forEach
-		begin="1"
-		end="28"
-		varStatus="loop"
-	>
+                                            <c:forEach
+                                                begin="1"
+                                                end="28"
+                                                varStatus="loop"
+                                            >
+                                                <li class="directory-alphabet__item">
 
-		<c:set
-			var="arabicCharacterKey"
-			value="arabic.character.${loop.index}"
-		/>
+                                                    <button
+                                                        class="directory-alphabet__control"
+                                                        type="button"
+                                                        aria-controls="issuer-directory-grid issuer-directory-list"
+                                                        aria-pressed="false"
+                                                        data-directory-letter='<fmt:message key="arabic.character.${loop.index}" />'
+                                                    >
+                                                        <fmt:message key="arabic.character.${loop.index}" />
+                                                    </button>
 
-		<fmt:message
-			key="${arabicCharacterKey}"
-			var="arabicLetter"
-		/>
+                                                </li>
+                                            </c:forEach>
 
-		<li class="directory-alphabet__item">
+                                        </c:when>
+                                        <c:otherwise>
 
-			<button
-				class="directory-alphabet__control"
-				type="button"
-				aria-controls="issuer-directory-grid issuer-directory-list"
-				aria-pressed="false"
-				data-directory-letter="${arabicLetter}"
-			>
-				${arabicLetter}
-			</button>
+                                            <!-- English Alphabet -->
 
-		</li>
+                                            <li class="directory-alphabet__item">
+                                                <button
+                                                    class="directory-alphabet__control"
+                                                    type="button"
+                                                    aria-controls="issuer-directory-grid issuer-directory-list"
+                                                    aria-pressed="false"
+                                                    data-directory-letter="A"
+                                                >
+                                                    <fmt:message key="tadawul.eportal.issuer.directory.company.info.alphabet.a" />
+                                                </button>
+                                            </li>
 
-	</c:forEach>
+                                            <li class="directory-alphabet__item">
+                                                <button
+                                                    class="directory-alphabet__control"
+                                                    type="button"
+                                                    aria-controls="issuer-directory-grid issuer-directory-list"
+                                                    aria-pressed="false"
+                                                    data-directory-letter="B"
+                                                >
+                                                    <fmt:message key="tadawul.eportal.issuer.directory.company.info.alphabet.b" />
+                                                </button>
+                                            </li>
 
-</c:when>
+                                            <li class="directory-alphabet__item">
+                                                <button
+                                                    class="directory-alphabet__control"
+                                                    type="button"
+                                                    aria-controls="issuer-directory-grid issuer-directory-list"
+                                                    aria-pressed="false"
+                                                    data-directory-letter="C"
+                                                >
+                                                    <fmt:message key="tadawul.eportal.issuer.directory.company.info.alphabet.c" />
+                                                </button>
+                                            </li>
 
+                                            <li class="directory-alphabet__item">
+                                                <button
+                                                    class="directory-alphabet__control"
+                                                    type="button"
+                                                    aria-controls="issuer-directory-grid issuer-directory-list"
+                                                    aria-pressed="false"
+                                                    data-directory-letter="D"
+                                                >
+                                                    <fmt:message key="tadawul.eportal.issuer.directory.company.info.alphabet.d" />
+                                                </button>
+                                            </li>
 
-										<!-- =============================================
-										     English Alphabet
-										     ============================================= -->
+                                            <li class="directory-alphabet__item">
+                                                <button
+                                                    class="directory-alphabet__control"
+                                                    type="button"
+                                                    aria-controls="issuer-directory-grid issuer-directory-list"
+                                                    aria-pressed="false"
+                                                    data-directory-letter="E"
+                                                >
+                                                    <fmt:message key="tadawul.eportal.issuer.directory.company.info.alphabet.e" />
+                                                </button>
+                                            </li>
 
-										<c:otherwise>
+                                            <li class="directory-alphabet__item">
+                                                <button
+                                                    class="directory-alphabet__control"
+                                                    type="button"
+                                                    aria-controls="issuer-directory-grid issuer-directory-list"
+                                                    aria-pressed="false"
+                                                    data-directory-letter="F"
+                                                >
+                                                    <fmt:message key="tadawul.eportal.issuer.directory.company.info.alphabet.f" />
+                                                </button>
+                                            </li>
 
-											<li class="directory-alphabet__item">
-												<button
-													class="directory-alphabet__control"
-													type="button"
-													aria-controls="issuer-directory-grid issuer-directory-list"
-													aria-pressed="false"
-													data-directory-letter="A"
-												>
-													<fmt:message key="tadawul.eportal.issuer.directory.company.info.alphabet.a" />
-												</button>
-											</li>
+                                            <li class="directory-alphabet__item">
+                                                <button
+                                                    class="directory-alphabet__control"
+                                                    type="button"
+                                                    aria-controls="issuer-directory-grid issuer-directory-list"
+                                                    aria-pressed="false"
+                                                    data-directory-letter="G"
+                                                >
+                                                    <fmt:message key="tadawul.eportal.issuer.directory.company.info.alphabet.g" />
+                                                </button>
+                                            </li>
 
-											<li class="directory-alphabet__item">
-												<button
-													class="directory-alphabet__control"
-													type="button"
-													aria-controls="issuer-directory-grid issuer-directory-list"
-													aria-pressed="false"
-													data-directory-letter="B"
-												>
-													<fmt:message key="tadawul.eportal.issuer.directory.company.info.alphabet.b" />
-												</button>
-											</li>
+                                            <li class="directory-alphabet__item">
+                                                <button
+                                                    class="directory-alphabet__control"
+                                                    type="button"
+                                                    aria-controls="issuer-directory-grid issuer-directory-list"
+                                                    aria-pressed="false"
+                                                    data-directory-letter="H"
+                                                >
+                                                    <fmt:message key="tadawul.eportal.issuer.directory.company.info.alphabet.h" />
+                                                </button>
+                                            </li>
 
-											<li class="directory-alphabet__item">
-												<button
-													class="directory-alphabet__control"
-													type="button"
-													aria-controls="issuer-directory-grid issuer-directory-list"
-													aria-pressed="false"
-													data-directory-letter="C"
-												>
-													<fmt:message key="tadawul.eportal.issuer.directory.company.info.alphabet.c" />
-												</button>
-											</li>
+                                            <li class="directory-alphabet__item">
+                                                <button
+                                                    class="directory-alphabet__control"
+                                                    type="button"
+                                                    aria-controls="issuer-directory-grid issuer-directory-list"
+                                                    aria-pressed="false"
+                                                    data-directory-letter="I"
+                                                >
+                                                    <fmt:message key="tadawul.eportal.issuer.directory.company.info.alphabet.i" />
+                                                </button>
+                                            </li>
 
-											<li class="directory-alphabet__item">
-												<button
-													class="directory-alphabet__control"
-													type="button"
-													aria-controls="issuer-directory-grid issuer-directory-list"
-													aria-pressed="false"
-													data-directory-letter="D"
-												>
-													<fmt:message key="tadawul.eportal.issuer.directory.company.info.alphabet.d" />
-												</button>
-											</li>
+                                            <li class="directory-alphabet__item">
+                                                <button
+                                                    class="directory-alphabet__control"
+                                                    type="button"
+                                                    aria-controls="issuer-directory-grid issuer-directory-list"
+                                                    aria-pressed="false"
+                                                    data-directory-letter="J"
+                                                >
+                                                    <fmt:message key="tadawul.eportal.issuer.directory.company.info.alphabet.j" />
+                                                </button>
+                                            </li>
 
-											<li class="directory-alphabet__item">
-												<button
-													class="directory-alphabet__control"
-													type="button"
-													aria-controls="issuer-directory-grid issuer-directory-list"
-													aria-pressed="false"
-													data-directory-letter="E"
-												>
-													<fmt:message key="tadawul.eportal.issuer.directory.company.info.alphabet.e" />
-												</button>
-											</li>
+                                            <li class="directory-alphabet__item">
+                                                <button
+                                                    class="directory-alphabet__control"
+                                                    type="button"
+                                                    aria-controls="issuer-directory-grid issuer-directory-list"
+                                                    aria-pressed="false"
+                                                    data-directory-letter="K"
+                                                >
+                                                    <fmt:message key="tadawul.eportal.issuer.directory.company.info.alphabet.k" />
+                                                </button>
+                                            </li>
 
-											<li class="directory-alphabet__item">
-												<button
-													class="directory-alphabet__control"
-													type="button"
-													aria-controls="issuer-directory-grid issuer-directory-list"
-													aria-pressed="false"
-													data-directory-letter="F"
-												>
-													<fmt:message key="tadawul.eportal.issuer.directory.company.info.alphabet.f" />
-												</button>
-											</li>
+                                            <li class="directory-alphabet__item">
+                                                <button
+                                                    class="directory-alphabet__control"
+                                                    type="button"
+                                                    aria-controls="issuer-directory-grid issuer-directory-list"
+                                                    aria-pressed="false"
+                                                    data-directory-letter="L"
+                                                >
+                                                    <fmt:message key="tadawul.eportal.issuer.directory.company.info.alphabet.l" />
+                                                </button>
+                                            </li>
 
-											<li class="directory-alphabet__item">
-												<button
-													class="directory-alphabet__control"
-													type="button"
-													aria-controls="issuer-directory-grid issuer-directory-list"
-													aria-pressed="false"
-													data-directory-letter="G"
-												>
-													<fmt:message key="tadawul.eportal.issuer.directory.company.info.alphabet.g" />
-												</button>
-											</li>
+                                            <li class="directory-alphabet__item">
+                                                <button
+                                                    class="directory-alphabet__control"
+                                                    type="button"
+                                                    aria-controls="issuer-directory-grid issuer-directory-list"
+                                                    aria-pressed="false"
+                                                    data-directory-letter="M"
+                                                >
+                                                    <fmt:message key="tadawul.eportal.issuer.directory.company.info.alphabet.m" />
+                                                </button>
+                                            </li>
 
-											<li class="directory-alphabet__item">
-												<button
-													class="directory-alphabet__control"
-													type="button"
-													aria-controls="issuer-directory-grid issuer-directory-list"
-													aria-pressed="false"
-													data-directory-letter="H"
-												>
-													<fmt:message key="tadawul.eportal.issuer.directory.company.info.alphabet.h" />
-												</button>
-											</li>
+                                            <li class="directory-alphabet__item">
+                                                <button
+                                                    class="directory-alphabet__control"
+                                                    type="button"
+                                                    aria-controls="issuer-directory-grid issuer-directory-list"
+                                                    aria-pressed="false"
+                                                    data-directory-letter="N"
+                                                >
+                                                    <fmt:message key="tadawul.eportal.issuer.directory.company.info.alphabet.n" />
+                                                </button>
+                                            </li>
 
-											<li class="directory-alphabet__item">
-												<button
-													class="directory-alphabet__control"
-													type="button"
-													aria-controls="issuer-directory-grid issuer-directory-list"
-													aria-pressed="false"
-													data-directory-letter="I"
-												>
-													<fmt:message key="tadawul.eportal.issuer.directory.company.info.alphabet.i" />
-												</button>
-											</li>
+                                            <li class="directory-alphabet__item">
+                                                <button
+                                                    class="directory-alphabet__control"
+                                                    type="button"
+                                                    aria-controls="issuer-directory-grid issuer-directory-list"
+                                                    aria-pressed="false"
+                                                    data-directory-letter="O"
+                                                >
+                                                    <fmt:message key="tadawul.eportal.issuer.directory.company.info.alphabet.o" />
+                                                </button>
+                                            </li>
 
-											<li class="directory-alphabet__item">
-												<button
-													class="directory-alphabet__control"
-													type="button"
-													aria-controls="issuer-directory-grid issuer-directory-list"
-													aria-pressed="false"
-													data-directory-letter="J"
-												>
-													<fmt:message key="tadawul.eportal.issuer.directory.company.info.alphabet.j" />
-												</button>
-											</li>
+                                            <li class="directory-alphabet__item">
+                                                <button
+                                                    class="directory-alphabet__control"
+                                                    type="button"
+                                                    aria-controls="issuer-directory-grid issuer-directory-list"
+                                                    aria-pressed="false"
+                                                    data-directory-letter="P"
+                                                >
+                                                    <fmt:message key="tadawul.eportal.issuer.directory.company.info.alphabet.p" />
+                                                </button>
+                                            </li>
 
-											<li class="directory-alphabet__item">
-												<button
-													class="directory-alphabet__control"
-													type="button"
-													aria-controls="issuer-directory-grid issuer-directory-list"
-													aria-pressed="false"
-													data-directory-letter="K"
-												>
-													<fmt:message key="tadawul.eportal.issuer.directory.company.info.alphabet.k" />
-												</button>
-											</li>
+                                            <li class="directory-alphabet__item">
+                                                <button
+                                                    class="directory-alphabet__control"
+                                                    type="button"
+                                                    aria-controls="issuer-directory-grid issuer-directory-list"
+                                                    aria-pressed="false"
+                                                    data-directory-letter="Q"
+                                                >
+                                                    <fmt:message key="tadawul.eportal.issuer.directory.company.info.alphabet.q" />
+                                                </button>
+                                            </li>
 
-											<li class="directory-alphabet__item">
-												<button
-													class="directory-alphabet__control"
-													type="button"
-													aria-controls="issuer-directory-grid issuer-directory-list"
-													aria-pressed="false"
-													data-directory-letter="L"
-												>
-													<fmt:message key="tadawul.eportal.issuer.directory.company.info.alphabet.l" />
-												</button>
-											</li>
+                                            <li class="directory-alphabet__item">
+                                                <button
+                                                    class="directory-alphabet__control"
+                                                    type="button"
+                                                    aria-controls="issuer-directory-grid issuer-directory-list"
+                                                    aria-pressed="false"
+                                                    data-directory-letter="R"
+                                                >
+                                                    <fmt:message key="tadawul.eportal.issuer.directory.company.info.alphabet.r" />
+                                                </button>
+                                            </li>
 
-											<li class="directory-alphabet__item">
-												<button
-													class="directory-alphabet__control"
-													type="button"
-													aria-controls="issuer-directory-grid issuer-directory-list"
-													aria-pressed="false"
-													data-directory-letter="M"
-												>
-													<fmt:message key="tadawul.eportal.issuer.directory.company.info.alphabet.m" />
-												</button>
-											</li>
+                                            <li class="directory-alphabet__item">
+                                                <button
+                                                    class="directory-alphabet__control"
+                                                    type="button"
+                                                    aria-controls="issuer-directory-grid issuer-directory-list"
+                                                    aria-pressed="false"
+                                                    data-directory-letter="S"
+                                                >
+                                                    <fmt:message key="tadawul.eportal.issuer.directory.company.info.alphabet.s" />
+                                                </button>
+                                            </li>
 
-											<li class="directory-alphabet__item">
-												<button
-													class="directory-alphabet__control"
-													type="button"
-													aria-controls="issuer-directory-grid issuer-directory-list"
-													aria-pressed="false"
-													data-directory-letter="N"
-												>
-													<fmt:message key="tadawul.eportal.issuer.directory.company.info.alphabet.n" />
-												</button>
-											</li>
+                                            <li class="directory-alphabet__item">
+                                                <button
+                                                    class="directory-alphabet__control"
+                                                    type="button"
+                                                    aria-controls="issuer-directory-grid issuer-directory-list"
+                                                    aria-pressed="false"
+                                                    data-directory-letter="T"
+                                                >
+                                                    <fmt:message key="tadawul.eportal.issuer.directory.company.info.alphabet.t" />
+                                                </button>
+                                            </li>
 
-											<li class="directory-alphabet__item">
-												<button
-													class="directory-alphabet__control"
-													type="button"
-													aria-controls="issuer-directory-grid issuer-directory-list"
-													aria-pressed="false"
-													data-directory-letter="O"
-												>
-													<fmt:message key="tadawul.eportal.issuer.directory.company.info.alphabet.o" />
-												</button>
-											</li>
+                                            <li class="directory-alphabet__item">
+                                                <button
+                                                    class="directory-alphabet__control"
+                                                    type="button"
+                                                    aria-controls="issuer-directory-grid issuer-directory-list"
+                                                    aria-pressed="false"
+                                                    data-directory-letter="U"
+                                                >
+                                                    <fmt:message key="tadawul.eportal.issuer.directory.company.info.alphabet.u" />
+                                                </button>
+                                            </li>
 
-											<li class="directory-alphabet__item">
-												<button
-													class="directory-alphabet__control"
-													type="button"
-													aria-controls="issuer-directory-grid issuer-directory-list"
-													aria-pressed="false"
-													data-directory-letter="P"
-												>
-													<fmt:message key="tadawul.eportal.issuer.directory.company.info.alphabet.p" />
-												</button>
-											</li>
+                                            <li class="directory-alphabet__item">
+                                                <button
+                                                    class="directory-alphabet__control"
+                                                    type="button"
+                                                    aria-controls="issuer-directory-grid issuer-directory-list"
+                                                    aria-pressed="false"
+                                                    data-directory-letter="V"
+                                                >
+                                                    <fmt:message key="tadawul.eportal.issuer.directory.company.info.alphabet.v" />
+                                                </button>
+                                            </li>
 
-											<li class="directory-alphabet__item">
-												<button
-													class="directory-alphabet__control"
-													type="button"
-													aria-controls="issuer-directory-grid issuer-directory-list"
-													aria-pressed="false"
-													data-directory-letter="Q"
-												>
-													<fmt:message key="tadawul.eportal.issuer.directory.company.info.alphabet.q" />
-												</button>
-											</li>
+                                            <li class="directory-alphabet__item">
+                                                <button
+                                                    class="directory-alphabet__control"
+                                                    type="button"
+                                                    aria-controls="issuer-directory-grid issuer-directory-list"
+                                                    aria-pressed="false"
+                                                    data-directory-letter="W"
+                                                >
+                                                    <fmt:message key="tadawul.eportal.issuer.directory.company.info.alphabet.w" />
+                                                </button>
+                                            </li>
 
-											<li class="directory-alphabet__item">
-												<button
-													class="directory-alphabet__control"
-													type="button"
-													aria-controls="issuer-directory-grid issuer-directory-list"
-													aria-pressed="false"
-													data-directory-letter="R"
-												>
-													<fmt:message key="tadawul.eportal.issuer.directory.company.info.alphabet.r" />
-												</button>
-											</li>
+                                            <li class="directory-alphabet__item">
+                                                <button
+                                                    class="directory-alphabet__control"
+                                                    type="button"
+                                                    aria-controls="issuer-directory-grid issuer-directory-list"
+                                                    aria-pressed="false"
+                                                    data-directory-letter="X"
+                                                >
+                                                    <fmt:message key="tadawul.eportal.issuer.directory.company.info.alphabet.x" />
+                                                </button>
+                                            </li>
 
-											<li class="directory-alphabet__item">
-												<button
-													class="directory-alphabet__control"
-													type="button"
-													aria-controls="issuer-directory-grid issuer-directory-list"
-													aria-pressed="false"
-													data-directory-letter="S"
-												>
-													<fmt:message key="tadawul.eportal.issuer.directory.company.info.alphabet.s" />
-												</button>
-											</li>
+                                            <li class="directory-alphabet__item">
+                                                <button
+                                                    class="directory-alphabet__control"
+                                                    type="button"
+                                                    aria-controls="issuer-directory-grid issuer-directory-list"
+                                                    aria-pressed="false"
+                                                    data-directory-letter="Y"
+                                                >
+                                                    <fmt:message key="tadawul.eportal.issuer.directory.company.info.alphabet.y" />
+                                                </button>
+                                            </li>
 
-											<li class="directory-alphabet__item">
-												<button
-													class="directory-alphabet__control"
-													type="button"
-													aria-controls="issuer-directory-grid issuer-directory-list"
-													aria-pressed="false"
-													data-directory-letter="T"
-												>
-													<fmt:message key="tadawul.eportal.issuer.directory.company.info.alphabet.t" />
-												</button>
-											</li>
+                                            <li class="directory-alphabet__item">
+                                                <button
+                                                    class="directory-alphabet__control"
+                                                    type="button"
+                                                    aria-controls="issuer-directory-grid issuer-directory-list"
+                                                    aria-pressed="false"
+                                                    data-directory-letter="Z"
+                                                >
+                                                    <fmt:message key="tadawul.eportal.issuer.directory.company.info.alphabet.z" />
+                                                </button>
+                                            </li>
 
-											<li class="directory-alphabet__item">
-												<button
-													class="directory-alphabet__control"
-													type="button"
-													aria-controls="issuer-directory-grid issuer-directory-list"
-													aria-pressed="false"
-													data-directory-letter="U"
-												>
-													<fmt:message key="tadawul.eportal.issuer.directory.company.info.alphabet.u" />
-												</button>
-											</li>
-
-											<li class="directory-alphabet__item">
-												<button
-													class="directory-alphabet__control"
-													type="button"
-													aria-controls="issuer-directory-grid issuer-directory-list"
-													aria-pressed="false"
-													data-directory-letter="V"
-												>
-													<fmt:message key="tadawul.eportal.issuer.directory.company.info.alphabet.v" />
-												</button>
-											</li>
-
-											<li class="directory-alphabet__item">
-												<button
-													class="directory-alphabet__control"
-													type="button"
-													aria-controls="issuer-directory-grid issuer-directory-list"
-													aria-pressed="false"
-													data-directory-letter="W"
-												>
-													<fmt:message key="tadawul.eportal.issuer.directory.company.info.alphabet.w" />
-												</button>
-											</li>
-
-											<li class="directory-alphabet__item">
-												<button
-													class="directory-alphabet__control"
-													type="button"
-													aria-controls="issuer-directory-grid issuer-directory-list"
-													aria-pressed="false"
-													data-directory-letter="X"
-												>
-													<fmt:message key="tadawul.eportal.issuer.directory.company.info.alphabet.x" />
-												</button>
-											</li>
-
-											<li class="directory-alphabet__item">
-												<button
-													class="directory-alphabet__control"
-													type="button"
-													aria-controls="issuer-directory-grid issuer-directory-list"
-													aria-pressed="false"
-													data-directory-letter="Y"
-												>
-													<fmt:message key="tadawul.eportal.issuer.directory.company.info.alphabet.y" />
-												</button>
-											</li>
-
-											<li class="directory-alphabet__item">
-												<button
-													class="directory-alphabet__control"
-													type="button"
-													aria-controls="issuer-directory-grid issuer-directory-list"
-													aria-pressed="false"
-													data-directory-letter="Z"
-												>
-													<fmt:message key="tadawul.eportal.issuer.directory.company.info.alphabet.z" />
-												</button>
-											</li>
-
-										</c:otherwise>
-
-									</c:choose>
+                                        </c:otherwise>
+                                    </c:choose>
 
 								</ul>
 
