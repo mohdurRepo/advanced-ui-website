@@ -1,38 +1,50 @@
 /* ==========================================================================
    Market Chart Theme
    ==========================================================================
+   Bridges Market Chart design-system CSS custom properties into the plain
+   values required by Highcharts.
 
-   Bridges the *actual* design-system tokens (see market-chart.scss) into the
-   shape market-chart-options.js needs. CSS is the source of truth:
+   Ownership rules:
 
-   - `--chart-direction-color` / `--chart-line` are already resolved by CSS
-     itself via `.market-chart[data-chart-direction="up|down|neutral"]`
-     selectors. This module does NOT re-implement that switch — it just
-     reads the already-resolved value. The controller is responsible for
-     setting `data-chart-direction` on the element *before* this module
-     reads computed styles, or the value will be one step stale.
+   1. JavaScript owns semantic market direction:
+        "up" | "down" | "neutral"
 
-   - Several navigator tokens are *opacity fractions* meant to be blended
-     with a base color (`--chart-navigator-line-opacity`,
-     `--chart-navigator-fill-start/end-opacity`,
-     `--chart-navigator-mask-opacity`, `--chart-navigator-outline-opacity`,
-     `--chart-navigator-handle-border-opacity`), not literal colors. This
-     module does that blending; nothing upstream needs to.
+   2. CSS owns the actual design-system colors:
+        --chart-success
+        --chart-danger
+        --chart-neutral
 
-   - Candlesticks get four literal colors directly (`--chart-candle-up`,
-     `--chart-candle-up-line`, `--chart-candle-down`,
-     `--chart-candle-down-line`) — no opacity math, no derivation from
-     positive/negative. If a consumer's stylesheet doesn't define these,
-     this module falls back to deriving them from success/danger.
+   3. The same resolved semantic direction color is used by:
+        - trend / area series
+        - line series
+        - navigator data series
 
-   Note on `color-mix()`: several tokens (e.g. `--chart-grid`) are defined
-   in SCSS using `color-mix()`. Whether `getComputedStyle` returns a fully
-   resolved color or the raw function string depends on the browser engine
-   and whether the property is registered via `@property`. `colorWithOpacity()`
-   below degrades gracefully either way: if the string can't be parsed for
-   further opacity blending, it's passed through unchanged rather than
-   breaking — worst case a token doesn't get an extra opacity multiplier
-   applied on top, it never renders broken.
+   4. Navigator chrome remains neutral:
+        - mask
+        - outline
+        - handles
+
+      Only navigator data presentation follows market direction:
+        - line
+        - fill
+
+   5. Candlestick colors are literal design-system tokens and do not depend
+      on the overall chart direction.
+
+   `--chart-line` / `--chart-direction-color` are retained as compatibility
+   values in the returned theme object, but they are NOT authoritative for
+   direction resolution. This prevents computed CSS state from becoming
+   stale relative to controller state during live updates.
+
+   Several navigator values are opacity fractions rather than literal colors.
+   This module combines those opacity values with the appropriate base color.
+
+   `color-mix()` note:
+   Some CSS custom properties can be returned by getComputedStyle() as a
+   modern CSS color expression rather than a legacy rgb()/hex value.
+   colorWithOpacity() therefore attempts Highcharts parsing first, falls back
+   to simple hex/rgb parsing, and finally passes an unsupported CSS color
+   expression through unchanged rather than producing an invalid color.
    ========================================================================== */
 
 /* ==========================================================================
@@ -56,7 +68,12 @@ const DEFAULT_THEME = Object.freeze({
   warning: "#b54708",
   neutral: "#667085",
 
-  /* Already-resolved direction color, mirrors CSS's --chart-line. */
+  /*
+   * Compatibility token only.
+   *
+   * Direction selection does not use this value as the source of truth.
+   * It remains exposed because older consumers may still inspect it.
+   */
   line: null,
 
   candleUp: null,
@@ -169,9 +186,16 @@ function getComputedStyles(element) {
 }
 
 /* ==========================================================================
-   Direction (fallback only — CSS resolves this first via --chart-line)
+   Direction
    ========================================================================== */
 
+/**
+ * Converts supported direction aliases into the controller's canonical
+ * semantic direction.
+ *
+ * @param {*} direction
+ * @returns {"up"|"down"|"neutral"}
+ */
 function normalizeDirection(direction) {
   const value = String(direction ?? "neutral")
     .trim()
@@ -188,27 +212,40 @@ function normalizeDirection(direction) {
   return "neutral";
 }
 
+/**
+ * Resolves the actual series color for a semantic market direction.
+ *
+ * Direction is intentionally authoritative here. We do NOT first read the
+ * computed `--chart-line` value because that makes Highcharts presentation
+ * dependent on DOM/CSS synchronization timing.
+ *
+ * CSS still owns the design-system color values themselves through:
+ *
+ *   --chart-success
+ *   --chart-danger
+ *   --chart-neutral
+ *
+ * `theme.line` is retained only as a compatibility fallback for callers that
+ * provide a custom theme object without the semantic colors.
+ *
+ * @param {object} theme
+ * @param {*} direction
+ * @returns {string}
+ */
 function resolveDirectionColor(theme, direction) {
-  /*
-   * Preferred path: CSS already resolved --chart-line based on the
-   * data-chart-direction attribute. Only fall back to picking a color by
-   * hand if that token is missing (e.g. an older stylesheet).
-   */
-  if (theme.line) {
-    return theme.line;
-  }
-
+  const source = theme || DEFAULT_THEME;
   const normalizedDirection = normalizeDirection(direction);
 
-  if (normalizedDirection === "up") {
-    return theme.success;
-  }
+  switch (normalizedDirection) {
+    case "up":
+      return source.success || source.line || DEFAULT_THEME.success;
 
-  if (normalizedDirection === "down") {
-    return theme.danger;
-  }
+    case "down":
+      return source.danger || source.line || DEFAULT_THEME.danger;
 
-  return theme.neutral;
+    default:
+      return source.neutral || source.line || DEFAULT_THEME.neutral;
+  }
 }
 
 /* ==========================================================================
@@ -258,44 +295,80 @@ function parseRGBColor(color) {
   };
 }
 
+function hasFiniteRGB(value) {
+  return Boolean(
+    Array.isArray(value) &&
+    value.length >= 3 &&
+    Number.isFinite(Number(value[0])) &&
+    Number.isFinite(Number(value[1])) &&
+    Number.isFinite(Number(value[2])),
+  );
+}
+
+/**
+ * Applies an opacity multiplier to a color.
+ *
+ * Highcharts is allowed to parse modern color formats first. If that is not
+ * possible, basic hex/rgb colors are handled manually. Unsupported modern CSS
+ * expressions are returned unchanged rather than converted to an incorrect
+ * fallback color.
+ */
 function colorWithOpacity(Highcharts, color, opacity) {
+  const resolvedColor = normalizeCSSValue(color) || DEFAULT_THEME.neutral;
+
   const alpha = clamp(toFiniteNumber(opacity, 1), 0, 1);
 
   if (typeof Highcharts?.color === "function") {
     try {
-      const parsed = Highcharts.color(color);
+      const parsed = Highcharts.color(resolvedColor);
 
-      /*
-       * Highcharts.color() never throws on an unparseable string — it
-       * returns an object whose internal rgba defaults to black. Detect
-       * that failure mode explicitly rather than silently returning a
-       * wrong color.
-       */
-      if (parsed && Array.isArray(parsed.rgba) && parsed.input !== undefined) {
-        return parsed.setOpacity(alpha).get();
+      if (
+        parsed &&
+        typeof parsed.setOpacity === "function" &&
+        typeof parsed.get === "function" &&
+        (hasFiniteRGB(parsed.rgba) || parsed.input === resolvedColor)
+      ) {
+        const result = parsed.setOpacity(alpha).get();
+
+        if (normalizeCSSValue(result)) {
+          return result;
+        }
       }
     } catch {
-      // Fall through to the manual parser.
+      /*
+       * Fall through to the lightweight parser.
+       */
     }
   }
 
-  const parsed = parseHexColor(color) || parseRGBColor(color);
+  const parsed = parseHexColor(resolvedColor) || parseRGBColor(resolvedColor);
 
   if (!parsed) {
     /*
-     * Unparseable (e.g. an unresolved color-mix() string, or a named
-     * color). Pass it through unchanged rather than breaking — the
-     * opacity multiplier is lost, but nothing renders broken.
+     * Examples:
+     *   color-mix(...)
+     *   oklch(...)
+     *   var(...)
+     *
+     * Keep the original CSS-compatible value. We lose only the additional
+     * opacity multiplication rather than returning a broken color.
      */
-    return color;
+    return resolvedColor;
   }
 
-  return `rgba(${Math.round(parsed.r)}, ${Math.round(parsed.g)}, ${Math.round(parsed.b)}, ${alpha})`;
+  return `rgba(${Math.round(parsed.r)}, ${Math.round(
+    parsed.g,
+  )}, ${Math.round(parsed.b)}, ${alpha})`;
 }
 
 function createVerticalGradient(Highcharts, color, startOpacity, endOpacity) {
   return {
-    linearGradient: { x1: 0, y1: 0, x2: 0, y2: 1 },
+    linearGradient: {
+      x1: 0,
+      y1: 0,
+      x2: 0,
+      y2: 1,
+    },
 
     stops: [
       [0, colorWithOpacity(Highcharts, color, startOpacity)],
@@ -308,6 +381,12 @@ function createVerticalGradient(Highcharts, color, startOpacity, endOpacity) {
    Theme Resolution
    ========================================================================== */
 
+/**
+ * Reads all Market Chart design-system values from the chart host.
+ *
+ * The returned object deliberately contains only plain values suitable for
+ * passing into Highcharts configuration.
+ */
 export function getMarketChartTheme(element) {
   const styles = getComputedStyles(element);
 
@@ -318,11 +397,13 @@ export function getMarketChartTheme(element) {
   );
 
   const text = readCSSVariableAny(styles, ["--chart-text"], DEFAULT_THEME.text);
+
   const heading = readCSSVariableAny(
     styles,
     ["--chart-heading"],
     text || DEFAULT_THEME.heading,
   );
+
   const muted = readCSSVariableAny(
     styles,
     ["--chart-muted"],
@@ -334,11 +415,13 @@ export function getMarketChartTheme(element) {
     ["--chart-border"],
     DEFAULT_THEME.border,
   );
+
   const borderStrong = readCSSVariableAny(
     styles,
     ["--chart-border-strong"],
     border || DEFAULT_THEME.borderStrong,
   );
+
   const grid = readCSSVariableAny(styles, ["--chart-grid"], DEFAULT_THEME.grid);
 
   const success = readCSSVariableAny(
@@ -346,16 +429,19 @@ export function getMarketChartTheme(element) {
     ["--chart-success", "--chart-positive"],
     DEFAULT_THEME.success,
   );
+
   const danger = readCSSVariableAny(
     styles,
     ["--chart-danger", "--chart-negative"],
     DEFAULT_THEME.danger,
   );
+
   const warning = readCSSVariableAny(
     styles,
     ["--chart-warning"],
     DEFAULT_THEME.warning,
   );
+
   const neutral = readCSSVariableAny(
     styles,
     ["--chart-neutral"],
@@ -364,6 +450,7 @@ export function getMarketChartTheme(element) {
 
   return {
     background,
+
     text,
     heading,
     muted,
@@ -384,8 +471,10 @@ export function getMarketChartTheme(element) {
     neutral,
 
     /*
-     * Already resolved by CSS based on data-chart-direction. null if the
-     * stylesheet doesn't define it — callers fall back to success/danger.
+     * Compatibility / inspection value.
+     *
+     * The controller's explicit direction remains authoritative when series
+     * and navigator colors are resolved.
      */
     line: readCSSVariableAny(
       styles,
@@ -393,27 +482,37 @@ export function getMarketChartTheme(element) {
       DEFAULT_THEME.line,
     ),
 
-    /* Literal candle colors — no opacity math intended by the design system. */
+    /* ----------------------------------------------------------------------
+       Candlestick
+       ---------------------------------------------------------------------- */
+
     candleUp: readCSSVariableAny(
       styles,
       ["--chart-candle-up"],
       DEFAULT_THEME.candleUp,
     ),
+
     candleUpLine: readCSSVariableAny(
       styles,
       ["--chart-candle-up-line"],
       DEFAULT_THEME.candleUpLine,
     ),
+
     candleDown: readCSSVariableAny(
       styles,
       ["--chart-candle-down"],
       DEFAULT_THEME.candleDown,
     ),
+
     candleDownLine: readCSSVariableAny(
       styles,
       ["--chart-candle-down-line"],
       DEFAULT_THEME.candleDownLine,
     ),
+
+    /* ----------------------------------------------------------------------
+       Tooltip
+       ---------------------------------------------------------------------- */
 
     tooltipBackground: readCSSVariableAny(
       styles,
@@ -428,6 +527,10 @@ export function getMarketChartTheme(element) {
     ),
 
     focus: readCSSVariableAny(styles, ["--chart-focus"], DEFAULT_THEME.focus),
+
+    /* ----------------------------------------------------------------------
+       Area
+       ---------------------------------------------------------------------- */
 
     areaStartOpacity: readCSSNumber(
       styles,
@@ -449,46 +552,68 @@ export function getMarketChartTheme(element) {
       },
     ),
 
+    /* ----------------------------------------------------------------------
+       Navigator
+       ---------------------------------------------------------------------- */
+
     navigatorLineOpacity: readCSSNumber(
       styles,
       ["--chart-navigator-line-opacity"],
       DEFAULT_THEME.navigatorLineOpacity,
-      { minimum: 0, maximum: 1 },
+      {
+        minimum: 0,
+        maximum: 1,
+      },
     ),
 
     navigatorFillStartOpacity: readCSSNumber(
       styles,
       ["--chart-navigator-fill-start-opacity"],
       DEFAULT_THEME.navigatorFillStartOpacity,
-      { minimum: 0, maximum: 1 },
+      {
+        minimum: 0,
+        maximum: 1,
+      },
     ),
 
     navigatorFillEndOpacity: readCSSNumber(
       styles,
       ["--chart-navigator-fill-end-opacity"],
       DEFAULT_THEME.navigatorFillEndOpacity,
-      { minimum: 0, maximum: 1 },
+      {
+        minimum: 0,
+        maximum: 1,
+      },
     ),
 
     navigatorMaskOpacity: readCSSNumber(
       styles,
       ["--chart-navigator-mask-opacity"],
       DEFAULT_THEME.navigatorMaskOpacity,
-      { minimum: 0, maximum: 1 },
+      {
+        minimum: 0,
+        maximum: 1,
+      },
     ),
 
     navigatorOutlineOpacity: readCSSNumber(
       styles,
       ["--chart-navigator-outline-opacity"],
       DEFAULT_THEME.navigatorOutlineOpacity,
-      { minimum: 0, maximum: 1 },
+      {
+        minimum: 0,
+        maximum: 1,
+      },
     ),
 
     navigatorHandleBorderOpacity: readCSSNumber(
       styles,
       ["--chart-navigator-handle-border-opacity"],
       DEFAULT_THEME.navigatorHandleBorderOpacity,
-      { minimum: 0, maximum: 1 },
+      {
+        minimum: 0,
+        maximum: 1,
+      },
     ),
 
     navigatorHandleBackground: readCSSVariableAny(
@@ -503,6 +628,12 @@ export function getMarketChartTheme(element) {
    Series Theme
    ========================================================================== */
 
+/**
+ * Creates Highcharts presentation values for the primary Market Chart series.
+ *
+ * Trend and line modes are semantically directional.
+ * Candlesticks retain independent up/down point colors.
+ */
 export function getMarketChartSeriesTheme(
   Highcharts,
   theme,
@@ -516,12 +647,12 @@ export function getMarketChartSeriesTheme(
     .toLowerCase();
 
   /* ------------------------------------------------------------------------
-     Candlestick — literal colors, no opacity blending, with a graceful
-     fallback to success/danger if the stylesheet doesn't define them.
+     Candlestick
      ------------------------------------------------------------------------ */
 
   if (normalizedMode === "candlestick") {
     const downFill = source.candleDown || source.danger || DEFAULT_THEME.danger;
+
     const downLine =
       source.candleDownLine ||
       source.candleDown ||
@@ -529,6 +660,7 @@ export function getMarketChartSeriesTheme(
       DEFAULT_THEME.danger;
 
     const upFill = source.candleUp || source.success || DEFAULT_THEME.success;
+
     const upLine =
       source.candleUpLine ||
       source.candleUp ||
@@ -536,11 +668,17 @@ export function getMarketChartSeriesTheme(
       DEFAULT_THEME.success;
 
     return {
-      /* Down candle. */
+      /*
+       * Highcharts candlestick terminology:
+       *
+       * `color`     = falling candle fill
+       * `lineColor` = falling candle outline/wick
+       * `upColor`   = rising candle fill
+       * `upLineColor` = rising candle outline/wick
+       */
       color: downFill,
       lineColor: downLine,
 
-      /* Up candle. */
       upColor: upFill,
       upLineColor: upLine,
 
@@ -548,6 +686,10 @@ export function getMarketChartSeriesTheme(
     };
   }
 
+  /*
+   * One semantic color resolver is intentionally shared by trend, line and
+   * navigator presentation.
+   */
   const directionColor = resolveDirectionColor(source, direction);
 
   /* ------------------------------------------------------------------------
@@ -584,24 +726,52 @@ export function getMarketChartSeriesTheme(
    Navigator Theme
    ========================================================================== */
 
+/**
+ * Creates the navigator presentation.
+ *
+ * IMPORTANT:
+ *
+ * Navigator data presentation:
+ *   follows exactly the same semantic direction as the main trend/line chart.
+ *
+ * Navigator chrome:
+ *   remains neutral and is based on border tokens.
+ *
+ * This separation prevents a falling/red chart from retaining an old
+ * rising/green navigator while still keeping handles/masks visually neutral.
+ */
 export function getMarketChartNavigatorTheme(
   Highcharts,
   theme,
   direction = "neutral",
 ) {
   const source = theme || DEFAULT_THEME;
+
+  /*
+   * Same resolver as the primary series.
+   *
+   * This is the important contract:
+   *
+   *     direction
+   *        ↓
+   * resolveDirectionColor()
+   *        ↓
+   * main + navigator
+   */
   const color = resolveDirectionColor(source, direction);
 
   /*
-   * The mask/outline/handle-border are neutral UI chrome, not tinted by
-   * market direction — only the line and fill (the actual data) follow
-   * up/down/neutral. Using borderStrong as the neutral base matches the
-   * "dimmed chrome" look these opacity tokens are meant for.
+   * Mask / outline / handles are interface chrome, not market data.
+   * They intentionally do not become green/red.
    */
   const neutralBase =
     source.borderStrong || source.border || DEFAULT_THEME.borderStrong;
 
   return {
+    /* ----------------------------------------------------------------------
+       Directional navigator data
+       ---------------------------------------------------------------------- */
+
     color,
 
     lineColor: colorWithOpacity(
@@ -619,6 +789,10 @@ export function getMarketChartNavigatorTheme(
         DEFAULT_THEME.navigatorFillStartOpacity,
       source.navigatorFillEndOpacity ?? DEFAULT_THEME.navigatorFillEndOpacity,
     ),
+
+    /* ----------------------------------------------------------------------
+       Neutral navigator chrome
+       ---------------------------------------------------------------------- */
 
     maskFill: colorWithOpacity(
       Highcharts,

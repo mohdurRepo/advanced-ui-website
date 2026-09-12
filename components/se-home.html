@@ -9958,17 +9958,30 @@
       );
 
       /*
-       * Persistent per-market objects. Charts are NOT destroyed when
-       * changing tabs.
+       * Feeds are lightweight data fixtures and may be cached.
+       *
+       * Highstock/controller runtime is intentionally NOT cached per market.
+       * Market Overview owns exactly one active chart runtime at a time.
        */
       const feeds = new Map();
-      const runtimes = new Map();
 
       const listeners = new AbortController();
 
       let chartAPI = null;
       let overview = null;
+
+      let activeRuntimeState = null;
       let activeMarketKey = null;
+
+      /*
+       * Guards async tab activation:
+       *
+       * - abort the previous activation request
+       * - reject stale completions after fast tab switching
+       */
+      let activationSequence = 0;
+      let activationController = null;
+
       let destroyed = false;
 
       /* ======================================================================
@@ -10286,19 +10299,16 @@
         seed();
 
         return {
-          /* First visit only. */
-          initialRanges() {
-            return { "1D": intraday(), ...history };
-          },
-
           /*
-           * Every subsequent tab click. Only 1D is refreshed — historical
-           * data is already stored inside the controller.
+           * Complete snapshot used whenever a market becomes active.
+           *
+           * Historical ranges stay cached in this lightweight feed, while the
+           * intraday range is synchronized immediately before chart creation.
            */
-          tabRange() {
+          initialRanges() {
             sync();
 
-            return intraday();
+            return { "1D": intraday(), ...history };
           },
 
           /*
@@ -10391,23 +10401,43 @@
        API Boundary
        ====================================================================== */
 
-      async function requestMarketData(market, initial) {
+      function createAbortError() {
+        try {
+          return new DOMException("The operation was aborted.", "AbortError");
+        } catch {
+          const error = new Error("The operation was aborted.");
+          error.name = "AbortError";
+          return error;
+        }
+      }
+
+      async function requestMarketData(market, { signal } = {}) {
         const feed = feedFor(market);
 
         /*
          * Replace this function with the real API:
          *
-         *   const response = await fetch(url);
+         *   const response = await fetch(url, { signal });
          *   const payload = await response.json();
          *   return normalizePayload(payload);
          *
-         * Called on EVERY market tab selection.
+         * A complete snapshot is requested on every actual market activation
+         * because inactive markets do not retain a Highstock/controller
+         * instance.
          */
+        if (signal?.aborted) {
+          throw createAbortError();
+        }
+
         await Promise.resolve();
 
-        return initial
-          ? { ranges: feed.initialRanges() }
-          : { ranges: { "1D": feed.tabRange() } };
+        if (signal?.aborted) {
+          throw createAbortError();
+        }
+
+        return {
+          ranges: feed.initialRanges(),
+        };
       }
 
       /* ======================================================================
@@ -10493,7 +10523,13 @@
           /* Keep the complete session visible. */
           liveWindowDuration: null,
 
-          animation: false,
+          /*
+           * Fresh active-market creation gets one restrained Highcharts draw.
+           * Live ticks and structural controller refreshes remain unanimated.
+           */
+          animation: {
+            duration: 450,
+          },
           ranges,
 
           capabilities: {
@@ -10537,10 +10573,15 @@
             handleWidth: 7,
             handleHeight: 14,
 
-            /* Overview navigator — labels enabled to match the main performance chart. */
+            /*
+             * Compact navigator labels render inside the mini-chart.
+             * Edge labels are enabled now that the options module owns handle
+             * clearance and exact canonical x-axis bounds.
+             */
             labels: true,
-            showFirstLabel: false,
-            showLastLabel: false,
+            labelY: -5,
+            showFirstLabel: true,
+            showLastLabel: true,
             tickPixelInterval: 120,
             dataGrouping: false,
           },
@@ -10598,12 +10639,52 @@
       }
 
       /* ======================================================================
-       Create / Update Chart
+       Active Runtime Lifecycle
        ====================================================================== */
+
+      function activeRuntime() {
+        return activeRuntimeState;
+      }
+
+      function destroyActiveRuntime(source = "unknown") {
+        const runtime = activeRuntimeState;
+
+        if (!runtime) {
+          activeMarketKey = null;
+          return false;
+        }
+
+        activeRuntimeState = null;
+        activeMarketKey = null;
+
+        if (runtime.panel?.marketChartController === runtime.controller) {
+          delete runtime.panel.marketChartController;
+        }
+
+        runtime.controller?.destroy();
+
+        console.info(
+          `[Market Chart] ${runtime.market.symbol} destroyed (${source}).`,
+        );
+
+        return true;
+      }
 
       async function showMarket(market, source = "tab") {
         if (destroyed || !market || !chartAPI) {
           return null;
+        }
+
+        /*
+         * Clicking the already-active tab should not destroy/recreate a healthy
+         * chart. It already owns the only runtime and live monitor.
+         */
+        if (
+          activeRuntimeState?.market?.key === market.key &&
+          !activeRuntimeState.controller?.getState?.().destroyed
+        ) {
+          activeRuntimeState.controller.getChart()?.reflow();
+          return activeRuntimeState;
         }
 
         const chartElement = document.querySelector(market.chartSelector);
@@ -10613,68 +10694,128 @@
           return null;
         }
 
+        const sequence = ++activationSequence;
+
+        /*
+         * Abort any in-flight activation before a new tab takes ownership.
+         */
+        activationController?.abort();
+
+        const ActivationAbortController =
+          window.AbortController || globalThis.AbortController;
+
+        const requestController = new ActivationAbortController();
+        activationController = requestController;
+
+        /*
+         * Performance contract:
+         *
+         * there is never a hidden Highstock/controller/live poller waiting
+         * behind another market tab.
+         */
+        destroyActiveRuntime(`switch-to-${market.symbol}`);
+
         panel.setAttribute("aria-busy", "true");
 
         try {
-          let runtime = runtimes.get(market.key);
+          const snapshot = await requestMarketData(market, {
+            signal: requestController.signal,
+          });
 
-          /* API call happens on every selection. */
-          const snapshot = await requestMarketData(market, !runtime);
-
-          if (!runtime) {
-            /* FIRST VISIT: create Highstock once. */
-            const feed = feedFor(market);
-
-            const controller = chartAPI.create(
-              chartElement,
-              chartConfiguration(market, panel, feed, snapshot.ranges),
-            );
-
-            if (!controller) {
-              return null;
-            }
-
-            runtime = { market, panel, chartElement, controller, feed };
-
-            runtimes.set(market.key, runtime);
-            panel.marketChartController = controller;
-          } else {
-            /*
-             * NEXT VISITS: keep the existing Highcharts instance, only
-             * replace the data returned by the selected-market API call.
-             */
-            for (const [range, record] of Object.entries(
-              snapshot.ranges || {},
-            )) {
-              runtime.controller.setRangeRecord(range, record, {
-                preserveViewport: false,
-                redraw: true,
-                animation: false,
-              });
-            }
+          /*
+           * Fast tab switching can let an older async request resolve after a
+           * newer selection. A stale request must never regain ownership.
+           */
+          if (
+            destroyed ||
+            requestController.signal.aborted ||
+            sequence !== activationSequence
+          ) {
+            return null;
           }
 
+          const feed = feedFor(market);
+
+          /*
+           * Fresh Highstock instance on every actual market switch.
+           *
+           * This is what gives the newly selected market its clean initial
+           * draw animation while keeping inactive tabs at zero chart cost.
+           */
+          const controller = chartAPI.create(
+            chartElement,
+            chartConfiguration(market, panel, feed, snapshot.ranges),
+          );
+
+          if (!controller) {
+            return null;
+          }
+
+          /*
+           * Creation itself is synchronous, but check ownership again before
+           * publishing the runtime.
+           */
+          if (
+            destroyed ||
+            requestController.signal.aborted ||
+            sequence !== activationSequence
+          ) {
+            controller.destroy();
+            return null;
+          }
+
+          const runtime = {
+            market,
+            panel,
+            chartElement,
+            controller,
+            feed,
+            sequence,
+          };
+
+          activeRuntimeState = runtime;
           activeMarketKey = market.key;
+          panel.marketChartController = controller;
 
-          updateStatus(market, runtime.feed.state().open);
+          updateStatus(market, feed.state().open);
 
-          /* Tab panel is now visible — only recalculate chart dimensions. */
-          runtime.controller.getChart()?.reflow();
+          /*
+           * The existing tabs component has already revealed the panel.
+           * Reflow on the next frame only as a final geometry confirmation;
+           * do not update/rebuild the series.
+           */
+          requestAnimationFrame(() => {
+            if (!destroyed && activeRuntimeState === runtime) {
+              runtime.controller.getChart()?.reflow();
+            }
+          });
 
-          console.info(`[Market Chart] ${market.symbol} ready (${source}).`);
+          console.info(`[Market Chart] ${market.symbol} ready (${source}).`, {
+            activeOnly: true,
+            animationDuration: 450,
+            navigatorSeries: controller.getState().navigator.seriesCount,
+          });
 
           return runtime;
         } catch (error) {
+          if (
+            error?.name === "AbortError" ||
+            requestController.signal.aborted ||
+            sequence !== activationSequence
+          ) {
+            return null;
+          }
+
           console.error(`${market.symbol} chart load failed.`, error);
 
           return null;
         } finally {
           panel.setAttribute("aria-busy", "false");
-        }
-      }
 
-      function activeRuntime() {
-        return activeMarketKey ? runtimes.get(activeMarketKey) || null : null;
+          if (activationController === requestController) {
+            activationController = null;
+          }
+        }
       }
 
       /* ======================================================================
@@ -10705,8 +10846,9 @@
             }
 
             /*
-             * Give the existing tabs component one frame to display the
-             * selected panel, then: API -> update/create -> reflow. Nothing else.
+             * Give the existing tabs component one frame to reveal the
+             * selected panel, then destroy the previous runtime and create one
+             * fresh active runtime for the newly selected market.
              */
             requestAnimationFrame(() => void showMarket(market, "tab-click"));
           },
@@ -10903,15 +11045,18 @@
 
         destroyed = true;
 
+        /*
+         * Invalidate and abort any pending market activation first.
+         */
+        activationSequence += 1;
+        activationController?.abort();
+        activationController = null;
+
         listeners.abort();
         closeExportMenus();
 
-        /* Destroy only when the page itself goes away, NOT during tab switching. */
-        for (const runtime of runtimes.values()) {
-          runtime.controller.destroy();
-        }
+        destroyActiveRuntime("page-destroy");
 
-        runtimes.clear();
         feeds.clear();
 
         activeMarketKey = null;
@@ -10955,34 +11100,83 @@
       /* ======================================================================
        Automated Smoke Test
        ======================================================================
-       Drives one market through every controller entry point and asserts on
-       controller.getState() / DOM after each step, rather than only eyeballing
-       the chart. Run from the console:
+       Run from the console:
 
          await marketChartTest.runAll()
-         await marketChartTest.runAll('nomu')   // test a specific market
+         await marketChartTest.runAll("nomu")
+         await marketChartTest.runAllMarkets()
 
-       Returns { passed, failed, total, results } and also console.tables it.
+       The test now also verifies the Market Overview lifecycle contract:
+
+       - exactly one active runtime
+       - exactly one navigator series
+       - previous controller destroyed on tab switch
+       - newly selected market receives a fresh Highstock instance
        ====================================================================== */
+
+      async function ensureMarketActive(market, source = "test") {
+        if (
+          activeRuntimeState?.market?.key === market.key &&
+          !activeRuntimeState.controller.getState().destroyed
+        ) {
+          return activeRuntimeState;
+        }
+
+        const tab = tabFor(market);
+
+        /*
+         * Prefer the real tab interaction so the production tabs component
+         * reveals the correct panel before Highstock is created.
+         */
+        if (tab && tab.getAttribute("aria-selected") !== "true") {
+          tab.click();
+
+          const activated = await waitUntil(
+            () =>
+              activeRuntimeState?.market?.key === market.key &&
+              !activeRuntimeState.controller.getState().destroyed,
+            {
+              timeout: API_TIMEOUT,
+              interval: 25,
+            },
+          );
+
+          if (activated) {
+            return activeRuntimeState;
+          }
+        }
+
+        /*
+         * Initial active tab / direct console testing fallback.
+         */
+        return showMarket(market, source);
+      }
 
       async function runAll(key = "tasi") {
         const market = marketByKey.get(String(key).toLowerCase());
 
         if (!market) {
           throw new Error(
-            `Unknown market key "${key}". Known keys: ${[...marketByKey.keys()].join(", ")}`,
+            `Unknown market key "${key}". Known keys: ${[
+              ...marketByKey.keys(),
+            ].join(", ")}`,
           );
         }
 
         const results = [];
-        const record = (description, pass) =>
-          results.push({ description, pass: Boolean(pass) });
+
+        const record = (description, pass) => {
+          results.push({
+            description,
+            pass: Boolean(pass),
+          });
+        };
 
         console.group(`[Market Chart Test] ${market.symbol}`);
 
         try {
-          /* 1. Initial load */
-          const runtime = await showMarket(market, "test:runAll");
+          /* 1. Activate requested market. */
+          const runtime = await ensureMarketActive(market, "test:runAll");
 
           record("chart created", Boolean(runtime?.controller));
 
@@ -10990,41 +11184,65 @@
             return finish();
           }
 
-          const controller = runtime.controller;
+          let controller = runtime.controller;
 
           record(
             "initial state is ready",
             controller.getState().state === "ready",
           );
+
           record("initial range is 1D", controller.getState().range === "1D");
+
           record(
             "navigator enabled",
             controller.getState().navigator.enabled === true,
           );
+
+          record(
+            "exactly one navigator series exists",
+            controller.getState().navigator.seriesCount === 1,
+          );
+
+          record(
+            "navigator labels are inside",
+            controller.getChart()?.navigator?.xAxis?.options?.labels?.inside ===
+              true,
+          );
+
           record("has intraday data", controller.getActiveData().length > 0);
 
-          /* 2. Range switching, every configured historical range plus 1D */
+          /* 2. Range switching. */
           const ranges = ["1W", "1M", "3M", "6M", "1Y", "5Y", "ALL", "1D"];
 
           for (const range of ranges) {
-            const ok = controller.setRange(range, { redraw: true });
-            const settled = ok && controller.getState().range === range;
+            const ok = controller.setRange(range, {
+              redraw: true,
+            });
 
-            record(`setRange("${range}") succeeds and updates state`, settled);
+            record(
+              `setRange("${range}") succeeds and updates state`,
+              ok && controller.getState().range === range,
+            );
           }
 
-          /* 3. Mode switching on the (now current) 1D range */
-          controller.setRange("1D", { redraw: true, resetViewport: true });
+          /* 3. Mode switching on 1D. */
+          controller.setRange("1D", {
+            redraw: true,
+            resetViewport: true,
+          });
 
           for (const mode of ["line", "candlestick", "trend"]) {
             const ok = controller.setMode(mode);
-            const settled = ok && controller.getState().mode === mode;
 
-            record(`setMode("${mode}") succeeds and updates state`, settled);
+            record(
+              `setMode("${mode}") succeeds and updates state`,
+              ok && controller.getState().mode === mode,
+            );
           }
 
-          /* 4. Live: force a tick and confirm the controller actually redraws */
+          /* 4. Live append path. */
           const beforePoints = controller.getActiveData().length;
+
           const beforeUpdatedAt =
             controller.getState().live?.lastDataUpdatedAt ?? null;
 
@@ -11037,17 +11255,27 @@
             () =>
               (controller.getState().live?.lastDataUpdatedAt ?? null) !==
               beforeUpdatedAt,
-            { timeout: POLL_INTERVAL * 3 },
+            {
+              timeout: POLL_INTERVAL * 3,
+              interval: 50,
+            },
           );
 
           record("live poll produced a data update within timeout", ticked);
+
           record(
             "chart data grew or stayed consistent after live update",
             controller.getActiveData().length >= beforePoints,
           );
 
-          /* 5. Manual point correction (same-timestamp replace path) */
+          record(
+            "navigator still has exactly one series after live append",
+            controller.getState().navigator.seriesCount === 1,
+          );
+
+          /* 5. Same-timestamp replace path. */
           const correctionApplied = runtime.feed.correctLatest();
+
           const refreshed = correctionApplied
             ? controller.refreshLive()
             : false;
@@ -11059,7 +11287,12 @@
             correctionApplied && refreshed !== false,
           );
 
-          /* 6. Market close / reopen */
+          record(
+            "navigator still has exactly one series after replace",
+            controller.getState().navigator.seriesCount === 1,
+          );
+
+          /* 6. Market close / reopen. */
           runtime.feed.close();
           controller.pauseLive("market-closed");
 
@@ -11080,8 +11313,10 @@
             controller.getState().live?.active === true,
           );
 
-          /* 7. Historical range pauses live automatically */
-          controller.setRange("1W", { redraw: true });
+          /* 7. Historical range automatically pauses live. */
+          controller.setRange("1W", {
+            redraw: true,
+          });
 
           record(
             "live paused while a historical range is selected",
@@ -11090,7 +11325,9 @@
               .live?.pauseReasons?.includes("historical-range") === true,
           );
 
-          controller.setRange("1D", { redraw: true });
+          controller.setRange("1D", {
+            redraw: true,
+          });
 
           record(
             "live resumes when returning to 1D",
@@ -11099,25 +11336,95 @@
               .live?.pauseReasons?.includes("historical-range") !== true,
           );
 
-          /* 8. Destroy / recreate cleanliness */
-          controller.destroy();
+          /* 8. Active-only tab lifecycle. */
+          const alternate =
+            MARKETS.find((candidate) => candidate.key !== market.key) || null;
+
+          if (alternate) {
+            const firstController = controller;
+
+            const alternateRuntime = await ensureMarketActive(
+              alternate,
+              "test:switch-away",
+            );
+
+            record(
+              "previous controller destroyed after switching market tabs",
+              firstController.getState().destroyed === true,
+            );
+
+            record(
+              "alternate market receives a fresh active controller",
+              Boolean(
+                alternateRuntime?.controller &&
+                alternateRuntime.controller !== firstController,
+              ),
+            );
+
+            record(
+              "alternate market navigator owns exactly one series",
+              alternateRuntime?.controller?.getState().navigator.seriesCount ===
+                1,
+            );
+
+            const alternateController = alternateRuntime?.controller || null;
+
+            const returnedRuntime = await ensureMarketActive(
+              market,
+              "test:switch-back",
+            );
+
+            record(
+              "alternate controller destroyed when switching back",
+              alternateController?.getState().destroyed === true,
+            );
+
+            record(
+              "original market is recreated with a new controller",
+              Boolean(
+                returnedRuntime?.controller &&
+                returnedRuntime.controller !== firstController,
+              ),
+            );
+
+            record(
+              "only requested market owns the active runtime",
+              activeRuntimeState === returnedRuntime &&
+                activeMarketKey === market.key,
+            );
+
+            if (!returnedRuntime) {
+              return finish();
+            }
+
+            controller = returnedRuntime.controller;
+          }
+
+          /* 9. Explicit destroy / recreate cleanliness. */
+          const destroyedController = controller;
+
+          destroyActiveRuntime("test:explicit-destroy");
 
           record(
-            "controller reports destroyed after destroy()",
-            controller.getState().destroyed === true,
+            "controller reports destroyed after active runtime destroy",
+            destroyedController.getState().destroyed === true,
           );
+
           record(
-            "registry no longer returns a destroyed controller",
+            "registry no longer returns destroyed controller",
             chartAPI.get(runtime.chartElement) === null,
           );
 
-          runtimes.delete(market.key);
-
-          const recreated = await showMarket(market, "test:recreate");
+          const recreated = await ensureMarketActive(market, "test:recreate");
 
           record(
             "chart recreates cleanly after destroy",
             Boolean(recreated?.controller),
+          );
+
+          record(
+            "recreated chart has exactly one navigator series",
+            recreated?.controller?.getState().navigator.seriesCount === 1,
           );
         } catch (error) {
           record(`unexpected error: ${error?.message || error}`, false);
@@ -11127,6 +11434,7 @@
 
         function finish() {
           const passed = results.filter((result) => result.pass).length;
+
           const failed = results.length - passed;
 
           console.table(
@@ -11135,12 +11443,19 @@
               check: result.description,
             })),
           );
+
           console.info(
             `[Market Chart Test] ${market.symbol}: ${passed}/${results.length} passed.`,
           );
+
           console.groupEnd();
 
-          return { passed, failed, total: results.length, results };
+          return {
+            passed,
+            failed,
+            total: results.length,
+            results,
+          };
         }
       }
 
@@ -11150,7 +11465,10 @@
         for (const market of MARKETS) {
           const result = await runAll(market.key);
 
-          summary.push({ market: market.symbol, ...result });
+          summary.push({
+            market: market.symbol,
+            ...result,
+          });
         }
 
         console.table(
@@ -11171,26 +11489,36 @@
 
       window.marketChartTest = {
         report() {
-          const rows = [...runtimes.values()].map((runtime) => {
-            const state = runtime.controller.getState();
+          const runtime = activeRuntime();
 
-            const series = runtime.controller
-              .getChart()
-              ?.series?.find(
-                (item) =>
-                  !item.options?.isInternal &&
-                  item.options?.id !== "market-chart-navigator-series",
-              );
+          const rows = runtime
+            ? [
+                (() => {
+                  const state = runtime.controller.getState();
 
-            return {
-              market: runtime.market.symbol,
-              active: runtime.market.key === activeMarketKey,
-              range: state.range,
-              mode: state.mode,
-              liveState: state.live?.state ?? "off",
-              points: series?.data?.length ?? 0,
-            };
-          });
+                  const series = runtime.controller
+                    .getChart()
+                    ?.series?.find(
+                      (item) =>
+                        !item.options?.isInternal &&
+                        item.options?.id !== "market-chart-navigator-series",
+                    );
+
+                  return {
+                    market: runtime.market.symbol,
+                    active: true,
+                    range: state.range,
+                    mode: state.mode,
+                    liveState: state.live?.state ?? "off",
+                    points: series?.data?.length ?? 0,
+                    navigatorSeries: state.navigator.seriesCount,
+                    navigatorInsideLabels:
+                      runtime.controller.getChart()?.navigator?.xAxis?.options
+                        ?.labels?.inside === true,
+                  };
+                })(),
+              ]
+            : [];
 
           console.table(rows);
 
@@ -11207,6 +11535,20 @@
 
         getMarket() {
           return activeRuntime()?.market || null;
+        },
+
+        getLifecycle() {
+          const runtime = activeRuntime();
+
+          return {
+            activeMarketKey,
+            hasActiveRuntime: Boolean(runtime),
+            activeControllerDestroyed:
+              runtime?.controller?.getState().destroyed ?? null,
+            activationSequence,
+            activationPending: Boolean(activationController),
+            cachedFeeds: feeds.size,
+          };
         },
 
         refreshLive() {
@@ -11251,13 +11593,12 @@
           return runtime.controller.refreshLive();
         },
 
-        show(key) {
+        async show(key) {
           const market = marketByKey.get(String(key || "").toLowerCase());
 
-          return market ? showMarket(market, "test") : Promise.resolve(null);
+          return market ? ensureMarketActive(market, "test") : null;
         },
 
-        /* Automated smoke test — see the block above for what it checks. */
         runAll,
         runAllMarkets,
 
@@ -11299,10 +11640,12 @@
 
           window.addEventListener("pagehide", destroy, { once: true });
 
-          console.info("[Market Chart] lightweight Market Overview ready.", {
-            createOncePerMarket: true,
-            apiCallOnTabSelection: true,
-            destroyOnTabSwitch: false,
+          console.info("[Market Chart] active-only Market Overview ready.", {
+            runtimePolicy: "single-active",
+            freshChartOnMarketSwitch: true,
+            destroyOnTabSwitch: true,
+            abortStaleActivation: true,
+            initialAnimationDuration: 450,
             context: "overview",
             liveWindowDuration: null,
           });

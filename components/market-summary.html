@@ -10629,10 +10629,16 @@
           pageName: external.pageName || "MainMarketWatch",
           intradayChartType: "MOCK_INTRADAY",
           historicalChartType: "MOCK_HISTORICAL",
-          currency: external.currency || root.dataset.chartCurrency || "SAR",
-          decimals: Number.isFinite(Number(external.decimals))
-            ? Number(external.decimals)
-            : 2,
+          /*
+           * Main Market Performance is an index chart, so no currency label
+           * is shown in the tooltip.
+           */
+          currency: "",
+          /*
+           * Display whole index values. Source data may still contain decimal
+           * precision; presentation rounds to zero decimal places.
+           */
+          decimals: 0,
         });
       }
 

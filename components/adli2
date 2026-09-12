@@ -1,0 +1,3951 @@
+<!-- ==========================================================================
+     Issuer Directory Filters
+     ========================================================================== -->
+
+<section
+	class="section issuer-directory-filters"
+	aria-labelledby="issuer-directory-filters-title"
+	data-directory-filters
+>
+	<div class="container">
+
+		<form
+			id="issuer-directory-filter-form"
+			class="filter-bar filter-bar--stacked"
+			role="search"
+			data-directory-filter-form
+		>
+
+			<!-- ================================================================
+			     Header
+			     ================================================================ -->
+
+			<header class="filter-bar__header">
+
+				<div class="filter-bar__heading">
+
+					<h2
+						id="issuer-directory-filters-title"
+						class="filter-bar__title"
+					>
+						<fmt:message
+							key="tadawul.eportal.issuer.directory.company.info.title"
+						/>
+					</h2>
+
+					<p class="filter-bar__description">
+						<fmt:message
+							key="tadawul.eportal.issuer.directory.company.info.title.text"
+						/>
+					</p>
+
+				</div>
+
+			</header>
+
+
+			<!-- ================================================================
+			     Primary Filters
+			     ================================================================ -->
+
+			<div class="filter-bar__inner">
+
+				<div class="filter-bar__fields grid grid-3">
+
+					<!-- ========================================================
+					     Symbol
+					     ======================================================== -->
+
+					<div class="filter-bar__field">
+
+						<label
+							class="form-label"
+							for="symbol_filter"
+						>
+							<fmt:message
+								key="tadawul.eportal.issuer.directory.company.info.Symbol-Search"
+							/>
+						</label>
+
+						<input
+							id="symbol_filter"
+							class="form-control"
+							name="symbol_filter"
+							type="search"
+							inputmode="search"
+							autocomplete="off"
+							placeholder="<fmt:message key='tadawul.eportal.issuer.directory.company.info.enter-keyword' />"
+							data-directory-search
+						/>
+
+					</div>
+
+
+					<!-- ========================================================
+					     Market
+					     ======================================================== -->
+
+					<div class="filter-bar__field">
+
+						<label
+							class="form-label"
+							for="Market_ti"
+						>
+							<fmt:message
+								key="tadawul.eportal.issuer.directory.company.info.Market"
+							/>
+						</label>
+
+						<div
+							class="custom-select"
+							data-custom-select
+						>
+
+							<div
+								class="form-select-wrap custom-select__fallback"
+							>
+
+								<select
+									id="Market_ti"
+									class="form-select custom-select__native"
+									name="Market_ti"
+									data-directory-market
+								>
+
+									<option
+										value=""
+										selected
+									>
+										<fmt:message
+											key="tadawul.eportal.issuer.directory.company.info.Market"
+										/>
+									</option>
+
+									<option value="M">
+										<fmt:message
+											key="tadawul.eportal.issuer.directory.company.info.label.main.market"
+										/>
+									</option>
+
+									<option value="S">
+										<fmt:message
+											key="tadawul.eportal.issuer.directory.company.info.label.nomu.market"
+										/>
+									</option>
+
+								</select>
+
+								<span
+									class="form-select-icon has-icon icon-chevron-down"
+									aria-hidden="true"
+								></span>
+
+							</div>
+
+						</div>
+
+					</div>
+
+
+					<!-- ========================================================
+					     Sector
+					     ======================================================== -->
+
+					<div class="filter-bar__field">
+
+						<label
+							class="form-label"
+							for="sectors_list"
+						>
+							<fmt:message
+								key="tadawul.eportal.issuer.directory.company.info.Sector"
+							/>
+						</label>
+
+						<div
+							class="custom-select"
+							data-custom-select
+						>
+
+							<div
+								class="form-select-wrap custom-select__fallback"
+							>
+
+								<select
+									id="sectors_list"
+									class="form-select custom-select__native"
+									name="sectors_list"
+									data-directory-sector
+								>
+
+									<option
+										value="All"
+										selected
+									>
+										<fmt:message
+											key="tadawul.eportal.issuer.directory.company.info.All-Sectors"
+										/>
+									</option>
+
+									<c:forEach
+										items="${requestScope.sectorsList}"
+										var="sectors"
+									>
+										<option value="${sectors.pk_rf_sector}">
+											${sectors.name}
+										</option>
+									</c:forEach>
+
+								</select>
+
+								<span
+									class="form-select-icon has-icon icon-chevron-down"
+									aria-hidden="true"
+								></span>
+
+							</div>
+
+						</div>
+
+					</div>
+
+				</div>
+
+
+				<!-- ============================================================
+				     Actions
+				     ============================================================ -->
+
+				<div class="filter-bar__actions">
+
+					<div class="filter-bar__action-group">
+
+						<button
+							class="btn btn-outline-primary has-icon icon-sync-refresh"
+							type="reset"
+							data-directory-filter-reset
+						>
+							<fmt:message
+								key="tadawul.eportal.issuer.directory.company.info.reset"
+							/>
+						</button>
+
+					</div>
+
+				</div>
+
+			</div>
+            			<!-- ================================================================
+			     Alphabetical Filter
+			     ================================================================ -->
+
+			<div class="filter-bar__secondary">
+
+				<div class="filter-bar__secondary-content">
+
+					<div
+						class="directory-alphabet directory-alphabet--quiet"
+						data-directory-alphabet
+					>
+
+						<div class="directory-alphabet__frame">
+
+							<div
+								class="directory-alphabet__scroller"
+								tabindex="0"
+								role="group"
+								aria-label="Filter issuers by first letter"
+							>
+
+								<ul class="directory-alphabet__list">
+
+									<!-- =================================================
+									     All
+									     ================================================= -->
+
+									<li class="directory-alphabet__item">
+
+										<button
+											class="directory-alphabet__control directory-alphabet__control--all is-active"
+											type="button"
+											aria-controls="issuer-directory-grid issuer-directory-list"
+											aria-pressed="true"
+											data-directory-letter=""
+										>
+											<fmt:message
+												key="tadawul.eportal.issuer.directory.company.info.All"
+											/>
+										</button>
+
+									</li>
+
+
+									<!-- =================================================
+									     Arabic Alphabet
+									     ================================================= -->
+
+									<c:choose>
+
+										<c:when test="${pageContext.request.locale.language == 'ar'}">
+
+											<c:forEach
+												begin="1"
+												end="28"
+												varStatus="loop"
+											>
+
+												<fmt:message
+													key="arabic.character.${loop.index}"
+													var="arabicLetter"
+												/>
+
+												<li class="directory-alphabet__item">
+
+													<button
+														class="directory-alphabet__control"
+														type="button"
+														aria-controls="issuer-directory-grid issuer-directory-list"
+														aria-pressed="false"
+														data-directory-letter="${arabicLetter}"
+													>
+														${arabicLetter}
+													</button>
+
+												</li>
+
+											</c:forEach>
+
+										</c:when>
+
+
+										<!-- =============================================
+										     English Alphabet
+										     ============================================= -->
+
+										<c:otherwise>
+
+											<li class="directory-alphabet__item">
+												<button
+													class="directory-alphabet__control"
+													type="button"
+													aria-controls="issuer-directory-grid issuer-directory-list"
+													aria-pressed="false"
+													data-directory-letter="A"
+												>
+													<fmt:message key="tadawul.eportal.issuer.directory.company.info.alphabet.a" />
+												</button>
+											</li>
+
+											<li class="directory-alphabet__item">
+												<button
+													class="directory-alphabet__control"
+													type="button"
+													aria-controls="issuer-directory-grid issuer-directory-list"
+													aria-pressed="false"
+													data-directory-letter="B"
+												>
+													<fmt:message key="tadawul.eportal.issuer.directory.company.info.alphabet.b" />
+												</button>
+											</li>
+
+											<li class="directory-alphabet__item">
+												<button
+													class="directory-alphabet__control"
+													type="button"
+													aria-controls="issuer-directory-grid issuer-directory-list"
+													aria-pressed="false"
+													data-directory-letter="C"
+												>
+													<fmt:message key="tadawul.eportal.issuer.directory.company.info.alphabet.c" />
+												</button>
+											</li>
+
+											<li class="directory-alphabet__item">
+												<button
+													class="directory-alphabet__control"
+													type="button"
+													aria-controls="issuer-directory-grid issuer-directory-list"
+													aria-pressed="false"
+													data-directory-letter="D"
+												>
+													<fmt:message key="tadawul.eportal.issuer.directory.company.info.alphabet.d" />
+												</button>
+											</li>
+
+											<li class="directory-alphabet__item">
+												<button
+													class="directory-alphabet__control"
+													type="button"
+													aria-controls="issuer-directory-grid issuer-directory-list"
+													aria-pressed="false"
+													data-directory-letter="E"
+												>
+													<fmt:message key="tadawul.eportal.issuer.directory.company.info.alphabet.e" />
+												</button>
+											</li>
+
+											<li class="directory-alphabet__item">
+												<button
+													class="directory-alphabet__control"
+													type="button"
+													aria-controls="issuer-directory-grid issuer-directory-list"
+													aria-pressed="false"
+													data-directory-letter="F"
+												>
+													<fmt:message key="tadawul.eportal.issuer.directory.company.info.alphabet.f" />
+												</button>
+											</li>
+
+											<li class="directory-alphabet__item">
+												<button
+													class="directory-alphabet__control"
+													type="button"
+													aria-controls="issuer-directory-grid issuer-directory-list"
+													aria-pressed="false"
+													data-directory-letter="G"
+												>
+													<fmt:message key="tadawul.eportal.issuer.directory.company.info.alphabet.g" />
+												</button>
+											</li>
+
+											<li class="directory-alphabet__item">
+												<button
+													class="directory-alphabet__control"
+													type="button"
+													aria-controls="issuer-directory-grid issuer-directory-list"
+													aria-pressed="false"
+													data-directory-letter="H"
+												>
+													<fmt:message key="tadawul.eportal.issuer.directory.company.info.alphabet.h" />
+												</button>
+											</li>
+
+											<li class="directory-alphabet__item">
+												<button
+													class="directory-alphabet__control"
+													type="button"
+													aria-controls="issuer-directory-grid issuer-directory-list"
+													aria-pressed="false"
+													data-directory-letter="I"
+												>
+													<fmt:message key="tadawul.eportal.issuer.directory.company.info.alphabet.i" />
+												</button>
+											</li>
+
+											<li class="directory-alphabet__item">
+												<button
+													class="directory-alphabet__control"
+													type="button"
+													aria-controls="issuer-directory-grid issuer-directory-list"
+													aria-pressed="false"
+													data-directory-letter="J"
+												>
+													<fmt:message key="tadawul.eportal.issuer.directory.company.info.alphabet.j" />
+												</button>
+											</li>
+
+											<li class="directory-alphabet__item">
+												<button
+													class="directory-alphabet__control"
+													type="button"
+													aria-controls="issuer-directory-grid issuer-directory-list"
+													aria-pressed="false"
+													data-directory-letter="K"
+												>
+													<fmt:message key="tadawul.eportal.issuer.directory.company.info.alphabet.k" />
+												</button>
+											</li>
+
+											<li class="directory-alphabet__item">
+												<button
+													class="directory-alphabet__control"
+													type="button"
+													aria-controls="issuer-directory-grid issuer-directory-list"
+													aria-pressed="false"
+													data-directory-letter="L"
+												>
+													<fmt:message key="tadawul.eportal.issuer.directory.company.info.alphabet.l" />
+												</button>
+											</li>
+
+											<li class="directory-alphabet__item">
+												<button
+													class="directory-alphabet__control"
+													type="button"
+													aria-controls="issuer-directory-grid issuer-directory-list"
+													aria-pressed="false"
+													data-directory-letter="M"
+												>
+													<fmt:message key="tadawul.eportal.issuer.directory.company.info.alphabet.m" />
+												</button>
+											</li>
+
+											<li class="directory-alphabet__item">
+												<button
+													class="directory-alphabet__control"
+													type="button"
+													aria-controls="issuer-directory-grid issuer-directory-list"
+													aria-pressed="false"
+													data-directory-letter="N"
+												>
+													<fmt:message key="tadawul.eportal.issuer.directory.company.info.alphabet.n" />
+												</button>
+											</li>
+
+											<li class="directory-alphabet__item">
+												<button
+													class="directory-alphabet__control"
+													type="button"
+													aria-controls="issuer-directory-grid issuer-directory-list"
+													aria-pressed="false"
+													data-directory-letter="O"
+												>
+													<fmt:message key="tadawul.eportal.issuer.directory.company.info.alphabet.o" />
+												</button>
+											</li>
+
+											<li class="directory-alphabet__item">
+												<button
+													class="directory-alphabet__control"
+													type="button"
+													aria-controls="issuer-directory-grid issuer-directory-list"
+													aria-pressed="false"
+													data-directory-letter="P"
+												>
+													<fmt:message key="tadawul.eportal.issuer.directory.company.info.alphabet.p" />
+												</button>
+											</li>
+
+											<li class="directory-alphabet__item">
+												<button
+													class="directory-alphabet__control"
+													type="button"
+													aria-controls="issuer-directory-grid issuer-directory-list"
+													aria-pressed="false"
+													data-directory-letter="Q"
+												>
+													<fmt:message key="tadawul.eportal.issuer.directory.company.info.alphabet.q" />
+												</button>
+											</li>
+
+											<li class="directory-alphabet__item">
+												<button
+													class="directory-alphabet__control"
+													type="button"
+													aria-controls="issuer-directory-grid issuer-directory-list"
+													aria-pressed="false"
+													data-directory-letter="R"
+												>
+													<fmt:message key="tadawul.eportal.issuer.directory.company.info.alphabet.r" />
+												</button>
+											</li>
+
+											<li class="directory-alphabet__item">
+												<button
+													class="directory-alphabet__control"
+													type="button"
+													aria-controls="issuer-directory-grid issuer-directory-list"
+													aria-pressed="false"
+													data-directory-letter="S"
+												>
+													<fmt:message key="tadawul.eportal.issuer.directory.company.info.alphabet.s" />
+												</button>
+											</li>
+
+											<li class="directory-alphabet__item">
+												<button
+													class="directory-alphabet__control"
+													type="button"
+													aria-controls="issuer-directory-grid issuer-directory-list"
+													aria-pressed="false"
+													data-directory-letter="T"
+												>
+													<fmt:message key="tadawul.eportal.issuer.directory.company.info.alphabet.t" />
+												</button>
+											</li>
+
+											<li class="directory-alphabet__item">
+												<button
+													class="directory-alphabet__control"
+													type="button"
+													aria-controls="issuer-directory-grid issuer-directory-list"
+													aria-pressed="false"
+													data-directory-letter="U"
+												>
+													<fmt:message key="tadawul.eportal.issuer.directory.company.info.alphabet.u" />
+												</button>
+											</li>
+
+											<li class="directory-alphabet__item">
+												<button
+													class="directory-alphabet__control"
+													type="button"
+													aria-controls="issuer-directory-grid issuer-directory-list"
+													aria-pressed="false"
+													data-directory-letter="V"
+												>
+													<fmt:message key="tadawul.eportal.issuer.directory.company.info.alphabet.v" />
+												</button>
+											</li>
+
+											<li class="directory-alphabet__item">
+												<button
+													class="directory-alphabet__control"
+													type="button"
+													aria-controls="issuer-directory-grid issuer-directory-list"
+													aria-pressed="false"
+													data-directory-letter="W"
+												>
+													<fmt:message key="tadawul.eportal.issuer.directory.company.info.alphabet.w" />
+												</button>
+											</li>
+
+											<li class="directory-alphabet__item">
+												<button
+													class="directory-alphabet__control"
+													type="button"
+													aria-controls="issuer-directory-grid issuer-directory-list"
+													aria-pressed="false"
+													data-directory-letter="X"
+												>
+													<fmt:message key="tadawul.eportal.issuer.directory.company.info.alphabet.x" />
+												</button>
+											</li>
+
+											<li class="directory-alphabet__item">
+												<button
+													class="directory-alphabet__control"
+													type="button"
+													aria-controls="issuer-directory-grid issuer-directory-list"
+													aria-pressed="false"
+													data-directory-letter="Y"
+												>
+													<fmt:message key="tadawul.eportal.issuer.directory.company.info.alphabet.y" />
+												</button>
+											</li>
+
+											<li class="directory-alphabet__item">
+												<button
+													class="directory-alphabet__control"
+													type="button"
+													aria-controls="issuer-directory-grid issuer-directory-list"
+													aria-pressed="false"
+													data-directory-letter="Z"
+												>
+													<fmt:message key="tadawul.eportal.issuer.directory.company.info.alphabet.z" />
+												</button>
+											</li>
+
+										</c:otherwise>
+
+									</c:choose>
+
+								</ul>
+
+							</div>
+
+						</div>
+
+					</div>
+
+				</div>
+
+			</div>
+
+
+			<!-- ================================================================
+			     Preserved Alphabet Value
+			     ================================================================ -->
+
+			<input
+				id="letterId"
+				type="hidden"
+				name="letter"
+				value=""
+				data-directory-letter-input
+			/>
+
+
+	
+
+		</form>
+
+	</div>
+</section>
+<!-- ==========================================================================
+     Issuer Directory Results
+     ========================================================================== -->
+
+<section
+	class="section directory"
+	aria-labelledby="issuer-results-title"
+	data-view-root
+	data-view-default="grid"
+	data-view-storage-key="issuer-directory-view"
+>
+	<div class="container">
+
+		<div class="directory__surface">
+
+			<div class="directory__content">
+
+				<!-- ============================================================
+				     Results Header
+				     ============================================================ -->
+
+				<header class="directory__header">
+
+					<div class="directory__heading">
+
+						<h2
+							id="issuer-results-title"
+							class="directory__title"
+						>
+							<fmt:message
+								key="tadawul.eportal.issuer.directory.company.info.results.text"
+							/>
+						</h2>
+
+					</div>
+
+
+					<!-- ========================================================
+					     Result Count
+					     ======================================================== -->
+
+					<div
+						class="directory__count"
+						role="status"
+						aria-live="polite"
+						aria-atomic="true"
+					>
+
+						<span
+							id="res-count"
+							class="directory__count-value"
+							data-directory-result-count
+						>
+							0
+						</span>
+
+					</div>
+
+				</header>
+
+
+				<!-- ============================================================
+				     Results Workspace
+				     ============================================================ -->
+
+				<div class="directory__workspace">
+
+					<!-- ========================================================
+					     Results Toolbar
+					     ======================================================== -->
+
+					<div class="directory__results-header">
+
+						<div class="directory-toolbar">
+
+							<!-- =================================================
+							     Results Summary
+							     ================================================= -->
+
+							<div class="directory-toolbar__summary">
+
+								<p
+									class="directory-toolbar__status"
+									data-directory-toolbar-status
+								>
+									<span data-directory-range>
+										0–0
+									</span>
+
+									<span aria-hidden="true">
+										/
+									</span>
+
+									<strong data-directory-total>
+										0
+									</strong>
+								</p>
+
+							</div>
+
+
+							<!-- =================================================
+							     View Switcher
+							     ================================================= -->
+
+							<div class="directory-toolbar__actions">
+
+								<div
+									class="directory-view-switch"
+									role="group"
+									aria-label="Choose issuer results view"
+								>
+
+									<!-- =========================================
+									     Grid / Card View
+									     ========================================= -->
+
+									<button
+										class="directory-view-switch__control has-icon icon-grid-bento-view is-active"
+										type="button"
+										aria-label="Show issuers in grid view"
+										aria-controls="issuer-directory-grid"
+										aria-pressed="true"
+										data-view-control="grid"
+									></button>
+
+
+									<!-- =========================================
+									     List View
+									     ========================================= -->
+
+									<button
+										class="directory-view-switch__control has-icon icon-list-bullet"
+										type="button"
+										aria-label="Show issuers in list view"
+										aria-controls="issuer-directory-list"
+										aria-pressed="false"
+										data-view-control="list"
+									></button>
+
+								</div>
+
+							</div>
+
+						</div>
+
+					</div>
+
+
+					<!-- ========================================================
+					     Accessible Live Status
+					     ======================================================== -->
+
+					<div
+						class="directory__live-status visually-hidden"
+						role="status"
+						aria-live="polite"
+						aria-atomic="true"
+						data-directory-live-status
+						data-view-live-status
+					></div>
+
+
+					<!-- ========================================================
+					     Results
+					     ======================================================== -->
+
+					<div
+						class="directory__results directory-results directory-results--grid-3"
+						data-directory-results
+						data-view="grid"
+						aria-busy="false"
+					>
+
+						<!-- ====================================================
+						     Grid / Card View
+						     ==================================================== -->
+
+						<div
+							id="issuer-directory-grid"
+							class="stack stack--xl"
+							aria-label="Issuers in grid view"
+							data-view-panel="grid"
+							data-directory-grid
+						>
+
+							<%--
+								Dynamic grid groups are rendered here.
+
+								Expected generated structure:
+
+								<section
+									class="directory-group"
+									data-directory-group="A"
+								>
+									<header class="directory-group__header">
+
+										<h3 class="directory-group__title">
+											A
+										</h3>
+
+										<span class="directory-group__count">
+											3
+										</span>
+
+									</header>
+
+									<ul
+										class="directory-results__collection
+										       directory-results__collection--grid"
+									>
+
+										<li class="directory-results__item">
+
+											<article class="card issuer-card">
+
+												...
+
+											</article>
+
+										</li>
+
+									</ul>
+
+								</section>
+							--%>
+
+						</div>
+
+
+						<!-- ====================================================
+						     List View
+						     ==================================================== -->
+
+						<div
+							id="issuer-directory-list"
+							class="stack stack--lg"
+							aria-label="Issuers in list view"
+							data-view-panel="list"
+							data-directory-list
+							hidden
+						>
+
+							<%--
+								Dynamic list groups are rendered here.
+
+								Expected generated structure:
+
+								<section
+									class="directory-group directory-group--list"
+									data-directory-group="A"
+								>
+
+									<header class="directory-group__header">
+
+										<h3 class="directory-group__title">
+											A
+										</h3>
+
+										<span class="directory-group__count">
+											3
+										</span>
+
+									</header>
+
+									<div class="directory-group__items">
+
+										<article
+											class="directory-results__item
+											       issuer-row"
+										>
+
+											...
+
+										</article>
+
+									</div>
+
+								</section>
+							--%>
+
+						</div>
+
+					</div>
+
+
+					<!-- ========================================================
+					     Empty Results
+					     ======================================================== -->
+
+					<div
+						class="directory__empty"
+						role="status"
+						data-directory-empty
+						hidden
+					>
+
+						<p class="directory__empty-message">
+							<fmt:message
+								key="tadawul.eportal.issuer.directory.company.info.results.text"
+							/>:
+							0
+						</p>
+
+					</div>
+                    					<!-- ========================================================
+					     Pagination
+					     ======================================================== -->
+
+					<footer class="directory__footer">
+
+						<nav
+							id="tablePaginantion-id"
+							class="pagination"
+							aria-label="Issuer directory pages"
+							data-directory-pagination
+							hidden
+						>
+
+							<!-- =================================================
+							     Legacy Pagination State
+							     
+							     Temporary compatibility with pxpaginate.
+							     These can be removed when pagination JS is
+							     fully migrated.
+							     ================================================= -->
+
+							<input
+								id="pageLimitId"
+								type="hidden"
+								value="20"
+							/>
+
+							<input
+								id="recordsCountId"
+								type="hidden"
+								value="0"
+							/>
+
+
+							<!-- =================================================
+							     Pagination Status
+							     ================================================= -->
+
+							<p
+								class="pagination__status"
+								data-directory-pagination-status
+							>
+								<span>
+									<fmt:message
+										key="tadawul.eportal.issuer.directory.company.info.results.text"
+									/>
+								</span>
+
+								<strong
+									data-directory-pagination-range
+								>
+									0–0
+								</strong>
+
+								<span aria-hidden="true">
+									/
+								</span>
+
+								<strong
+									data-directory-pagination-total
+								>
+									0
+								</strong>
+							</p>
+
+
+							<!-- =================================================
+							     Pagination Controls
+							     
+							     pxpaginate can temporarily continue using
+							     #pagination-ul.
+							     ================================================= -->
+
+							<ul
+								id="pagination-ul"
+								class="pagination__list"
+								data-directory-pagination-list
+							>
+							</ul>
+
+						</nav>
+
+					</footer>
+
+				</div>
+
+			</div>
+
+		</div>
+
+	</div>
+
+</section>
+<script>
+	window.issuerDirectoryConfig = {
+		/* ======================================================================
+		   Resource URLs
+		   ====================================================================== */
+
+		urls: {
+			sectorsByMarket:
+				'<portlet:resourceURL id="getSectorsByMarketId"></portlet:resourceURL>',
+
+			companies:
+				'<portlet:resourceURL id="getCompanyListByMarknetAndSectors"></portlet:resourceURL>'
+		},
+
+
+		/* ======================================================================
+		   Locale
+		   ====================================================================== */
+
+		locale: '${pageContext.request.locale.language}',
+
+
+		/* ======================================================================
+		   Arabic Character Mapping
+
+		   Used only by the issuer-directory page adapter to map Arabic
+		   character variants to the displayed alphabet group.
+		   ====================================================================== */
+
+		arabicCharactersMapping:
+			'<fmt:message key="arabic.characters.mapping" />',
+
+
+		/* ======================================================================
+		   Labels
+		   ====================================================================== */
+
+		labels: {
+			all:
+				'<fmt:message key="tadawul.eportal.issuer.directory.company.info.All" />',
+
+			allSectors:
+				'<fmt:message key="tadawul.eportal.issuer.directory.company.info.All-Sectors" />',
+
+			market:
+				'<fmt:message key="tadawul.eportal.issuer.directory.company.info.Market" />',
+
+			sector:
+				'<fmt:message key="tadawul.eportal.issuer.directory.company.info.Sector" />',
+
+			symbol:
+				'<fmt:message key="tadawul.eportal.issuer.directory.company.info.Symbol-Search" />',
+
+			tradingName:
+				'<fmt:message key="tadawul.eportal.issuer.directory.company.info.Trading-Name" />',
+
+			isinCode:
+				'<fmt:message key="tadawul.eportal.issuer.directory.company.info.ISIN-Code" />',
+
+			change:
+				'<fmt:message key="chart.change" />',
+
+			viewProfile:
+				'<fmt:message key="tadawul.eportal.issuer.directory.company.info.view-profile" />',
+
+			results:
+				'<fmt:message key="tadawul.eportal.issuer.directory.company.info.results.text" />',
+
+			reset:
+				'<fmt:message key="tadawul.eportal.issuer.directory.company.info.reset" />',
+
+			searchPlaceholder:
+				'<fmt:message key="tadawul.eportal.issuer.directory.company.info.enter-keyword" />'
+		},
+
+
+		/* ======================================================================
+		   Logo Configuration
+		   ====================================================================== */
+
+		logos: {
+			baseUrl:
+				'https://www.tadawulgroup.sa/Resources/SEMOBILELOGOS/',
+
+			fallbackUrl:
+				'https://www.tadawulgroup.sa/Resources/SEMOBILELOGOS/default-Logo.png'
+		},
+
+
+		/* ======================================================================
+		   Pagination
+		   ====================================================================== */
+
+		pagination: {
+			pageSize: 20,
+			maxButtons: 3
+		}
+	};
+</script>
+
+import { refreshDirectories } from "./directory";
+
+/* ==========================================================================
+   Issuer Directory
+   ========================================================================== */
+
+/**
+ * Page-specific issuer directory controller.
+ *
+ * Owns:
+ * - legacy company AJAX request
+ * - market -> sector AJAX request
+ * - symbol filtering
+ * - rendering grid/card view
+ * - rendering list view
+ * - grouping companies alphabetically
+ * - pagination
+ * - result counts
+ * - empty/loading state
+ * - Arabic character normalization
+ *
+ * Does NOT own:
+ * - alphabet button behavior
+ * - alphabet active state
+ * - alphabet keyboard navigation
+ * - alphabet aria-pressed state
+ * - grid/list switching
+ * - generic custom-select behavior
+ *
+ * Those are handled by the reusable components.
+ */
+
+
+/* ==========================================================================
+   Configuration
+   ========================================================================== */
+
+const CONFIG = window.issuerDirectoryConfig || {};
+
+const URLS = CONFIG.urls || {};
+const LABELS = CONFIG.labels || {};
+const LOGOS = CONFIG.logos || {};
+const PAGINATION = CONFIG.pagination || {};
+
+const PAGE_SIZE = getPositiveInteger(PAGINATION.pageSize, 20);
+const MAX_PAGE_BUTTONS = getPositiveInteger(PAGINATION.maxButtons, 3);
+
+const LOGO_BASE_URL =
+  LOGOS.baseUrl ||
+  "https://www.tadawulgroup.sa/Resources/SEMOBILELOGOS/";
+
+const FALLBACK_LOGO_URL =
+  LOGOS.fallbackUrl ||
+  `${LOGO_BASE_URL}default-Logo.png`;
+
+
+/* ==========================================================================
+   Selectors
+   ========================================================================== */
+
+const SELECTORS = {
+  form: "#issuer-directory-filter-form",
+
+  symbol: "#symbol_filter",
+  market: "#Market_ti",
+  sector: "#sectors_list",
+  letterInput: "#letterId",
+
+  alphabet: "[data-directory-alphabet]",
+
+  results: "[data-directory-results]",
+  resultCount: "#res-count",
+
+  grid: "#issuer-directory-grid",
+  list: "#issuer-directory-list",
+
+  group: "[data-directory-group]",
+  resultItem: ".directory-results__item",
+
+  empty: "[data-directory-empty]",
+
+  pagination: "[data-directory-pagination]",
+  paginationList: "#pagination-ul",
+
+  range: "[data-directory-range]",
+  total: "[data-directory-total]",
+
+  paginationRange: "[data-directory-pagination-range]",
+  paginationTotal: "[data-directory-pagination-total]",
+
+  pageLimit: "#pageLimitId",
+  pageCount: "#recordsCountId",
+
+  logo: "[data-issuer-logo]",
+};
+
+
+/* ==========================================================================
+   Events
+   ========================================================================== */
+
+const EVENTS = {
+  alphabetChange: "directory:alphabet-change",
+};
+
+
+/* ==========================================================================
+   State
+   ========================================================================== */
+
+const state = {
+  companies: [],
+
+  currentPage: 1,
+
+  companyRequest: null,
+  sectorRequest: null,
+
+  initialSectorOptions: [],
+
+  arabicAliasToLetter: new Map(),
+
+  initialized: false,
+};
+
+
+/* ==========================================================================
+   Initialization
+   ========================================================================== */
+
+export function initIssuerDirectory() {
+  if (state.initialized) {
+    return;
+  }
+
+  const form = document.querySelector(SELECTORS.form);
+
+  if (!form) {
+    return;
+  }
+
+  state.initialized = true;
+
+  captureInitialSectorOptions();
+  buildArabicCharacterMap();
+  bindEvents();
+
+  loadCompanies();
+}
+
+
+/* ==========================================================================
+   Auto Initialization
+   ========================================================================== */
+
+if (document.readyState === "loading") {
+  document.addEventListener(
+    "DOMContentLoaded",
+    initIssuerDirectory,
+    {
+      once: true,
+    },
+  );
+} else {
+  initIssuerDirectory();
+}
+
+
+/* ==========================================================================
+   Event Binding
+   ========================================================================== */
+
+function bindEvents() {
+  const form = document.querySelector(SELECTORS.form);
+  const symbol = document.querySelector(SELECTORS.symbol);
+  const market = document.querySelector(SELECTORS.market);
+  const sector = document.querySelector(SELECTORS.sector);
+  const paginationList = document.querySelector(
+    SELECTORS.paginationList,
+  );
+
+  if (!form) {
+    return;
+  }
+
+
+  /* =========================================================================
+     Form Submit
+     ========================================================================= */
+
+  form.addEventListener("submit", handleFormSubmit);
+
+
+  /* =========================================================================
+     Symbol Search
+     ========================================================================= */
+
+  symbol?.addEventListener(
+    "input",
+    debounce(handleSymbolChange, 500),
+  );
+
+
+  /* =========================================================================
+     Market
+     ========================================================================= */
+
+  market?.addEventListener(
+    "change",
+    handleMarketChange,
+  );
+
+
+  /* =========================================================================
+     Sector
+     ========================================================================= */
+
+  sector?.addEventListener(
+    "change",
+    handleSectorChange,
+  );
+
+
+  /* =========================================================================
+     Reset
+     ========================================================================= */
+
+  form.addEventListener(
+    "reset",
+    handleFormReset,
+  );
+
+
+  /* =========================================================================
+     Alphabet
+     ========================================================================= */
+
+  document.addEventListener(
+    EVENTS.alphabetChange,
+    handleAlphabetChange,
+  );
+
+
+  /* =========================================================================
+     Pagination
+     ========================================================================= */
+
+  paginationList?.addEventListener(
+    "click",
+    handlePaginationClick,
+  );
+
+
+  /* =========================================================================
+     Image Error / Logo Fallback
+     ========================================================================= */
+
+  document.addEventListener(
+    "error",
+    handleImageError,
+    true,
+  );
+}
+
+
+/* ==========================================================================
+   Form Submit
+   ========================================================================== */
+
+function handleFormSubmit(event) {
+  event.preventDefault();
+
+  resetAlphabet();
+
+  loadCompanies();
+}
+
+
+/* ==========================================================================
+   Symbol Search
+   ========================================================================== */
+
+function handleSymbolChange() {
+  resetAlphabet();
+
+  loadCompanies();
+}
+
+
+/* ==========================================================================
+   Market Change
+   ========================================================================== */
+
+function handleMarketChange(event) {
+  resetAlphabet();
+
+  const marketType =
+    event.currentTarget.value || "";
+
+  loadSectorsByMarket(marketType);
+}
+
+
+/* ==========================================================================
+   Sector Change
+   ========================================================================== */
+
+function handleSectorChange() {
+  resetAlphabet();
+
+  loadCompanies();
+}
+
+
+/* ==========================================================================
+   Form Reset
+   ========================================================================== */
+
+function handleFormReset() {
+  abortSectorRequest();
+
+  /*
+   * Native reset values are applied after the reset event.
+   */
+  requestAnimationFrame(() => {
+    restoreInitialSectorOptions();
+
+    state.currentPage = 1;
+
+    loadCompanies();
+  });
+}
+
+
+/* ==========================================================================
+   Alphabet Change
+   ========================================================================== */
+
+function handleAlphabetChange(event) {
+  const alphabet = event.target;
+  const form = document.querySelector(SELECTORS.form);
+
+  if (
+    !(alphabet instanceof Element) ||
+    !alphabet.matches(SELECTORS.alphabet) ||
+    !form?.contains(alphabet)
+  ) {
+    return;
+  }
+
+  /*
+   * DirectoryAlphabet has already:
+   *
+   * - changed the active button
+   * - updated aria-pressed
+   * - updated #letterId
+   * - shown/hidden directory groups
+   *
+   * We only restart pagination for the newly selected result set.
+   */
+
+  state.currentPage = 1;
+
+  renderPage(1);
+}
+
+
+/* ==========================================================================
+   Pagination Click
+   ========================================================================== */
+
+function handlePaginationClick(event) {
+  const pageButton = event.target.closest(
+    "[data-directory-page]",
+  );
+
+  if (pageButton) {
+    const page = Number(
+      pageButton.getAttribute(
+        "data-directory-page",
+      ),
+    );
+
+    if (Number.isInteger(page)) {
+      renderPage(page);
+    }
+
+    return;
+  }
+
+
+  const previousButton = event.target.closest(
+    "[data-directory-page-prev]",
+  );
+
+  if (previousButton) {
+    if (state.currentPage > 1) {
+      renderPage(
+        state.currentPage - 1,
+      );
+    }
+
+    return;
+  }
+
+
+  const nextButton = event.target.closest(
+    "[data-directory-page-next]",
+  );
+
+  if (!nextButton) {
+    return;
+  }
+
+  const totalItems =
+    getAlphabetFilteredIndexes().length;
+
+  const totalPages =
+    getTotalPages(totalItems);
+
+  if (state.currentPage < totalPages) {
+    renderPage(
+      state.currentPage + 1,
+    );
+  }
+}
+
+
+/* ==========================================================================
+   Logo Error
+   ========================================================================== */
+
+function handleImageError(event) {
+  const image = event.target;
+
+  if (
+    !(image instanceof HTMLImageElement) ||
+    !image.matches(SELECTORS.logo)
+  ) {
+    return;
+  }
+
+  if (
+    image.dataset.fallbackApplied === "true"
+  ) {
+    return;
+  }
+
+  image.dataset.fallbackApplied = "true";
+  image.src = FALLBACK_LOGO_URL;
+}
+
+
+/* ==========================================================================
+   Alphabet Reset
+   ========================================================================== */
+
+function resetAlphabet() {
+  const letterInput =
+    document.querySelector(
+      SELECTORS.letterInput,
+    );
+
+  if (letterInput) {
+    letterInput.value = "";
+  }
+
+  state.currentPage = 1;
+
+  /*
+   * Synchronize DirectoryAlphabet with the cleared hidden value.
+   *
+   * refreshDirectories() does not dispatch another alphabet-change event,
+   * so this does not cause an event loop.
+   */
+  refreshDirectories(document);
+}
+
+
+/* ==========================================================================
+   Arabic Character Mapping
+   ========================================================================== */
+
+function buildArabicCharacterMap() {
+  state.arabicAliasToLetter.clear();
+
+  const mapping = String(
+    CONFIG.arabicCharactersMapping || "",
+  ).trim();
+
+  if (!mapping) {
+    return;
+  }
+
+  mapping
+    .split(",")
+    .map((entry) => entry.trim())
+    .filter(Boolean)
+    .forEach((entry) => {
+      const separatorIndex =
+        entry.indexOf("-");
+
+      if (separatorIndex === -1) {
+        return;
+      }
+
+      const displayLetter =
+        normalizeLetter(
+          entry.slice(
+            0,
+            separatorIndex,
+          ),
+        );
+
+      const alias =
+        normalizeLetter(
+          entry.slice(
+            separatorIndex + 1,
+          ),
+        );
+
+      if (
+        !displayLetter ||
+        !alias
+      ) {
+        return;
+      }
+
+      /*
+       * Legacy mapping was:
+       *
+       * display character -> backend variants.
+       *
+       * For client-side grouping we need:
+       *
+       * variant -> displayed alphabet character.
+       */
+
+      state.arabicAliasToLetter.set(
+        displayLetter,
+        displayLetter,
+      );
+
+      state.arabicAliasToLetter.set(
+        alias,
+        displayLetter,
+      );
+    });
+}
+
+
+/* ==========================================================================
+   Letter Normalization
+   ========================================================================== */
+
+function normalizeLetter(value) {
+  return String(value || "")
+    .trim()
+    .toLocaleUpperCase();
+}
+
+
+/* ==========================================================================
+   Initial Sector Options
+   ========================================================================== */
+
+function captureInitialSectorOptions() {
+  const select =
+    document.querySelector(
+      SELECTORS.sector,
+    );
+
+  if (
+    !(select instanceof HTMLSelectElement)
+  ) {
+    return;
+  }
+
+  state.initialSectorOptions =
+    Array.from(select.options).map(
+      (option) => ({
+        value: option.value,
+        text: option.text,
+        selected:
+          option.defaultSelected,
+      }),
+    );
+}
+
+
+/* ==========================================================================
+   Restore Sector Options
+   ========================================================================== */
+
+function restoreInitialSectorOptions() {
+  const select =
+    document.querySelector(
+      SELECTORS.sector,
+    );
+
+  if (
+    !(select instanceof HTMLSelectElement)
+  ) {
+    return;
+  }
+
+  replaceSelectOptions(
+    select,
+    state.initialSectorOptions,
+  );
+
+  select.value = "All";
+}
+
+
+/* ==========================================================================
+   Market -> Sector AJAX
+   ========================================================================== */
+
+async function loadSectorsByMarket(
+  marketType,
+) {
+  const sectorSelect =
+    document.querySelector(
+      SELECTORS.sector,
+    );
+
+  if (
+    !(sectorSelect instanceof HTMLSelectElement)
+  ) {
+    await loadCompanies();
+
+    return;
+  }
+
+
+  /*
+   * Cancel any previous sector request first.
+   *
+   * This also prevents an old request from overwriting the restored
+   * sector list after the user changes back to "All markets".
+   */
+
+  abortSectorRequest();
+
+
+  /* =========================================================================
+     All Markets
+     ========================================================================= */
+
+  if (!marketType) {
+    restoreInitialSectorOptions();
+
+    await loadCompanies();
+
+    return;
+  }
+
+
+  if (!URLS.sectorsByMarket) {
+    console.error(
+      "IssuerDirectory: sectorsByMarket URL is missing.",
+    );
+
+    return;
+  }
+
+
+  const controller =
+    new AbortController();
+
+  state.sectorRequest =
+    controller;
+
+  sectorSelect.disabled = true;
+
+
+  try {
+    const response =
+      await postForm(
+        URLS.sectorsByMarket,
+        {
+          format: "json",
+          marketType,
+        },
+        controller.signal,
+      );
+
+
+    /*
+     * Ignore response from a request that is no longer current.
+     */
+    if (
+      state.sectorRequest !== controller
+    ) {
+      return;
+    }
+
+
+    const options = [
+      {
+        value: "All",
+
+        text:
+          LABELS.allSectors ||
+          "All Sectors",
+
+        selected: true,
+      },
+    ];
+
+
+    if (Array.isArray(response)) {
+      response.forEach((sector) => {
+        if (!sector) {
+          return;
+        }
+
+        options.push({
+          value:
+            sector.pk_rf_sector ??
+            "",
+
+          text:
+            sector.name ??
+            "",
+
+          selected: false,
+        });
+      });
+    }
+
+
+    replaceSelectOptions(
+      sectorSelect,
+      options,
+    );
+
+    sectorSelect.value = "All";
+
+
+    await loadCompanies();
+
+  } catch (error) {
+    if (
+      error?.name ===
+      "AbortError"
+    ) {
+      return;
+    }
+
+    console.error(
+      "IssuerDirectory: unable to load sectors.",
+      error,
+    );
+
+  } finally {
+    if (
+      state.sectorRequest === controller
+    ) {
+      state.sectorRequest = null;
+      sectorSelect.disabled = false;
+    }
+  }
+}
+
+
+/* ==========================================================================
+   Abort Sector Request
+   ========================================================================== */
+
+function abortSectorRequest() {
+  if (!state.sectorRequest) {
+    return;
+  }
+
+  state.sectorRequest.abort();
+  state.sectorRequest = null;
+
+  const sector =
+    document.querySelector(
+      SELECTORS.sector,
+    );
+
+  if (
+    sector instanceof HTMLSelectElement
+  ) {
+    sector.disabled = false;
+  }
+}
+
+
+/* ==========================================================================
+   Company AJAX
+   ========================================================================== */
+
+async function loadCompanies() {
+  if (!URLS.companies) {
+    console.error(
+      "IssuerDirectory: companies URL is missing.",
+    );
+
+    return;
+  }
+
+
+  abortCompanyRequest();
+
+
+  const controller =
+    new AbortController();
+
+  state.companyRequest =
+    controller;
+
+
+  setBusy(true);
+
+
+  const marketType =
+    getControlValue(
+      SELECTORS.market,
+    );
+
+  const sector =
+    getControlValue(
+      SELECTORS.sector,
+    );
+
+  const symbol =
+    getControlValue(
+      SELECTORS.symbol,
+    );
+
+
+  /*
+   * IMPORTANT
+   * --------------------------------------------------------------------------
+   *
+   * The legacy implementation sent `letter` to the backend.
+   *
+   * The new DirectoryAlphabet determines which alphabet controls are available
+   * by inspecting all [data-directory-group] elements currently rendered.
+   *
+   * Therefore we fetch ALL companies matching:
+   *
+   * - market
+   * - sector
+   * - symbol
+   *
+   * and let DirectoryAlphabet filter the complete rendered collection locally.
+   *
+   * If we fetched only one letter from the server, every other alphabet button
+   * would incorrectly become disabled.
+   */
+
+  const requestData = {
+    marketType,
+    sector,
+    symbol,
+    letter: "",
+  };
+
+
+  try {
+    const response =
+      await postForm(
+        URLS.companies,
+        requestData,
+        controller.signal,
+      );
+
+
+    if (
+      state.companyRequest !== controller
+    ) {
+      return;
+    }
+
+
+    state.companies =
+      Array.isArray(response?.data)
+        ? response.data
+        : [];
+
+
+    state.currentPage = 1;
+
+
+    renderDirectory(
+      state.companies,
+    );
+
+
+    /*
+     * The AJAX response replaced the directory groups.
+     *
+     * Recollect:
+     *
+     * - grid groups
+     * - list groups
+     * - available alphabet letters
+     */
+
+    refreshDirectories(document);
+
+
+    /*
+     * DirectoryAlphabet needs to finish synchronizing its group visibility
+     * before page-level pagination is applied.
+     */
+
+    requestAnimationFrame(() => {
+      renderPage(1);
+    });
+
+  } catch (error) {
+    if (
+      error?.name ===
+      "AbortError"
+    ) {
+      return;
+    }
+
+
+    console.error(
+      "IssuerDirectory: unable to load companies.",
+      error,
+    );
+
+
+    state.companies = [];
+    state.currentPage = 1;
+
+
+    renderDirectory(
+      state.companies,
+    );
+
+    refreshDirectories(document);
+
+    renderPage(1);
+
+  } finally {
+    if (
+      state.companyRequest === controller
+    ) {
+      state.companyRequest = null;
+
+      setBusy(false);
+    }
+  }
+}
+
+
+/* ==========================================================================
+   Abort Company Request
+   ========================================================================== */
+
+function abortCompanyRequest() {
+  if (!state.companyRequest) {
+    return;
+  }
+
+  state.companyRequest.abort();
+  state.companyRequest = null;
+}
+
+
+/* ==========================================================================
+   POST Form Request
+   ========================================================================== */
+
+async function postForm(
+  url,
+  data,
+  signal,
+) {
+  const body =
+    new URLSearchParams();
+
+  Object.entries(data).forEach(
+    ([key, value]) => {
+      body.append(
+        key,
+        value == null
+          ? ""
+          : String(value),
+      );
+    },
+  );
+
+
+  const response =
+    await fetch(url, {
+      method: "POST",
+
+      credentials: "same-origin",
+
+      signal,
+
+      headers: {
+        "Content-Type":
+          "application/x-www-form-urlencoded; charset=UTF-8",
+
+        "X-Requested-With":
+          "XMLHttpRequest",
+      },
+
+      body,
+    });
+
+
+  if (!response.ok) {
+    throw new Error(
+      `HTTP ${response.status}`,
+    );
+  }
+
+
+  const text =
+    await response.text();
+
+
+  return parseJsonResponse(text);
+}
+
+
+/* ==========================================================================
+   JSON Response
+   ========================================================================== */
+
+function parseJsonResponse(value) {
+  if (
+    value === null ||
+    value === undefined
+  ) {
+    return {};
+  }
+
+
+  if (
+    typeof value === "object"
+  ) {
+    return value;
+  }
+
+
+  const text =
+    String(value).trim();
+
+
+  if (!text) {
+    return {};
+  }
+
+
+  try {
+    const parsed =
+      JSON.parse(text);
+
+    /*
+     * Also tolerate an accidentally double-encoded JSON response.
+     */
+
+    if (
+      typeof parsed === "string"
+    ) {
+      try {
+        return JSON.parse(parsed);
+      } catch {
+        return parsed;
+      }
+    }
+
+    return parsed;
+
+  } catch (error) {
+    console.error(
+      "IssuerDirectory: invalid JSON response.",
+      text,
+    );
+
+    throw error;
+  }
+}
+
+
+/* ==========================================================================
+   Directory Rendering
+   ========================================================================== */
+
+function renderDirectory(companies) {
+  const grid =
+    document.querySelector(
+      SELECTORS.grid,
+    );
+
+  const list =
+    document.querySelector(
+      SELECTORS.list,
+    );
+
+
+  if (!grid || !list) {
+    console.error(
+      "IssuerDirectory: grid/list result panels are missing.",
+    );
+
+    return;
+  }
+
+
+  const groups =
+    groupCompanies(companies);
+
+
+  grid.innerHTML =
+    groups
+      .map(
+        (group, index) =>
+          renderGridGroup(
+            group,
+            index,
+          ),
+      )
+      .join("");
+
+
+  list.innerHTML =
+    groups
+      .map(
+        (group, index) =>
+          renderListGroup(
+            group,
+            index,
+          ),
+      )
+      .join("");
+}
+
+
+/* ==========================================================================
+   Group Companies
+   ========================================================================== */
+
+function groupCompanies(companies) {
+  const groups =
+    new Map();
+
+
+  companies.forEach(
+    (company, companyIndex) => {
+      const letter =
+        resolveCompanyLetter(
+          company,
+        );
+
+
+      if (!groups.has(letter)) {
+        groups.set(letter, {
+          letter,
+          items: [],
+        });
+      }
+
+
+      groups
+        .get(letter)
+        .items
+        .push({
+          company,
+          index: companyIndex,
+        });
+    },
+  );
+
+
+  return sortGroups(
+    Array.from(
+      groups.values(),
+    ),
+  );
+}
+
+
+/* ==========================================================================
+   Group Sorting
+   ========================================================================== */
+
+function sortGroups(groups) {
+  const alphabetOrder =
+    getAlphabetOrder();
+
+
+  return groups.sort(
+    (groupA, groupB) => {
+      const indexA =
+        alphabetOrder.indexOf(
+          groupA.letter,
+        );
+
+      const indexB =
+        alphabetOrder.indexOf(
+          groupB.letter,
+        );
+
+
+      /*
+       * Both exist in the displayed alphabet.
+       */
+
+      if (
+        indexA !== -1 &&
+        indexB !== -1
+      ) {
+        return indexA - indexB;
+      }
+
+
+      /*
+       * Known alphabet letters before unknown groups.
+       */
+
+      if (indexA !== -1) {
+        return -1;
+      }
+
+      if (indexB !== -1) {
+        return 1;
+      }
+
+
+      /*
+       * Fallback sorting.
+       */
+
+      return groupA.letter.localeCompare(
+        groupB.letter,
+        CONFIG.locale || undefined,
+      );
+    },
+  );
+}
+
+
+/* ==========================================================================
+   Current Alphabet Order
+   ========================================================================== */
+
+function getAlphabetOrder() {
+  return Array.from(
+    document.querySelectorAll(
+      `${SELECTORS.alphabet} [data-directory-letter]`,
+    ),
+  )
+    .map((control) =>
+      normalizeLetter(
+        control.getAttribute(
+          "data-directory-letter",
+        ),
+      ),
+    )
+    .filter(Boolean);
+}
+
+
+/* ==========================================================================
+   Resolve Company Letter
+   ========================================================================== */
+
+function resolveCompanyLetter(company) {
+  const name =
+    getCompanyName(company);
+
+
+  if (
+    !name ||
+    name === "—"
+  ) {
+    return "#";
+  }
+
+
+  const characters =
+    Array.from(
+      name.trim(),
+    );
+
+
+  if (!characters.length) {
+    return "#";
+  }
+
+
+  const firstCharacter =
+    normalizeLetter(
+      characters[0],
+    );
+
+
+  /*
+   * Arabic aliases are normalized back to the letter displayed by the
+   * alphabet component.
+   */
+
+  if (
+    state.arabicAliasToLetter.has(
+      firstCharacter,
+    )
+  ) {
+    return state.arabicAliasToLetter.get(
+      firstCharacter,
+    );
+  }
+
+
+  return (
+    firstCharacter ||
+    "#"
+  );
+}
+
+
+/* ==========================================================================
+   Grid Group
+   ========================================================================== */
+
+function renderGridGroup(
+  group,
+  groupIndex,
+) {
+  const headingId =
+    `issuer-grid-group-${groupIndex}-title`;
+
+
+  const items =
+    group.items
+      .map(
+        ({ company, index }) =>
+          renderGridCard(
+            company,
+            index,
+          ),
+      )
+      .join("");
+
+
+  return `
+    <section
+      class="directory-group"
+      aria-labelledby="${headingId}"
+      data-directory-group="${escapeAttribute(group.letter)}"
+    >
+      <header class="directory-group__header">
+        <h3
+          id="${headingId}"
+          class="directory-group__title"
+        >
+          ${escapeHtml(group.letter)}
+        </h3>
+
+        <span class="directory-group__count">
+          ${group.items.length}
+        </span>
+      </header>
+
+      <ul
+        class="directory-results__collection directory-results__collection--grid"
+      >
+        ${items}
+      </ul>
+    </section>
+  `;
+}
+
+
+/* ==========================================================================
+   Grid Card
+   ========================================================================== */
+
+function renderGridCard(
+  company,
+  index,
+) {
+  const name =
+    getCompanyName(company);
+
+  const symbol =
+    getDisplayValue(
+      company?.symbol,
+    );
+
+  const tradingName =
+    getDisplayValue(
+      company?.shortName,
+    );
+
+  const isinCode =
+    getDisplayValue(
+      company?.isinCode,
+    );
+
+  const profileUrl =
+    sanitizeUrl(
+      company?.companyURL,
+    );
+
+  const logoUrl =
+    getCompanyLogoUrl(
+      company,
+    );
+
+  const movement =
+    getMovement(
+      company?.stockValue,
+      "issuer-card__movement",
+    );
+
+
+  return `
+    <li
+      class="directory-results__item"
+      data-directory-index="${index}"
+    >
+      <article class="card issuer-card">
+
+        <header class="issuer-card__header">
+
+          <div class="issuer-card__identity">
+
+            <span
+              class="issuer-card__logo"
+              aria-hidden="true"
+            >
+              <img
+                class="issuer-card__logo-image"
+                src="${escapeAttribute(logoUrl)}"
+                alt=""
+                width="64"
+                height="64"
+                loading="lazy"
+                data-issuer-logo
+              />
+            </span>
+
+
+            <div class="issuer-card__identity-content">
+
+              <h4 class="issuer-card__name">
+                <a
+                  class="issuer-card__name-link"
+                  href="${escapeAttribute(profileUrl)}"
+                >
+                  ${escapeHtml(name)}
+                </a>
+              </h4>
+
+
+              <div class="issuer-card__symbol">
+                <span class="issuer-card__symbol-value">
+                  ${escapeHtml(symbol)}
+                </span>
+              </div>
+
+            </div>
+
+          </div>
+
+        </header>
+
+
+        <div class="issuer-card__body">
+
+          <dl class="issuer-card__metadata">
+
+            <div class="issuer-card__metadata-item">
+
+              <dt class="issuer-card__metadata-label">
+                ${escapeHtml(
+                  LABELS.tradingName ||
+                    "Trading Name",
+                )}
+              </dt>
+
+              <dd class="issuer-card__metadata-value">
+                ${escapeHtml(tradingName)}
+              </dd>
+
+            </div>
+
+
+            <div class="issuer-card__metadata-item">
+
+              <dt class="issuer-card__metadata-label">
+                ${escapeHtml(
+                  LABELS.isinCode ||
+                    "ISIN Code",
+                )}
+              </dt>
+
+              <dd class="issuer-card__metadata-value">
+                ${escapeHtml(isinCode)}
+              </dd>
+
+            </div>
+
+
+            <div class="issuer-card__metadata-item">
+
+              <dt class="issuer-card__metadata-label">
+                ${escapeHtml(
+                  LABELS.change ||
+                    "Change",
+                )}
+              </dt>
+
+              <dd class="${movement.className}">
+                ${escapeHtml(
+                  movement.text,
+                )}
+              </dd>
+
+            </div>
+
+          </dl>
+
+        </div>
+
+
+        <footer class="issuer-card__footer">
+
+          <a
+            class="btn btn-outline-primary issuer-card__profile has-icon icon-arrow-up-right icon-end"
+            href="${escapeAttribute(profileUrl)}"
+          >
+            ${escapeHtml(
+              LABELS.viewProfile ||
+                "View profile",
+            )}
+          </a>
+
+        </footer>
+
+      </article>
+    </li>
+  `;
+}
+
+
+/* ==========================================================================
+   List Group
+   ========================================================================== */
+
+function renderListGroup(
+  group,
+  groupIndex,
+) {
+  const headingId =
+    `issuer-list-group-${groupIndex}-title`;
+
+
+  const items =
+    group.items
+      .map(
+        ({ company, index }) =>
+          renderListRow(
+            company,
+            index,
+          ),
+      )
+      .join("");
+
+
+  return `
+    <section
+      class="directory-group directory-group--list"
+      aria-labelledby="${headingId}"
+      data-directory-group="${escapeAttribute(group.letter)}"
+    >
+      <header class="directory-group__header">
+
+        <h3
+          id="${headingId}"
+          class="directory-group__title"
+        >
+          ${escapeHtml(group.letter)}
+        </h3>
+
+        <span class="directory-group__count">
+          ${group.items.length}
+        </span>
+
+      </header>
+
+
+      <div class="directory-group__items">
+        ${items}
+      </div>
+
+    </section>
+  `;
+}
+
+
+/* ==========================================================================
+   List Row
+   ========================================================================== */
+
+function renderListRow(
+  company,
+  index,
+) {
+  const name =
+    getCompanyName(company);
+
+  const symbol =
+    getDisplayValue(
+      company?.symbol,
+    );
+
+  const tradingName =
+    getDisplayValue(
+      company?.shortName,
+    );
+
+  const isinCode =
+    getDisplayValue(
+      company?.isinCode,
+    );
+
+  const profileUrl =
+    sanitizeUrl(
+      company?.companyURL,
+    );
+
+  const logoUrl =
+    getCompanyLogoUrl(
+      company,
+    );
+
+  const movement =
+    getMovement(
+      company?.stockValue,
+      "issuer-row__movement",
+    );
+
+
+  return `
+    <article
+      class="directory-results__item issuer-row"
+      data-directory-index="${index}"
+    >
+
+      <div class="issuer-row__identity">
+
+        <span
+          class="issuer-row__logo"
+          aria-hidden="true"
+        >
+          <img
+            class="issuer-row__logo-image"
+            src="${escapeAttribute(logoUrl)}"
+            alt=""
+            width="64"
+            height="64"
+            loading="lazy"
+            data-issuer-logo
+          />
+        </span>
+
+
+        <div class="issuer-row__identity-content">
+
+          <h4 class="issuer-row__name">
+            <a
+              class="issuer-row__name-link"
+              href="${escapeAttribute(profileUrl)}"
+            >
+              ${escapeHtml(name)}
+            </a>
+          </h4>
+
+          <span class="issuer-row__code">
+            ${escapeHtml(symbol)}
+          </span>
+
+        </div>
+
+      </div>
+
+
+      <div class="issuer-row__field">
+
+        <span class="issuer-row__label">
+          ${escapeHtml(
+            LABELS.tradingName ||
+              "Trading Name",
+          )}
+        </span>
+
+        <span class="issuer-row__value">
+          ${escapeHtml(tradingName)}
+        </span>
+
+      </div>
+
+
+      <div class="issuer-row__field">
+
+        <span class="issuer-row__label">
+          ${escapeHtml(
+            LABELS.isinCode ||
+              "ISIN Code",
+          )}
+        </span>
+
+        <span class="issuer-row__value">
+          ${escapeHtml(isinCode)}
+        </span>
+
+      </div>
+
+
+      <div class="issuer-row__field">
+
+        <span class="issuer-row__label">
+          ${escapeHtml(
+            LABELS.change ||
+              "Change",
+          )}
+        </span>
+
+        <span class="${movement.className}">
+          ${escapeHtml(
+            movement.text,
+          )}
+        </span>
+
+      </div>
+
+
+      <a
+        class="btn btn-outline-primary issuer-row__profile has-icon icon-arrow-up-right icon-end"
+        href="${escapeAttribute(profileUrl)}"
+        aria-label="${escapeAttribute(
+          `${LABELS.viewProfile || "View profile"} ${name}`,
+        )}"
+      >
+        ${escapeHtml(
+          LABELS.viewProfile ||
+            "View profile",
+        )}
+      </a>
+
+    </article>
+  `;
+}
+
+
+/* ==========================================================================
+   Price Movement
+   ========================================================================== */
+
+function getMovement(
+  value,
+  baseClass,
+) {
+  const numericValue =
+    Number.parseFloat(value);
+
+
+  if (!Number.isFinite(numericValue)) {
+    return {
+      className:
+        `${baseClass} price-neutral`,
+
+      text: "—",
+    };
+  }
+
+
+  if (numericValue > 0) {
+    return {
+      className:
+        `${baseClass} price-up has-icon icon-triangle-up`,
+
+      text:
+        `+${numericValue.toFixed(2)}%`,
+    };
+  }
+
+
+  if (numericValue < 0) {
+    return {
+      className:
+        `${baseClass} price-down has-icon icon-triangle-down`,
+
+      text:
+        `${numericValue.toFixed(2)}%`,
+    };
+  }
+
+
+  return {
+    className:
+      `${baseClass} price-neutral`,
+
+    text:
+      `${numericValue.toFixed(2)}%`,
+  };
+}
+
+
+/* ==========================================================================
+   Pagination
+   ========================================================================== */
+
+function renderPage(pageNumber) {
+  const filteredIndexes =
+    getAlphabetFilteredIndexes();
+
+
+  const totalItems =
+    filteredIndexes.length;
+
+
+  const totalPages =
+    getTotalPages(
+      totalItems,
+    );
+
+
+  if (totalPages === 0) {
+    state.currentPage = 1;
+
+  } else {
+    state.currentPage =
+      Math.max(
+        1,
+        Math.min(
+          Number(pageNumber) || 1,
+          totalPages,
+        ),
+      );
+  }
+
+
+  const startIndex =
+    (state.currentPage - 1) *
+    PAGE_SIZE;
+
+
+  const pageIndexes =
+    filteredIndexes.slice(
+      startIndex,
+      startIndex + PAGE_SIZE,
+    );
+
+
+  const visibleIndexes =
+    new Set(
+      pageIndexes,
+    );
+
+
+  applyPageVisibility(
+    document.querySelector(
+      SELECTORS.grid,
+    ),
+    visibleIndexes,
+  );
+
+
+  applyPageVisibility(
+    document.querySelector(
+      SELECTORS.list,
+    ),
+    visibleIndexes,
+  );
+
+
+  updateResultSummary({
+    totalItems,
+
+    startIndex,
+
+    pageItemCount:
+      pageIndexes.length,
+  });
+
+
+  renderPagination({
+    currentPage:
+      state.currentPage,
+
+    totalPages,
+  });
+
+
+  updateEmptyState(
+    totalItems === 0,
+  );
+}
+
+
+/* ==========================================================================
+   Total Pages
+   ========================================================================== */
+
+function getTotalPages(totalItems) {
+  if (!totalItems) {
+    return 0;
+  }
+
+  return Math.ceil(
+    totalItems /
+    PAGE_SIZE,
+  );
+}
+
+
+/* ==========================================================================
+   Current Alphabet Result Indexes
+   ========================================================================== */
+
+function getAlphabetFilteredIndexes() {
+  const grid =
+    document.querySelector(
+      SELECTORS.grid,
+    );
+
+
+  if (!grid) {
+    return [];
+  }
+
+
+  const indexes = [];
+
+
+  grid
+    .querySelectorAll(
+      SELECTORS.group,
+    )
+    .forEach((group) => {
+      /*
+       * `hidden` belongs exclusively to DirectoryAlphabet.
+       */
+
+      if (group.hidden) {
+        return;
+      }
+
+
+      group
+        .querySelectorAll(
+          SELECTORS.resultItem,
+        )
+        .forEach((item) => {
+          const index =
+            Number(
+              item.dataset.directoryIndex,
+            );
+
+
+          if (
+            Number.isInteger(index)
+          ) {
+            indexes.push(index);
+          }
+        });
+    });
+
+
+  return indexes;
+}
+
+
+/* ==========================================================================
+   Apply Page Visibility
+   ========================================================================== */
+
+function applyPageVisibility(
+  panel,
+  visibleIndexes,
+) {
+  if (!panel) {
+    return;
+  }
+
+
+  panel
+    .querySelectorAll(
+      SELECTORS.group,
+    )
+    .forEach((group) => {
+      /*
+       * Alphabet visibility is semantic and belongs to DirectoryAlphabet.
+       */
+
+      const alphabetVisible =
+        !group.hidden;
+
+
+      let hasVisibleItem =
+        false;
+
+
+      group
+        .querySelectorAll(
+          SELECTORS.resultItem,
+        )
+        .forEach((item) => {
+          const index =
+            Number(
+              item.dataset.directoryIndex,
+            );
+
+
+          const visible =
+            alphabetVisible &&
+            visibleIndexes.has(index);
+
+
+          /*
+           * Pagination owns item.hidden.
+           *
+           * DirectoryAlphabet works at group level, so these two systems
+           * remain independent.
+           */
+
+          item.hidden =
+            !visible;
+
+
+          if (visible) {
+            hasVisibleItem = true;
+          }
+        });
+
+
+      /*
+       * IMPORTANT:
+       *
+       * Do NOT set group.hidden here.
+       *
+       * DirectoryAlphabet owns group.hidden and uses that state to represent
+       * the selected letter.
+       *
+       * Pagination only uses display to suppress groups that do not contain
+       * an item on the current page.
+       */
+
+      group.style.display =
+        alphabetVisible &&
+        hasVisibleItem
+          ? ""
+          : "none";
+    });
+}
+
+
+/* ==========================================================================
+   Result Summary
+   ========================================================================== */
+
+function updateResultSummary({
+  totalItems,
+  startIndex,
+  pageItemCount,
+}) {
+  const start =
+    totalItems > 0
+      ? startIndex + 1
+      : 0;
+
+
+  const end =
+    totalItems > 0
+      ? startIndex +
+        pageItemCount
+      : 0;
+
+
+  const range =
+    `${start}–${end}`;
+
+
+  setText(
+    SELECTORS.resultCount,
+    totalItems,
+  );
+
+
+  setText(
+    SELECTORS.range,
+    range,
+  );
+
+
+  setText(
+    SELECTORS.total,
+    totalItems,
+  );
+
+
+  setText(
+    SELECTORS.paginationRange,
+    range,
+  );
+
+
+  setText(
+    SELECTORS.paginationTotal,
+    totalItems,
+  );
+}
+
+
+/* ==========================================================================
+   Pagination Renderer
+   ========================================================================== */
+
+function renderPagination({
+  currentPage,
+  totalPages,
+}) {
+  const navigation =
+    document.querySelector(
+      SELECTORS.pagination,
+    );
+
+  const list =
+    document.querySelector(
+      SELECTORS.paginationList,
+    );
+
+
+  if (!navigation || !list) {
+    return;
+  }
+
+
+  /*
+   * Keep these values for now because Part 4 still contains the legacy
+   * compatibility inputs.
+   *
+   * recordsCountId stores TOTAL PAGES, matching the old pxpaginate behavior.
+   */
+
+  setControlValue(
+    SELECTORS.pageLimit,
+    PAGE_SIZE,
+  );
+
+
+  setControlValue(
+    SELECTORS.pageCount,
+    totalPages,
+  );
+
+
+  if (totalPages <= 1) {
+    navigation.hidden = true;
+    list.innerHTML = "";
+
+    return;
+  }
+
+
+  navigation.hidden = false;
+
+
+  const items = [];
+
+
+  /* =========================================================================
+     Previous
+     ========================================================================= */
+
+  const previousDisabled =
+    currentPage <= 1;
+
+
+  items.push(`
+    <li class="pagination__item">
+
+      <button
+        class="pagination__link pagination__link--previous has-icon icon-chevron-left icon-flip-rtl${previousDisabled ? " is-disabled" : ""}"
+        type="button"
+        data-directory-page-prev
+        ${previousDisabled ? 'disabled aria-disabled="true"' : ""}
+      >
+        <span class="visually-hidden">
+          ${escapeHtml(
+            LABELS.previousPage ||
+              "Previous page",
+          )}
+        </span>
+      </button>
+
+    </li>
+  `);
+
+
+  /* =========================================================================
+     Page Numbers
+     ========================================================================= */
+
+  const pageItems =
+    getPaginationItems(
+      currentPage,
+      totalPages,
+    );
+
+
+  pageItems.forEach((page) => {
+    if (page === null) {
+      items.push(`
+        <li
+          class="pagination__item pagination__item--ellipsis"
+          aria-hidden="true"
+        >
+          <span class="pagination__ellipsis">
+            …
+          </span>
+        </li>
+      `);
+
+      return;
+    }
+
+
+    const isCurrent =
+      page === currentPage;
+
+
+    items.push(`
+      <li class="pagination__item">
+
+        <button
+          class="pagination__link${isCurrent ? " is-current" : ""}"
+          type="button"
+          data-directory-page="${page}"
+          ${isCurrent ? 'aria-current="page"' : ""}
+        >
+          ${page}
+        </button>
+
+      </li>
+    `);
+  });
+
+
+  /* =========================================================================
+     Next
+     ========================================================================= */
+
+  const nextDisabled =
+    currentPage >= totalPages;
+
+
+  items.push(`
+    <li class="pagination__item">
+
+      <button
+        class="pagination__link pagination__link--next has-icon icon-chevron-right icon-flip-rtl${nextDisabled ? " is-disabled" : ""}"
+        type="button"
+        data-directory-page-next
+        ${nextDisabled ? 'disabled aria-disabled="true"' : ""}
+      >
+        <span class="visually-hidden">
+          ${escapeHtml(
+            LABELS.nextPage ||
+              "Next page",
+          )}
+        </span>
+      </button>
+
+    </li>
+  `);
+
+
+  list.innerHTML =
+    items.join("");
+}
+
+
+/* ==========================================================================
+   Pagination Window
+   ========================================================================== */
+
+function getPaginationItems(
+  currentPage,
+  totalPages,
+) {
+  /*
+   * Small page count:
+   *
+   * 1 2 3 4 5
+   */
+
+  if (
+    totalPages <=
+    MAX_PAGE_BUTTONS + 2
+  ) {
+    return Array.from(
+      {
+        length: totalPages,
+      },
+      (_, index) =>
+        index + 1,
+    );
+  }
+
+
+  const pages =
+    new Set([
+      1,
+      totalPages,
+    ]);
+
+
+  const half =
+    Math.floor(
+      MAX_PAGE_BUTTONS / 2,
+    );
+
+
+  let start =
+    Math.max(
+      1,
+      currentPage - half,
+    );
+
+
+  let end =
+    Math.min(
+      totalPages,
+      start +
+        MAX_PAGE_BUTTONS -
+        1,
+    );
+
+
+  /*
+   * Shift the window left when close to the end.
+   */
+
+  if (
+    end -
+      start +
+      1 <
+    MAX_PAGE_BUTTONS
+  ) {
+    start =
+      Math.max(
+        1,
+        end -
+          MAX_PAGE_BUTTONS +
+          1,
+      );
+  }
+
+
+  for (
+    let page = start;
+    page <= end;
+    page += 1
+  ) {
+    pages.add(page);
+  }
+
+
+  const sortedPages =
+    Array.from(pages)
+      .sort(
+        (a, b) =>
+          a - b,
+      );
+
+
+  const result = [];
+
+
+  sortedPages.forEach(
+    (page, index) => {
+      if (
+        index > 0 &&
+        page -
+          sortedPages[index - 1] >
+          1
+      ) {
+        result.push(null);
+      }
+
+
+      result.push(page);
+    },
+  );
+
+
+  return result;
+}
+
+
+/* ==========================================================================
+   Empty State
+   ========================================================================== */
+
+function updateEmptyState(isEmpty) {
+  const empty =
+    document.querySelector(
+      SELECTORS.empty,
+    );
+
+  const results =
+    document.querySelector(
+      SELECTORS.results,
+    );
+
+
+  if (empty) {
+    empty.hidden =
+      !isEmpty;
+  }
+
+
+  results?.classList.toggle(
+    "is-empty",
+    isEmpty,
+  );
+}
+
+
+/* ==========================================================================
+   Busy State
+   ========================================================================== */
+
+function setBusy(isBusy) {
+  const results =
+    document.querySelector(
+      SELECTORS.results,
+    );
+
+
+  if (!results) {
+    return;
+  }
+
+
+  results.setAttribute(
+    "aria-busy",
+    String(isBusy),
+  );
+}
+
+
+/* ==========================================================================
+   Sector Option Rendering
+   ========================================================================== */
+
+function replaceSelectOptions(
+  select,
+  options,
+) {
+  if (
+    !(select instanceof HTMLSelectElement)
+  ) {
+    return;
+  }
+
+
+  const fragment =
+    document.createDocumentFragment();
+
+
+  options.forEach((item) => {
+    const option =
+      document.createElement(
+        "option",
+      );
+
+
+    option.value =
+      String(
+        item.value ?? "",
+      );
+
+
+    option.textContent =
+      String(
+        item.text ?? "",
+      );
+
+
+    option.defaultSelected =
+      Boolean(
+        item.selected,
+      );
+
+
+    option.selected =
+      Boolean(
+        item.selected,
+      );
+
+
+    fragment.appendChild(
+      option,
+    );
+  });
+
+
+  select.replaceChildren(
+    fragment,
+  );
+}
+
+
+/* ==========================================================================
+   Form Helpers
+   ========================================================================== */
+
+function getControlValue(selector) {
+  const control =
+    document.querySelector(
+      selector,
+    );
+
+
+  if (
+    !(
+      control instanceof HTMLInputElement ||
+      control instanceof HTMLSelectElement
+    )
+  ) {
+    return "";
+  }
+
+
+  return (
+    control.value ||
+    ""
+  );
+}
+
+
+function setControlValue(
+  selector,
+  value,
+) {
+  const control =
+    document.querySelector(
+      selector,
+    );
+
+
+  if (
+    !(
+      control instanceof HTMLInputElement ||
+      control instanceof HTMLSelectElement
+    )
+  ) {
+    return;
+  }
+
+
+  control.value =
+    String(value);
+}
+
+
+/* ==========================================================================
+   Company Name
+   ========================================================================== */
+
+function getCompanyName(company) {
+  return getDisplayValue(
+    company?.lonaName ||
+      company?.longName ||
+      company?.shortName ||
+      company?.symbol,
+  );
+}
+
+
+/* ==========================================================================
+   Display Value
+   ========================================================================== */
+
+function getDisplayValue(value) {
+  if (
+    value === null ||
+    value === undefined ||
+    String(value).trim() === ""
+  ) {
+    return "—";
+  }
+
+
+  return String(value).trim();
+}
+
+
+/* ==========================================================================
+   Company Logo
+   ========================================================================== */
+
+function getCompanyLogoUrl(company) {
+  const symbol =
+    String(
+      company?.symbol ||
+      "",
+    ).trim();
+
+
+  if (!symbol) {
+    return FALLBACK_LOGO_URL;
+  }
+
+
+  return (
+    LOGO_BASE_URL +
+    encodeURIComponent(symbol) +
+    ".png"
+  );
+}
+
+
+/* ==========================================================================
+   Profile URL
+   ========================================================================== */
+
+function sanitizeUrl(value) {
+  const url =
+    String(
+      value ||
+      "",
+    ).trim();
+
+
+  if (!url) {
+    return "#";
+  }
+
+
+  /*
+   * Allow:
+   *
+   * - application-relative links
+   * - anchors
+   * - HTTP
+   * - HTTPS
+   */
+
+  if (
+    url.startsWith("/") ||
+    url.startsWith("#") ||
+    /^https?:\/\//i.test(url)
+  ) {
+    return url;
+  }
+
+
+  return "#";
+}
+
+
+/* ==========================================================================
+   Text Helper
+   ========================================================================== */
+
+function setText(
+  selector,
+  value,
+) {
+  document
+    .querySelectorAll(selector)
+    .forEach((element) => {
+      element.textContent =
+        String(value);
+    });
+}
+
+
+/* ==========================================================================
+   Integer Helper
+   ========================================================================== */
+
+function getPositiveInteger(
+  value,
+  fallback,
+) {
+  const number =
+    Number.parseInt(
+      value,
+      10,
+    );
+
+
+  return (
+    Number.isInteger(number) &&
+    number > 0
+  )
+    ? number
+    : fallback;
+}
+
+
+/* ==========================================================================
+   Debounce
+   ========================================================================== */
+
+function debounce(
+  callback,
+  delay,
+) {
+  let timeoutId = null;
+
+
+  return function debounced(
+    ...args
+  ) {
+    clearTimeout(
+      timeoutId,
+    );
+
+
+    timeoutId =
+      window.setTimeout(
+        () => {
+          callback.apply(
+            this,
+            args,
+          );
+        },
+        delay,
+      );
+  };
+}
+
+
+/* ==========================================================================
+   HTML Escaping
+   ========================================================================== */
+
+function escapeHtml(value) {
+  return String(
+    value ?? "",
+  )
+    .replace(
+      /&/g,
+      "&amp;",
+    )
+    .replace(
+      /</g,
+      "&lt;",
+    )
+    .replace(
+      />/g,
+      "&gt;",
+    )
+    .replace(
+      /"/g,
+      "&quot;",
+    )
+    .replace(
+      /'/g,
+      "&#039;",
+    );
+}
+
+
+function escapeAttribute(value) {
+  return escapeHtml(value);
+}
