@@ -1773,3 +1773,1126 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 </script>
+
+
+
+
+
+
+
+
+
+
+<section class="app-container hero-banner-section">
+	<div class="intro-background">
+		<div class="intro-gradient top-left"></div>
+		<div class="intro-gradient bottom-right"></div>
+		<div class="intro-image-layer"></div>
+	</div>
+
+
+	<div class="profile-banner animate__animated animate__fadeIn">
+		<div class="profile-banner--pattern">
+
+			<div class="row">
+				<div class="col-12">
+					<h2>
+						<svg class="pc-icon pr-3 link-icon me-3" width="40" height="40"
+							style="color: rgb(255, 255, 255); fill: rgb(255, 255, 255)">
+<use xlink:href="#tadawul-arrow-icon"></use>
+</svg>
+						<label style="color: #FFFFFF"><fmt:message
+								key="tadawul.eportal.issuer.directory.company.info.title" /></label>
+					</h2>
+					<p>
+						<fmt:message
+							key="tadawul.eportal.issuer.directory.company.info.title.text" />
+					</p>
+				</div>
+
+				<section class="issuer-directory-search width80">
+
+					<c:choose>
+						<c:when test="${pageContext.request.locale.language == 'ar'}">
+							<div class="advanceSearch">
+								<div class="filterAlpha">
+									<ul>
+										<input type='hidden' id='letterId' value="" />
+										<input type="hidden" id="arMap"
+											value="<fmt:message key="arabic.characters.mapping" />" />
+										<li class=""
+											id="alphabetfilterid-<fmt:message
+							key="tadawul.eportal.issuer.directory.company.info.All" />"><a
+											href="javascript:void(0)"
+											onclick='getFilteredDataByAlphabet("All");'><fmt:message
+													key="tadawul.eportal.issuer.directory.company.info.All" /></a></li>
+
+
+										<c:forEach begin="1" end="28" varStatus="loop">
+											<li
+												id="alphabetfilterid-<fmt:message key="arabic.character.${loop.index}" />"><a
+												href="javascript:void(0)"
+												onclick='getFilteredDataByAlphabet("<fmt:message key="arabic.character.${loop.index}" />");'><fmt:message
+														key="arabic.character.${loop.index}" /> </a></li>
+										</c:forEach>
+									</ul>
+								</div>
+
+							</div>
+						</c:when>
+						<c:otherwise>
+							<div class="advanceSearch">
+								<div class="filterAlpha">
+									<ul class="p-0">
+										<input type='hidden' id='letterId' value="">
+										<li class="active me-2"
+											id="alphabetfilterid-<fmt:message
+							key="tadawul.eportal.issuer.directory.company.info.All" />"><a
+											href="javascript:void(0)"
+											onclick='getFilteredDataByAlphabet("All");'><fmt:message
+													key="tadawul.eportal.issuer.directory.company.info.All" /></a></li>
+										<li class="alphabet-item"
+											id="alphabetfilterid-<fmt:message key="tadawul.eportal.issuer.directory.company.info.alphabet.a" />"><a
+											href="javascript:void(0)"
+											onclick='getFilteredDataByAlphabet("A",this);'><fmt:message
+													key="tadawul.eportal.issuer.directory.company.info.alphabet.a" />
+										</a></li>
+										<li class="alphabet-item"
+											id="alphabetfilterid-<fmt:message key="tadawul.eportal.issuer.directory.company.info.alphabet.b" />"><a
+											href="javascript:void(0)"
+											onclick='getFilteredDataByAlphabet("B",this);'><fmt:message
+													key="tadawul.eportal.issuer.directory.company.info.alphabet.b" />
+										</a></li>
+										<li class="alphabet-item"
+											id="alphabetfilterid-<fmt:message key="tadawul.eportal.issuer.directory.company.info.alphabet.c" />"><a
+											href="javascript:void(0)"
+											onclick='getFilteredDataByAlphabet("C",this);'><fmt:message
+													key="tadawul.eportal.issuer.directory.company.info.alphabet.c" />
+										</a></li>
+										<li
+											id="alphabetfilterid-<fmt:message key="tadawul.eportal.issuer.directory.company.info.alphabet.d" />"><a
+											href="javascript:void(0)"
+											onclick='getFilteredDataByAlphabet("D",this);'><fmt:message
+													key="tadawul.eportal.issuer.directory.company.info.alphabet.d" />
+										</a></li>
+										<li class="alphabet-item"
+											id="alphabetfilterid-<fmt:message key="tadawul.eportal.issuer.directory.company.info.alphabet.e" />"><a
+											href="javascript:void(0)"
+											onclick='getFilteredDataByAlphabet("E",this);'><fmt:message
+													key="tadawul.eportal.issuer.directory.company.info.alphabet.e" />
+										</a></li>
+										<li
+											id="alphabetfilterid-<fmt:message key="tadawul.eportal.issuer.directory.company.info.alphabet.f" />"><a
+											href="javascript:void(0)"
+											onclick='getFilteredDataByAlphabet("F",this);'><fmt:message
+													key="tadawul.eportal.issuer.directory.company.info.alphabet.f" />
+										</a></li>
+										<li class="alphabet-item"
+											id="alphabetfilterid-<fmt:message key="tadawul.eportal.issuer.directory.company.info.alphabet.g" />"><a
+											href="javascript:void(0)"
+											onclick='getFilteredDataByAlphabet("G",this);'><fmt:message
+													key="tadawul.eportal.issuer.directory.company.info.alphabet.g" />
+										</a></li>
+										<li class="alphabet-item"
+											id="alphabetfilterid-<fmt:message key="tadawul.eportal.issuer.directory.company.info.alphabet.h" />"><a
+											href="javascript:void(0)"
+											onclick='getFilteredDataByAlphabet("H",this);'><fmt:message
+													key="tadawul.eportal.issuer.directory.company.info.alphabet.h" />
+										</a></li>
+										<li class="alphabet-item"
+											id="alphabetfilterid-<fmt:message key="tadawul.eportal.issuer.directory.company.info.alphabet.i" />"><a
+											href="javascript:void(0)"
+											onclick='getFilteredDataByAlphabet("I",this);'><fmt:message
+													key="tadawul.eportal.issuer.directory.company.info.alphabet.i" />
+										</a></li>
+										<li class="alphabet-item"
+											id="alphabetfilterid-<fmt:message key="tadawul.eportal.issuer.directory.company.info.alphabet.j" />"><a
+											href="javascript:void(0)"
+											onclick='getFilteredDataByAlphabet("J",this);'><fmt:message
+													key="tadawul.eportal.issuer.directory.company.info.alphabet.j" />
+										</a></li>
+										<li class="alphabet-item"
+											id="alphabetfilterid-<fmt:message key="tadawul.eportal.issuer.directory.company.info.alphabet.k" />"><a
+											href="javascript:void(0)"
+											onclick='getFilteredDataByAlphabet("K",this);'><fmt:message
+													key="tadawul.eportal.issuer.directory.company.info.alphabet.k" />
+										</a></li>
+										<li class="alphabet-item"
+											id="alphabetfilterid-<fmt:message key="tadawul.eportal.issuer.directory.company.info.alphabet.l" />"><a
+											href="javascript:void(0)"
+											onclick='getFilteredDataByAlphabet("L",this);'><fmt:message
+													key="tadawul.eportal.issuer.directory.company.info.alphabet.l" />
+										</a></li>
+										<li class="alphabet-item"
+											id="alphabetfilterid-<fmt:message key="tadawul.eportal.issuer.directory.company.info.alphabet.m" />"><a
+											href="javascript:void(0)"
+											onclick='getFilteredDataByAlphabet("M",this);'><fmt:message
+													key="tadawul.eportal.issuer.directory.company.info.alphabet.m" />
+										</a></li>
+										<li class="alphabet-item"
+											id="alphabetfilterid-<fmt:message key="tadawul.eportal.issuer.directory.company.info.alphabet.n" />"><a
+											href="javascript:void(0)"
+											onclick='getFilteredDataByAlphabet("N",this);'><fmt:message
+													key="tadawul.eportal.issuer.directory.company.info.alphabet.n" />
+										</a></li>
+										<li class="alphabet-item"
+											id="alphabetfilterid-<fmt:message key="tadawul.eportal.issuer.directory.company.info.alphabet.o" />"><a
+											href="javascript:void(0)"
+											onclick='getFilteredDataByAlphabet("O",this);'><fmt:message
+													key="tadawul.eportal.issuer.directory.company.info.alphabet.o" />
+										</a></li>
+										<li class="alphabet-item"
+											id="alphabetfilterid-<fmt:message key="tadawul.eportal.issuer.directory.company.info.alphabet.p" />"><a
+											href="javascript:void(0)"
+											onclick='getFilteredDataByAlphabet("P",this);'><fmt:message
+													key="tadawul.eportal.issuer.directory.company.info.alphabet.p" />
+										</a></li>
+										<li class="alphabet-item"
+											id="alphabetfilterid-<fmt:message key="tadawul.eportal.issuer.directory.company.info.alphabet.q" />"><a
+											href="javascript:void(0)"
+											onclick='getFilteredDataByAlphabet("Q",this);'><fmt:message
+													key="tadawul.eportal.issuer.directory.company.info.alphabet.q" />
+										</a></li>
+										<li class="alphabet-item"
+											id="alphabetfilterid-<fmt:message key="tadawul.eportal.issuer.directory.company.info.alphabet.r" />"><a
+											href="javascript:void(0)"
+											onclick='getFilteredDataByAlphabet("R",this);'><fmt:message
+													key="tadawul.eportal.issuer.directory.company.info.alphabet.r" />
+										</a></li>
+										<li class="alphabet-item"
+											id="alphabetfilterid-<fmt:message key="tadawul.eportal.issuer.directory.company.info.alphabet.s" />"><a
+											href="javascript:void(0)"
+											onclick='getFilteredDataByAlphabet("S",this);'><fmt:message
+													key="tadawul.eportal.issuer.directory.company.info.alphabet.s" />
+										</a></li>
+										<li class="alphabet-item"
+											id="alphabetfilterid-<fmt:message key="tadawul.eportal.issuer.directory.company.info.alphabet.t" />"><a
+											href="javascript:void(0)"
+											onclick='getFilteredDataByAlphabet("T",this);'><fmt:message
+													key="tadawul.eportal.issuer.directory.company.info.alphabet.t" />
+										</a></li>
+										<li class="alphabet-item"
+											id="alphabetfilterid-<fmt:message key="tadawul.eportal.issuer.directory.company.info.alphabet.u" />"><a
+											href="javascript:void(0)"
+											onclick='getFilteredDataByAlphabet("U",this);'><fmt:message
+													key="tadawul.eportal.issuer.directory.company.info.alphabet.u" />
+										</a></li>
+										<li class="alphabet-item"
+											id="alphabetfilterid-<fmt:message key="tadawul.eportal.issuer.directory.company.info.alphabet.v" />"><a
+											href="javascript:void(0)"
+											onclick='getFilteredDataByAlphabet("V",this);'><fmt:message
+													key="tadawul.eportal.issuer.directory.company.info.alphabet.v" />
+										</a></li>
+										<li class="alphabet-item"
+											id="alphabetfilterid-<fmt:message key="tadawul.eportal.issuer.directory.company.info.alphabet.w" />"><a
+											href="javascript:void(0)"
+											onclick='getFilteredDataByAlphabet("W",this);'><fmt:message
+													key="tadawul.eportal.issuer.directory.company.info.alphabet.w" />
+										</a></li>
+										<li class="alphabet-item"
+											id="alphabetfilterid-<fmt:message key="tadawul.eportal.issuer.directory.company.info.alphabet.x" />"><a
+											href="javascript:void(0)"
+											onclick='getFilteredDataByAlphabet("X",this);'><fmt:message
+													key="tadawul.eportal.issuer.directory.company.info.alphabet.x" />
+										</a></li>
+										<li
+											id="alphabetfilterid-<fmt:message key="tadawul.eportal.issuer.directory.company.info.alphabet.y" />"><a
+											href="javascript:void(0)"
+											onclick='getFilteredDataByAlphabet("Y",this);'><fmt:message
+													key="tadawul.eportal.issuer.directory.company.info.alphabet.y" />
+										</a></li>
+										<li class="alphabet-item"
+											id="alphabetfilterid-<fmt:message key="tadawul.eportal.issuer.directory.company.info.alphabet.z" />"><a
+											href="javascript:void(0)"
+											onclick='getFilteredDataByAlphabet("Z",this);'><fmt:message
+													key="tadawul.eportal.issuer.directory.company.info.alphabet.z" />
+										</a></li>
+
+									</ul>
+								</div>
+
+							</div>
+						</c:otherwise>
+					</c:choose>
+
+					<div class="advance-search">
+						<!-- <a href="javascript:void(0)" class="btn open">Advanced Search</a> -->
+						<h2>
+							<fmt:message
+								key="tadawul.eportal.issuer.directory.company.info.advance-search" />
+							<span></span>
+						</h2>
+
+						<div class="search-filter-main">
+							<div class="search-filter">
+								<div class="row mt-2">
+									<div class="col-12 col-lg-3 col-md-3 col-sm-6 col-xm-12">
+										<div class="form-field">
+
+
+											<label class="form-label"> <fmt:message
+													key="tadawul.eportal.issuer.directory.company.info.Symbol-Search" />
+											</label>
+
+
+											<div class="form-control-shell">
+												<input type="text" class="form-input" name="symbol_filter"
+													id="symbol_filter"
+													placeholder="<fmt:message
+								key='tadawul.eportal.issuer.directory.company.info.enter-keyword' />" />
+											</div>
+
+										</div>
+									</div>
+
+									<div class="col-12 col-lg-3 col-md-3 col-sm-6 col-xm-12">
+										<div class="form-field">
+
+
+											<label for="Market_ti" class="form-label"> <fmt:message
+													key="tadawul.eportal.issuer.directory.company.info.Market" />
+											</label>
+
+
+											<div class="form-control-shell is-select is-search"
+												tabindex="0" data-select data-field="market">
+
+
+												<div class="form-select-value is-placeholder">
+													<fmt:message
+														key="tadawul.eportal.issuer.directory.company.info.Market" />
+												</div>
+
+												<!-- Hidden Input -->
+												<input type="hidden" name="Market_ti" id="Market_ti"
+													data-label="Market" /> <span
+													class="form-suffix form-select-arrow" aria-hidden="true"></span>
+
+
+												<div class="form-popover">
+													<div class="form-select-panel ">
+
+
+														<div class="form-select-search-wrap">
+															<input type="text" class="form-select-search"
+																placeholder=<fmt:message
+																	key="tadawul.eportal.issuer.directory.company.search.Market" />  />
+																
+																
+																
+														</div>
+
+
+														<div class="form-select-list" data-live-search="true"
+															name="" id='Market_ti'>
+
+															<div class="form-select-option" data-value="M">
+																<fmt:message
+																	key="tadawul.eportal.issuer.directory.company.info.label.main.market" />
+															</div>
+
+															<div class="form-select-option" data-value="S">
+																<fmt:message
+																	key="tadawul.eportal.issuer.directory.company.info.label.nomu.market" />
+															</div>
+
+														</div>
+
+													</div>
+												</div>
+
+											</div>
+
+										</div>
+									</div>
+
+
+
+
+									<div class="col-12 col-lg-3 col-md-3 col-sm-6 col-xm-12">
+										<div class="form-field">
+
+
+											<label for="sectors_list" class="form-label"> <fmt:message
+													key="tadawul.eportal.issuer.directory.company.info.Sector" />
+											</label>
+
+
+											<div class="form-control-shell is-select is-search"
+												tabindex="0" data-select data-field="sector">
+
+												<!-- Selected Value -->
+												<div class="form-select-value is-placeholder">
+													<fmt:message
+														key="tadawul.eportal.issuer.directory.company.info.All-Sectors" />
+												</div>
+
+												<!-- Hidden input (IMPORTANT for JS) -->
+												<input type="hidden" name="sectors_list" id="sectors_list"
+													data-label="Sector" /> <span
+													class="form-suffix form-select-arrow" aria-hidden="true"></span>
+
+												<div class="form-popover">
+
+													<div class="form-select-panel">
+
+														<!-- Search -->
+														<div class="form-select-search-wrap">
+															<input type="text" class="form-select-search"
+																placeholder=<fmt:message
+																	key="tadawul.eportal.issuer.directory.company.search.Sector" /> />
+														</div>
+
+														<!-- Options -->
+														<div class="form-select-list">
+
+															<!-- All option -->
+															<div class="form-select-option" data-value="All">
+																<fmt:message
+																	key="tadawul.eportal.issuer.directory.company.info.All-Sectors" />
+															</div>
+
+															<!-- Dynamic sectors -->
+															<c:forEach items="${requestScope.sectorsList}"
+																var="sectors">
+
+																<div class="form-select-option"
+																	data-value="${sectors.pk_rf_sector}">
+																	${sectors.name}</div>
+
+															</c:forEach>
+
+														</div>
+
+													</div>
+
+
+
+												</div>
+											</div>
+
+										</div>
+
+									</div>
+
+
+
+
+									<div class="col-12 col-lg-2 col-md-3 col-sm-6 col-xm-12">
+
+										<label class="form-label">&nbsp;</label> <a
+											href="javascript:void(0);" onclick="ResetFormFields()"
+											class="form-control-shell d-flex align-items-center justify-content-center">
+
+											<span class="me-2"> <fmt:message
+													key="tadawul.eportal.issuer.directory.company.info.reset" />
+										</span> <svg xmlns="http://www.w3.org/2000/svg" width="18"
+												height="18" viewBox="0 0 24 24" fill="none" stroke="white"
+												stroke-width="2" stroke-linecap="round"
+												stroke-linejoin="round">
+ 
+        										<polyline points="23 4 23 10 17 10"></polyline>
+        										<polyline points="1 20 1 14 7 14"></polyline>
+        										<path d="M3.51 9a9 9 0 0114.13-3.36L23 10"></path>
+        										<path d="M20.49 15a9 9 0 01-14.13 3.36L1 14"></path>
+ 
+    										    </svg>
+
+										</a>
+
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</section>
+			</div>
+		</div>
+	</div>
+</section>
+
+<div class="app-container row intro-section">
+
+	<div class="mt-0">
+
+
+		<div class="result-latest d-flex justify-content-between">
+
+
+			<div class="result-hdng mb-3" id="res-count"></div>
+
+
+
+		</div>
+
+
+
+		<div class="list-view-content">
+
+			<div class="issuer-card-wrapper d-block list-card-wrapper"
+				id="companyList-appender-id">
+
+				<!-- IMPORTANT: KEEP SAME ID -->
+				<%-- <div class="issuer-card pb-0">
+
+					companies will append from appendCompanyList()
+
+				</div> --%>
+
+			</div>
+
+		</div>
+
+
+		<!-- CARD VIEW -->
+		<!-- <div class="card-view-content">
+
+			<div class="issuer-card-wrapper d-block list-card-wrapper">
+
+				SAME DATA USED
+				<div id="companyList-appender-id"></div>
+
+			</div>
+
+		</div> -->
+
+
+		<!-- PAGINATION -->
+
+		<section class="issuerPagination width80">
+			<div class="feed__pagination" id="tablePaginantion-id">
+
+				<div class="feed__page-range" data-feed-range>0Ã¢ÂÂ0 of 0</div>
+
+				<div class="feed__page-controls">
+
+					<span class="feed__page-label">Page</span> <select
+						class="feed__select" data-feed-page></select> <span> of <strong
+						data-feed-total-pages>1</strong>
+					</span>
+
+					<button class="feed__page-btn" data-feed-prev disabled>Ã¢ÂÂ</button>
+
+					<button class="feed__page-btn" data-feed-next disabled>Ã¢ÂÂ</button>
+
+				</div>
+
+			</div>
+
+		</section>
+	</div>
+</div>
+
+
+
+
+
+
+<script>
+function debounce(func, delay) {
+    let timeoutId;
+    return function () {
+        const context = this;
+        const args = arguments;
+        clearTimeout(timeoutId);
+        timeoutId = setTimeout(function () {
+            func.apply(context, args);
+        }, delay);
+    };
+}
+ 
+var arabicMap = {};
+var companyList = [];
+ 
+$(document).ready(function () {
+ 
+    console.log("Page Loaded - Company Filter Script Running");
+ 
+    <portlet:namespace/>getCompanyListData();
+ 
+    
+    $("#symbol_filter").keyup(
+        debounce(function () {
+ 
+            console.log("Symbol Search Triggered");
+ 
+            $('#letterId').val("");
+ 
+            <portlet:namespace/>getCompanyListData();
+ 
+        }, 500)
+    );
+ 
+ 
+    
+    $(document).on("click", ".form-select-option", function () {
+ 
+        var value = $(this).data("value");
+        var text = $(this).text();
+ 
+       
+        if ($(this).closest("[data-field='sector']").length) {
+ 
+            console.log("Sector Selected:", value);
+ 
+            $("#sectors_list").val(value);
+ 
+            $("[data-field='sector'] .form-select-value").text(text);
+ 
+            $('#letterId').val("");
+ 
+            <portlet:namespace/>getCompanyListData();
+        }
+ 
+        
+        if ($(this).closest("[data-field='market']").length) {
+ 
+            console.log("Market Selected:", value);
+ 
+            $("#Market_ti").val(value);
+ 
+            $("[data-field='market'] .form-select-value").text(text);
+ 
+            $('#letterId').val("");
+ 
+            loadSectorsByMarket(value);
+        }
+ 
+    });
+ 
+ 
+   
+    var mapStr = $('#arMap').attr('value');
+ 
+    if (mapStr) {
+ 
+        mapStr = mapStr.split(',');
+ 
+        for (var i = 0; i < mapStr.length; i++) {
+ 
+            var str = mapStr[i];
+ 
+            var key = str.split("-")[0];
+            var val = str.split("-")[1];
+ 
+            if (!arabicMap[key]) {
+                arabicMap[key] = [];
+            }
+ 
+            arabicMap[key].push(val);
+        }
+ 
+    }
+ 
+});
+ 
+ 
+
+function loadSectorsByMarket(marketType) {
+ 
+    console.log("Loading sectors for market:", marketType);
+ 
+    $.ajax({
+ 
+        url: '<portlet:resourceURL id="getSectorsByMarketId"></portlet:resourceURL>',
+ 
+        type: 'POST',
+ 
+        dataType: 'json',
+ 
+        data: {
+            format: 'json',
+            marketType: marketType
+        },
+ 
+        success: function (data) {
+ 
+            console.log("Sector API Response:", data);
+ 
+            var $sectorList = $("[data-field='sector'] .form-select-list");
+ 
+            $sectorList.html("");
+ 
+            $sectorList.append(
+                '<div class="form-select-option" data-value="All"><fmt:message key="tadawul.eportal.issuer.directory.company.info.All-Sectors" /></div>'
+            );
+ 
+            $.each(data, function (i, key) {
+ 
+                $sectorList.append(
+                    '<div class="form-select-option" data-value="' + key.pk_rf_sector + '">' +
+                    key.name +
+                    '</div>'
+                );
+ 
+            });
+ 
+            $("#sectors_list").val("All");
+ 
+            $("[data-field='sector'] .form-select-value").text('<fmt:message key="tadawul.eportal.issuer.directory.company.info.All-Sectors" />');
+ 
+            console.log("Sector dropdown updated");
+ 
+            <portlet:namespace/>getCompanyListData();
+        },
+ 
+        error: function (error) {
+ 
+            console.log("Sector API ERROR:", error);
+ 
+        }
+ 
+    });
+ 
+}
+ 
+ 
+
+/* function getFilteredDataByAlphabet(letter) {
+ 
+    console.log("Alphabet Selected:", letter);
+ 
+    $('#letterId').val(letter);
+ 
+    if ('${pageContext.request.locale.language}' == 'ar' && letter != 'All') {
+ 
+        $('#letterId').val(arabicMap[letter] + '');
+    }
+ 
+    <portlet:namespace/>getCompanyListData();
+}
+  */
+ 
+function getFilteredDataByAlphabet(letter, element) {
+ 
+    console.log("Alphabet Selected:", letter);
+ 
+    //  Highlight logic
+    document.querySelectorAll('.filterAlpha li').forEach(function (item) {
+        item.classList.remove('active');
+    });
+ 
+    if (element) {
+        element.parentElement.classList.add('active');
+    }
+ 
+    // Existing logic
+    $('#letterId').val(letter);
+ 
+    if ('${pageContext.request.locale.language}' == 'ar' && letter != 'All') {
+        $('#letterId').val(arabicMap[letter] + '');
+    }
+ 
+    <portlet:namespace/>getCompanyListData();
+}
+
+
+function <portlet:namespace/>getCompanyListData() {
+ 
+    console.log("Fetching Company List...");
+ 
+    $("#companyList-appender-id").html("");
+ 
+    $("#tablePaginantion-id").html("");
+ 
+    var marketType = $('#Market_ti').val();
+    var sector = $('#sectors_list').val();
+    var symbol = $('#symbol_filter').val();
+    var letter = $('#letterId').val();
+ 
+    console.log("Filter Values:");
+    console.log("Market:", marketType);
+    console.log("Sector:", sector);
+    console.log("Symbol:", symbol);
+    console.log("Letter:", letter);
+ 
+    $.ajax({
+ 
+        url: '<portlet:resourceURL id="getCompanyListByMarknetAndSectors"></portlet:resourceURL>',
+ 
+        type: 'POST',
+ 
+        data: {
+            marketType: marketType,
+            sector: sector,
+            symbol: symbol,
+            letter: letter
+        },
+ 
+        success: function (data) {
+ 
+            console.log("Company API Response:", data);
+ 
+            companyList = [];
+ 
+            var jArr = jQuery.parseJSON(data);
+ 
+            companyList = jArr.data;
+ 
+            $('#res-count').html(
+                ' <fmt:message key="tadawul.eportal.issuer.directory.company.info.results.text" />: '
+                + companyList.length
+            );
+ 
+            console.log("Total Companies:", companyList.length);
+ 
+            if (companyList.length > 0) {
+ 
+                createPagination();
+ 
+            } else {
+ 
+                console.log("No results found");
+ 
+            }
+ 
+        },
+ 
+        error: function (error) {
+ 
+            console.log("Company API ERROR:", error);
+ 
+        }
+ 
+    });
+ 
+}
+
+ function createPagination() {
+    var paginationPages = [];
+    var pageLimit = 20;
+    var $ipoListId = $("#companyList-appender-id");
+    // Initial load
+    for (var i = 0; i < pageLimit && i < companyList.length; i++) {
+        $ipoListId.append(getCompanySection(i));
+    }
+    var totalPages = Math.ceil(companyList.length / pageLimit);
+    for (var i = 0; i < totalPages; i++) {
+        paginationPages.push({
+            pageIndex: i + 1,
+            start: i * pageLimit
+        });
+    }
+    var maxPages = 3;
+    // =========================
+    // STRING HTML (LIKE liData)
+    // =========================
+    var html = '';
+    html += '<section class="issuerPagination width80">';
+    html += '  <div class="tablePaginationContainer">';
+    html += '    <input type="hidden" id="pageLimitId" value="' + pageLimit + '">';
+    html += '    <input type="hidden" id="recordsCountId" value="' + totalPages + '">';
+    html += '    <ul id="pagination-ul" class="px-paginate-container px-center align-items-center"';
+    html += '        data-total="' + totalPages + '" data-max="' + maxPages + '">';
+    // PREV
+    html += '      <li class="prev disable" id="prev-toggle-id">';
+    html += '        <a class="button-px px-btn px-btn-prev" href="javascript:void(0)">&#8249;</a>';
+    html += '      </li>';
+    // PAGE NUMBERS
+    for (var i = 1; i <= Math.min(maxPages, totalPages); i++) {
+        html += '  <li>';
+        html += '    <a class="button-px px-btn px-btn-page ' + (i === 1 ? 'select' : '') + '"';
+        html += '       data-page="' + i + '" href="javascript:void(0)">';
+        html +=         i;
+        html += '    </a>';
+        html += '  </li>';
+    }
+    // DOTS
+    if (totalPages > maxPages) {
+        html += '  <li><span class="px-points">...</span></li>';
+    }
+    // NEXT
+    html += '      <li class="next" id="next-toggle-id">';
+    html += '        <a class="button-px px-btn px-btn-next" href="javascript:void(0)">&#8250;</a>';
+    html += '      </li>';
+    html += '    </ul>';
+    html += '  </div>';
+    html += '</section>';
+    $("#tablePaginantion-id").html(html);
+    // =========================
+    // EVENTS (NO CHANGE)
+    // =========================
+    $(document).off("click", ".px-btn-page").on("click", ".px-btn-page", function () {
+        let pageNumber = parseInt($(this).data("page"));
+        $(".px-btn-page").removeClass("select");
+        $(this).addClass("select");
+        loadPage(pageNumber);
+    });
+    $(document).off("click", ".px-btn-next").on("click", ".px-btn-next", function () {
+        let current = parseInt($(".px-btn-page.select").data("page"));
+        if (current < totalPages) {
+            loadPage(current + 1);
+        }
+    });
+    $(document).off("click", ".px-btn-prev").on("click", ".px-btn-prev", function () {
+        let current = parseInt($(".px-btn-page.select").data("page"));
+        if (current > 1) {
+            loadPage(current - 1);
+        }
+    });
+    function loadPage(pageNumber) {
+        $("#companyList-appender-id").empty();
+        let startFrom = paginationPages[pageNumber - 1].start;
+        let endTo = startFrom + pageLimit;
+        for (let i = startFrom; i < endTo && i < companyList.length; i++) {
+            $ipoListId.append(getCompanySection(i));
+        }
+    }
+}
+
+
+
+
+
+$(document).off("click", ".px-btn-page").on("click", ".px-btn-page", function () {
+    let pageNumber = parseInt($(this).data("page"));
+    loadPage(pageNumber);
+});
+
+$(document).off("click", ".px-btn-next").on("click", ".px-btn-next", function () {
+    let current = parseInt($(".px-btn-page.select").data("page"));
+    let totalPages = parseInt($("#pagination-ul").data("total"));
+    if (current < totalPages) {
+        loadPage(current + 1);
+    }
+});
+
+$(document).off("click", ".px-btn-prev").on("click", ".px-btn-prev", function () {
+    let current = parseInt($(".px-btn-page.select").data("page"));
+    if (current > 1) {
+        loadPage(current - 1);
+    }
+});
+
+// Global state variables
+var pageLimit = 20;
+var maxPages = 3;
+
+// 2. The main handler to change data AND redraw the UI
+function loadPage(pageNumber) {
+    var $ipoListId = $("#companyList-appender-id");
+    var totalPages = Math.ceil(companyList.length / pageLimit);
+
+    // Update List Content
+    $ipoListId.empty();
+    let startFrom = (pageNumber - 1) * pageLimit;
+    let endTo = startFrom + pageLimit;
+    
+    for (let i = startFrom; i < endTo && i < companyList.length; i++) {
+        $ipoListId.append(getCompanySection(i));
+    }
+
+    // Re-render Pagination HTML to shift sliding window
+    renderPaginationUI(pageNumber, totalPages);
+}
+
+// 3. Dynamic UI Render Function
+function renderPaginationUI(currentPage, totalPages) {
+    // Calculate sliding window for maxPages (centered around currentPage)
+    let startPage = Math.max(1, currentPage - Math.floor(maxPages / 2));
+    let endPage = startPage + maxPages - 1;
+
+    if (endPage > totalPages) {
+        endPage = totalPages;
+        startPage = Math.max(1, endPage - maxPages + 1);
+    }
+
+    var html = '';
+    html += '<section class="issuerPagination width80">';
+    html += '  <div class="tablePaginationContainer">';
+    html += '    <input type="hidden" id="pageLimitId" value="' + pageLimit + '">';
+    html += '    <input type="hidden" id="recordsCountId" value="' + totalPages + '">';
+    html += '    <ul id="pagination-ul" class="px-paginate-container px-center align-items-center"';
+    html += '        data-total="' + totalPages + '" data-max="' + maxPages + '">';
+    
+    // PREV BUTTON (Conditional disabled state)
+    let prevDisable = (currentPage === 1) ? 'disable' : '';
+    html += '      <li class="prev ' + prevDisable + '" id="prev-toggle-id">';
+    html += '        <a class="button-px px-btn px-btn-prev" href="javascript:void(0)">&#8249;</a>';
+    html += '      </li>';
+    
+    // FIRST PAGE & DOTS (If window shifts far right)
+    if (startPage > 1) {
+        html += '  <li><a class="button-px px-btn px-btn-page" data-page="1" href="javascript:void(0)">1</a></li>';
+        if (startPage > 2) {
+            html += '  <li><span class="px-points">...</span></li>';
+        }
+    }
+
+    // DYNAMIC PAGE NUMBERS
+    for (var i = startPage; i <= endPage; i++) {
+        let isSelected = (i === currentPage) ? 'select' : '';
+        html += '  <li>';
+        html += '    <a class="button-px px-btn px-btn-page ' + isSelected + '" data-page="' + i + '" href="javascript:void(0)">' + i + '</a>';
+        html += '  </li>';
+    }
+    
+    // LAST PAGE & DOTS (If window has hidden pages on right)
+    if (endPage < totalPages) {
+        if (endPage < totalPages - 1) {
+            html += '  <li><span class="px-points">...</span></li>';
+        }
+        html += '  <li><a class="button-px px-btn px-btn-page" data-page="' + totalPages + '" href="javascript:void(0)">' + totalPages + '</a></li>';
+    }
+
+    // NEXT BUTTON (Conditional disabled state)
+    let nextDisable = (currentPage === totalPages) ? 'disable' : '';
+    html += '      <li class="next ' + nextDisable + '" id="next-toggle-id">';
+    html += '        <a class="button-px px-btn px-btn-next" href="javascript:void(0)">&#8250;</a>';
+    html += '      </li>';
+    html += '    </ul>';
+    html += '  </div>';
+    html += '</section>';
+
+    $("#tablePaginantion-id").html(html);
+}
+
+// 4. Initial Trigger Initialization
+function createPagination() {
+    // Bootstrap initial view on page 1
+    loadPage(1);
+}
+
+
+
+
+ 
+
+ 
+ function getCompanySection(index) {
+               	  var userValid = $("#isUserValidated").val();
+	var liData = '';
+	var stl = '';	
+	if (index%2 == 0) { stl ="mt-3";	} else {stl ="mt-3";}
+	                 
+
+
+	                    var baseUrl = "https://www.tadawulgroup.sa/Resources/SEMOBILELOGOS/";
+	                  liData += '<div class="issuer-card pb-0 mt-3">';
+						liData += '  <div class="issuer-card__layout">';
+						/* // LEFT LOGO
+						liData += '    <div class="card-header-split__logo">';
+						/* liData += '      <img src="./assets/images/ipo_card_logo.svg">'; 
+					liData += ' <img src="https://www.tadawulgroup.sa/Resources/SEMOBILELOGOS/' + companyList[index].symbol + '.png" class="mobile-card-logo" alt="logo"' + 'onerror="this.onerror=null; this.src="https://www.tadawulgroup.sa/Resources/SEMOBILELOGOS/default-Logo.png">';
+						liData += '    </div>';
+					 */
+
+
+	                    liData += '<div class="card-header-split__logo" style="display:block!important"; >';
+liData += '<img src="' + baseUrl + companyList[index].symbol + '.png" ' +
+          'class="mobile-card-logo" alt="logo" ' +
+          'onerror="this.onerror=null; this.src=\'' + baseUrl + 'default-Logo.png\';">';
+liData += '</div>';
+						// RIGHT SECTION
+						liData += '    <div class="issuer-card__right">';
+						// HEADER INFO
+						liData += '      <div class="card-header-split__info mb-2">';
+						liData += '        <div class="col-value">' + companyList[index].symbol + '</div>';
+						liData += '        <p class="mt-1 mb-0">' + companyList[index].lonaName + '</p>';
+						liData += '      </div>';
+							// FIELDS SECTION
+							liData += '      <div class="symbol-name-code">';
+							liData += '        <div class="issuer-card__fields">';
+							// Trading Name
+							liData += '          <div class="col-box col-box--trading-name">';
+							liData += '              <div class="col-name">' ;
+							liData +=                 '<fmt:message key="tadawul.eportal.issuer.directory.company.info.Trading-Name" />';
+							liData +=                '</div>';
+							liData += '            <div class="col-value">' + companyList[index].shortName + '</div>';
+							liData += '          </div>';
+							// ISIN
+							liData += '          <div class="col-box col-box--isin-code">';
+							
+								liData += '              <div class="col-name">' ;
+							liData +=                 '<fmt:message key="tadawul.eportal.issuer.directory.company.info.ISIN-Code" />';
+							liData +=                '</div>';
+							
+							
+							
+							liData += '            <div class="col-value">' + companyList[index].isinCode + '</div>';
+							liData += '          </div>';
+							// Change %
+							liData += '          <div class="col-box col-box--change">';
+							
+						
+							liData += '              <div class="col-name">' ;
+							liData +=                 '<fmt:message key="chart.change" />';
+							liData +=                '</div>';
+						
+						
+							if (companyList[index].stockValue > 0) {
+							    liData += '        <div class="price-up">' + parseFloat(companyList[index].stockValue).toFixed(2) + '%<i></i></div>';
+							} else if (companyList[index].stockValue < 0) {
+							    liData += '        <div class="price-down">' + parseFloat(companyList[index].stockValue).toFixed(2) + '%<i></i></div>';
+							} else {
+							    liData += '        <div class="priceEqual">' + parseFloat(companyList[index].stockValue).toFixed(2) + '%<i></i></div>';
+							}
+							liData += '          </div>'; // col-box
+							liData += '        </div>';   // issuer-card__fields
+							liData += '      </div>';     // symbol-name-code
+							// BUTTON
+							liData += '      <div class="result-btn">';
+							liData += '        <a href="' + companyList[index].companyURL + '" class="view-all-news-btn">';
+							
+							
+							
+							liData +=                 '<fmt:message key="tadawul.eportal.issuer.directory.company.info.view-profile" />';
+							
+							
+							
+							
+							liData += '          <svg class="pc-icon me-2" width="18" height="18">';
+							liData += '            <use xlink:href="#custom-arrow-chevron-right"></use>';
+							liData += '          </svg>';
+							liData += '        </a>';
+							liData += '      </div>';
+							liData += '    </div>'; // issuer-card__right
+							liData += '  </div>';   // issuer-card__layout
+							liData += '</div>';     // issuer-card
+
+
+	           return liData;
+}
+ 
+/*  
+function ResetFormFields() {
+ 
+    $('#symbol_filter').val('');
+ 
+    $('#Market_ti').val('');
+    $('#sectors_list').val('');
+ 
+    $('[data-field="market"] .form-select-value')
+        .text('Market')
+        .addClass('is-placeholder');
+ 
+    $('[data-field="sector"] .form-select-value')
+        .text('All Sectors')
+        .addClass('is-placeholder');
+ 
+    $('#letterId').val('');
+ 
+    getFilteredDataByAlphabet('All');
+ 
+} */
+
+
+
+function ResetFormFields() {
+    $('#symbol_filter')
+        .val('')
+        .attr('placeholder',
+            '<fmt:message key="tadawul.eportal.issuer.directory.company.info.enter-keyword" />'
+        );
+    $('#Market_ti').val('');
+    $('#sectors_list').val('');
+    $('[data-field="market"] .form-select-value')
+        .text('<fmt:message key="tadawul.eportal.issuer.directory.company.info.Market" />')
+        .addClass('is-placeholder');
+    $('[data-field="sector"] .form-select-value')
+        .text('<fmt:message key="tadawul.eportal.issuer.directory.company.info.All-Sectors" />')
+        .addClass('is-placeholder');
+    $('#letterId').val('');
+    getFilteredDataByAlphabet('All');
+}
+</script>
