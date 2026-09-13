@@ -43,14 +43,30 @@ export const SELECTORS = {
    ========================================================================== */
 
 export const ATTRIBUTES = {
+  /* Alphabet */
+
   letter: "data-directory-letter",
+
+  /*
+   * Opt-in flag for directories whose alphabetical filtering
+   * is performed by the backend rather than against all
+   * rendered result groups in the browser.
+   */
+  serverFilter: "data-directory-server-filter",
+
+  /* Results */
+
   group: "data-directory-group",
+
+  /* ARIA */
 
   controls: "aria-controls",
   pressed: "aria-pressed",
   disabled: "aria-disabled",
-
   busy: "aria-busy",
+
+  /* Native */
+
   hidden: "hidden",
 };
 
@@ -70,7 +86,20 @@ export const CLASSES = {
    ========================================================================== */
 
 export const EVENTS = {
+  /*
+   * Fired whenever the selected alphabet letter changes.
+   *
+   * Client-side directories may use the component's local
+   * group filtering.
+   *
+   * Server-backed directories may listen for this event and
+   * perform their own API request.
+   */
   change: "directory:alphabet-change",
+
+  /*
+   * Fired after the directory alphabet has been reset.
+   */
   reset: "directory:alphabet-reset",
 };
 
@@ -80,7 +109,9 @@ export const EVENTS = {
 
 export const LABELS = {
   all: "All",
+
   allResults: "Showing all directory groups.",
+
   noResults: "No directory groups match the selected letter.",
 
   results(count, letter) {

@@ -244,9 +244,10 @@
 				<div class="filter-bar__secondary-content">
 
 					<div
-						class="directory-alphabet directory-alphabet--quiet"
-						data-directory-alphabet
-					>
+                        class="directory-alphabet directory-alphabet--quiet"
+                        data-directory-alphabet
+                        data-directory-server-filter
+                    >
 
 						<div class="directory-alphabet__frame">
 
@@ -1061,6 +1062,7 @@
 </section>
 <script>
 	window.issuerDirectoryConfig = {
+
 		/* ======================================================================
 		   Resource URLs
 		   ====================================================================== */
@@ -1078,16 +1080,24 @@
 		   Locale
 		   ====================================================================== */
 
-		locale: '${pageContext.request.locale.language}',
+		locale:
+			'${pageContext.request.locale.language}',
 
 
 		/* ======================================================================
 		   Arabic Character Mapping
-
-		   Used only by the issuer-directory page adapter to map Arabic
-		   character variants to the displayed alphabet group.
 		   ====================================================================== */
 
+		/*
+		 * Legacy mapping used by the issuer-directory controller.
+		 *
+		 * Example relationship:
+		 *
+		 * displayed Arabic character -> backend character variants
+		 *
+		 * The external issuer JS will parse this value and convert the
+		 * selected displayed letter before sending the company request.
+		 */
 		arabicCharactersMapping:
 			'<fmt:message key="arabic.characters.mapping" />',
 
@@ -1156,2784 +1166,2648 @@
 			pageSize: 20,
 			maxButtons: 3
 		}
+
 	};
 </script>
 
-import { refreshDirectories } from "./directory";
+(function () {
+  "use strict";
 
-/* ==========================================================================
-   Issuer Directory
-   ========================================================================== */
+  /* ==========================================================================
+     Issuer Directory
+     ========================================================================== */
 
-/**
- * Page-specific issuer directory controller.
- *
- * Owns:
- * - legacy company AJAX request
- * - market -> sector AJAX request
- * - symbol filtering
- * - rendering grid/card view
- * - rendering list view
- * - grouping companies alphabetically
- * - pagination
- * - result counts
- * - empty/loading state
- * - Arabic character normalization
- *
- * Does NOT own:
- * - alphabet button behavior
- * - alphabet active state
- * - alphabet keyboard navigation
- * - alphabet aria-pressed state
- * - grid/list switching
- * - generic custom-select behavior
- *
- * Those are handled by the reusable components.
- */
+  const CONFIG = window.issuerDirectoryConfig || {};
+  const URLS = CONFIG.urls || {};
+  const LABELS = CONFIG.labels || {};
+  const LOGOS = CONFIG.logos || {};
+  const PAGINATION = CONFIG.pagination || {};
 
+  const PAGE_SIZE = getPositiveInteger(PAGINATION.pageSize, 20);
+  const MAX_PAGE_BUTTONS = getPositiveInteger(PAGINATION.maxButtons, 3);
 
-/* ==========================================================================
-   Configuration
-   ========================================================================== */
+  const LOGO_BASE_URL =
+    LOGOS.baseUrl ||
+    "https://www.tadawulgroup.sa/Resources/SEMOBILELOGOS/";
 
-const CONFIG = window.issuerDirectoryConfig || {};
+  const FALLBACK_LOGO_URL =
+    LOGOS.fallbackUrl || `${LOGO_BASE_URL}default-Logo.png`;
 
-const URLS = CONFIG.urls || {};
-const LABELS = CONFIG.labels || {};
-const LOGOS = CONFIG.logos || {};
-const PAGINATION = CONFIG.pagination || {};
+  const SELECTORS = {
+    form: "#issuer-directory-filter-form",
+    symbol: "#symbol_filter",
+    market: "#Market_ti",
+    sector: "#sectors_list",
+    letterInput: "#letterId",
+    alphabet: "[data-directory-alphabet]",
 
-const PAGE_SIZE = getPositiveInteger(PAGINATION.pageSize, 20);
-const MAX_PAGE_BUTTONS = getPositiveInteger(PAGINATION.maxButtons, 3);
+    results: "[data-directory-results]",
+    resultCount: "#res-count",
+    grid: "#issuer-directory-grid",
+    list: "#issuer-directory-list",
+    group: "[data-directory-group]",
+    resultItem: ".directory-results__item",
+    empty: "[data-directory-empty]",
+    liveStatus: "[data-directory-live-status]",
 
-const LOGO_BASE_URL =
-  LOGOS.baseUrl ||
-  "https://www.tadawulgroup.sa/Resources/SEMOBILELOGOS/";
+    pagination: "[data-directory-pagination]",
+    paginationList: "#pagination-ul",
+    range: "[data-directory-range]",
+    total: "[data-directory-total]",
+    paginationRange: "[data-directory-pagination-range]",
+    paginationTotal: "[data-directory-pagination-total]",
+    pageLimit: "#pageLimitId",
+    pageCount: "#recordsCountId",
 
-const FALLBACK_LOGO_URL =
-  LOGOS.fallbackUrl ||
-  `${LOGO_BASE_URL}default-Logo.png`;
+    logo: "[data-issuer-logo]",
+  };
 
+  const EVENTS = {
+    alphabetChange: "directory:alphabet-change",
+  };
 
-/* ==========================================================================
-   Selectors
-   ========================================================================== */
+  const state = {
+    companies: [],
+    currentPage: 1,
 
-const SELECTORS = {
-  form: "#issuer-directory-filter-form",
+    companyRequest: null,
+    sectorRequest: null,
 
-  symbol: "#symbol_filter",
-  market: "#Market_ti",
-  sector: "#sectors_list",
-  letterInput: "#letterId",
+    initialSectorOptions: [],
 
-  alphabet: "[data-directory-alphabet]",
+    // Rendering: backend alias -> displayed alphabet letter.
+    arabicAliasToLetter: new Map(),
 
-  results: "[data-directory-results]",
-  resultCount: "#res-count",
+    // Request: displayed alphabet letter -> backend aliases[].
+    arabicLetterToAliases: new Map(),
 
-  grid: "#issuer-directory-grid",
-  list: "#issuer-directory-list",
+    // Legacy distinction: explicit All click sent "All"; resets sent "".
+    backendLetterOverride: null,
 
-  group: "[data-directory-group]",
-  resultItem: ".directory-results__item",
+    suppressSectorChange: false,
+    resetting: false,
+    initialized: false,
+  };
 
-  empty: "[data-directory-empty]",
+  /* ==========================================================================
+     Initialization
+     ========================================================================== */
 
-  pagination: "[data-directory-pagination]",
-  paginationList: "#pagination-ul",
+  function initIssuerDirectory() {
+    if (state.initialized) {
+      return;
+    }
 
-  range: "[data-directory-range]",
-  total: "[data-directory-total]",
+    const form = document.querySelector(SELECTORS.form);
 
-  paginationRange: "[data-directory-pagination-range]",
-  paginationTotal: "[data-directory-pagination-total]",
+    if (!(form instanceof HTMLFormElement)) {
+      return;
+    }
 
-  pageLimit: "#pageLimitId",
-  pageCount: "#recordsCountId",
+    state.initialized = true;
 
-  logo: "[data-issuer-logo]",
-};
+    captureInitialSectorOptions();
+    buildArabicCharacterMaps();
+    bindEvents();
 
-
-/* ==========================================================================
-   Events
-   ========================================================================== */
-
-const EVENTS = {
-  alphabetChange: "directory:alphabet-change",
-};
-
-
-/* ==========================================================================
-   State
-   ========================================================================== */
-
-const state = {
-  companies: [],
-
-  currentPage: 1,
-
-  companyRequest: null,
-  sectorRequest: null,
-
-  initialSectorOptions: [],
-
-  arabicAliasToLetter: new Map(),
-
-  initialized: false,
-};
-
-
-/* ==========================================================================
-   Initialization
-   ========================================================================== */
-
-export function initIssuerDirectory() {
-  if (state.initialized) {
-    return;
+    // Legacy behavior: load companies immediately on page initialization.
+    loadCompanies();
   }
 
-  const form = document.querySelector(SELECTORS.form);
+  function bindEvents() {
+    const form = document.querySelector(SELECTORS.form);
+    const symbol = document.querySelector(SELECTORS.symbol);
+    const market = document.querySelector(SELECTORS.market);
+    const sector = document.querySelector(SELECTORS.sector);
+    const paginationList = document.querySelector(
+      SELECTORS.paginationList,
+    );
 
-  if (!form) {
-    return;
+    if (!(form instanceof HTMLFormElement)) {
+      return;
+    }
+
+    form.addEventListener("submit", handleFormSubmit);
+
+    if (symbol instanceof HTMLInputElement) {
+      symbol.addEventListener(
+        "input",
+        debounce(handleSymbolChange, 500),
+      );
+    }
+
+    if (market instanceof HTMLSelectElement) {
+      market.addEventListener(
+        "change",
+        handleMarketChange,
+      );
+    }
+
+    if (sector instanceof HTMLSelectElement) {
+      sector.addEventListener(
+        "change",
+        handleSectorChange,
+      );
+    }
+
+    form.addEventListener(
+      "reset",
+      handleFormReset,
+    );
+
+    document.addEventListener(
+      EVENTS.alphabetChange,
+      handleAlphabetChange,
+    );
+
+    if (paginationList instanceof HTMLElement) {
+      paginationList.addEventListener(
+        "click",
+        handlePaginationClick,
+      );
+    }
+
+    document.addEventListener(
+      "error",
+      handleImageError,
+      true,
+    );
   }
 
-  state.initialized = true;
+  /* ==========================================================================
+     Filters
+     ========================================================================== */
 
-  captureInitialSectorOptions();
-  buildArabicCharacterMap();
-  bindEvents();
+  function handleFormSubmit(event) {
+    event.preventDefault();
 
-  loadCompanies();
-}
-
-
-/* ==========================================================================
-   Auto Initialization
-   ========================================================================== */
-
-if (document.readyState === "loading") {
-  document.addEventListener(
-    "DOMContentLoaded",
-    initIssuerDirectory,
-    {
-      once: true,
-    },
-  );
-} else {
-  initIssuerDirectory();
-}
-
-
-/* ==========================================================================
-   Event Binding
-   ========================================================================== */
-
-function bindEvents() {
-  const form = document.querySelector(SELECTORS.form);
-  const symbol = document.querySelector(SELECTORS.symbol);
-  const market = document.querySelector(SELECTORS.market);
-  const sector = document.querySelector(SELECTORS.sector);
-  const paginationList = document.querySelector(
-    SELECTORS.paginationList,
-  );
-
-  if (!form) {
-    return;
+    resetAlphabet();
+    loadCompanies();
   }
 
+  function handleSymbolChange() {
+    resetAlphabet();
+    loadCompanies();
+  }
 
-  /* =========================================================================
-     Form Submit
-     ========================================================================= */
+  function handleMarketChange(event) {
+    resetAlphabet();
+    abortCompanyRequest();
 
-  form.addEventListener("submit", handleFormSubmit);
+    const marketType =
+      event.currentTarget.value || "";
 
+    loadSectorsByMarket(marketType);
+  }
 
-  /* =========================================================================
-     Symbol Search
-     ========================================================================= */
+  function handleSectorChange() {
+    if (state.suppressSectorChange) {
+      return;
+    }
 
-  symbol?.addEventListener(
-    "input",
-    debounce(handleSymbolChange, 500),
-  );
+    resetAlphabet();
+    loadCompanies();
+  }
 
+  function handleFormReset() {
+    state.resetting = true;
+    state.backendLetterOverride = null;
 
-  /* =========================================================================
-     Market
-     ========================================================================= */
+    abortSectorRequest();
+    abortCompanyRequest();
 
-  market?.addEventListener(
-    "change",
-    handleMarketChange,
-  );
+    /*
+     * Native form controls are restored after the reset event.
+     *
+     * DirectoryAlphabet also handles the same reset event on
+     * requestAnimationFrame, so keep the issuer alphabet handler
+     * suppressed until the following frame.
+     */
+    window.requestAnimationFrame(() => {
+      restoreInitialSectorOptions();
 
+      state.currentPage = 1;
 
-  /* =========================================================================
-     Sector
-     ========================================================================= */
+      refreshDirectory();
+      loadCompanies();
 
-  sector?.addEventListener(
-    "change",
-    handleSectorChange,
-  );
+      window.requestAnimationFrame(() => {
+        state.resetting = false;
+      });
+    });
+  }
 
+  function handleAlphabetChange(event) {
+    if (state.resetting) {
+      return;
+    }
 
-  /* =========================================================================
-     Reset
-     ========================================================================= */
+    const alphabet = event.target;
+    const form =
+      document.querySelector(
+        SELECTORS.form,
+      );
 
-  form.addEventListener(
-    "reset",
-    handleFormReset,
-  );
+    if (
+      !(alphabet instanceof Element) ||
+      !alphabet.matches(
+        SELECTORS.alphabet,
+      ) ||
+      !(form instanceof HTMLFormElement) ||
+      !form.contains(alphabet)
+    ) {
+      return;
+    }
 
+    /*
+     * DirectoryAlphabet already owns:
+     *
+     * - active state
+     * - aria-pressed
+     * - keyboard navigation
+     * - #letterId
+     *
+     * This adapter only restores the legacy backend request behavior.
+     */
+    const selectedLetter =
+      event.detail &&
+      typeof event.detail.letter === "string"
+        ? event.detail.letter
+        : getControlValue(
+            SELECTORS.letterInput,
+          );
 
-  /* =========================================================================
-     Alphabet
-     ========================================================================= */
-
-  document.addEventListener(
-    EVENTS.alphabetChange,
-    handleAlphabetChange,
-  );
-
-
-  /* =========================================================================
-     Pagination
-     ========================================================================= */
-
-  paginationList?.addEventListener(
-    "click",
-    handlePaginationClick,
-  );
-
-
-  /* =========================================================================
-     Image Error / Logo Fallback
-     ========================================================================= */
-
-  document.addEventListener(
-    "error",
-    handleImageError,
-    true,
-  );
-}
-
-
-/* ==========================================================================
-   Form Submit
-   ========================================================================== */
-
-function handleFormSubmit(event) {
-  event.preventDefault();
-
-  resetAlphabet();
-
-  loadCompanies();
-}
-
-
-/* ==========================================================================
-   Symbol Search
-   ========================================================================== */
-
-function handleSymbolChange() {
-  resetAlphabet();
-
-  loadCompanies();
-}
-
-
-/* ==========================================================================
-   Market Change
-   ========================================================================== */
-
-function handleMarketChange(event) {
-  resetAlphabet();
-
-  const marketType =
-    event.currentTarget.value || "";
-
-  loadSectorsByMarket(marketType);
-}
-
-
-/* ==========================================================================
-   Sector Change
-   ========================================================================== */
-
-function handleSectorChange() {
-  resetAlphabet();
-
-  loadCompanies();
-}
-
-
-/* ==========================================================================
-   Form Reset
-   ========================================================================== */
-
-function handleFormReset() {
-  abortSectorRequest();
-
-  /*
-   * Native reset values are applied after the reset event.
-   */
-  requestAnimationFrame(() => {
-    restoreInitialSectorOptions();
+    /*
+     * Legacy behavior:
+     *
+     * Explicit All alphabet click sent:
+     *
+     * letter = "All"
+     *
+     * Other resets/filter changes sent:
+     *
+     * letter = ""
+     */
+    state.backendLetterOverride =
+      selectedLetter === ""
+        ? "All"
+        : null;
 
     state.currentPage = 1;
 
     loadCompanies();
-  });
-}
-
-
-/* ==========================================================================
-   Alphabet Change
-   ========================================================================== */
-
-function handleAlphabetChange(event) {
-  const alphabet = event.target;
-  const form = document.querySelector(SELECTORS.form);
-
-  if (
-    !(alphabet instanceof Element) ||
-    !alphabet.matches(SELECTORS.alphabet) ||
-    !form?.contains(alphabet)
-  ) {
-    return;
   }
 
-  /*
-   * DirectoryAlphabet has already:
-   *
-   * - changed the active button
-   * - updated aria-pressed
-   * - updated #letterId
-   * - shown/hidden directory groups
-   *
-   * We only restart pagination for the newly selected result set.
-   */
+  function resetAlphabet() {
+    const letterInput =
+      document.querySelector(
+        SELECTORS.letterInput,
+      );
 
-  state.currentPage = 1;
+    state.backendLetterOverride = null;
+    state.currentPage = 1;
 
-  renderPage(1);
-}
-
-
-/* ==========================================================================
-   Pagination Click
-   ========================================================================== */
-
-function handlePaginationClick(event) {
-  const pageButton = event.target.closest(
-    "[data-directory-page]",
-  );
-
-  if (pageButton) {
-    const page = Number(
-      pageButton.getAttribute(
-        "data-directory-page",
-      ),
-    );
-
-    if (Number.isInteger(page)) {
-      renderPage(page);
+    if (
+      letterInput instanceof
+      HTMLInputElement
+    ) {
+      letterInput.value = "";
     }
-
-    return;
-  }
-
-
-  const previousButton = event.target.closest(
-    "[data-directory-page-prev]",
-  );
-
-  if (previousButton) {
-    if (state.currentPage > 1) {
-      renderPage(
-        state.currentPage - 1,
-      );
-    }
-
-    return;
-  }
-
-
-  const nextButton = event.target.closest(
-    "[data-directory-page-next]",
-  );
-
-  if (!nextButton) {
-    return;
-  }
-
-  const totalItems =
-    getAlphabetFilteredIndexes().length;
-
-  const totalPages =
-    getTotalPages(totalItems);
-
-  if (state.currentPage < totalPages) {
-    renderPage(
-      state.currentPage + 1,
-    );
-  }
-}
-
-
-/* ==========================================================================
-   Logo Error
-   ========================================================================== */
-
-function handleImageError(event) {
-  const image = event.target;
-
-  if (
-    !(image instanceof HTMLImageElement) ||
-    !image.matches(SELECTORS.logo)
-  ) {
-    return;
-  }
-
-  if (
-    image.dataset.fallbackApplied === "true"
-  ) {
-    return;
-  }
-
-  image.dataset.fallbackApplied = "true";
-  image.src = FALLBACK_LOGO_URL;
-}
-
-
-/* ==========================================================================
-   Alphabet Reset
-   ========================================================================== */
-
-function resetAlphabet() {
-  const letterInput =
-    document.querySelector(
-      SELECTORS.letterInput,
-    );
-
-  if (letterInput) {
-    letterInput.value = "";
-  }
-
-  state.currentPage = 1;
-
-  /*
-   * Synchronize DirectoryAlphabet with the cleared hidden value.
-   *
-   * refreshDirectories() does not dispatch another alphabet-change event,
-   * so this does not cause an event loop.
-   */
-  refreshDirectories(document);
-}
-
-
-/* ==========================================================================
-   Arabic Character Mapping
-   ========================================================================== */
-
-function buildArabicCharacterMap() {
-  state.arabicAliasToLetter.clear();
-
-  const mapping = String(
-    CONFIG.arabicCharactersMapping || "",
-  ).trim();
-
-  if (!mapping) {
-    return;
-  }
-
-  mapping
-    .split(",")
-    .map((entry) => entry.trim())
-    .filter(Boolean)
-    .forEach((entry) => {
-      const separatorIndex =
-        entry.indexOf("-");
-
-      if (separatorIndex === -1) {
-        return;
-      }
-
-      const displayLetter =
-        normalizeLetter(
-          entry.slice(
-            0,
-            separatorIndex,
-          ),
-        );
-
-      const alias =
-        normalizeLetter(
-          entry.slice(
-            separatorIndex + 1,
-          ),
-        );
-
-      if (
-        !displayLetter ||
-        !alias
-      ) {
-        return;
-      }
-
-      /*
-       * Legacy mapping was:
-       *
-       * display character -> backend variants.
-       *
-       * For client-side grouping we need:
-       *
-       * variant -> displayed alphabet character.
-       */
-
-      state.arabicAliasToLetter.set(
-        displayLetter,
-        displayLetter,
-      );
-
-      state.arabicAliasToLetter.set(
-        alias,
-        displayLetter,
-      );
-    });
-}
-
-
-/* ==========================================================================
-   Letter Normalization
-   ========================================================================== */
-
-function normalizeLetter(value) {
-  return String(value || "")
-    .trim()
-    .toLocaleUpperCase();
-}
-
-
-/* ==========================================================================
-   Initial Sector Options
-   ========================================================================== */
-
-function captureInitialSectorOptions() {
-  const select =
-    document.querySelector(
-      SELECTORS.sector,
-    );
-
-  if (
-    !(select instanceof HTMLSelectElement)
-  ) {
-    return;
-  }
-
-  state.initialSectorOptions =
-    Array.from(select.options).map(
-      (option) => ({
-        value: option.value,
-        text: option.text,
-        selected:
-          option.defaultSelected,
-      }),
-    );
-}
-
-
-/* ==========================================================================
-   Restore Sector Options
-   ========================================================================== */
-
-function restoreInitialSectorOptions() {
-  const select =
-    document.querySelector(
-      SELECTORS.sector,
-    );
-
-  if (
-    !(select instanceof HTMLSelectElement)
-  ) {
-    return;
-  }
-
-  replaceSelectOptions(
-    select,
-    state.initialSectorOptions,
-  );
-
-  select.value = "All";
-}
-
-
-/* ==========================================================================
-   Market -> Sector AJAX
-   ========================================================================== */
-
-async function loadSectorsByMarket(
-  marketType,
-) {
-  const sectorSelect =
-    document.querySelector(
-      SELECTORS.sector,
-    );
-
-  if (
-    !(sectorSelect instanceof HTMLSelectElement)
-  ) {
-    await loadCompanies();
-
-    return;
-  }
-
-
-  /*
-   * Cancel any previous sector request first.
-   *
-   * This also prevents an old request from overwriting the restored
-   * sector list after the user changes back to "All markets".
-   */
-
-  abortSectorRequest();
-
-
-  /* =========================================================================
-     All Markets
-     ========================================================================= */
-
-  if (!marketType) {
-    restoreInitialSectorOptions();
-
-    await loadCompanies();
-
-    return;
-  }
-
-
-  if (!URLS.sectorsByMarket) {
-    console.error(
-      "IssuerDirectory: sectorsByMarket URL is missing.",
-    );
-
-    return;
-  }
-
-
-  const controller =
-    new AbortController();
-
-  state.sectorRequest =
-    controller;
-
-  sectorSelect.disabled = true;
-
-
-  try {
-    const response =
-      await postForm(
-        URLS.sectorsByMarket,
-        {
-          format: "json",
-          marketType,
-        },
-        controller.signal,
-      );
-
 
     /*
-     * Ignore response from a request that is no longer current.
+     * refresh() reapplies the hidden value without dispatching
+     * another directory:alphabet-change event.
      */
-    if (
-      state.sectorRequest !== controller
-    ) {
+    refreshDirectory();
+  }
+
+  /* ==========================================================================
+     Arabic Character Mapping
+     ========================================================================== */
+
+  function buildArabicCharacterMaps() {
+    state.arabicAliasToLetter.clear();
+    state.arabicLetterToAliases.clear();
+
+    const mapping =
+      String(
+        CONFIG.arabicCharactersMapping ||
+          "",
+      ).trim();
+
+    if (!mapping) {
       return;
     }
 
+    mapping
+      .split(",")
+      .map((entry) =>
+        entry.trim(),
+      )
+      .filter(Boolean)
+      .forEach((entry) => {
+        const separatorIndex =
+          entry.indexOf("-");
 
-    const options = [
-      {
-        value: "All",
-
-        text:
-          LABELS.allSectors ||
-          "All Sectors",
-
-        selected: true,
-      },
-    ];
-
-
-    if (Array.isArray(response)) {
-      response.forEach((sector) => {
-        if (!sector) {
+        if (separatorIndex === -1) {
           return;
         }
 
-        options.push({
-          value:
-            sector.pk_rf_sector ??
-            "",
+        const displayLetter =
+          normalizeLetter(
+            entry.slice(
+              0,
+              separatorIndex,
+            ),
+          );
 
-          text:
-            sector.name ??
-            "",
+        const alias =
+          normalizeLetter(
+            entry.slice(
+              separatorIndex + 1,
+            ),
+          );
 
-          selected: false,
-        });
+        if (
+          !displayLetter ||
+          !alias
+        ) {
+          return;
+        }
+
+        /*
+         * Backend request mapping:
+         *
+         * displayed character -> variants[]
+         */
+        if (
+          !state.arabicLetterToAliases.has(
+            displayLetter,
+          )
+        ) {
+          state.arabicLetterToAliases.set(
+            displayLetter,
+            [],
+          );
+        }
+
+        const aliases =
+          state.arabicLetterToAliases.get(
+            displayLetter,
+          );
+
+        if (
+          !aliases.includes(alias)
+        ) {
+          aliases.push(alias);
+        }
+
+        /*
+         * Rendering mapping:
+         *
+         * backend variant -> displayed character
+         */
+        state.arabicAliasToLetter.set(
+          displayLetter,
+          displayLetter,
+        );
+
+        state.arabicAliasToLetter.set(
+          alias,
+          displayLetter,
+        );
       });
+  }
+
+  function getBackendLetter() {
+    if (
+      state.backendLetterOverride !==
+      null
+    ) {
+      return state.backendLetterOverride;
     }
 
+    const selectedLetter =
+      getControlValue(
+        SELECTORS.letterInput,
+      );
+
+    if (!selectedLetter) {
+      return "";
+    }
+
+    if (
+      String(
+        CONFIG.locale || "",
+      ).toLowerCase() === "ar"
+    ) {
+      const normalizedLetter =
+        normalizeLetter(
+          selectedLetter,
+        );
+
+      const aliases =
+        state.arabicLetterToAliases.get(
+          normalizedLetter,
+        );
+
+      /*
+       * Legacy behavior:
+       *
+       * arabicMap[letter] + ""
+       *
+       * Array#toString joins aliases with commas.
+       */
+      if (
+        aliases &&
+        aliases.length
+      ) {
+        return aliases.join(",");
+      }
+    }
+
+    return selectedLetter;
+  }
+
+  function normalizeLetter(value) {
+    return String(value || "")
+      .trim()
+      .toLocaleUpperCase();
+  }
+
+  /* ==========================================================================
+     Sector State
+     ========================================================================== */
+
+  function captureInitialSectorOptions() {
+    const select =
+      document.querySelector(
+        SELECTORS.sector,
+      );
+
+    if (
+      !(
+        select instanceof
+        HTMLSelectElement
+      )
+    ) {
+      return;
+    }
+
+    state.initialSectorOptions =
+      Array.from(
+        select.options,
+      ).map((option) => ({
+        value:
+          option.value,
+
+        text:
+          option.text,
+
+        selected:
+          option.defaultSelected,
+      }));
+  }
+
+  function restoreInitialSectorOptions() {
+    const select =
+      document.querySelector(
+        SELECTORS.sector,
+      );
+
+    if (
+      !(
+        select instanceof
+        HTMLSelectElement
+      )
+    ) {
+      return;
+    }
 
     replaceSelectOptions(
-      sectorSelect,
-      options,
+      select,
+      state.initialSectorOptions,
     );
 
-    sectorSelect.value = "All";
+    select.value = "All";
 
-
-    await loadCompanies();
-
-  } catch (error) {
-    if (
-      error?.name ===
-      "AbortError"
-    ) {
-      return;
-    }
-
-    console.error(
-      "IssuerDirectory: unable to load sectors.",
-      error,
-    );
-
-  } finally {
-    if (
-      state.sectorRequest === controller
-    ) {
-      state.sectorRequest = null;
-      sectorSelect.disabled = false;
-    }
-  }
-}
-
-
-/* ==========================================================================
-   Abort Sector Request
-   ========================================================================== */
-
-function abortSectorRequest() {
-  if (!state.sectorRequest) {
-    return;
+    notifySelectChanged(select);
   }
 
-  state.sectorRequest.abort();
-  state.sectorRequest = null;
-
-  const sector =
-    document.querySelector(
-      SELECTORS.sector,
-    );
-
-  if (
-    sector instanceof HTMLSelectElement
-  ) {
-    sector.disabled = false;
-  }
-}
-
-
-/* ==========================================================================
-   Company AJAX
-   ========================================================================== */
-
-async function loadCompanies() {
-  if (!URLS.companies) {
-    console.error(
-      "IssuerDirectory: companies URL is missing.",
-    );
-
-    return;
-  }
-
-
-  abortCompanyRequest();
-
-
-  const controller =
-    new AbortController();
-
-  state.companyRequest =
-    controller;
-
-
-  setBusy(true);
-
-
-  const marketType =
-    getControlValue(
-      SELECTORS.market,
-    );
-
-  const sector =
-    getControlValue(
-      SELECTORS.sector,
-    );
-
-  const symbol =
-    getControlValue(
-      SELECTORS.symbol,
-    );
-
-
-  /*
-   * IMPORTANT
-   * --------------------------------------------------------------------------
-   *
-   * The legacy implementation sent `letter` to the backend.
-   *
-   * The new DirectoryAlphabet determines which alphabet controls are available
-   * by inspecting all [data-directory-group] elements currently rendered.
-   *
-   * Therefore we fetch ALL companies matching:
-   *
-   * - market
-   * - sector
-   * - symbol
-   *
-   * and let DirectoryAlphabet filter the complete rendered collection locally.
-   *
-   * If we fetched only one letter from the server, every other alphabet button
-   * would incorrectly become disabled.
-   */
-
-  const requestData = {
+  async function loadSectorsByMarket(
     marketType,
-    sector,
-    symbol,
-    letter: "",
-  };
-
-
-  try {
-    const response =
-      await postForm(
-        URLS.companies,
-        requestData,
-        controller.signal,
+  ) {
+    const sectorSelect =
+      document.querySelector(
+        SELECTORS.sector,
       );
 
-
     if (
-      state.companyRequest !== controller
+      !(
+        sectorSelect instanceof
+        HTMLSelectElement
+      )
     ) {
+      await loadCompanies();
       return;
     }
 
-
-    state.companies =
-      Array.isArray(response?.data)
-        ? response.data
-        : [];
-
-
-    state.currentPage = 1;
-
-
-    renderDirectory(
-      state.companies,
-    );
-
+    abortSectorRequest();
 
     /*
-     * The AJAX response replaced the directory groups.
+     * The default Market control uses an empty value.
      *
-     * Recollect:
-     *
-     * - grid groups
-     * - list groups
-     * - available alphabet letters
+     * Restore the server-rendered sector options in that state.
      */
+    if (!marketType) {
+      restoreInitialSectorOptions();
 
-    refreshDirectories(document);
+      await loadCompanies();
 
-
-    /*
-     * DirectoryAlphabet needs to finish synchronizing its group visibility
-     * before page-level pagination is applied.
-     */
-
-    requestAnimationFrame(() => {
-      renderPage(1);
-    });
-
-  } catch (error) {
-    if (
-      error?.name ===
-      "AbortError"
-    ) {
       return;
     }
 
-
-    console.error(
-      "IssuerDirectory: unable to load companies.",
-      error,
-    );
-
-
-    state.companies = [];
-    state.currentPage = 1;
-
-
-    renderDirectory(
-      state.companies,
-    );
-
-    refreshDirectories(document);
-
-    renderPage(1);
-
-  } finally {
-    if (
-      state.companyRequest === controller
-    ) {
-      state.companyRequest = null;
-
-      setBusy(false);
-    }
-  }
-}
-
-
-/* ==========================================================================
-   Abort Company Request
-   ========================================================================== */
-
-function abortCompanyRequest() {
-  if (!state.companyRequest) {
-    return;
-  }
-
-  state.companyRequest.abort();
-  state.companyRequest = null;
-}
-
-
-/* ==========================================================================
-   POST Form Request
-   ========================================================================== */
-
-async function postForm(
-  url,
-  data,
-  signal,
-) {
-  const body =
-    new URLSearchParams();
-
-  Object.entries(data).forEach(
-    ([key, value]) => {
-      body.append(
-        key,
-        value == null
-          ? ""
-          : String(value),
+    if (!URLS.sectorsByMarket) {
+      console.error(
+        "IssuerDirectory: sectorsByMarket URL is missing.",
       );
-    },
-  );
 
-
-  const response =
-    await fetch(url, {
-      method: "POST",
-
-      credentials: "same-origin",
-
-      signal,
-
-      headers: {
-        "Content-Type":
-          "application/x-www-form-urlencoded; charset=UTF-8",
-
-        "X-Requested-With":
-          "XMLHttpRequest",
-      },
-
-      body,
-    });
-
-
-  if (!response.ok) {
-    throw new Error(
-      `HTTP ${response.status}`,
-    );
-  }
-
-
-  const text =
-    await response.text();
-
-
-  return parseJsonResponse(text);
-}
-
-
-/* ==========================================================================
-   JSON Response
-   ========================================================================== */
-
-function parseJsonResponse(value) {
-  if (
-    value === null ||
-    value === undefined
-  ) {
-    return {};
-  }
-
-
-  if (
-    typeof value === "object"
-  ) {
-    return value;
-  }
-
-
-  const text =
-    String(value).trim();
-
-
-  if (!text) {
-    return {};
-  }
-
-
-  try {
-    const parsed =
-      JSON.parse(text);
-
-    /*
-     * Also tolerate an accidentally double-encoded JSON response.
-     */
-
-    if (
-      typeof parsed === "string"
-    ) {
-      try {
-        return JSON.parse(parsed);
-      } catch {
-        return parsed;
-      }
+      return;
     }
 
-    return parsed;
+    const controller =
+      new AbortController();
 
-  } catch (error) {
-    console.error(
-      "IssuerDirectory: invalid JSON response.",
-      text,
-    );
+    state.sectorRequest =
+      controller;
 
-    throw error;
-  }
-}
+    sectorSelect.disabled =
+      true;
 
+    try {
+      const response =
+        await postForm(
+          URLS.sectorsByMarket,
+          {
+            format:
+              "json",
 
-/* ==========================================================================
-   Directory Rendering
-   ========================================================================== */
-
-function renderDirectory(companies) {
-  const grid =
-    document.querySelector(
-      SELECTORS.grid,
-    );
-
-  const list =
-    document.querySelector(
-      SELECTORS.list,
-    );
-
-
-  if (!grid || !list) {
-    console.error(
-      "IssuerDirectory: grid/list result panels are missing.",
-    );
-
-    return;
-  }
-
-
-  const groups =
-    groupCompanies(companies);
-
-
-  grid.innerHTML =
-    groups
-      .map(
-        (group, index) =>
-          renderGridGroup(
-            group,
-            index,
-          ),
-      )
-      .join("");
-
-
-  list.innerHTML =
-    groups
-      .map(
-        (group, index) =>
-          renderListGroup(
-            group,
-            index,
-          ),
-      )
-      .join("");
-}
-
-
-/* ==========================================================================
-   Group Companies
-   ========================================================================== */
-
-function groupCompanies(companies) {
-  const groups =
-    new Map();
-
-
-  companies.forEach(
-    (company, companyIndex) => {
-      const letter =
-        resolveCompanyLetter(
-          company,
+            marketType,
+          },
+          controller.signal,
         );
-
-
-      if (!groups.has(letter)) {
-        groups.set(letter, {
-          letter,
-          items: [],
-        });
-      }
-
-
-      groups
-        .get(letter)
-        .items
-        .push({
-          company,
-          index: companyIndex,
-        });
-    },
-  );
-
-
-  return sortGroups(
-    Array.from(
-      groups.values(),
-    ),
-  );
-}
-
-
-/* ==========================================================================
-   Group Sorting
-   ========================================================================== */
-
-function sortGroups(groups) {
-  const alphabetOrder =
-    getAlphabetOrder();
-
-
-  return groups.sort(
-    (groupA, groupB) => {
-      const indexA =
-        alphabetOrder.indexOf(
-          groupA.letter,
-        );
-
-      const indexB =
-        alphabetOrder.indexOf(
-          groupB.letter,
-        );
-
-
-      /*
-       * Both exist in the displayed alphabet.
-       */
 
       if (
-        indexA !== -1 &&
-        indexB !== -1
+        state.sectorRequest !==
+        controller
       ) {
-        return indexA - indexB;
+        return;
       }
 
+      const sectors =
+        Array.isArray(response)
+          ? response
+          : response &&
+              Array.isArray(
+                response.data,
+              )
+            ? response.data
+            : [];
 
-      /*
-       * Known alphabet letters before unknown groups.
-       */
+      const options = [
+        {
+          value:
+            "All",
 
-      if (indexA !== -1) {
-        return -1;
-      }
+          text:
+            LABELS.allSectors ||
+            "All Sectors",
 
-      if (indexB !== -1) {
-        return 1;
-      }
+          selected:
+            true,
+        },
+      ];
 
+      sectors.forEach(
+        (sector) => {
+          if (!sector) {
+            return;
+          }
 
-      /*
-       * Fallback sorting.
-       */
+          options.push({
+            value:
+              sector.pk_rf_sector !=
+              null
+                ? sector.pk_rf_sector
+                : "",
 
-      return groupA.letter.localeCompare(
-        groupB.letter,
-        CONFIG.locale || undefined,
+            text:
+              sector.name != null
+                ? sector.name
+                : "",
+
+            selected:
+              false,
+          });
+        },
       );
-    },
-  );
-}
 
+      replaceSelectOptions(
+        sectorSelect,
+        options,
+      );
 
-/* ==========================================================================
-   Current Alphabet Order
-   ========================================================================== */
+      sectorSelect.value =
+        "All";
 
-function getAlphabetOrder() {
-  return Array.from(
-    document.querySelectorAll(
-      `${SELECTORS.alphabet} [data-directory-letter]`,
-    ),
-  )
-    .map((control) =>
-      normalizeLetter(
-        control.getAttribute(
-          "data-directory-letter",
+      notifySelectChanged(
+        sectorSelect,
+      );
+
+      /*
+       * Legacy flow:
+       *
+       * market change
+       *   -> sectors request
+       *   -> company request
+       */
+      await loadCompanies();
+    } catch (error) {
+      if (
+        error &&
+        error.name === "AbortError"
+      ) {
+        return;
+      }
+
+      console.error(
+        "IssuerDirectory: unable to load sectors.",
+        error,
+      );
+    } finally {
+      if (
+        state.sectorRequest ===
+        controller
+      ) {
+        state.sectorRequest =
+          null;
+
+        sectorSelect.disabled =
+          false;
+      }
+    }
+  }
+
+  function abortSectorRequest() {
+    if (!state.sectorRequest) {
+      return;
+    }
+
+    state.sectorRequest.abort();
+
+    state.sectorRequest =
+      null;
+
+    const sector =
+      document.querySelector(
+        SELECTORS.sector,
+      );
+
+    if (
+      sector instanceof
+      HTMLSelectElement
+    ) {
+      sector.disabled =
+        false;
+    }
+  }
+
+  /* ==========================================================================
+     Company Request
+     ========================================================================== */
+
+  async function loadCompanies() {
+    if (!URLS.companies) {
+      console.error(
+        "IssuerDirectory: companies URL is missing.",
+      );
+
+      return;
+    }
+
+    abortCompanyRequest();
+
+    const controller =
+      new AbortController();
+
+    state.companyRequest =
+      controller;
+
+    setBusy(true);
+
+    /*
+     * Legacy backend contract.
+     */
+    const requestData = {
+      marketType:
+        getControlValue(
+          SELECTORS.market,
         ),
+
+      sector:
+        getControlValue(
+          SELECTORS.sector,
+        ),
+
+      symbol:
+        getControlValue(
+          SELECTORS.symbol,
+        ),
+
+      letter:
+        getBackendLetter(),
+    };
+
+    try {
+      const response =
+        await postForm(
+          URLS.companies,
+          requestData,
+          controller.signal,
+        );
+
+      if (
+        state.companyRequest !==
+        controller
+      ) {
+        return;
+      }
+
+      state.companies =
+        response &&
+        Array.isArray(
+          response.data,
+        )
+          ? response.data
+          : [];
+
+      state.currentPage = 1;
+
+      renderDirectory(
+        state.companies,
+      );
+
+      /*
+       * AJAX replaced result groups.
+       */
+      refreshDirectory();
+
+      /*
+       * Pagination applies to the dataset returned by the backend.
+       */
+      renderPage(1);
+    } catch (error) {
+      if (
+        error &&
+        error.name ===
+          "AbortError"
+      ) {
+        return;
+      }
+
+      console.error(
+        "IssuerDirectory: unable to load companies.",
+        error,
+      );
+
+      state.companies = [];
+      state.currentPage = 1;
+
+      renderDirectory(
+        state.companies,
+      );
+
+      refreshDirectory();
+
+      renderPage(1);
+    } finally {
+      if (
+        state.companyRequest ===
+        controller
+      ) {
+        state.companyRequest =
+          null;
+
+        setBusy(false);
+      }
+    }
+  }
+
+  function abortCompanyRequest() {
+    if (!state.companyRequest) {
+      return;
+    }
+
+    state.companyRequest.abort();
+
+    state.companyRequest =
+      null;
+  }
+
+  /* ==========================================================================
+     Request Helpers
+     ========================================================================== */
+
+  async function postForm(
+    url,
+    data,
+    signal,
+  ) {
+    const body =
+      new URLSearchParams();
+
+    Object.entries(
+      data,
+    ).forEach(
+      ([key, value]) => {
+        body.append(
+          key,
+          value == null
+            ? ""
+            : String(value),
+        );
+      },
+    );
+
+    const response =
+      await fetch(url, {
+        method:
+          "POST",
+
+        credentials:
+          "same-origin",
+
+        signal,
+
+        headers: {
+          "Content-Type":
+            "application/x-www-form-urlencoded; charset=UTF-8",
+
+          "X-Requested-With":
+            "XMLHttpRequest",
+        },
+
+        body,
+      });
+
+    if (!response.ok) {
+      throw new Error(
+        `HTTP ${response.status}`,
+      );
+    }
+
+    return parseJsonResponse(
+      await response.text(),
+    );
+  }
+
+  function parseJsonResponse(value) {
+    if (
+      value === null ||
+      value === undefined
+    ) {
+      return {};
+    }
+
+    if (
+      typeof value ===
+      "object"
+    ) {
+      return value;
+    }
+
+    const text =
+      String(value).trim();
+
+    if (!text) {
+      return {};
+    }
+
+    try {
+      const parsed =
+        JSON.parse(text);
+
+      /*
+       * Tolerate double encoded JSON.
+       */
+      if (
+        typeof parsed ===
+        "string"
+      ) {
+        try {
+          return JSON.parse(
+            parsed,
+          );
+        } catch (nestedError) {
+          return parsed;
+        }
+      }
+
+      return parsed;
+    } catch (error) {
+      console.error(
+        "IssuerDirectory: invalid JSON response.",
+        text,
+      );
+
+      throw error;
+    }
+  }
+
+  /* ==========================================================================
+     Directory Rendering
+     ========================================================================== */
+
+  function renderDirectory(companies) {
+    const grid =
+      document.querySelector(
+        SELECTORS.grid,
+      );
+
+    const list =
+      document.querySelector(
+        SELECTORS.list,
+      );
+
+    if (
+      !(
+        grid instanceof
+        HTMLElement
+      ) ||
+      !(
+        list instanceof
+        HTMLElement
+      )
+    ) {
+      console.error(
+        "IssuerDirectory: grid/list result panels are missing.",
+      );
+
+      return;
+    }
+
+    const groups =
+      groupCompanies(
+        companies,
+      );
+
+    grid.innerHTML =
+      groups
+        .map(
+          (group, index) =>
+            renderGridGroup(
+              group,
+              index,
+            ),
+        )
+        .join("");
+
+    list.innerHTML =
+      groups
+        .map(
+          (group, index) =>
+            renderListGroup(
+              group,
+              index,
+            ),
+        )
+        .join("");
+  }
+
+  function groupCompanies(companies) {
+    const groups =
+      new Map();
+
+    companies.forEach(
+      (
+        company,
+        companyIndex,
+      ) => {
+        const letter =
+          resolveCompanyLetter(
+            company,
+          );
+
+        if (
+          !groups.has(letter)
+        ) {
+          groups.set(
+            letter,
+            {
+              letter,
+              items: [],
+            },
+          );
+        }
+
+        groups
+          .get(letter)
+          .items
+          .push({
+            company,
+            index:
+              companyIndex,
+          });
+      },
+    );
+
+    return sortGroups(
+      Array.from(
+        groups.values(),
+      ),
+    );
+  }
+
+  function sortGroups(groups) {
+    const alphabetOrder =
+      getAlphabetOrder();
+
+    return groups.sort(
+      (
+        groupA,
+        groupB,
+      ) => {
+        const indexA =
+          alphabetOrder.indexOf(
+            groupA.letter,
+          );
+
+        const indexB =
+          alphabetOrder.indexOf(
+            groupB.letter,
+          );
+
+        if (
+          indexA !== -1 &&
+          indexB !== -1
+        ) {
+          return (
+            indexA -
+            indexB
+          );
+        }
+
+        if (indexA !== -1) {
+          return -1;
+        }
+
+        if (indexB !== -1) {
+          return 1;
+        }
+
+        return groupA.letter.localeCompare(
+          groupB.letter,
+          CONFIG.locale ||
+            undefined,
+        );
+      },
+    );
+  }
+
+  function getAlphabetOrder() {
+    return Array.from(
+      document.querySelectorAll(
+        `${SELECTORS.alphabet} [data-directory-letter]`,
       ),
     )
-    .filter(Boolean);
-}
+      .map((control) =>
+        normalizeLetter(
+          control.getAttribute(
+            "data-directory-letter",
+          ),
+        ),
+      )
+      .filter(Boolean);
+  }
 
+  function resolveCompanyLetter(company) {
+    const name =
+      getCompanyName(
+        company,
+      );
 
-/* ==========================================================================
-   Resolve Company Letter
-   ========================================================================== */
+    if (
+      !name ||
+      name === "—"
+    ) {
+      return "#";
+    }
 
-function resolveCompanyLetter(company) {
-  const name =
-    getCompanyName(company);
+    const characters =
+      Array.from(
+        name.trim(),
+      );
 
+    if (!characters.length) {
+      return "#";
+    }
 
-  if (
-    !name ||
-    name === "—"
+    const firstCharacter =
+      normalizeLetter(
+        characters[0],
+      );
+
+    if (
+      state.arabicAliasToLetter.has(
+        firstCharacter,
+      )
+    ) {
+      return state.arabicAliasToLetter.get(
+        firstCharacter,
+      );
+    }
+
+    return (
+      firstCharacter ||
+      "#"
+    );
+  }
+
+  /* ==========================================================================
+     Grid Group
+     ========================================================================== */
+
+  function renderGridGroup(
+    group,
+    groupIndex,
   ) {
-    return "#";
-  }
+    const headingId =
+      `issuer-grid-group-${groupIndex}-title`;
 
-
-  const characters =
-    Array.from(
-      name.trim(),
-    );
-
-
-  if (!characters.length) {
-    return "#";
-  }
-
-
-  const firstCharacter =
-    normalizeLetter(
-      characters[0],
-    );
-
-
-  /*
-   * Arabic aliases are normalized back to the letter displayed by the
-   * alphabet component.
-   */
-
-  if (
-    state.arabicAliasToLetter.has(
-      firstCharacter,
-    )
-  ) {
-    return state.arabicAliasToLetter.get(
-      firstCharacter,
-    );
-  }
-
-
-  return (
-    firstCharacter ||
-    "#"
-  );
-}
-
-
-/* ==========================================================================
-   Grid Group
-   ========================================================================== */
-
-function renderGridGroup(
-  group,
-  groupIndex,
-) {
-  const headingId =
-    `issuer-grid-group-${groupIndex}-title`;
-
-
-  const items =
-    group.items
-      .map(
-        ({ company, index }) =>
-          renderGridCard(
+    const items =
+      group.items
+        .map(
+          ({
             company,
             index,
-          ),
-      )
-      .join("");
+          }) =>
+            renderGridCard(
+              company,
+              index,
+            ),
+        )
+        .join("");
 
-
-  return `
-    <section
-      class="directory-group"
-      aria-labelledby="${headingId}"
-      data-directory-group="${escapeAttribute(group.letter)}"
-    >
-      <header class="directory-group__header">
-        <h3
-          id="${headingId}"
-          class="directory-group__title"
-        >
-          ${escapeHtml(group.letter)}
-        </h3>
-
-        <span class="directory-group__count">
-          ${group.items.length}
-        </span>
-      </header>
-
-      <ul
-        class="directory-results__collection directory-results__collection--grid"
+    return `
+      <section
+        class="directory-group"
+        aria-labelledby="${escapeAttribute(headingId)}"
+        data-directory-group="${escapeAttribute(group.letter)}"
       >
-        ${items}
-      </ul>
-    </section>
-  `;
-}
+        <header class="directory-group__header">
+          <h3
+            id="${escapeAttribute(headingId)}"
+            class="directory-group__title"
+          >
+            ${escapeHtml(group.letter)}
+          </h3>
 
+          <span class="directory-group__count">
+            ${group.items.length}
+          </span>
+        </header>
 
-/* ==========================================================================
-   Grid Card
-   ========================================================================== */
+        <ul class="directory-results__collection directory-results__collection--grid">
+          ${items}
+        </ul>
+      </section>
+    `;
+  }
 
-function renderGridCard(
-  company,
-  index,
-) {
-  const name =
-    getCompanyName(company);
+  /* ==========================================================================
+     Grid Card
+     ========================================================================== */
 
-  const symbol =
-    getDisplayValue(
-      company?.symbol,
-    );
+  function renderGridCard(
+    company,
+    index,
+  ) {
+    const name =
+      getCompanyName(
+        company,
+      );
 
-  const tradingName =
-    getDisplayValue(
-      company?.shortName,
-    );
+    const symbol =
+      getDisplayValue(
+        company
+          ? company.symbol
+          : null,
+      );
 
-  const isinCode =
-    getDisplayValue(
-      company?.isinCode,
-    );
+    const tradingName =
+      getDisplayValue(
+        company
+          ? company.shortName
+          : null,
+      );
 
-  const profileUrl =
-    sanitizeUrl(
-      company?.companyURL,
-    );
+    const isinCode =
+      getDisplayValue(
+        company
+          ? company.isinCode
+          : null,
+      );
 
-  const logoUrl =
-    getCompanyLogoUrl(
-      company,
-    );
+    const profileUrl =
+      sanitizeUrl(
+        company
+          ? company.companyURL
+          : null,
+      );
 
-  const movement =
-    getMovement(
-      company?.stockValue,
-      "issuer-card__movement",
-    );
+    const logoUrl =
+      getCompanyLogoUrl(
+        company,
+      );
 
+    const movement =
+      getMovement(
+        company
+          ? company.stockValue
+          : null,
 
-  return `
-    <li
-      class="directory-results__item"
-      data-directory-index="${index}"
-    >
-      <article class="card issuer-card">
+        "issuer-card__movement",
+      );
 
-        <header class="issuer-card__header">
+    return `
+      <li
+        class="directory-results__item"
+        data-directory-index="${index}"
+      >
+        <article class="card issuer-card">
 
-          <div class="issuer-card__identity">
+          <header class="issuer-card__header">
 
-            <span
-              class="issuer-card__logo"
-              aria-hidden="true"
-            >
-              <img
-                class="issuer-card__logo-image"
-                src="${escapeAttribute(logoUrl)}"
-                alt=""
-                width="64"
-                height="64"
-                loading="lazy"
-                data-issuer-logo
-              />
-            </span>
+            <div class="issuer-card__identity">
 
+              <span
+                class="issuer-card__logo"
+                aria-hidden="true"
+              >
+                <img
+                  class="issuer-card__logo-image"
+                  src="${escapeAttribute(logoUrl)}"
+                  alt=""
+                  width="64"
+                  height="64"
+                  loading="lazy"
+                  data-issuer-logo
+                />
+              </span>
 
-            <div class="issuer-card__identity-content">
+              <div class="issuer-card__identity-content">
 
-              <h4 class="issuer-card__name">
-                <a
-                  class="issuer-card__name-link"
-                  href="${escapeAttribute(profileUrl)}"
-                >
-                  ${escapeHtml(name)}
-                </a>
-              </h4>
+                <h4 class="issuer-card__name">
+                  <a
+                    class="issuer-card__name-link"
+                    href="${escapeAttribute(profileUrl)}"
+                  >
+                    ${escapeHtml(name)}
+                  </a>
+                </h4>
 
+                <div class="issuer-card__symbol">
+                  <span class="issuer-card__symbol-value">
+                    ${escapeHtml(symbol)}
+                  </span>
+                </div>
 
-              <div class="issuer-card__symbol">
-                <span class="issuer-card__symbol-value">
-                  ${escapeHtml(symbol)}
-                </span>
               </div>
 
             </div>
 
+          </header>
+
+          <div class="issuer-card__body">
+
+            <dl class="issuer-card__metadata">
+
+              <div class="issuer-card__metadata-item">
+
+                <dt class="issuer-card__metadata-label">
+                  ${escapeHtml(
+                    LABELS.tradingName ||
+                      "Trading Name",
+                  )}
+                </dt>
+
+                <dd class="issuer-card__metadata-value">
+                  ${escapeHtml(tradingName)}
+                </dd>
+
+              </div>
+
+              <div class="issuer-card__metadata-item">
+
+                <dt class="issuer-card__metadata-label">
+                  ${escapeHtml(
+                    LABELS.isinCode ||
+                      "ISIN Code",
+                  )}
+                </dt>
+
+                <dd class="issuer-card__metadata-value">
+                  ${escapeHtml(isinCode)}
+                </dd>
+
+              </div>
+
+              <div class="issuer-card__metadata-item">
+
+                <dt class="issuer-card__metadata-label">
+                  ${escapeHtml(
+                    LABELS.change ||
+                      "Change",
+                  )}
+                </dt>
+
+                <dd class="${escapeAttribute(
+                  movement.className,
+                )}">
+                  ${escapeHtml(
+                    movement.text,
+                  )}
+                </dd>
+
+              </div>
+
+            </dl>
+
           </div>
+
+          <footer class="issuer-card__footer">
+
+            <a
+              class="btn btn-outline-primary issuer-card__profile has-icon icon-arrow-up-right icon-end"
+              href="${escapeAttribute(profileUrl)}"
+            >
+              ${escapeHtml(
+                LABELS.viewProfile ||
+                  "View profile",
+              )}
+            </a>
+
+          </footer>
+
+        </article>
+      </li>
+    `;
+  }
+
+  /* ==========================================================================
+     List Group
+     ========================================================================== */
+
+  function renderListGroup(
+    group,
+    groupIndex,
+  ) {
+    const headingId =
+      `issuer-list-group-${groupIndex}-title`;
+
+    const items =
+      group.items
+        .map(
+          ({
+            company,
+            index,
+          }) =>
+            renderListRow(
+              company,
+              index,
+            ),
+        )
+        .join("");
+
+    return `
+      <section
+        class="directory-group directory-group--list"
+        aria-labelledby="${escapeAttribute(headingId)}"
+        data-directory-group="${escapeAttribute(group.letter)}"
+      >
+        <header class="directory-group__header">
+
+          <h3
+            id="${escapeAttribute(headingId)}"
+            class="directory-group__title"
+          >
+            ${escapeHtml(group.letter)}
+          </h3>
+
+          <span class="directory-group__count">
+            ${group.items.length}
+          </span>
 
         </header>
 
+        <div class="directory-group__items">
+          ${items}
+        </div>
 
-        <div class="issuer-card__body">
+      </section>
+    `;
+  }
 
-          <dl class="issuer-card__metadata">
+  /* ==========================================================================
+     List Row
+     ========================================================================== */
 
-            <div class="issuer-card__metadata-item">
+  function renderListRow(
+    company,
+    index,
+  ) {
+    const name =
+      getCompanyName(
+        company,
+      );
 
-              <dt class="issuer-card__metadata-label">
-                ${escapeHtml(
-                  LABELS.tradingName ||
-                    "Trading Name",
-                )}
-              </dt>
+    const symbol =
+      getDisplayValue(
+        company
+          ? company.symbol
+          : null,
+      );
 
-              <dd class="issuer-card__metadata-value">
-                ${escapeHtml(tradingName)}
-              </dd>
+    const tradingName =
+      getDisplayValue(
+        company
+          ? company.shortName
+          : null,
+      );
 
-            </div>
+    const isinCode =
+      getDisplayValue(
+        company
+          ? company.isinCode
+          : null,
+      );
 
+    const profileUrl =
+      sanitizeUrl(
+        company
+          ? company.companyURL
+          : null,
+      );
 
-            <div class="issuer-card__metadata-item">
+    const logoUrl =
+      getCompanyLogoUrl(
+        company,
+      );
 
-              <dt class="issuer-card__metadata-label">
-                ${escapeHtml(
-                  LABELS.isinCode ||
-                    "ISIN Code",
-                )}
-              </dt>
+    const movement =
+      getMovement(
+        company
+          ? company.stockValue
+          : null,
 
-              <dd class="issuer-card__metadata-value">
-                ${escapeHtml(isinCode)}
-              </dd>
+        "issuer-row__movement",
+      );
 
-            </div>
+    return `
+      <article
+        class="directory-results__item issuer-row"
+        data-directory-index="${index}"
+      >
 
+        <div class="issuer-row__identity">
 
-            <div class="issuer-card__metadata-item">
+          <span
+            class="issuer-row__logo"
+            aria-hidden="true"
+          >
+            <img
+              class="issuer-row__logo-image"
+              src="${escapeAttribute(logoUrl)}"
+              alt=""
+              width="64"
+              height="64"
+              loading="lazy"
+              data-issuer-logo
+            />
+          </span>
 
-              <dt class="issuer-card__metadata-label">
-                ${escapeHtml(
-                  LABELS.change ||
-                    "Change",
-                )}
-              </dt>
+          <div class="issuer-row__identity-content">
 
-              <dd class="${movement.className}">
-                ${escapeHtml(
-                  movement.text,
-                )}
-              </dd>
+            <h4 class="issuer-row__name">
+              <a
+                class="issuer-row__name-link"
+                href="${escapeAttribute(profileUrl)}"
+              >
+                ${escapeHtml(name)}
+              </a>
+            </h4>
 
-            </div>
+            <span class="issuer-row__code">
+              ${escapeHtml(symbol)}
+            </span>
 
-          </dl>
+          </div>
 
         </div>
 
+        <div class="issuer-row__field">
 
-        <footer class="issuer-card__footer">
-
-          <a
-            class="btn btn-outline-primary issuer-card__profile has-icon icon-arrow-up-right icon-end"
-            href="${escapeAttribute(profileUrl)}"
-          >
+          <span class="issuer-row__label">
             ${escapeHtml(
-              LABELS.viewProfile ||
-                "View profile",
+              LABELS.tradingName ||
+                "Trading Name",
             )}
-          </a>
+          </span>
 
-        </footer>
-
-      </article>
-    </li>
-  `;
-}
-
-
-/* ==========================================================================
-   List Group
-   ========================================================================== */
-
-function renderListGroup(
-  group,
-  groupIndex,
-) {
-  const headingId =
-    `issuer-list-group-${groupIndex}-title`;
-
-
-  const items =
-    group.items
-      .map(
-        ({ company, index }) =>
-          renderListRow(
-            company,
-            index,
-          ),
-      )
-      .join("");
-
-
-  return `
-    <section
-      class="directory-group directory-group--list"
-      aria-labelledby="${headingId}"
-      data-directory-group="${escapeAttribute(group.letter)}"
-    >
-      <header class="directory-group__header">
-
-        <h3
-          id="${headingId}"
-          class="directory-group__title"
-        >
-          ${escapeHtml(group.letter)}
-        </h3>
-
-        <span class="directory-group__count">
-          ${group.items.length}
-        </span>
-
-      </header>
-
-
-      <div class="directory-group__items">
-        ${items}
-      </div>
-
-    </section>
-  `;
-}
-
-
-/* ==========================================================================
-   List Row
-   ========================================================================== */
-
-function renderListRow(
-  company,
-  index,
-) {
-  const name =
-    getCompanyName(company);
-
-  const symbol =
-    getDisplayValue(
-      company?.symbol,
-    );
-
-  const tradingName =
-    getDisplayValue(
-      company?.shortName,
-    );
-
-  const isinCode =
-    getDisplayValue(
-      company?.isinCode,
-    );
-
-  const profileUrl =
-    sanitizeUrl(
-      company?.companyURL,
-    );
-
-  const logoUrl =
-    getCompanyLogoUrl(
-      company,
-    );
-
-  const movement =
-    getMovement(
-      company?.stockValue,
-      "issuer-row__movement",
-    );
-
-
-  return `
-    <article
-      class="directory-results__item issuer-row"
-      data-directory-index="${index}"
-    >
-
-      <div class="issuer-row__identity">
-
-        <span
-          class="issuer-row__logo"
-          aria-hidden="true"
-        >
-          <img
-            class="issuer-row__logo-image"
-            src="${escapeAttribute(logoUrl)}"
-            alt=""
-            width="64"
-            height="64"
-            loading="lazy"
-            data-issuer-logo
-          />
-        </span>
-
-
-        <div class="issuer-row__identity-content">
-
-          <h4 class="issuer-row__name">
-            <a
-              class="issuer-row__name-link"
-              href="${escapeAttribute(profileUrl)}"
-            >
-              ${escapeHtml(name)}
-            </a>
-          </h4>
-
-          <span class="issuer-row__code">
-            ${escapeHtml(symbol)}
+          <span class="issuer-row__value">
+            ${escapeHtml(tradingName)}
           </span>
 
         </div>
 
-      </div>
+        <div class="issuer-row__field">
 
+          <span class="issuer-row__label">
+            ${escapeHtml(
+              LABELS.isinCode ||
+                "ISIN Code",
+            )}
+          </span>
 
-      <div class="issuer-row__field">
+          <span class="issuer-row__value">
+            ${escapeHtml(isinCode)}
+          </span>
 
-        <span class="issuer-row__label">
+        </div>
+
+        <div class="issuer-row__field">
+
+          <span class="issuer-row__label">
+            ${escapeHtml(
+              LABELS.change ||
+                "Change",
+            )}
+          </span>
+
+          <span class="${escapeAttribute(
+            movement.className,
+          )}">
+            ${escapeHtml(
+              movement.text,
+            )}
+          </span>
+
+        </div>
+
+        <a
+          class="btn btn-outline-primary issuer-row__profile has-icon icon-arrow-up-right icon-end"
+          href="${escapeAttribute(profileUrl)}"
+          aria-label="${escapeAttribute(
+            `${
+              LABELS.viewProfile ||
+              "View profile"
+            } ${name}`,
+          )}"
+        >
           ${escapeHtml(
-            LABELS.tradingName ||
-              "Trading Name",
+            LABELS.viewProfile ||
+              "View profile",
           )}
-        </span>
+        </a>
 
-        <span class="issuer-row__value">
-          ${escapeHtml(tradingName)}
-        </span>
-
-      </div>
-
-
-      <div class="issuer-row__field">
-
-        <span class="issuer-row__label">
-          ${escapeHtml(
-            LABELS.isinCode ||
-              "ISIN Code",
-          )}
-        </span>
-
-        <span class="issuer-row__value">
-          ${escapeHtml(isinCode)}
-        </span>
-
-      </div>
-
-
-      <div class="issuer-row__field">
-
-        <span class="issuer-row__label">
-          ${escapeHtml(
-            LABELS.change ||
-              "Change",
-          )}
-        </span>
-
-        <span class="${movement.className}">
-          ${escapeHtml(
-            movement.text,
-          )}
-        </span>
-
-      </div>
-
-
-      <a
-        class="btn btn-outline-primary issuer-row__profile has-icon icon-arrow-up-right icon-end"
-        href="${escapeAttribute(profileUrl)}"
-        aria-label="${escapeAttribute(
-          `${LABELS.viewProfile || "View profile"} ${name}`,
-        )}"
-      >
-        ${escapeHtml(
-          LABELS.viewProfile ||
-            "View profile",
-        )}
-      </a>
-
-    </article>
-  `;
-}
-
-
-/* ==========================================================================
-   Price Movement
-   ========================================================================== */
-
-function getMovement(
-  value,
-  baseClass,
-) {
-  const numericValue =
-    Number.parseFloat(value);
-
-
-  if (!Number.isFinite(numericValue)) {
-    return {
-      className:
-        `${baseClass} price-neutral`,
-
-      text: "—",
-    };
+      </article>
+    `;
   }
 
+  /* ==========================================================================
+     Price Movement
+     ========================================================================== */
 
-  if (numericValue > 0) {
+  function getMovement(
+    value,
+    baseClass,
+  ) {
+    const numericValue =
+      Number.parseFloat(value);
+
+    if (
+      !Number.isFinite(
+        numericValue,
+      )
+    ) {
+      return {
+        className:
+          `${baseClass} priceEqual`,
+
+        text:
+          "—",
+      };
+    }
+
+    if (numericValue > 0) {
+      return {
+        className:
+          `${baseClass} price-up has-icon icon-triangle-up`,
+
+        text:
+          `+${numericValue.toFixed(2)}%`,
+      };
+    }
+
+    if (numericValue < 0) {
+      return {
+        className:
+          `${baseClass} price-down has-icon icon-triangle-down`,
+
+        text:
+          `${numericValue.toFixed(2)}%`,
+      };
+    }
+
     return {
       className:
-        `${baseClass} price-up has-icon icon-triangle-up`,
-
-      text:
-        `+${numericValue.toFixed(2)}%`,
-    };
-  }
-
-
-  if (numericValue < 0) {
-    return {
-      className:
-        `${baseClass} price-down has-icon icon-triangle-down`,
+        `${baseClass} priceEqual`,
 
       text:
         `${numericValue.toFixed(2)}%`,
     };
   }
 
+  /* ==========================================================================
+     Pagination
+     ========================================================================== */
 
-  return {
-    className:
-      `${baseClass} price-neutral`,
-
-    text:
-      `${numericValue.toFixed(2)}%`,
-  };
-}
-
-
-/* ==========================================================================
-   Pagination
-   ========================================================================== */
-
-function renderPage(pageNumber) {
-  const filteredIndexes =
-    getAlphabetFilteredIndexes();
-
-
-  const totalItems =
-    filteredIndexes.length;
-
-
-  const totalPages =
-    getTotalPages(
-      totalItems,
-    );
-
-
-  if (totalPages === 0) {
-    state.currentPage = 1;
-
-  } else {
-    state.currentPage =
-      Math.max(
-        1,
-        Math.min(
-          Number(pageNumber) || 1,
-          totalPages,
-        ),
+  function handlePaginationClick(event) {
+    const pageButton =
+      event.target.closest(
+        "[data-directory-page]",
       );
-  }
 
+    if (pageButton) {
+      const page =
+        Number(
+          pageButton.getAttribute(
+            "data-directory-page",
+          ),
+        );
 
-  const startIndex =
-    (state.currentPage - 1) *
-    PAGE_SIZE;
-
-
-  const pageIndexes =
-    filteredIndexes.slice(
-      startIndex,
-      startIndex + PAGE_SIZE,
-    );
-
-
-  const visibleIndexes =
-    new Set(
-      pageIndexes,
-    );
-
-
-  applyPageVisibility(
-    document.querySelector(
-      SELECTORS.grid,
-    ),
-    visibleIndexes,
-  );
-
-
-  applyPageVisibility(
-    document.querySelector(
-      SELECTORS.list,
-    ),
-    visibleIndexes,
-  );
-
-
-  updateResultSummary({
-    totalItems,
-
-    startIndex,
-
-    pageItemCount:
-      pageIndexes.length,
-  });
-
-
-  renderPagination({
-    currentPage:
-      state.currentPage,
-
-    totalPages,
-  });
-
-
-  updateEmptyState(
-    totalItems === 0,
-  );
-}
-
-
-/* ==========================================================================
-   Total Pages
-   ========================================================================== */
-
-function getTotalPages(totalItems) {
-  if (!totalItems) {
-    return 0;
-  }
-
-  return Math.ceil(
-    totalItems /
-    PAGE_SIZE,
-  );
-}
-
-
-/* ==========================================================================
-   Current Alphabet Result Indexes
-   ========================================================================== */
-
-function getAlphabetFilteredIndexes() {
-  const grid =
-    document.querySelector(
-      SELECTORS.grid,
-    );
-
-
-  if (!grid) {
-    return [];
-  }
-
-
-  const indexes = [];
-
-
-  grid
-    .querySelectorAll(
-      SELECTORS.group,
-    )
-    .forEach((group) => {
-      /*
-       * `hidden` belongs exclusively to DirectoryAlphabet.
-       */
-
-      if (group.hidden) {
-        return;
+      if (
+        Number.isInteger(page)
+      ) {
+        renderPage(page);
       }
-
-
-      group
-        .querySelectorAll(
-          SELECTORS.resultItem,
-        )
-        .forEach((item) => {
-          const index =
-            Number(
-              item.dataset.directoryIndex,
-            );
-
-
-          if (
-            Number.isInteger(index)
-          ) {
-            indexes.push(index);
-          }
-        });
-    });
-
-
-  return indexes;
-}
-
-
-/* ==========================================================================
-   Apply Page Visibility
-   ========================================================================== */
-
-function applyPageVisibility(
-  panel,
-  visibleIndexes,
-) {
-  if (!panel) {
-    return;
-  }
-
-
-  panel
-    .querySelectorAll(
-      SELECTORS.group,
-    )
-    .forEach((group) => {
-      /*
-       * Alphabet visibility is semantic and belongs to DirectoryAlphabet.
-       */
-
-      const alphabetVisible =
-        !group.hidden;
-
-
-      let hasVisibleItem =
-        false;
-
-
-      group
-        .querySelectorAll(
-          SELECTORS.resultItem,
-        )
-        .forEach((item) => {
-          const index =
-            Number(
-              item.dataset.directoryIndex,
-            );
-
-
-          const visible =
-            alphabetVisible &&
-            visibleIndexes.has(index);
-
-
-          /*
-           * Pagination owns item.hidden.
-           *
-           * DirectoryAlphabet works at group level, so these two systems
-           * remain independent.
-           */
-
-          item.hidden =
-            !visible;
-
-
-          if (visible) {
-            hasVisibleItem = true;
-          }
-        });
-
-
-      /*
-       * IMPORTANT:
-       *
-       * Do NOT set group.hidden here.
-       *
-       * DirectoryAlphabet owns group.hidden and uses that state to represent
-       * the selected letter.
-       *
-       * Pagination only uses display to suppress groups that do not contain
-       * an item on the current page.
-       */
-
-      group.style.display =
-        alphabetVisible &&
-        hasVisibleItem
-          ? ""
-          : "none";
-    });
-}
-
-
-/* ==========================================================================
-   Result Summary
-   ========================================================================== */
-
-function updateResultSummary({
-  totalItems,
-  startIndex,
-  pageItemCount,
-}) {
-  const start =
-    totalItems > 0
-      ? startIndex + 1
-      : 0;
-
-
-  const end =
-    totalItems > 0
-      ? startIndex +
-        pageItemCount
-      : 0;
-
-
-  const range =
-    `${start}–${end}`;
-
-
-  setText(
-    SELECTORS.resultCount,
-    totalItems,
-  );
-
-
-  setText(
-    SELECTORS.range,
-    range,
-  );
-
-
-  setText(
-    SELECTORS.total,
-    totalItems,
-  );
-
-
-  setText(
-    SELECTORS.paginationRange,
-    range,
-  );
-
-
-  setText(
-    SELECTORS.paginationTotal,
-    totalItems,
-  );
-}
-
-
-/* ==========================================================================
-   Pagination Renderer
-   ========================================================================== */
-
-function renderPagination({
-  currentPage,
-  totalPages,
-}) {
-  const navigation =
-    document.querySelector(
-      SELECTORS.pagination,
-    );
-
-  const list =
-    document.querySelector(
-      SELECTORS.paginationList,
-    );
-
-
-  if (!navigation || !list) {
-    return;
-  }
-
-
-  /*
-   * Keep these values for now because Part 4 still contains the legacy
-   * compatibility inputs.
-   *
-   * recordsCountId stores TOTAL PAGES, matching the old pxpaginate behavior.
-   */
-
-  setControlValue(
-    SELECTORS.pageLimit,
-    PAGE_SIZE,
-  );
-
-
-  setControlValue(
-    SELECTORS.pageCount,
-    totalPages,
-  );
-
-
-  if (totalPages <= 1) {
-    navigation.hidden = true;
-    list.innerHTML = "";
-
-    return;
-  }
-
-
-  navigation.hidden = false;
-
-
-  const items = [];
-
-
-  /* =========================================================================
-     Previous
-     ========================================================================= */
-
-  const previousDisabled =
-    currentPage <= 1;
-
-
-  items.push(`
-    <li class="pagination__item">
-
-      <button
-        class="pagination__link pagination__link--previous has-icon icon-chevron-left icon-flip-rtl${previousDisabled ? " is-disabled" : ""}"
-        type="button"
-        data-directory-page-prev
-        ${previousDisabled ? 'disabled aria-disabled="true"' : ""}
-      >
-        <span class="visually-hidden">
-          ${escapeHtml(
-            LABELS.previousPage ||
-              "Previous page",
-          )}
-        </span>
-      </button>
-
-    </li>
-  `);
-
-
-  /* =========================================================================
-     Page Numbers
-     ========================================================================= */
-
-  const pageItems =
-    getPaginationItems(
-      currentPage,
-      totalPages,
-    );
-
-
-  pageItems.forEach((page) => {
-    if (page === null) {
-      items.push(`
-        <li
-          class="pagination__item pagination__item--ellipsis"
-          aria-hidden="true"
-        >
-          <span class="pagination__ellipsis">
-            …
-          </span>
-        </li>
-      `);
 
       return;
     }
 
+    const previousButton =
+      event.target.closest(
+        "[data-directory-page-prev]",
+      );
 
-    const isCurrent =
-      page === currentPage;
+    if (previousButton) {
+      if (
+        state.currentPage > 1
+      ) {
+        renderPage(
+          state.currentPage - 1,
+        );
+      }
 
+      return;
+    }
+
+    const nextButton =
+      event.target.closest(
+        "[data-directory-page-next]",
+      );
+
+    if (!nextButton) {
+      return;
+    }
+
+    const totalPages =
+      getTotalPages(
+        state.companies.length,
+      );
+
+    if (
+      state.currentPage <
+      totalPages
+    ) {
+      renderPage(
+        state.currentPage + 1,
+      );
+    }
+  }
+
+  function renderPage(pageNumber) {
+    const totalItems =
+      state.companies.length;
+
+    const totalPages =
+      getTotalPages(
+        totalItems,
+      );
+
+    if (totalPages === 0) {
+      state.currentPage = 1;
+    } else {
+      state.currentPage =
+        Math.max(
+          1,
+          Math.min(
+            Number(pageNumber) ||
+              1,
+            totalPages,
+          ),
+        );
+    }
+
+    const startIndex =
+      (
+        state.currentPage -
+        1
+      ) *
+      PAGE_SIZE;
+
+    const endIndex =
+      Math.min(
+        startIndex +
+          PAGE_SIZE,
+
+        totalItems,
+      );
+
+    const visibleIndexes =
+      new Set();
+
+    for (
+      let index = startIndex;
+      index < endIndex;
+      index += 1
+    ) {
+      visibleIndexes.add(
+        index,
+      );
+    }
+
+    applyPageVisibility(
+      document.querySelector(
+        SELECTORS.grid,
+      ),
+      visibleIndexes,
+    );
+
+    applyPageVisibility(
+      document.querySelector(
+        SELECTORS.list,
+      ),
+      visibleIndexes,
+    );
+
+    updateResultSummary({
+      totalItems,
+
+      startIndex,
+
+      pageItemCount:
+        Math.max(
+          0,
+          endIndex -
+            startIndex,
+        ),
+    });
+
+    renderPagination({
+      currentPage:
+        state.currentPage,
+
+      totalPages,
+    });
+
+    updateEmptyState(
+      totalItems === 0,
+    );
+  }
+
+  function getTotalPages(
+    totalItems,
+  ) {
+    return totalItems
+      ? Math.ceil(
+          totalItems /
+            PAGE_SIZE,
+        )
+      : 0;
+  }
+
+  function applyPageVisibility(
+    panel,
+    visibleIndexes,
+  ) {
+    if (
+      !(
+        panel instanceof
+        HTMLElement
+      )
+    ) {
+      return;
+    }
+
+    panel
+      .querySelectorAll(
+        SELECTORS.group,
+      )
+      .forEach((group) => {
+        let hasVisibleItem =
+          false;
+
+        group
+          .querySelectorAll(
+            SELECTORS.resultItem,
+          )
+          .forEach((item) => {
+            const index =
+              Number(
+                item.dataset
+                  .directoryIndex,
+              );
+
+            const visible =
+              Number.isInteger(
+                index,
+              ) &&
+              visibleIndexes.has(
+                index,
+              );
+
+            item.hidden =
+              !visible;
+
+            if (visible) {
+              hasVisibleItem =
+                true;
+            }
+          });
+
+        /*
+         * DirectoryAlphabet owns group.hidden.
+         *
+         * Pagination only suppresses groups that do not contain
+         * an item on the current page.
+         */
+        group.style.display =
+          hasVisibleItem
+            ? ""
+            : "none";
+      });
+  }
+
+  /* ==========================================================================
+     Result Summary
+     ========================================================================== */
+
+  function updateResultSummary({
+    totalItems,
+    startIndex,
+    pageItemCount,
+  }) {
+    const start =
+      totalItems > 0
+        ? startIndex + 1
+        : 0;
+
+    const end =
+      totalItems > 0
+        ? startIndex +
+          pageItemCount
+        : 0;
+
+    const range =
+      `${start}–${end}`;
+
+    setText(
+      SELECTORS.resultCount,
+      totalItems,
+    );
+
+    setText(
+      SELECTORS.range,
+      range,
+    );
+
+    setText(
+      SELECTORS.total,
+      totalItems,
+    );
+
+    setText(
+      SELECTORS.paginationRange,
+      range,
+    );
+
+    setText(
+      SELECTORS.paginationTotal,
+      totalItems,
+    );
+
+    const liveStatus =
+      document.querySelector(
+        SELECTORS.liveStatus,
+      );
+
+    if (
+      liveStatus instanceof
+      HTMLElement
+    ) {
+      const resultsLabel =
+        LABELS.results ||
+        "Results";
+
+      liveStatus.textContent =
+        totalItems > 0
+          ? `${resultsLabel}: ${range} / ${totalItems}`
+          : `${resultsLabel}: 0`;
+    }
+  }
+
+  /* ==========================================================================
+     Pagination Renderer
+     ========================================================================== */
+
+  function renderPagination({
+    currentPage,
+    totalPages,
+  }) {
+    const navigation =
+      document.querySelector(
+        SELECTORS.pagination,
+      );
+
+    const list =
+      document.querySelector(
+        SELECTORS.paginationList,
+      );
+
+    if (
+      !(
+        navigation instanceof
+        HTMLElement
+      ) ||
+      !(
+        list instanceof
+        HTMLElement
+      )
+    ) {
+      return;
+    }
+
+    setControlValue(
+      SELECTORS.pageLimit,
+      PAGE_SIZE,
+    );
+
+    /*
+     * Legacy compatibility:
+     *
+     * recordsCountId stores total pages.
+     */
+    setControlValue(
+      SELECTORS.pageCount,
+      totalPages,
+    );
+
+    if (totalPages <= 1) {
+      navigation.hidden =
+        true;
+
+      list.innerHTML =
+        "";
+
+      return;
+    }
+
+    navigation.hidden =
+      false;
+
+    const items = [];
+
+    const previousDisabled =
+      currentPage <= 1;
 
     items.push(`
       <li class="pagination__item">
 
         <button
-          class="pagination__link${isCurrent ? " is-current" : ""}"
+          class="pagination__link pagination__link--previous has-icon icon-chevron-left icon-flip-rtl${
+            previousDisabled
+              ? " is-disabled"
+              : ""
+          }"
           type="button"
-          data-directory-page="${page}"
-          ${isCurrent ? 'aria-current="page"' : ""}
+          data-directory-page-prev
+          ${
+            previousDisabled
+              ? 'disabled aria-disabled="true"'
+              : ""
+          }
         >
-          ${page}
+          <span class="visually-hidden">
+            Previous page
+          </span>
         </button>
 
       </li>
     `);
-  });
 
+    getPaginationItems(
+      currentPage,
+      totalPages,
+    ).forEach((page) => {
+      const isCurrent =
+        page ===
+        currentPage;
 
-  /* =========================================================================
-     Next
-     ========================================================================= */
+      items.push(`
+        <li class="pagination__item">
 
-  const nextDisabled =
-    currentPage >= totalPages;
+          <button
+            class="pagination__link${
+              isCurrent
+                ? " is-current"
+                : ""
+            }"
+            type="button"
+            data-directory-page="${page}"
+            ${
+              isCurrent
+                ? 'aria-current="page"'
+                : ""
+            }
+          >
+            ${page}
+          </button>
 
+        </li>
+      `);
+    });
 
-  items.push(`
-    <li class="pagination__item">
+    const nextDisabled =
+      currentPage >=
+      totalPages;
 
-      <button
-        class="pagination__link pagination__link--next has-icon icon-chevron-right icon-flip-rtl${nextDisabled ? " is-disabled" : ""}"
-        type="button"
-        data-directory-page-next
-        ${nextDisabled ? 'disabled aria-disabled="true"' : ""}
-      >
-        <span class="visually-hidden">
-          ${escapeHtml(
-            LABELS.nextPage ||
-              "Next page",
-          )}
-        </span>
-      </button>
+    items.push(`
+      <li class="pagination__item">
 
-    </li>
-  `);
+        <button
+          class="pagination__link pagination__link--next has-icon icon-chevron-right icon-flip-rtl${
+            nextDisabled
+              ? " is-disabled"
+              : ""
+          }"
+          type="button"
+          data-directory-page-next
+          ${
+            nextDisabled
+              ? 'disabled aria-disabled="true"'
+              : ""
+          }
+        >
+          <span class="visually-hidden">
+            Next page
+          </span>
+        </button>
 
+      </li>
+    `);
 
-  list.innerHTML =
-    items.join("");
-}
-
-
-/* ==========================================================================
-   Pagination Window
-   ========================================================================== */
-
-function getPaginationItems(
-  currentPage,
-  totalPages,
-) {
-  /*
-   * Small page count:
-   *
-   * 1 2 3 4 5
-   */
-
-  if (
-    totalPages <=
-    MAX_PAGE_BUTTONS + 2
-  ) {
-    return Array.from(
-      {
-        length: totalPages,
-      },
-      (_, index) =>
-        index + 1,
-    );
+    list.innerHTML =
+      items.join("");
   }
 
-
-  const pages =
-    new Set([
-      1,
-      totalPages,
-    ]);
-
-
-  const half =
-    Math.floor(
-      MAX_PAGE_BUTTONS / 2,
-    );
-
-
-  let start =
-    Math.max(
-      1,
-      currentPage - half,
-    );
-
-
-  let end =
-    Math.min(
-      totalPages,
-      start +
-        MAX_PAGE_BUTTONS -
-        1,
-    );
-
-
-  /*
-   * Shift the window left when close to the end.
-   */
-
-  if (
-    end -
-      start +
-      1 <
-    MAX_PAGE_BUTTONS
+  function getPaginationItems(
+    currentPage,
+    totalPages,
   ) {
-    start =
-      Math.max(
-        1,
-        end -
-          MAX_PAGE_BUTTONS +
+    const count =
+      Math.min(
+        MAX_PAGE_BUTTONS,
+        totalPages,
+      );
+
+    if (count <= 0) {
+      return [];
+    }
+
+    let start =
+      currentPage -
+      Math.floor(
+        count / 2,
+      );
+
+    let end =
+      start +
+      count -
+      1;
+
+    if (start < 1) {
+      start = 1;
+      end = count;
+    }
+
+    if (
+      end >
+      totalPages
+    ) {
+      end =
+        totalPages;
+
+      start =
+        Math.max(
           1,
-      );
+          end -
+            count +
+            1,
+        );
+    }
+
+    const pages = [];
+
+    for (
+      let page = start;
+      page <= end;
+      page += 1
+    ) {
+      pages.push(page);
+    }
+
+    return pages;
   }
 
+  /* ==========================================================================
+     UI State
+     ========================================================================== */
 
-  for (
-    let page = start;
-    page <= end;
-    page += 1
-  ) {
-    pages.add(page);
-  }
-
-
-  const sortedPages =
-    Array.from(pages)
-      .sort(
-        (a, b) =>
-          a - b,
-      );
-
-
-  const result = [];
-
-
-  sortedPages.forEach(
-    (page, index) => {
-      if (
-        index > 0 &&
-        page -
-          sortedPages[index - 1] >
-          1
-      ) {
-        result.push(null);
-      }
-
-
-      result.push(page);
-    },
-  );
-
-
-  return result;
-}
-
-
-/* ==========================================================================
-   Empty State
-   ========================================================================== */
-
-function updateEmptyState(isEmpty) {
-  const empty =
-    document.querySelector(
-      SELECTORS.empty,
-    );
-
-  const results =
-    document.querySelector(
-      SELECTORS.results,
-    );
-
-
-  if (empty) {
-    empty.hidden =
-      !isEmpty;
-  }
-
-
-  results?.classList.toggle(
-    "is-empty",
+  function updateEmptyState(
     isEmpty,
-  );
-}
-
-
-/* ==========================================================================
-   Busy State
-   ========================================================================== */
-
-function setBusy(isBusy) {
-  const results =
-    document.querySelector(
-      SELECTORS.results,
-    );
-
-
-  if (!results) {
-    return;
-  }
-
-
-  results.setAttribute(
-    "aria-busy",
-    String(isBusy),
-  );
-}
-
-
-/* ==========================================================================
-   Sector Option Rendering
-   ========================================================================== */
-
-function replaceSelectOptions(
-  select,
-  options,
-) {
-  if (
-    !(select instanceof HTMLSelectElement)
   ) {
-    return;
-  }
-
-
-  const fragment =
-    document.createDocumentFragment();
-
-
-  options.forEach((item) => {
-    const option =
-      document.createElement(
-        "option",
+    const empty =
+      document.querySelector(
+        SELECTORS.empty,
       );
 
+    const results =
+      document.querySelector(
+        SELECTORS.results,
+      );
 
-    option.value =
+    if (
+      empty instanceof
+      HTMLElement
+    ) {
+      empty.hidden =
+        !isEmpty;
+    }
+
+    if (
+      results instanceof
+      HTMLElement
+    ) {
+      results.classList.toggle(
+        "is-empty",
+        isEmpty,
+      );
+    }
+  }
+
+  function setBusy(isBusy) {
+    const results =
+      document.querySelector(
+        SELECTORS.results,
+      );
+
+    if (
+      results instanceof
+      HTMLElement
+    ) {
+      results.setAttribute(
+        "aria-busy",
+        String(isBusy),
+      );
+    }
+  }
+
+  function refreshDirectory() {
+    if (
+      window.Theme &&
+      window.Theme.directory &&
+      typeof window.Theme.directory
+        .refresh === "function"
+    ) {
+      window.Theme.directory.refresh(
+        document,
+      );
+    }
+  }
+
+  /* ==========================================================================
+     Custom Select Synchronization
+     ========================================================================== */
+
+  function notifySelectChanged(
+    select,
+  ) {
+    if (
+      !(
+        select instanceof
+        HTMLSelectElement
+      )
+    ) {
+      return;
+    }
+
+    /*
+     * Notify the shared custom-select component after programmatic
+     * option/value replacement, while preventing this controller from
+     * issuing an extra company API request.
+     */
+    state.suppressSectorChange =
+      true;
+
+    try {
+      select.dispatchEvent(
+        new Event(
+          "change",
+          {
+            bubbles:
+              true,
+          },
+        ),
+      );
+    } finally {
+      state.suppressSectorChange =
+        false;
+    }
+  }
+
+  /* ==========================================================================
+     Logo Fallback
+     ========================================================================== */
+
+  function handleImageError(event) {
+    const image =
+      event.target;
+
+    if (
+      !(
+        image instanceof
+        HTMLImageElement
+      ) ||
+      !image.matches(
+        SELECTORS.logo,
+      ) ||
+      image.dataset
+        .fallbackApplied ===
+        "true"
+    ) {
+      return;
+    }
+
+    image.dataset.fallbackApplied =
+      "true";
+
+    image.src =
+      FALLBACK_LOGO_URL;
+  }
+
+  /* ==========================================================================
+     Select Helpers
+     ========================================================================== */
+
+  function replaceSelectOptions(
+    select,
+    options,
+  ) {
+    if (
+      !(
+        select instanceof
+        HTMLSelectElement
+      )
+    ) {
+      return;
+    }
+
+    const fragment =
+      document.createDocumentFragment();
+
+    options.forEach(
+      (item) => {
+        const option =
+          document.createElement(
+            "option",
+          );
+
+        option.value =
+          String(
+            item.value != null
+              ? item.value
+              : "",
+          );
+
+        option.textContent =
+          String(
+            item.text != null
+              ? item.text
+              : "",
+          );
+
+        option.defaultSelected =
+          Boolean(
+            item.selected,
+          );
+
+        option.selected =
+          Boolean(
+            item.selected,
+          );
+
+        fragment.appendChild(
+          option,
+        );
+      },
+    );
+
+    select.replaceChildren(
+      fragment,
+    );
+  }
+
+  function getControlValue(
+    selector,
+  ) {
+    const control =
+      document.querySelector(
+        selector,
+      );
+
+    if (
+      !(
+        control instanceof
+        HTMLInputElement
+      ) &&
+      !(
+        control instanceof
+        HTMLSelectElement
+      )
+    ) {
+      return "";
+    }
+
+    return (
+      control.value ||
+      ""
+    );
+  }
+
+  function setControlValue(
+    selector,
+    value,
+  ) {
+    const control =
+      document.querySelector(
+        selector,
+      );
+
+    if (
+      !(
+        control instanceof
+        HTMLInputElement
+      ) &&
+      !(
+        control instanceof
+        HTMLSelectElement
+      )
+    ) {
+      return;
+    }
+
+    control.value =
+      String(value);
+  }
+
+  /* ==========================================================================
+     Company Helpers
+     ========================================================================== */
+
+  function getCompanyName(company) {
+    if (!company) {
+      return "—";
+    }
+
+    /*
+     * Preserve the legacy backend property typo: lonaName.
+     */
+    return getDisplayValue(
+      company.lonaName ||
+        company.longName ||
+        company.shortName ||
+        company.symbol,
+    );
+  }
+
+  function getDisplayValue(value) {
+    if (
+      value === null ||
+      value === undefined ||
+      String(value).trim() ===
+        ""
+    ) {
+      return "—";
+    }
+
+    return String(value).trim();
+  }
+
+  function getCompanyLogoUrl(
+    company,
+  ) {
+    const symbol =
       String(
-        item.value ?? "",
-      );
+        company &&
+        company.symbol
+          ? company.symbol
+          : "",
+      ).trim();
 
+    if (!symbol) {
+      return FALLBACK_LOGO_URL;
+    }
 
-    option.textContent =
+    return (
+      `${LOGO_BASE_URL}` +
+      `${encodeURIComponent(symbol)}` +
+      ".png"
+    );
+  }
+
+  /* ==========================================================================
+     URL Safety
+     ========================================================================== */
+
+  function sanitizeUrl(value) {
+    const url =
       String(
-        item.text ?? "",
-      );
+        value || "",
+      ).trim();
 
+    if (!url) {
+      return "#";
+    }
 
-    option.defaultSelected =
-      Boolean(
-        item.selected,
-      );
+    if (
+      url.startsWith("/") ||
+      url.startsWith("#") ||
+      /^https?:\/\//i.test(
+        url,
+      )
+    ) {
+      return url;
+    }
 
-
-    option.selected =
-      Boolean(
-        item.selected,
-      );
-
-
-    fragment.appendChild(
-      option,
-    );
-  });
-
-
-  select.replaceChildren(
-    fragment,
-  );
-}
-
-
-/* ==========================================================================
-   Form Helpers
-   ========================================================================== */
-
-function getControlValue(selector) {
-  const control =
-    document.querySelector(
-      selector,
-    );
-
-
-  if (
-    !(
-      control instanceof HTMLInputElement ||
-      control instanceof HTMLSelectElement
-    )
-  ) {
-    return "";
-  }
-
-
-  return (
-    control.value ||
-    ""
-  );
-}
-
-
-function setControlValue(
-  selector,
-  value,
-) {
-  const control =
-    document.querySelector(
-      selector,
-    );
-
-
-  if (
-    !(
-      control instanceof HTMLInputElement ||
-      control instanceof HTMLSelectElement
-    )
-  ) {
-    return;
-  }
-
-
-  control.value =
-    String(value);
-}
-
-
-/* ==========================================================================
-   Company Name
-   ========================================================================== */
-
-function getCompanyName(company) {
-  return getDisplayValue(
-    company?.lonaName ||
-      company?.longName ||
-      company?.shortName ||
-      company?.symbol,
-  );
-}
-
-
-/* ==========================================================================
-   Display Value
-   ========================================================================== */
-
-function getDisplayValue(value) {
-  if (
-    value === null ||
-    value === undefined ||
-    String(value).trim() === ""
-  ) {
-    return "—";
-  }
-
-
-  return String(value).trim();
-}
-
-
-/* ==========================================================================
-   Company Logo
-   ========================================================================== */
-
-function getCompanyLogoUrl(company) {
-  const symbol =
-    String(
-      company?.symbol ||
-      "",
-    ).trim();
-
-
-  if (!symbol) {
-    return FALLBACK_LOGO_URL;
-  }
-
-
-  return (
-    LOGO_BASE_URL +
-    encodeURIComponent(symbol) +
-    ".png"
-  );
-}
-
-
-/* ==========================================================================
-   Profile URL
-   ========================================================================== */
-
-function sanitizeUrl(value) {
-  const url =
-    String(
-      value ||
-      "",
-    ).trim();
-
-
-  if (!url) {
     return "#";
   }
 
+  /* ==========================================================================
+     Utilities
+     ========================================================================== */
 
-  /*
-   * Allow:
-   *
-   * - application-relative links
-   * - anchors
-   * - HTTP
-   * - HTTPS
-   */
-
-  if (
-    url.startsWith("/") ||
-    url.startsWith("#") ||
-    /^https?:\/\//i.test(url)
+  function setText(
+    selector,
+    value,
   ) {
-    return url;
+    document
+      .querySelectorAll(
+        selector,
+      )
+      .forEach((element) => {
+        element.textContent =
+          String(value);
+      });
   }
 
-
-  return "#";
-}
-
-
-/* ==========================================================================
-   Text Helper
-   ========================================================================== */
-
-function setText(
-  selector,
-  value,
-) {
-  document
-    .querySelectorAll(selector)
-    .forEach((element) => {
-      element.textContent =
-        String(value);
-    });
-}
-
-
-/* ==========================================================================
-   Integer Helper
-   ========================================================================== */
-
-function getPositiveInteger(
-  value,
-  fallback,
-) {
-  const number =
-    Number.parseInt(
-      value,
-      10,
-    );
-
-
-  return (
-    Number.isInteger(number) &&
-    number > 0
-  )
-    ? number
-    : fallback;
-}
-
-
-/* ==========================================================================
-   Debounce
-   ========================================================================== */
-
-function debounce(
-  callback,
-  delay,
-) {
-  let timeoutId = null;
-
-
-  return function debounced(
-    ...args
+  function getPositiveInteger(
+    value,
+    fallback,
   ) {
-    clearTimeout(
-      timeoutId,
-    );
-
-
-    timeoutId =
-      window.setTimeout(
-        () => {
-          callback.apply(
-            this,
-            args,
-          );
-        },
-        delay,
+    const number =
+      Number.parseInt(
+        value,
+        10,
       );
+
+    return (
+      Number.isInteger(
+        number,
+      ) &&
+      number > 0
+    )
+      ? number
+      : fallback;
+  }
+
+  function debounce(
+    callback,
+    delay,
+  ) {
+    let timeoutId =
+      null;
+
+    return function debounced(
+      ...args
+    ) {
+      window.clearTimeout(
+        timeoutId,
+      );
+
+      timeoutId =
+        window.setTimeout(
+          () => {
+            callback.apply(
+              this,
+              args,
+            );
+          },
+          delay,
+        );
+    };
+  }
+
+  function escapeHtml(value) {
+    return String(
+      value == null
+        ? ""
+        : value,
+    )
+      .replace(
+        /&/g,
+        "&amp;",
+      )
+      .replace(
+        /</g,
+        "&lt;",
+      )
+      .replace(
+        />/g,
+        "&gt;",
+      )
+      .replace(
+        /"/g,
+        "&quot;",
+      )
+      .replace(
+        /'/g,
+        "&#039;",
+      );
+  }
+
+  function escapeAttribute(value) {
+    return escapeHtml(value);
+  }
+
+  /* ==========================================================================
+     Public Hook
+     ========================================================================== */
+
+  window.IssuerDirectory = {
+    init:
+      initIssuerDirectory,
+
+    reload:
+      loadCompanies,
   };
-}
 
+  /* ==========================================================================
+     Auto Initialization
+     ========================================================================== */
 
-/* ==========================================================================
-   HTML Escaping
-   ========================================================================== */
-
-function escapeHtml(value) {
-  return String(
-    value ?? "",
-  )
-    .replace(
-      /&/g,
-      "&amp;",
-    )
-    .replace(
-      /</g,
-      "&lt;",
-    )
-    .replace(
-      />/g,
-      "&gt;",
-    )
-    .replace(
-      /"/g,
-      "&quot;",
-    )
-    .replace(
-      /'/g,
-      "&#039;",
+  if (
+    document.readyState ===
+    "loading"
+  ) {
+    document.addEventListener(
+      "DOMContentLoaded",
+      initIssuerDirectory,
+      {
+        once: true,
+      },
     );
-}
-
-
-function escapeAttribute(value) {
-  return escapeHtml(value);
-}
+  } else {
+    initIssuerDirectory();
+  }
+})();

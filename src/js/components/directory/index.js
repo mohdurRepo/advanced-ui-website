@@ -45,8 +45,8 @@ function getDirectoryAlphabets(root) {
 /**
  * Initialize every directory alphabet contained by `root`.
  *
- * Initialization is idempotent. Existing instances are refreshed instead of
- * being created again.
+ * Initialization is idempotent.
+ * Existing instances are refreshed instead of being created again.
  *
  * @param {Document | DocumentFragment | Element | ShadowRoot} root
  * @returns {DirectoryAlphabet[]}
@@ -67,9 +67,9 @@ export function initDirectories(root = document) {
  * Use this after:
  *
  * - replacing directory results
- * - loading another result page with AJAX
+ * - loading another result set with AJAX
  * - adding or removing alphabetical groups
- * - updating result counts dynamically
+ * - updating directory groups dynamically
  *
  * @param {Document | DocumentFragment | Element | ShadowRoot} root
  * @returns {DirectoryAlphabet[]}

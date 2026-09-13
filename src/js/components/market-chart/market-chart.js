@@ -58,6 +58,12 @@ import { createMarketChartOptions } from "./market-chart-options.js";
 
    5. Navigator source is always trend / close-price data, even when the
       primary chart is candlestick.
+
+   6. A main-series renderer change never uses Series.update({ type }).
+
+      trend / line / candlestick transitions remove the old primary series and
+      create a fresh series with redraw disabled, then the transaction performs
+      one final redraw. The navigator remains untouched for a pure mode change.
    ========================================================================== */
 
 /* ==========================================================================
@@ -1673,7 +1679,6 @@ class MarketChartController {
    *
    * - initial creation reconciliation
    * - range changes
-   * - mode changes
    * - theme changes
    * - complete external data replacement
    *
@@ -1861,6 +1866,107 @@ class MarketChartController {
   }
 
   /* ==========================================================================
+     Primary Series Reconciliation
+     ========================================================================== */
+
+  /**
+   * Reconcile the primary Highcharts series without ever changing its renderer
+   * type through Series.update().
+   *
+   * Highcharts maintains different SVG/runtime structures for areaspline, line
+   * and candlestick series. Reusing one Series instance across those renderer
+   * families can leave stale graph/area paths behind after repeated mode
+   * switches. A type change therefore gets a clean series instance.
+   *
+   * Same-type refreshes are deliberately lightweight:
+   *
+   * - update presentation in place
+   * - replace data
+   * - no structural Series.update()
+   * - no redraw here
+   */
+  reconcileMainSeries(mainSeriesOptions, data) {
+    let mainSeries = this.getMainSeries();
+
+    if (!mainSeries) {
+      throw new Error("Market Chart main series is unavailable.");
+    }
+
+    if (!mainSeriesOptions) {
+      mainSeries.setData(data, false, false, false);
+
+      return {
+        series: mainSeries,
+        replaced: false,
+      };
+    }
+
+    const currentType = String(
+      mainSeries.type ||
+        mainSeries.options?.type ||
+        mainSeries.userOptions?.type ||
+        "",
+    )
+      .trim()
+      .toLowerCase();
+
+    const nextType = String(mainSeriesOptions.type || currentType)
+      .trim()
+      .toLowerCase();
+
+    const typeChanged =
+      Boolean(currentType && nextType) && currentType !== nextType;
+
+    if (typeChanged) {
+      /*
+       * Remove first so the previous renderer's graph/area SVG is destroyed
+       * completely before the replacement series is created.
+       *
+       * Both operations run without redraw/animation.
+       */
+      mainSeries.remove(false, false);
+
+      const replacement = this.chart.addSeries(
+        {
+          ...mainSeriesOptions,
+          data,
+        },
+        false,
+        false,
+      );
+
+      if (!replacement) {
+        throw new Error(
+          `Market Chart main series could not be recreated (${currentType} -> ${nextType}).`,
+        );
+      }
+
+      return {
+        series: replacement,
+        replaced: true,
+        previousType: currentType,
+        nextType,
+      };
+    }
+
+    /*
+     * Same renderer: colors/line width/fill are presentation concerns and can
+     * be applied without Series.update(). This is the same safe strategy used
+     * by the live direction-change path.
+     */
+    applySeriesPresentation(mainSeries, mainSeriesOptions);
+
+    mainSeries.setData(data, false, false, false);
+
+    return {
+      series: mainSeries,
+      replaced: false,
+      previousType: currentType || null,
+      nextType: nextType || null,
+    };
+  }
+
+  /* ==========================================================================
      Structural Refresh
      ========================================================================== */
 
@@ -1871,7 +1977,19 @@ class MarketChartController {
 
     const preserveViewport = options.preserveViewport === true;
 
+    const updateAxes = options.updateAxes !== false;
+
+    const shouldSyncNavigator = options.syncNavigator !== false;
+
+    const navigatorStyle = options.navigatorStyle !== false;
+
+    const navigatorData = options.navigatorData !== false;
+
+    const navigatorStructural = options.navigatorStructural !== false;
+
     const previousViewport = preserveViewport ? this.getViewport() : null;
+
+    const navigatorSeriesCountBefore = this.getNavigatorSeriesList().length;
 
     const data = this.getActiveData();
 
@@ -1906,67 +2024,68 @@ class MarketChartController {
       this.chart.update(chartUpdate, false, false, options.animation ?? false);
 
       /* --------------------------------------------------------------------
-         Primary X Axis
+         Primary Axes
          -------------------------------------------------------------------- */
 
-      const mainXAxis = this.getMainXAxis();
+      if (updateAxes) {
+        const mainXAxis = this.getMainXAxis();
 
-      if (mainXAxis && xAxisOptions) {
-        mainXAxis.update(xAxisOptions, false);
-      }
+        if (mainXAxis && xAxisOptions) {
+          mainXAxis.update(xAxisOptions, false);
+        }
 
-      /* --------------------------------------------------------------------
-         Primary Y Axis
-         -------------------------------------------------------------------- */
-
-      if (this.chart.yAxis?.[0] && yAxisOptions) {
-        this.chart.yAxis[0].update(yAxisOptions, false);
+        if (this.chart.yAxis?.[0] && yAxisOptions) {
+          this.chart.yAxis[0].update(yAxisOptions, false);
+        }
       }
 
       /* --------------------------------------------------------------------
          Primary Series
          -------------------------------------------------------------------- */
 
-      let mainSeries = this.getMainSeries();
-
-      if (!mainSeries) {
-        throw new Error("Market Chart main series is unavailable.");
-      }
-
-      if (mainSeriesOptions) {
-        const {
-          data: ignoredMainData,
-
-          ...seriesOptions
-        } = mainSeriesOptions;
-
-        /*
-         * Structural changes are allowed to use Series.update().
-         *
-         * This path is for range/mode/theme changes, not the live hot path.
-         */
-        mainSeries.update(seriesOptions, false);
-
-        mainSeries = this.getMainSeries() || mainSeries;
-      }
-
-      mainSeries.setData(data, false, false, false);
+      const mainResult = this.reconcileMainSeries(mainSeriesOptions, data);
 
       /* --------------------------------------------------------------------
          Navigator
          -------------------------------------------------------------------- */
 
-      this.syncNavigator({
-        style: true,
-        data: true,
-        structural: true,
-        chartOptions,
-      });
+      if (shouldSyncNavigator) {
+        this.syncNavigator({
+          style: navigatorStyle,
+          data: navigatorData,
+          structural: navigatorStructural,
+          chartOptions,
+        });
+      } else if (
+        mainResult.replaced &&
+        navigatorSeriesCountBefore > 0 &&
+        this.getNavigatorSeriesList().length === 0
+      ) {
+        /*
+         * Defensive recovery only.
+         *
+         * A pure mode switch intentionally leaves the navigator untouched. If
+         * a Highstock version happens to remove its internal navigator series
+         * when the base series is replaced, restore it once here rather than
+         * structurally rebuilding the navigator on every mode change.
+         */
+        this.syncNavigator({
+          style: true,
+          data: true,
+          structural: true,
+          chartOptions,
+        });
+      } else {
+        this.verifyNavigatorIntegrity("refreshChart:preserved");
+      }
 
       /*
-       * Axis internals may have been replaced.
+       * Axis.update() may replace axis internals. Pure mode changes skip axis
+       * updates, so their event binding remains untouched.
        */
-      this.bindAxisEvents();
+      if (updateAxes) {
+        this.bindAxisEvents();
+      }
 
       /* --------------------------------------------------------------------
          Viewport
@@ -2376,6 +2495,18 @@ class MarketChartController {
 
     const updated = this.refreshChart({
       preserveViewport: true,
+
+      /*
+       * Range did not change, so the axis model is already correct.
+       */
+      updateAxes: false,
+
+      /*
+       * Navigator source is always trend data and does not change with the
+       * primary renderer. Leave it completely untouched for a pure mode
+       * switch.
+       */
+      syncNavigator: false,
 
       redraw: options.redraw !== false,
 
@@ -3435,6 +3566,11 @@ class MarketChartController {
      */
     return this.refreshChart({
       preserveViewport: true,
+
+      /*
+       * Theme refresh changes navigator presentation/chrome, not its data.
+       */
+      navigatorData: false,
 
       redraw: true,
 

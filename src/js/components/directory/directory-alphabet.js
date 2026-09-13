@@ -11,20 +11,22 @@ const instances = new WeakMap();
    ========================================================================== */
 
 /**
- * Controls alphabetical directory groups.
+ * Controls alphabetical directory navigation.
  *
- * Responsibilities:
+ * Two modes are supported:
  *
- * - discover result panels through aria-controls
- * - show complete matching letter groups
- * - synchronize active controls and aria-pressed
- * - disable letters without corresponding groups
- * - update the form's preserved letter value
- * - announce result changes
- * - support keyboard navigation
- * - reset independently of the grid/list switcher
+ * 1. Client-side mode
+ *    - alphabet availability is determined from rendered groups
+ *    - selecting a letter hides non-matching groups locally
  *
- * This component does not require a shared wrapper or an attribute on <main>.
+ * 2. Server-filter mode
+ *    - enabled with [data-directory-server-filter]
+ *    - alphabet buttons remain available
+ *    - selecting a letter updates state and dispatches the change event
+ *    - page-specific code performs the backend request
+ *    - returned results determine which groups are rendered
+ *
+ * The component does not own page-specific AJAX behavior.
  */
 export class DirectoryAlphabet {
   constructor(element) {
@@ -35,6 +37,7 @@ export class DirectoryAlphabet {
     }
 
     this.element = element;
+
     this.form = element.closest(SELECTORS.filterForm);
 
     this.controls = Array.from(
@@ -43,11 +46,20 @@ export class DirectoryAlphabet {
 
     this.letterInput = this.form?.querySelector(SELECTORS.letterInput) || null;
 
+    /*
+     * Server-backed directories, such as Issuer Directory,
+     * should not infer alphabet availability from the currently
+     * rendered response.
+     */
+    this.serverFilter = element.hasAttribute("data-directory-server-filter");
+
     this.panels = [];
     this.groups = [];
 
     this.handleClick = this.handleClick.bind(this);
+
     this.handleKeydown = this.handleKeydown.bind(this);
+
     this.handleReset = this.handleReset.bind(this);
 
     this.init();
@@ -97,6 +109,7 @@ export class DirectoryAlphabet {
     this.synchronizeAvailableLetters();
 
     this.element.addEventListener("click", this.handleClick);
+
     this.element.addEventListener("keydown", this.handleKeydown);
 
     this.form?.addEventListener("reset", this.handleReset);
@@ -168,14 +181,47 @@ export class DirectoryAlphabet {
   }
 
   synchronizeAvailableLetters() {
+    /*
+     * Server-filter mode
+     * ------------------------------------------------------------------------
+     *
+     * Do not disable alphabet buttons based on the current response.
+     *
+     * Example:
+     *
+     * - user selects A
+     * - backend returns only A companies
+     * - rendered DOM therefore only contains group A
+     *
+     * That must NOT cause B-Z to become disabled.
+     */
+    if (this.serverFilter) {
+      this.controls.forEach((control) => {
+        control.disabled = false;
+
+        control.classList.remove(CLASSES.disabled);
+
+        control.removeAttribute(ATTRIBUTES.disabled);
+      });
+
+      return;
+    }
+
+    /*
+     * Normal client-side directory behavior.
+     */
+
     const availableLetters = this.getAvailableLetters();
 
     this.controls.forEach((control) => {
       const letter = this.getControlLetter(control);
+
       const isAllControl = letter === "";
+
       const isAvailable = isAllControl || availableLetters.has(letter);
 
       control.disabled = !isAvailable;
+
       control.classList.toggle(CLASSES.disabled, !isAvailable);
 
       if (isAvailable) {
@@ -237,6 +283,7 @@ export class DirectoryAlphabet {
         !control.disabled && this.getControlLetter(control) === letter;
 
       control.classList.toggle(CLASSES.active, isActive);
+
       control.setAttribute(ATTRIBUTES.pressed, String(isActive));
     });
   }
@@ -252,11 +299,22 @@ export class DirectoryAlphabet {
      ========================================================================== */
 
   setGroupVisibility(letter) {
+    /*
+     * In server-filter mode the backend response owns which groups exist.
+     *
+     * Do not locally hide groups before or after the request.
+     */
+    if (this.serverFilter) {
+      return;
+    }
+
     this.groups.forEach((group) => {
       const groupLetter = this.getGroupLetter(group);
+
       const isVisible = letter === "" || groupLetter === letter;
 
       group.hidden = !isVisible;
+
       group.classList.toggle(CLASSES.hidden, !isVisible);
     });
   }
@@ -352,7 +410,15 @@ export class DirectoryAlphabet {
       this.getControl(letter)?.focus();
     }
 
-    if (announce) {
+    /*
+     * For a server-backed directory, the current DOM still contains
+     * the previous response at click time. Announcing its result
+     * count would therefore be misleading.
+     *
+     * Page-specific code can update its live/result status after
+     * the AJAX response has rendered.
+     */
+    if (announce && !this.serverFilter) {
       this.announce(letter);
     }
 
@@ -384,10 +450,15 @@ export class DirectoryAlphabet {
     this.element.dispatchEvent(
       new CustomEvent(EVENTS.change, {
         bubbles: true,
+
         detail: {
           letter,
+
           count: this.getVisibleResultCount(),
+
           panels: [...this.panels],
+
+          serverFilter: this.serverFilter,
         },
       }),
     );
@@ -434,6 +505,7 @@ export class DirectoryAlphabet {
     }
 
     const controls = this.getEnabledControls();
+
     const currentIndex = controls.indexOf(currentControl);
 
     if (currentIndex === -1) {
@@ -466,6 +538,7 @@ export class DirectoryAlphabet {
         event.preventDefault();
 
         this.applyLetter(this.getControlLetter(currentControl));
+
         return;
 
       default:
@@ -485,9 +558,9 @@ export class DirectoryAlphabet {
 
   handleReset() {
     /*
-     * Wait until native form controls have returned to their defaults.
+     * Wait until native form controls have returned to
+     * their default values.
      */
-
     requestAnimationFrame(() => {
       this.reset();
 
@@ -505,6 +578,14 @@ export class DirectoryAlphabet {
 
   refresh() {
     const currentLetter = this.normalizeLetter(this.letterInput?.value);
+
+    /*
+     * Re-read this because the attribute may be added dynamically
+     * before a refresh.
+     */
+    this.serverFilter = this.element.hasAttribute(
+      "data-directory-server-filter",
+    );
 
     this.collectPanels();
     this.collectGroups();
@@ -529,6 +610,7 @@ export class DirectoryAlphabet {
 
     this.groups.forEach((group) => {
       group.hidden = false;
+
       group.classList.remove(CLASSES.hidden);
     });
 
