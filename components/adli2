@@ -1170,6 +1170,7 @@
 	};
 </script>
 
+
 (function () {
   "use strict";
 
@@ -1183,51 +1184,116 @@
   const LOGOS = CONFIG.logos || {};
   const PAGINATION = CONFIG.pagination || {};
 
-  const PAGE_SIZE = getPositiveInteger(PAGINATION.pageSize, 20);
-  const MAX_PAGE_BUTTONS = getPositiveInteger(PAGINATION.maxButtons, 3);
+  const PAGE_SIZE = getPositiveInteger(
+    PAGINATION.pageSize,
+    20,
+  );
+
+  const MAX_PAGE_BUTTONS =
+    getPositiveInteger(
+      PAGINATION.maxButtons,
+      3,
+    );
 
   const LOGO_BASE_URL =
     LOGOS.baseUrl ||
     "https://www.tadawulgroup.sa/Resources/SEMOBILELOGOS/";
 
   const FALLBACK_LOGO_URL =
-    LOGOS.fallbackUrl || `${LOGO_BASE_URL}default-Logo.png`;
+    LOGOS.fallbackUrl ||
+    `${LOGO_BASE_URL}default-Logo.png`;
+
+  /* ==========================================================================
+     Selectors
+     ========================================================================== */
 
   const SELECTORS = {
-    form: "#issuer-directory-filter-form",
-    symbol: "#symbol_filter",
-    market: "#Market_ti",
-    sector: "#sectors_list",
-    letterInput: "#letterId",
-    alphabet: "[data-directory-alphabet]",
+    form:
+      "#issuer-directory-filter-form",
 
-    results: "[data-directory-results]",
-    resultCount: "#res-count",
-    grid: "#issuer-directory-grid",
-    list: "#issuer-directory-list",
-    group: "[data-directory-group]",
-    resultItem: ".directory-results__item",
-    empty: "[data-directory-empty]",
-    liveStatus: "[data-directory-live-status]",
+    symbol:
+      "#symbol_filter",
 
-    pagination: "[data-directory-pagination]",
-    paginationList: "#pagination-ul",
-    range: "[data-directory-range]",
-    total: "[data-directory-total]",
-    paginationRange: "[data-directory-pagination-range]",
-    paginationTotal: "[data-directory-pagination-total]",
-    pageLimit: "#pageLimitId",
-    pageCount: "#recordsCountId",
+    market:
+      "#Market_ti",
 
-    logo: "[data-issuer-logo]",
+    sector:
+      "#sectors_list",
+
+    letterInput:
+      "#letterId",
+
+    alphabet:
+      "[data-directory-alphabet]",
+
+    results:
+      "[data-directory-results]",
+
+    resultCount:
+      "#res-count",
+
+    grid:
+      "#issuer-directory-grid",
+
+    list:
+      "#issuer-directory-list",
+
+    group:
+      "[data-directory-group]",
+
+    resultItem:
+      ".directory-results__item",
+
+    empty:
+      "[data-directory-empty]",
+
+    liveStatus:
+      "[data-directory-live-status]",
+
+    pagination:
+      "[data-directory-pagination]",
+
+    paginationList:
+      "#pagination-ul",
+
+    range:
+      "[data-directory-range]",
+
+    total:
+      "[data-directory-total]",
+
+    paginationRange:
+      "[data-directory-pagination-range]",
+
+    paginationTotal:
+      "[data-directory-pagination-total]",
+
+    pageLimit:
+      "#pageLimitId",
+
+    pageCount:
+      "#recordsCountId",
+
+    logo:
+      "[data-issuer-logo]",
   };
+
+  /* ==========================================================================
+     Events
+     ========================================================================== */
 
   const EVENTS = {
-    alphabetChange: "directory:alphabet-change",
+    alphabetChange:
+      "directory:alphabet-change",
   };
+
+  /* ==========================================================================
+     State
+     ========================================================================== */
 
   const state = {
     companies: [],
+
     currentPage: 1,
 
     companyRequest: null,
@@ -1235,13 +1301,31 @@
 
     initialSectorOptions: [],
 
-    // Rendering: backend alias -> displayed alphabet letter.
-    arabicAliasToLetter: new Map(),
+    /*
+     * Rendering:
+     *
+     * backend Arabic alias -> displayed Arabic letter
+     */
+    arabicAliasToLetter:
+      new Map(),
 
-    // Request: displayed alphabet letter -> backend aliases[].
-    arabicLetterToAliases: new Map(),
+    /*
+     * Backend request:
+     *
+     * displayed Arabic letter -> backend aliases[]
+     */
+    arabicLetterToAliases:
+      new Map(),
 
-    // Legacy distinction: explicit All click sent "All"; resets sent "".
+    /*
+     * Legacy distinction:
+     *
+     * Explicit All alphabet click:
+     *   letter = "All"
+     *
+     * Reset / market / sector / symbol:
+     *   letter = ""
+     */
     backendLetterOverride: null,
 
     suppressSectorChange: false,
@@ -1258,9 +1342,17 @@
       return;
     }
 
-    const form = document.querySelector(SELECTORS.form);
+    const form =
+      document.querySelector(
+        SELECTORS.form,
+      );
 
-    if (!(form instanceof HTMLFormElement)) {
+    if (
+      !(
+        form instanceof
+        HTMLFormElement
+      )
+    ) {
       return;
     }
 
@@ -1270,40 +1362,84 @@
     buildArabicCharacterMaps();
     bindEvents();
 
-    // Legacy behavior: load companies immediately on page initialization.
+    /*
+     * Legacy behavior:
+     * load companies immediately.
+     */
     loadCompanies();
   }
 
-  function bindEvents() {
-    const form = document.querySelector(SELECTORS.form);
-    const symbol = document.querySelector(SELECTORS.symbol);
-    const market = document.querySelector(SELECTORS.market);
-    const sector = document.querySelector(SELECTORS.sector);
-    const paginationList = document.querySelector(
-      SELECTORS.paginationList,
-    );
+  /* ==========================================================================
+     Event Binding
+     ========================================================================== */
 
-    if (!(form instanceof HTMLFormElement)) {
+  function bindEvents() {
+    const form =
+      document.querySelector(
+        SELECTORS.form,
+      );
+
+    const symbol =
+      document.querySelector(
+        SELECTORS.symbol,
+      );
+
+    const market =
+      document.querySelector(
+        SELECTORS.market,
+      );
+
+    const sector =
+      document.querySelector(
+        SELECTORS.sector,
+      );
+
+    const paginationList =
+      document.querySelector(
+        SELECTORS.paginationList,
+      );
+
+    if (
+      !(
+        form instanceof
+        HTMLFormElement
+      )
+    ) {
       return;
     }
 
-    form.addEventListener("submit", handleFormSubmit);
+    form.addEventListener(
+      "submit",
+      handleFormSubmit,
+    );
 
-    if (symbol instanceof HTMLInputElement) {
+    if (
+      symbol instanceof
+      HTMLInputElement
+    ) {
       symbol.addEventListener(
         "input",
-        debounce(handleSymbolChange, 500),
+        debounce(
+          handleSymbolChange,
+          500,
+        ),
       );
     }
 
-    if (market instanceof HTMLSelectElement) {
+    if (
+      market instanceof
+      HTMLSelectElement
+    ) {
       market.addEventListener(
         "change",
         handleMarketChange,
       );
     }
 
-    if (sector instanceof HTMLSelectElement) {
+    if (
+      sector instanceof
+      HTMLSelectElement
+    ) {
       sector.addEventListener(
         "change",
         handleSectorChange,
@@ -1320,7 +1456,10 @@
       handleAlphabetChange,
     );
 
-    if (paginationList instanceof HTMLElement) {
+    if (
+      paginationList instanceof
+      HTMLElement
+    ) {
       paginationList.addEventListener(
         "click",
         handlePaginationClick,
@@ -1335,103 +1474,165 @@
   }
 
   /* ==========================================================================
-     Filters
+     Form Submit
      ========================================================================== */
 
-  function handleFormSubmit(event) {
+  function handleFormSubmit(
+    event,
+  ) {
     event.preventDefault();
 
     resetAlphabet();
+
     loadCompanies();
   }
+
+  /* ==========================================================================
+     Symbol Search
+     ========================================================================== */
 
   function handleSymbolChange() {
     resetAlphabet();
+
     loadCompanies();
   }
 
-  function handleMarketChange(event) {
+  /* ==========================================================================
+     Market Change
+     ========================================================================== */
+
+  function handleMarketChange(
+    event,
+  ) {
     resetAlphabet();
+
+    /*
+     * Prevent an older company request from rendering
+     * while sectors for the new market are loading.
+     */
     abortCompanyRequest();
 
     const marketType =
-      event.currentTarget.value || "";
+      event.currentTarget.value ||
+      "";
 
-    loadSectorsByMarket(marketType);
+    loadSectorsByMarket(
+      marketType,
+    );
   }
 
+  /* ==========================================================================
+     Sector Change
+     ========================================================================== */
+
   function handleSectorChange() {
-    if (state.suppressSectorChange) {
+    if (
+      state.suppressSectorChange
+    ) {
       return;
     }
 
     resetAlphabet();
+
     loadCompanies();
   }
 
+  /* ==========================================================================
+     Form Reset
+     ========================================================================== */
+
   function handleFormReset() {
     state.resetting = true;
-    state.backendLetterOverride = null;
+
+    state.backendLetterOverride =
+      null;
 
     abortSectorRequest();
     abortCompanyRequest();
 
     /*
-     * Native form controls are restored after the reset event.
-     *
-     * DirectoryAlphabet also handles the same reset event on
-     * requestAnimationFrame, so keep the issuer alphabet handler
-     * suppressed until the following frame.
+     * Native form reset values are applied after
+     * the reset event.
      */
-    window.requestAnimationFrame(() => {
-      restoreInitialSectorOptions();
+    window.requestAnimationFrame(
+      () => {
+        restoreInitialSectorOptions();
 
-      state.currentPage = 1;
+        state.currentPage = 1;
 
-      refreshDirectory();
-      loadCompanies();
+        refreshDirectory();
 
-      window.requestAnimationFrame(() => {
-        state.resetting = false;
-      });
-    });
+        loadCompanies();
+
+        /*
+         * DirectoryAlphabet also handles the same
+         * form reset in requestAnimationFrame().
+         *
+         * Keep the alphabet-change handler suppressed
+         * until that work has completed.
+         */
+        window.requestAnimationFrame(
+          () => {
+            state.resetting =
+              false;
+          },
+        );
+      },
+    );
   }
 
-  function handleAlphabetChange(event) {
+  /* ==========================================================================
+     Alphabet Change
+     ========================================================================== */
+
+  function handleAlphabetChange(
+    event,
+  ) {
     if (state.resetting) {
       return;
     }
 
-    const alphabet = event.target;
+    const alphabet =
+      event.target;
+
     const form =
       document.querySelector(
         SELECTORS.form,
       );
 
     if (
-      !(alphabet instanceof Element) ||
+      !(
+        alphabet instanceof
+        Element
+      ) ||
       !alphabet.matches(
         SELECTORS.alphabet,
       ) ||
-      !(form instanceof HTMLFormElement) ||
-      !form.contains(alphabet)
+      !(
+        form instanceof
+        HTMLFormElement
+      ) ||
+      !form.contains(
+        alphabet,
+      )
     ) {
       return;
     }
 
     /*
-     * DirectoryAlphabet already owns:
+     * DirectoryAlphabet owns:
      *
      * - active state
      * - aria-pressed
      * - keyboard navigation
-     * - #letterId
+     * - hidden #letterId
      *
-     * This adapter only restores the legacy backend request behavior.
+     * This controller owns the backend request.
      */
     const selectedLetter =
       event.detail &&
-      typeof event.detail.letter === "string"
+      typeof event.detail
+        .letter === "string"
         ? event.detail.letter
         : getControlValue(
             SELECTORS.letterInput,
@@ -1440,11 +1641,11 @@
     /*
      * Legacy behavior:
      *
-     * Explicit All alphabet click sent:
+     * Explicit All alphabet click:
      *
      * letter = "All"
      *
-     * Other resets/filter changes sent:
+     * Resets:
      *
      * letter = ""
      */
@@ -1458,13 +1659,19 @@
     loadCompanies();
   }
 
+  /* ==========================================================================
+     Alphabet Reset
+     ========================================================================== */
+
   function resetAlphabet() {
     const letterInput =
       document.querySelector(
         SELECTORS.letterInput,
       );
 
-    state.backendLetterOverride = null;
+    state.backendLetterOverride =
+      null;
+
     state.currentPage = 1;
 
     if (
@@ -1475,8 +1682,8 @@
     }
 
     /*
-     * refresh() reapplies the hidden value without dispatching
-     * another directory:alphabet-change event.
+     * DirectoryAlphabet refresh() does not dispatch
+     * another alphabet-change event.
      */
     refreshDirectory();
   }
@@ -1487,11 +1694,13 @@
 
   function buildArabicCharacterMaps() {
     state.arabicAliasToLetter.clear();
+
     state.arabicLetterToAliases.clear();
 
     const mapping =
       String(
-        CONFIG.arabicCharactersMapping ||
+        CONFIG
+          .arabicCharactersMapping ||
           "",
       ).trim();
 
@@ -1501,15 +1710,18 @@
 
     mapping
       .split(",")
-      .map((entry) =>
-        entry.trim(),
+      .map(
+        (entry) =>
+          entry.trim(),
       )
       .filter(Boolean)
       .forEach((entry) => {
         const separatorIndex =
           entry.indexOf("-");
 
-        if (separatorIndex === -1) {
+        if (
+          separatorIndex === -1
+        ) {
           return;
         }
 
@@ -1538,23 +1750,27 @@
         /*
          * Backend request mapping:
          *
-         * displayed character -> variants[]
+         * displayed letter -> aliases[]
          */
         if (
-          !state.arabicLetterToAliases.has(
-            displayLetter,
-          )
+          !state
+            .arabicLetterToAliases
+            .has(displayLetter)
         ) {
-          state.arabicLetterToAliases.set(
-            displayLetter,
-            [],
-          );
+          state
+            .arabicLetterToAliases
+            .set(
+              displayLetter,
+              [],
+            );
         }
 
         const aliases =
-          state.arabicLetterToAliases.get(
-            displayLetter,
-          );
+          state
+            .arabicLetterToAliases
+            .get(
+              displayLetter,
+            );
 
         if (
           !aliases.includes(alias)
@@ -1565,26 +1781,36 @@
         /*
          * Rendering mapping:
          *
-         * backend variant -> displayed character
+         * alias -> displayed letter
          */
-        state.arabicAliasToLetter.set(
-          displayLetter,
-          displayLetter,
-        );
+        state
+          .arabicAliasToLetter
+          .set(
+            displayLetter,
+            displayLetter,
+          );
 
-        state.arabicAliasToLetter.set(
-          alias,
-          displayLetter,
-        );
+        state
+          .arabicAliasToLetter
+          .set(
+            alias,
+            displayLetter,
+          );
       });
   }
 
+  /* ==========================================================================
+     Backend Alphabet Value
+     ========================================================================== */
+
   function getBackendLetter() {
     if (
-      state.backendLetterOverride !==
+      state
+        .backendLetterOverride !==
       null
     ) {
-      return state.backendLetterOverride;
+      return state
+        .backendLetterOverride;
     }
 
     const selectedLetter =
@@ -1596,10 +1822,19 @@
       return "";
     }
 
+    /*
+     * Legacy Arabic behavior:
+     *
+     * arabicMap[letter] + ""
+     *
+     * Array#toString joins values with commas.
+     */
     if (
       String(
-        CONFIG.locale || "",
-      ).toLowerCase() === "ar"
+        CONFIG.locale ||
+          "",
+      ).toLowerCase() ===
+      "ar"
     ) {
       const normalizedLetter =
         normalizeLetter(
@@ -1607,17 +1842,12 @@
         );
 
       const aliases =
-        state.arabicLetterToAliases.get(
-          normalizedLetter,
-        );
+        state
+          .arabicLetterToAliases
+          .get(
+            normalizedLetter,
+          );
 
-      /*
-       * Legacy behavior:
-       *
-       * arabicMap[letter] + ""
-       *
-       * Array#toString joins aliases with commas.
-       */
       if (
         aliases &&
         aliases.length
@@ -1629,14 +1859,18 @@
     return selectedLetter;
   }
 
-  function normalizeLetter(value) {
-    return String(value || "")
+  function normalizeLetter(
+    value,
+  ) {
+    return String(
+      value || "",
+    )
       .trim()
       .toLocaleUpperCase();
   }
 
   /* ==========================================================================
-     Sector State
+     Initial Sector Options
      ========================================================================== */
 
   function captureInitialSectorOptions() {
@@ -1657,17 +1891,24 @@
     state.initialSectorOptions =
       Array.from(
         select.options,
-      ).map((option) => ({
-        value:
-          option.value,
+      ).map(
+        (option) => ({
+          value:
+            option.value,
 
-        text:
-          option.text,
+          text:
+            option.text,
 
-        selected:
-          option.defaultSelected,
-      }));
+          selected:
+            option
+              .defaultSelected,
+        }),
+      );
   }
+
+  /* ==========================================================================
+     Restore Initial Sector Options
+     ========================================================================== */
 
   function restoreInitialSectorOptions() {
     const select =
@@ -1691,8 +1932,14 @@
 
     select.value = "All";
 
-    notifySelectChanged(select);
+    notifySelectChanged(
+      select,
+    );
   }
+
+  /* ==========================================================================
+     Market -> Sector AJAX
+     ========================================================================== */
 
   async function loadSectorsByMarket(
     marketType,
@@ -1709,15 +1956,14 @@
       )
     ) {
       await loadCompanies();
+
       return;
     }
 
     abortSectorRequest();
 
     /*
-     * The default Market control uses an empty value.
-     *
-     * Restore the server-rendered sector options in that state.
+     * Default / all markets.
      */
     if (!marketType) {
       restoreInitialSectorOptions();
@@ -1727,7 +1973,9 @@
       return;
     }
 
-    if (!URLS.sectorsByMarket) {
+    if (
+      !URLS.sectorsByMarket
+    ) {
       console.error(
         "IssuerDirectory: sectorsByMarket URL is missing.",
       );
@@ -1796,13 +2044,16 @@
 
           options.push({
             value:
-              sector.pk_rf_sector !=
+              sector
+                .pk_rf_sector !=
               null
-                ? sector.pk_rf_sector
+                ? sector
+                    .pk_rf_sector
                 : "",
 
             text:
-              sector.name != null
+              sector.name !=
+              null
                 ? sector.name
                 : "",
 
@@ -1827,15 +2078,16 @@
       /*
        * Legacy flow:
        *
-       * market change
-       *   -> sectors request
-       *   -> company request
+       * market
+       *   -> sectors
+       *   -> companies
        */
       await loadCompanies();
     } catch (error) {
       if (
         error &&
-        error.name === "AbortError"
+        error.name ===
+          "AbortError"
       ) {
         return;
       }
@@ -1859,7 +2111,9 @@
   }
 
   function abortSectorRequest() {
-    if (!state.sectorRequest) {
+    if (
+      !state.sectorRequest
+    ) {
       return;
     }
 
@@ -1883,7 +2137,7 @@
   }
 
   /* ==========================================================================
-     Company Request
+     Company AJAX
      ========================================================================== */
 
   async function loadCompanies() {
@@ -1906,7 +2160,7 @@
     setBusy(true);
 
     /*
-     * Legacy backend contract.
+     * Exact legacy backend contract.
      */
     const requestData = {
       marketType:
@@ -1958,12 +2212,12 @@
       );
 
       /*
-       * AJAX replaced result groups.
+       * AJAX replaced the result groups.
        */
       refreshDirectory();
 
       /*
-       * Pagination applies to the dataset returned by the backend.
+       * Pagination runs on the backend result set.
        */
       renderPage(1);
     } catch (error) {
@@ -1981,6 +2235,7 @@
       );
 
       state.companies = [];
+
       state.currentPage = 1;
 
       renderDirectory(
@@ -2004,7 +2259,9 @@
   }
 
   function abortCompanyRequest() {
-    if (!state.companyRequest) {
+    if (
+      !state.companyRequest
+    ) {
       return;
     }
 
@@ -2015,7 +2272,7 @@
   }
 
   /* ==========================================================================
-     Request Helpers
+     POST Form Request
      ========================================================================== */
 
   async function postForm(
@@ -2026,9 +2283,7 @@
     const body =
       new URLSearchParams();
 
-    Object.entries(
-      data,
-    ).forEach(
+    Object.entries(data).forEach(
       ([key, value]) => {
         body.append(
           key,
@@ -2040,25 +2295,28 @@
     );
 
     const response =
-      await fetch(url, {
-        method:
-          "POST",
+      await fetch(
+        url,
+        {
+          method:
+            "POST",
 
-        credentials:
-          "same-origin",
+          credentials:
+            "same-origin",
 
-        signal,
+          signal,
 
-        headers: {
-          "Content-Type":
-            "application/x-www-form-urlencoded; charset=UTF-8",
+          headers: {
+            "Content-Type":
+              "application/x-www-form-urlencoded; charset=UTF-8",
 
-          "X-Requested-With":
-            "XMLHttpRequest",
+            "X-Requested-With":
+              "XMLHttpRequest",
+          },
+
+          body,
         },
-
-        body,
-      });
+      );
 
     if (!response.ok) {
       throw new Error(
@@ -2066,12 +2324,21 @@
       );
     }
 
+    const text =
+      await response.text();
+
     return parseJsonResponse(
-      await response.text(),
+      text,
     );
   }
 
-  function parseJsonResponse(value) {
+  /* ==========================================================================
+     JSON Response
+     ========================================================================== */
+
+  function parseJsonResponse(
+    value,
+  ) {
     if (
       value === null ||
       value === undefined
@@ -2098,7 +2365,7 @@
         JSON.parse(text);
 
       /*
-       * Tolerate double encoded JSON.
+       * Tolerate accidentally double-encoded JSON.
        */
       if (
         typeof parsed ===
@@ -2108,7 +2375,7 @@
           return JSON.parse(
             parsed,
           );
-        } catch (nestedError) {
+        } catch {
           return parsed;
         }
       }
@@ -2128,7 +2395,9 @@
      Directory Rendering
      ========================================================================== */
 
-  function renderDirectory(companies) {
+  function renderDirectory(
+    companies,
+  ) {
     const grid =
       document.querySelector(
         SELECTORS.grid,
@@ -2164,7 +2433,10 @@
     grid.innerHTML =
       groups
         .map(
-          (group, index) =>
+          (
+            group,
+            index,
+          ) =>
             renderGridGroup(
               group,
               index,
@@ -2175,7 +2447,10 @@
     list.innerHTML =
       groups
         .map(
-          (group, index) =>
+          (
+            group,
+            index,
+          ) =>
             renderListGroup(
               group,
               index,
@@ -2184,7 +2459,13 @@
         .join("");
   }
 
-  function groupCompanies(companies) {
+  /* ==========================================================================
+     Group Companies
+     ========================================================================== */
+
+  function groupCompanies(
+    companies,
+  ) {
     const groups =
       new Map();
 
@@ -2228,7 +2509,13 @@
     );
   }
 
-  function sortGroups(groups) {
+  /* ==========================================================================
+     Group Sorting
+     ========================================================================== */
+
+  function sortGroups(
+    groups,
+  ) {
     const alphabetOrder =
       getAlphabetOrder();
 
@@ -2257,22 +2544,31 @@
           );
         }
 
-        if (indexA !== -1) {
+        if (
+          indexA !== -1
+        ) {
           return -1;
         }
 
-        if (indexB !== -1) {
+        if (
+          indexB !== -1
+        ) {
           return 1;
         }
 
-        return groupA.letter.localeCompare(
-          groupB.letter,
-          CONFIG.locale ||
-            undefined,
-        );
+        return groupA.letter
+          .localeCompare(
+            groupB.letter,
+            CONFIG.locale ||
+              undefined,
+          );
       },
     );
   }
+
+  /* ==========================================================================
+     Alphabet Order
+     ========================================================================== */
 
   function getAlphabetOrder() {
     return Array.from(
@@ -2280,17 +2576,24 @@
         `${SELECTORS.alphabet} [data-directory-letter]`,
       ),
     )
-      .map((control) =>
-        normalizeLetter(
-          control.getAttribute(
-            "data-directory-letter",
+      .map(
+        (control) =>
+          normalizeLetter(
+            control.getAttribute(
+              "data-directory-letter",
+            ),
           ),
-        ),
       )
       .filter(Boolean);
   }
 
-  function resolveCompanyLetter(company) {
+  /* ==========================================================================
+     Resolve Company Letter
+     ========================================================================== */
+
+  function resolveCompanyLetter(
+    company,
+  ) {
     const name =
       getCompanyName(
         company,
@@ -2308,7 +2611,9 @@
         name.trim(),
       );
 
-    if (!characters.length) {
+    if (
+      !characters.length
+    ) {
       return "#";
     }
 
@@ -2317,14 +2622,22 @@
         characters[0],
       );
 
+    /*
+     * Arabic aliases are normalized back to the
+     * displayed alphabet character.
+     */
     if (
-      state.arabicAliasToLetter.has(
-        firstCharacter,
-      )
+      state
+        .arabicAliasToLetter
+        .has(
+          firstCharacter,
+        )
     ) {
-      return state.arabicAliasToLetter.get(
-        firstCharacter,
-      );
+      return state
+        .arabicAliasToLetter
+        .get(
+          firstCharacter,
+        );
     }
 
     return (
@@ -2365,6 +2678,7 @@
         data-directory-group="${escapeAttribute(group.letter)}"
       >
         <header class="directory-group__header">
+
           <h3
             id="${escapeAttribute(headingId)}"
             class="directory-group__title"
@@ -2375,11 +2689,15 @@
           <span class="directory-group__count">
             ${group.items.length}
           </span>
+
         </header>
 
-        <ul class="directory-results__collection directory-results__collection--grid">
+        <ul
+          class="directory-results__collection directory-results__collection--grid"
+        >
           ${items}
         </ul>
+
       </section>
     `;
   }
@@ -2468,18 +2786,22 @@
               <div class="issuer-card__identity-content">
 
                 <h4 class="issuer-card__name">
+
                   <a
                     class="issuer-card__name-link"
                     href="${escapeAttribute(profileUrl)}"
                   >
                     ${escapeHtml(name)}
                   </a>
+
                 </h4>
 
                 <div class="issuer-card__symbol">
+
                   <span class="issuer-card__symbol-value">
                     ${escapeHtml(symbol)}
                   </span>
+
                 </div>
 
               </div>
@@ -2531,9 +2853,11 @@
                   )}
                 </dt>
 
-                <dd class="${escapeAttribute(
-                  movement.className,
-                )}">
+                <dd
+                  class="${escapeAttribute(
+                    movement.className,
+                  )}"
+                >
                   ${escapeHtml(
                     movement.text,
                   )}
@@ -2699,12 +3023,14 @@
           <div class="issuer-row__identity-content">
 
             <h4 class="issuer-row__name">
+
               <a
                 class="issuer-row__name-link"
                 href="${escapeAttribute(profileUrl)}"
               >
                 ${escapeHtml(name)}
               </a>
+
             </h4>
 
             <span class="issuer-row__code">
@@ -2754,9 +3080,11 @@
             )}
           </span>
 
-          <span class="${escapeAttribute(
-            movement.className,
-          )}">
+          <span
+            class="${escapeAttribute(
+              movement.className,
+            )}"
+          >
             ${escapeHtml(
               movement.text,
             )}
@@ -2793,7 +3121,9 @@
     baseClass,
   ) {
     const numericValue =
-      Number.parseFloat(value);
+      Number.parseFloat(
+        value,
+      );
 
     if (
       !Number.isFinite(
@@ -2809,7 +3139,9 @@
       };
     }
 
-    if (numericValue > 0) {
+    if (
+      numericValue > 0
+    ) {
       return {
         className:
           `${baseClass} price-up has-icon icon-triangle-up`,
@@ -2819,7 +3151,9 @@
       };
     }
 
-    if (numericValue < 0) {
+    if (
+      numericValue < 0
+    ) {
       return {
         className:
           `${baseClass} price-down has-icon icon-triangle-down`,
@@ -2839,10 +3173,12 @@
   }
 
   /* ==========================================================================
-     Pagination
+     Pagination Click
      ========================================================================== */
 
-  function handlePaginationClick(event) {
+  function handlePaginationClick(
+    event,
+  ) {
     const pageButton =
       event.target.closest(
         "[data-directory-page]",
@@ -2857,7 +3193,9 @@
         );
 
       if (
-        Number.isInteger(page)
+        Number.isInteger(
+          page,
+        )
       ) {
         renderPage(page);
       }
@@ -2872,10 +3210,12 @@
 
     if (previousButton) {
       if (
-        state.currentPage > 1
+        state.currentPage >
+        1
       ) {
         renderPage(
-          state.currentPage - 1,
+          state.currentPage -
+            1,
         );
       }
 
@@ -2893,7 +3233,8 @@
 
     const totalPages =
       getTotalPages(
-        state.companies.length,
+        state.companies
+          .length,
       );
 
     if (
@@ -2901,12 +3242,19 @@
       totalPages
     ) {
       renderPage(
-        state.currentPage + 1,
+        state.currentPage +
+          1,
       );
     }
   }
 
-  function renderPage(pageNumber) {
+  /* ==========================================================================
+     Pagination
+     ========================================================================== */
+
+  function renderPage(
+    pageNumber,
+  ) {
     const totalItems =
       state.companies.length;
 
@@ -2915,15 +3263,19 @@
         totalItems,
       );
 
-    if (totalPages === 0) {
-      state.currentPage = 1;
+    if (
+      totalPages === 0
+    ) {
+      state.currentPage =
+        1;
     } else {
       state.currentPage =
         Math.max(
           1,
           Math.min(
-            Number(pageNumber) ||
-              1,
+            Number(
+              pageNumber,
+            ) || 1,
             totalPages,
           ),
         );
@@ -2940,7 +3292,6 @@
       Math.min(
         startIndex +
           PAGE_SIZE,
-
         totalItems,
       );
 
@@ -2948,8 +3299,10 @@
       new Set();
 
     for (
-      let index = startIndex;
-      index < endIndex;
+      let index =
+        startIndex;
+      index <
+      endIndex;
       index += 1
     ) {
       visibleIndexes.add(
@@ -2996,16 +3349,26 @@
     );
   }
 
+  /* ==========================================================================
+     Total Pages
+     ========================================================================== */
+
   function getTotalPages(
     totalItems,
   ) {
-    return totalItems
-      ? Math.ceil(
-          totalItems /
-            PAGE_SIZE,
-        )
-      : 0;
+    if (!totalItems) {
+      return 0;
+    }
+
+    return Math.ceil(
+      totalItems /
+        PAGE_SIZE,
+    );
   }
+
+  /* ==========================================================================
+     Apply Page Visibility
+     ========================================================================== */
 
   function applyPageVisibility(
     panel,
@@ -3024,49 +3387,56 @@
       .querySelectorAll(
         SELECTORS.group,
       )
-      .forEach((group) => {
-        let hasVisibleItem =
-          false;
+      .forEach(
+        (group) => {
+          let hasVisibleItem =
+            false;
 
-        group
-          .querySelectorAll(
-            SELECTORS.resultItem,
-          )
-          .forEach((item) => {
-            const index =
-              Number(
-                item.dataset
-                  .directoryIndex,
-              );
+          group
+            .querySelectorAll(
+              SELECTORS.resultItem,
+            )
+            .forEach(
+              (item) => {
+                const index =
+                  Number(
+                    item
+                      .dataset
+                      .directoryIndex,
+                  );
 
-            const visible =
-              Number.isInteger(
-                index,
-              ) &&
-              visibleIndexes.has(
-                index,
-              );
+                const visible =
+                  Number
+                    .isInteger(
+                      index,
+                    ) &&
+                  visibleIndexes
+                    .has(index);
 
-            item.hidden =
-              !visible;
+                item.hidden =
+                  !visible;
 
-            if (visible) {
-              hasVisibleItem =
-                true;
-            }
-          });
+                if (visible) {
+                  hasVisibleItem =
+                    true;
+                }
+              },
+            );
 
-        /*
-         * DirectoryAlphabet owns group.hidden.
-         *
-         * Pagination only suppresses groups that do not contain
-         * an item on the current page.
-         */
-        group.style.display =
-          hasVisibleItem
-            ? ""
-            : "none";
-      });
+          /*
+           * Do not modify group.hidden here.
+           *
+           * DirectoryAlphabet owns semantic
+           * alphabet visibility.
+           *
+           * Pagination only controls display.
+           */
+          group.style.display =
+            hasVisibleItem
+              ? ""
+              : "none";
+        },
+      );
   }
 
   /* ==========================================================================
@@ -3168,27 +3538,26 @@
       return;
     }
 
+    /*
+     * Legacy compatibility fields.
+     */
     setControlValue(
       SELECTORS.pageLimit,
       PAGE_SIZE,
     );
 
-    /*
-     * Legacy compatibility:
-     *
-     * recordsCountId stores total pages.
-     */
     setControlValue(
       SELECTORS.pageCount,
       totalPages,
     );
 
-    if (totalPages <= 1) {
+    if (
+      totalPages <= 1
+    ) {
       navigation.hidden =
         true;
 
-      list.innerHTML =
-        "";
+      list.innerHTML = "";
 
       return;
     }
@@ -3197,6 +3566,10 @@
       false;
 
     const items = [];
+
+    /* --------------------------------------------------------------------------
+       Previous
+       -------------------------------------------------------------------------- */
 
     const previousDisabled =
       currentPage <= 1;
@@ -3226,37 +3599,67 @@
       </li>
     `);
 
-    getPaginationItems(
-      currentPage,
-      totalPages,
-    ).forEach((page) => {
-      const isCurrent =
-        page ===
-        currentPage;
+    /* --------------------------------------------------------------------------
+       Page Numbers / Ellipsis
+       -------------------------------------------------------------------------- */
 
-      items.push(`
-        <li class="pagination__item">
+    const pageItems =
+      getPaginationItems(
+        currentPage,
+        totalPages,
+      );
 
-          <button
-            class="pagination__link${
-              isCurrent
-                ? " is-current"
-                : ""
-            }"
-            type="button"
-            data-directory-page="${page}"
-            ${
-              isCurrent
-                ? 'aria-current="page"'
-                : ""
-            }
-          >
-            ${page}
-          </button>
+    pageItems.forEach(
+      (page) => {
+        if (
+          page === null
+        ) {
+          items.push(`
+            <li
+              class="pagination__item pagination__item--ellipsis"
+              aria-hidden="true"
+            >
+              <span class="pagination__ellipsis">
+                …
+              </span>
+            </li>
+          `);
 
-        </li>
-      `);
-    });
+          return;
+        }
+
+        const isCurrent =
+          page ===
+          currentPage;
+
+        items.push(`
+          <li class="pagination__item">
+
+            <button
+              class="pagination__link${
+                isCurrent
+                  ? " is-current"
+                  : ""
+              }"
+              type="button"
+              data-directory-page="${page}"
+              ${
+                isCurrent
+                  ? 'aria-current="page"'
+                  : ""
+              }
+            >
+              ${page}
+            </button>
+
+          </li>
+        `);
+      },
+    );
+
+    /* --------------------------------------------------------------------------
+       Next
+       -------------------------------------------------------------------------- */
 
     const nextDisabled =
       currentPage >=
@@ -3291,67 +3694,133 @@
       items.join("");
   }
 
+  /* ==========================================================================
+     Pagination Window
+     ========================================================================== */
+
   function getPaginationItems(
     currentPage,
     totalPages,
   ) {
-    const count =
-      Math.min(
-        MAX_PAGE_BUTTONS,
-        totalPages,
-      );
+    /*
+     * MAX_PAGE_BUTTONS = 3
+     *
+     * Examples:
+     *
+     * 1 2 3 … 18
+     *
+     * 1 … 7 8 9 … 18
+     *
+     * 1 … 16 17 18
+     */
 
-    if (count <= 0) {
-      return [];
+    if (
+      totalPages <=
+      MAX_PAGE_BUTTONS +
+        2
+    ) {
+      return Array.from(
+        {
+          length:
+            totalPages,
+        },
+        (_, index) =>
+          index + 1,
+      );
     }
 
-    let start =
-      currentPage -
+    const pages =
+      new Set([
+        1,
+        totalPages,
+      ]);
+
+    const half =
       Math.floor(
-        count / 2,
+        MAX_PAGE_BUTTONS /
+          2,
+      );
+
+    let start =
+      Math.max(
+        1,
+        currentPage -
+          half,
       );
 
     let end =
-      start +
-      count -
-      1;
+      Math.min(
+        totalPages,
+        start +
+          MAX_PAGE_BUTTONS -
+          1,
+      );
 
-    if (start < 1) {
-      start = 1;
-      end = count;
-    }
-
+    /*
+     * Shift window left near the end.
+     */
     if (
-      end >
-      totalPages
+      end -
+        start +
+        1 <
+      MAX_PAGE_BUTTONS
     ) {
-      end =
-        totalPages;
-
       start =
         Math.max(
           1,
           end -
-            count +
+            MAX_PAGE_BUTTONS +
             1,
         );
     }
-
-    const pages = [];
 
     for (
       let page = start;
       page <= end;
       page += 1
     ) {
-      pages.push(page);
+      pages.add(page);
     }
 
-    return pages;
+    const sortedPages =
+      Array.from(
+        pages,
+      ).sort(
+        (a, b) =>
+          a - b,
+      );
+
+    const result = [];
+
+    sortedPages.forEach(
+      (
+        page,
+        index,
+      ) => {
+        if (
+          index > 0 &&
+          page -
+            sortedPages[
+              index - 1
+            ] >
+            1
+        ) {
+          result.push(
+            null,
+          );
+        }
+
+        result.push(
+          page,
+        );
+      },
+    );
+
+    return result;
   }
 
   /* ==========================================================================
-     UI State
+     Empty State
      ========================================================================== */
 
   function updateEmptyState(
@@ -3386,33 +3855,53 @@
     }
   }
 
-  function setBusy(isBusy) {
+  /* ==========================================================================
+     Busy State
+     ========================================================================== */
+
+  function setBusy(
+    isBusy,
+  ) {
     const results =
       document.querySelector(
         SELECTORS.results,
       );
 
     if (
-      results instanceof
-      HTMLElement
+      !(
+        results instanceof
+        HTMLElement
+      )
     ) {
-      results.setAttribute(
-        "aria-busy",
-        String(isBusy),
-      );
+      return;
     }
+
+    results.setAttribute(
+      "aria-busy",
+      String(isBusy),
+    );
   }
+
+  /* ==========================================================================
+     Directory Refresh Bridge
+     ========================================================================== */
 
   function refreshDirectory() {
     if (
       window.Theme &&
       window.Theme.directory &&
-      typeof window.Theme.directory
-        .refresh === "function"
+      typeof window
+        .Theme
+        .directory
+        .refresh ===
+        "function"
     ) {
-      window.Theme.directory.refresh(
-        document,
-      );
+      window
+        .Theme
+        .directory
+        .refresh(
+          document,
+        );
     }
   }
 
@@ -3433,9 +3922,11 @@
     }
 
     /*
-     * Notify the shared custom-select component after programmatic
-     * option/value replacement, while preventing this controller from
-     * issuing an extra company API request.
+     * Notify the shared custom-select implementation
+     * after programmatic option/value replacement.
+     *
+     * Prevent this controller from issuing a duplicate
+     * company request for that synthetic change.
      */
     state.suppressSectorChange =
       true;
@@ -3460,7 +3951,9 @@
      Logo Fallback
      ========================================================================== */
 
-  function handleImageError(event) {
+  function handleImageError(
+    event,
+  ) {
     const image =
       event.target;
 
@@ -3471,15 +3964,21 @@
       ) ||
       !image.matches(
         SELECTORS.logo,
-      ) ||
-      image.dataset
-        .fallbackApplied ===
-        "true"
+      )
     ) {
       return;
     }
 
-    image.dataset.fallbackApplied =
+    if (
+      image.dataset
+        .fallbackApplied ===
+      "true"
+    ) {
+      return;
+    }
+
+    image.dataset
+      .fallbackApplied =
       "true";
 
     image.src =
@@ -3487,7 +3986,7 @@
   }
 
   /* ==========================================================================
-     Select Helpers
+     Sector Option Rendering
      ========================================================================== */
 
   function replaceSelectOptions(
@@ -3504,7 +4003,8 @@
     }
 
     const fragment =
-      document.createDocumentFragment();
+      document
+        .createDocumentFragment();
 
     options.forEach(
       (item) => {
@@ -3515,14 +4015,16 @@
 
         option.value =
           String(
-            item.value != null
+            item.value !=
+            null
               ? item.value
               : "",
           );
 
         option.textContent =
           String(
-            item.text != null
+            item.text !=
+            null
               ? item.text
               : "",
           );
@@ -3547,6 +4049,10 @@
       fragment,
     );
   }
+
+  /* ==========================================================================
+     Form Helpers
+     ========================================================================== */
 
   function getControlValue(
     selector,
@@ -3602,16 +4108,20 @@
   }
 
   /* ==========================================================================
-     Company Helpers
+     Company Name
      ========================================================================== */
 
-  function getCompanyName(company) {
+  function getCompanyName(
+    company,
+  ) {
     if (!company) {
       return "—";
     }
 
     /*
-     * Preserve the legacy backend property typo: lonaName.
+     * Preserve legacy backend typo:
+     *
+     * lonaName
      */
     return getDisplayValue(
       company.lonaName ||
@@ -3621,7 +4131,13 @@
     );
   }
 
-  function getDisplayValue(value) {
+  /* ==========================================================================
+     Display Value
+     ========================================================================== */
+
+  function getDisplayValue(
+    value,
+  ) {
     if (
       value === null ||
       value === undefined ||
@@ -3631,8 +4147,14 @@
       return "—";
     }
 
-    return String(value).trim();
+    return String(
+      value,
+    ).trim();
   }
+
+  /* ==========================================================================
+     Company Logo
+     ========================================================================== */
 
   function getCompanyLogoUrl(
     company,
@@ -3650,17 +4172,21 @@
     }
 
     return (
-      `${LOGO_BASE_URL}` +
-      `${encodeURIComponent(symbol)}` +
+      LOGO_BASE_URL +
+      encodeURIComponent(
+        symbol,
+      ) +
       ".png"
     );
   }
 
   /* ==========================================================================
-     URL Safety
+     Profile URL
      ========================================================================== */
 
-  function sanitizeUrl(value) {
+  function sanitizeUrl(
+    value,
+  ) {
     const url =
       String(
         value || "",
@@ -3670,12 +4196,19 @@
       return "#";
     }
 
+    /*
+     * Allow:
+     *
+     * - application-relative paths
+     * - anchors
+     * - HTTP
+     * - HTTPS
+     */
     if (
       url.startsWith("/") ||
       url.startsWith("#") ||
-      /^https?:\/\//i.test(
-        url,
-      )
+      /^https?:\/\//i
+        .test(url)
     ) {
       return url;
     }
@@ -3684,7 +4217,7 @@
   }
 
   /* ==========================================================================
-     Utilities
+     Text Helper
      ========================================================================== */
 
   function setText(
@@ -3695,11 +4228,17 @@
       .querySelectorAll(
         selector,
       )
-      .forEach((element) => {
-        element.textContent =
-          String(value);
-      });
+      .forEach(
+        (element) => {
+          element.textContent =
+            String(value);
+        },
+      );
   }
+
+  /* ==========================================================================
+     Integer Helper
+     ========================================================================== */
 
   function getPositiveInteger(
     value,
@@ -3720,6 +4259,10 @@
       ? number
       : fallback;
   }
+
+  /* ==========================================================================
+     Debounce
+     ========================================================================== */
 
   function debounce(
     callback,
@@ -3748,7 +4291,13 @@
     };
   }
 
-  function escapeHtml(value) {
+  /* ==========================================================================
+     HTML Escaping
+     ========================================================================== */
+
+  function escapeHtml(
+    value,
+  ) {
     return String(
       value == null
         ? ""
@@ -3776,12 +4325,16 @@
       );
   }
 
-  function escapeAttribute(value) {
-    return escapeHtml(value);
+  function escapeAttribute(
+    value,
+  ) {
+    return escapeHtml(
+      value,
+    );
   }
 
   /* ==========================================================================
-     Public Hook
+     Public API
      ========================================================================== */
 
   window.IssuerDirectory = {
