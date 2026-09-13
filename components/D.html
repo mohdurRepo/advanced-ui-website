@@ -47,7 +47,6 @@
         nameEn: "Tadawul All Share Index",
         nameAr: "مؤشر السوق الرئيسية (تاسي)",
 
-        currency: "SAR",
         decimals: 2,
 
         chartSelector: "#tasi-chart",
@@ -63,7 +62,6 @@
         nameEn: "Parallel Market Capped Index",
         nameAr: "مؤشر السوق الموازية (نمو حد أعلى)",
 
-        currency: "SAR",
         decimals: 2,
 
         chartSelector: "#nomu-chart",
@@ -79,7 +77,6 @@
         nameEn: "Sukuk/Bonds Market Index",
         nameAr: "مؤشر سوق الصكوك / السندات",
 
-        currency: "SAR",
         decimals: 2,
 
         chartSelector: "#sukuk-chart",
@@ -95,7 +92,6 @@
         nameEn: "REITs Index",
         nameAr: "صناديق الاستثمار العقارية",
 
-        currency: "SAR",
         decimals: 2,
 
         chartSelector: "#reits-chart",
@@ -111,13 +107,16 @@
         nameEn: "MT30 Index",
         nameAr: "إم تي 30",
 
-        currency: "SAR",
         decimals: 2,
 
         chartSelector: "#mt30-chart",
         panelSelector: "#market-panel-derivatives",
       }),
     ]);
+
+    const marketByPanelId = new Map(
+      MARKETS.map((market) => [market.panelSelector.slice(1), market]),
+    );
 
     /* ==========================================================================
        Runtime
@@ -526,17 +525,14 @@
       /*
        * Inclusive reconciliation boundary.
        *
-       * The controller deliberately sends
-       * `sinceInclusive: true` and can
+       * The controller deliberately sends `sinceInclusive: true` and can
        * reconcile both:
        *
        * - a correction at the latest known timestamp
-       * - every genuinely newer point returned after
-       *   a hidden-tab pause
+       * - every genuinely newer point returned after a hidden-tab pause
        *
-       * An unchanged boundary point becomes a
-       * canonical no-op inside market-chart.js,
-       * so it does not trigger a chart redraw.
+       * An unchanged boundary point becomes a canonical no-op inside
+       * market-chart.js, so it does not trigger a chart redraw.
        */
       return snapshot.filter((point) => point[0] >= sinceTimestamp);
     }
@@ -560,28 +556,63 @@
       );
     }
 
-    function isElementVisible(element) {
-      if (
-        !element?.isConnected ||
-        element.closest("[hidden]") ||
-        element.closest('[aria-hidden="true"]')
-      ) {
-        return false;
+    function getSelectedMarket() {
+      const overview =
+        document.querySelector("[data-market-overview]") || document;
+
+      /*
+       * Primary source of truth: selected market tab.
+       *
+       * Never use chart-host geometry here. A destroyed Highstock host can
+       * temporarily have zero height while its tab is still the selected tab.
+       */
+      const selectedTab = overview.querySelector(
+        '[data-market-tabs] [role="tab"][aria-selected="true"][aria-controls]',
+      );
+
+      if (selectedTab) {
+        const market = marketByPanelId.get(
+          selectedTab.getAttribute("aria-controls"),
+        );
+
+        if (market) {
+          return market;
+        }
       }
 
-      const rect = element.getBoundingClientRect();
-
-      return Boolean(
-        element.getClientRects().length && rect.width > 0 && rect.height > 0,
+      /*
+       * Fallback for page/tab implementations that expose panel state before
+       * aria-selected is updated.
+       */
+      const revealedPanel = overview.querySelector(
+        '[data-market-detail-panel][aria-hidden="false"]',
       );
-    }
 
-    function getVisibleMarket() {
-      return (
-        MARKETS.find((market) =>
-          isElementVisible(resolveChartElement(market)),
-        ) || null
-      );
+      if (revealedPanel?.id) {
+        const market = marketByPanelId.get(revealedPanel.id);
+
+        if (market) {
+          return market;
+        }
+      }
+
+      /*
+       * Final fallback for implementations using the native hidden attribute.
+       */
+      for (const market of MARKETS) {
+        const panel = document.querySelector(market.panelSelector);
+
+        if (
+          panel &&
+          !panel.hidden &&
+          !panel.hasAttribute("hidden") &&
+          panel.getAttribute("aria-hidden") !== "true"
+        ) {
+          return market;
+        }
+      }
+
+      return null;
     }
 
     /* ==========================================================================
@@ -616,7 +647,10 @@
 
         name: getMarketName(market),
 
-        currency: market.currency,
+        /*
+         * Overview displays index values, not monetary amounts.
+         */
+        currency: "",
 
         previousClose: comparisonValue,
 
@@ -624,7 +658,6 @@
          * Overview remains intentionally simple.
          */
         mode: "trend",
-
         range: "1D",
 
         language: getLanguage(),
@@ -636,17 +669,13 @@
         maxPoints: MAX_POINTS,
 
         /*
-         * Keep the complete available
-         * intraday session visible.
+         * Keep the complete available intraday session visible.
          */
         liveWindowDuration: LIVE_WINDOW_DURATION,
 
         /*
-         * Fresh active-market creation gets
-         * one restrained initial draw.
-         *
-         * Live ticks and controller refreshes
-         * remain non-animated.
+         * Fresh active-market creation gets one restrained initial draw.
+         * Live ticks and controller refreshes remain non-animated.
          */
         animation: {
           duration: 450,
@@ -674,11 +703,6 @@
 
             rotation: 0,
 
-            /*
-             * market-chart-options.js now
-             * guarantees the real first
-             * intraday timestamp.
-             */
             showFirstLabel: true,
 
             showLastLabel: true,
@@ -800,16 +824,12 @@
           alignToInterval: true,
 
           /*
-           * Initial snapshot was fetched
-           * before Highstock creation.
+           * Initial snapshot was fetched before Highstock creation.
            */
           immediate: false,
 
           /*
            * Browser-tab visibility only.
-           *
-           * Market tabs no longer use
-           * suspension.
            */
           pauseWhenHidden: true,
 
@@ -825,8 +845,7 @@
             const points = selectLivePoints(snapshot, since);
 
             /*
-             * No newer timestamp:
-             *
+             * No valid delta:
              * true no-op.
              */
             if (!points.length) {
@@ -870,22 +889,12 @@
       }
 
       /*
-       * Immediately detach it from
-       * global state so no later callback
-       * considers this market active.
+       * Immediately detach it from global state so no later callback considers
+       * this market active.
        */
       activeRuntime = null;
 
       try {
-        /*
-         * market-chart.js destroy():
-         *
-         * - destroys live controller;
-         * - aborts active live request;
-         * - removes polling timer;
-         * - disconnects chart observers;
-         * - destroys Highstock.
-         */
         runtime.controller?.destroy();
       } catch (error) {
         console.error(
@@ -946,9 +955,8 @@
         /*
          * API first.
          *
-         * Highstock is not constructed
-         * until the selected market
-         * snapshot is available.
+         * Highstock is not constructed until the selected market snapshot
+         * is available.
          */
         initialPoints = await requestSnapshot(market, signal);
       } catch (error) {
@@ -959,9 +967,7 @@
         }
 
         /*
-         * Allow live polling to recover
-         * from a temporary initial API
-         * failure.
+         * Allow live polling to recover from a temporary initial API failure.
          */
         console.error(`${market.symbol} initial chart request failed.`, error);
       }
@@ -977,7 +983,6 @@
       try {
         controller = chartAPI.create(
           chartElement,
-
           createChartOptions(market, panel, initialPoints),
         );
 
@@ -987,11 +992,8 @@
 
         const runtime = {
           market,
-
           panel,
-
           chartElement,
-
           controller,
         };
 
@@ -1022,11 +1024,10 @@
         return;
       }
 
-      const market = getVisibleMarket();
+      const market = getSelectedMarket();
 
       /*
-       * Already exactly the market
-       * we need.
+       * Already exactly the market we need.
        */
       if (market && activeRuntime?.market?.key === market.key) {
         activeRuntime.controller?.getChart()?.reflow();
@@ -1048,18 +1049,14 @@
       const revision = ++syncRevision;
 
       /*
-       * Any previous initial request
-       * is no longer useful.
+       * Any previous initial request is no longer useful.
        */
       cancelPendingCreation();
 
       /*
-       * The old market must disappear
-       * completely.
+       * The old market must disappear completely.
        *
-       * No hidden Highcharts instance
-       * survives while the selected
-       * market loads.
+       * No hidden Highstock instance survives while the selected market loads.
        */
       destroyActiveRuntime();
 
@@ -1082,15 +1079,14 @@
       }
 
       /*
-       * The user may have selected
-       * another tab while the network
-       * request was in flight.
+       * The user may have selected another tab while the network request
+       * was in flight.
        */
       if (
         destroyed ||
         creationController.signal.aborted ||
         revision !== syncRevision ||
-        getVisibleMarket()?.key !== market.key
+        getSelectedMarket()?.key !== market.key
       ) {
         runtime?.controller?.destroy();
 
@@ -1112,13 +1108,12 @@
       }
 
       /*
-       * One frame lets the page's tab
-       * component finish updating
-       * hidden/aria/class state first.
+       * One frame lets the page's tab component finish updating:
        *
-       * Event-driven only.
-       *
-       * No MutationObserver.
+       * - aria-selected
+       * - aria-hidden
+       * - hidden
+       * - classes
        */
       syncFrame = window.requestAnimationFrame(() => {
         void synchronizeSelectedMarket();
@@ -1133,17 +1128,34 @@
       const root = document.querySelector("[data-market-overview]") || document;
 
       /*
-       * Existing tab implementation.
+       * React only to actual market-tab clicks.
        *
-       * We resolve the actually-visible
-       * market after its own click
-       * handler has completed.
+       * Range/export/utility clicks must not trigger ownership reconciliation.
        */
-      root.addEventListener("click", scheduleSelectedMarketSync, {
-        passive: true,
+      root.addEventListener(
+        "click",
+        (event) => {
+          const tab = event.target?.closest?.(
+            '[data-market-tabs] [role="tab"][aria-controls]',
+          );
 
-        signal: listenerController.signal,
-      });
+          if (
+            !tab ||
+            !root.contains(tab) ||
+            tab.disabled ||
+            tab.getAttribute("aria-disabled") === "true"
+          ) {
+            return;
+          }
+
+          scheduleSelectedMarketSync();
+        },
+        {
+          passive: true,
+
+          signal: listenerController.signal,
+        },
+      );
 
       /*
        * Bootstrap-compatible tab event.
@@ -1153,7 +1165,7 @@
       });
 
       /*
-       * Optional application-level event.
+       * Optional application-level market-view event.
        */
       root.addEventListener("marketviewchange", scheduleSelectedMarketSync, {
         signal: listenerController.signal,
@@ -1263,8 +1275,7 @@
         /*
          * Initial page:
          *
-         * fetch + create ONLY
-         * the selected market.
+         * fetch + create ONLY the selected market.
          */
         await synchronizeSelectedMarket();
 
