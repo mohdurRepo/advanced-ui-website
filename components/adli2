@@ -1170,7 +1170,6 @@
 	};
 </script>
 
-
 (function () {
   "use strict";
 
@@ -1178,16 +1177,26 @@
      Issuer Directory
      ========================================================================== */
 
-  const CONFIG = window.issuerDirectoryConfig || {};
-  const URLS = CONFIG.urls || {};
-  const LABELS = CONFIG.labels || {};
-  const LOGOS = CONFIG.logos || {};
-  const PAGINATION = CONFIG.pagination || {};
+  const CONFIG =
+    window.issuerDirectoryConfig || {};
 
-  const PAGE_SIZE = getPositiveInteger(
-    PAGINATION.pageSize,
-    20,
-  );
+  const URLS =
+    CONFIG.urls || {};
+
+  const LABELS =
+    CONFIG.labels || {};
+
+  const LOGOS =
+    CONFIG.logos || {};
+
+  const PAGINATION =
+    CONFIG.pagination || {};
+
+  const PAGE_SIZE =
+    getPositiveInteger(
+      PAGINATION.pageSize,
+      20,
+    );
 
   const MAX_PAGE_BUTTONS =
     getPositiveInteger(
@@ -1302,15 +1311,15 @@
     initialSectorOptions: [],
 
     /*
-     * Rendering:
+     * Arabic result rendering:
      *
-     * backend Arabic alias -> displayed Arabic letter
+     * backend alias -> displayed Arabic alphabet letter
      */
     arabicAliasToLetter:
       new Map(),
 
     /*
-     * Backend request:
+     * Arabic backend request:
      *
      * displayed Arabic letter -> backend aliases[]
      */
@@ -1320,17 +1329,37 @@
     /*
      * Legacy distinction:
      *
-     * Explicit All alphabet click:
+     * Explicit alphabet "All":
      *   letter = "All"
      *
-     * Reset / market / sector / symbol:
+     * Market / sector / symbol / reset:
      *   letter = ""
      */
-    backendLetterOverride: null,
+    backendLetterOverride:
+      null,
 
-    suppressSectorChange: false,
-    resetting: false,
-    initialized: false,
+    /*
+     * Used when we programmatically dispatch change
+     * events only to synchronize shared custom-select UI.
+     */
+    suppressFilterChange:
+      false,
+
+    /*
+     * Prevent the alphabet component's native reset event
+     * from starting a duplicate company request.
+     */
+    resetting:
+      false,
+
+    /*
+     * Cancelable symbol debounce handler.
+     */
+    symbolInputHandler:
+      null,
+
+    initialized:
+      false,
   };
 
   /* ==========================================================================
@@ -1356,15 +1385,19 @@
       return;
     }
 
-    state.initialized = true;
+    state.initialized =
+      true;
 
     captureInitialSectorOptions();
+
     buildArabicCharacterMaps();
+
     bindEvents();
 
     /*
      * Legacy behavior:
-     * load companies immediately.
+     *
+     * Company data loads immediately when the page opens.
      */
     loadCompanies();
   }
@@ -1408,23 +1441,38 @@
       return;
     }
 
+    /* --------------------------------------------------------------------------
+       Form Submit
+       -------------------------------------------------------------------------- */
+
     form.addEventListener(
       "submit",
       handleFormSubmit,
     );
 
+    /* --------------------------------------------------------------------------
+       Symbol Search
+       -------------------------------------------------------------------------- */
+
     if (
       symbol instanceof
       HTMLInputElement
     ) {
-      symbol.addEventListener(
-        "input",
+      state.symbolInputHandler =
         debounce(
           handleSymbolChange,
           500,
-        ),
+        );
+
+      symbol.addEventListener(
+        "input",
+        state.symbolInputHandler,
       );
     }
+
+    /* --------------------------------------------------------------------------
+       Market
+       -------------------------------------------------------------------------- */
 
     if (
       market instanceof
@@ -1436,6 +1484,10 @@
       );
     }
 
+    /* --------------------------------------------------------------------------
+       Sector
+       -------------------------------------------------------------------------- */
+
     if (
       sector instanceof
       HTMLSelectElement
@@ -1446,15 +1498,27 @@
       );
     }
 
+    /* --------------------------------------------------------------------------
+       Reset
+       -------------------------------------------------------------------------- */
+
     form.addEventListener(
       "reset",
       handleFormReset,
     );
 
+    /* --------------------------------------------------------------------------
+       Alphabet
+       -------------------------------------------------------------------------- */
+
     document.addEventListener(
       EVENTS.alphabetChange,
       handleAlphabetChange,
     );
+
+    /* --------------------------------------------------------------------------
+       Pagination
+       -------------------------------------------------------------------------- */
 
     if (
       paginationList instanceof
@@ -1465,6 +1529,10 @@
         handlePaginationClick,
       );
     }
+
+    /* --------------------------------------------------------------------------
+       Logo Fallback
+       -------------------------------------------------------------------------- */
 
     document.addEventListener(
       "error",
@@ -1492,6 +1560,13 @@
      ========================================================================== */
 
   function handleSymbolChange() {
+    if (
+      state.suppressFilterChange ||
+      state.resetting
+    ) {
+      return;
+    }
+
     resetAlphabet();
 
     loadCompanies();
@@ -1504,10 +1579,17 @@
   function handleMarketChange(
     event,
   ) {
+    if (
+      state.suppressFilterChange ||
+      state.resetting
+    ) {
+      return;
+    }
+
     resetAlphabet();
 
     /*
-     * Prevent an older company request from rendering
+     * Do not allow an older company request to render
      * while sectors for the new market are loading.
      */
     abortCompanyRequest();
@@ -1527,7 +1609,8 @@
 
   function handleSectorChange() {
     if (
-      state.suppressSectorChange
+      state.suppressFilterChange ||
+      state.resetting
     ) {
       return;
     }
@@ -1538,38 +1621,199 @@
   }
 
   /* ==========================================================================
-     Form Reset
+     Complete Form Reset
      ========================================================================== */
 
   function handleFormReset() {
-    state.resetting = true;
+    /*
+     * One reset click must restore:
+     *
+     * - symbol
+     * - market
+     * - sector
+     * - alphabet
+     * - page
+     *
+     * and issue only ONE company request.
+     */
+
+    state.resetting =
+      true;
 
     state.backendLetterOverride =
       null;
+
+    /*
+     * A pending 500ms symbol search must not fire
+     * after reset and cause a second request.
+     */
+    state.symbolInputHandler
+      ?.cancel?.();
 
     abortSectorRequest();
     abortCompanyRequest();
 
     /*
-     * Native form reset values are applied after
-     * the reset event.
+     * Native HTML form reset values are applied after
+     * the reset event itself.
      */
     window.requestAnimationFrame(
       () => {
-        restoreInitialSectorOptions();
+        const symbol =
+          document.querySelector(
+            SELECTORS.symbol,
+          );
 
-        state.currentPage = 1;
+        const market =
+          document.querySelector(
+            SELECTORS.market,
+          );
 
+        const sector =
+          document.querySelector(
+            SELECTORS.sector,
+          );
+
+        const letterInput =
+          document.querySelector(
+            SELECTORS.letterInput,
+          );
+
+        /* ----------------------------------------------------------------------
+           Symbol
+           ---------------------------------------------------------------------- */
+
+        if (
+          symbol instanceof
+          HTMLInputElement
+        ) {
+          symbol.value =
+            "";
+        }
+
+        /* ----------------------------------------------------------------------
+           Market
+           ---------------------------------------------------------------------- */
+
+        if (
+          market instanceof
+          HTMLSelectElement
+        ) {
+          market.value =
+            "";
+        }
+
+        /* ----------------------------------------------------------------------
+           Sector
+           ---------------------------------------------------------------------- */
+
+        /*
+         * Restore the original server-rendered sectors,
+         * but do not dispatch a change event yet.
+         */
+        restoreInitialSectorOptions({
+          notify:
+            false,
+        });
+
+        if (
+          sector instanceof
+          HTMLSelectElement
+        ) {
+          sector.value =
+            "All";
+        }
+
+        /* ----------------------------------------------------------------------
+           Alphabet
+           ---------------------------------------------------------------------- */
+
+        if (
+          letterInput instanceof
+          HTMLInputElement
+        ) {
+          letterInput.value =
+            "";
+        }
+
+        state.backendLetterOverride =
+          null;
+
+        state.currentPage =
+          1;
+
+        /*
+         * Synchronize the DirectoryAlphabet component
+         * with the cleared hidden value.
+         */
         refreshDirectory();
 
+        /* ----------------------------------------------------------------------
+           Custom Select UI Synchronization
+           ---------------------------------------------------------------------- */
+
+        /*
+         * The native values are already correct.
+         *
+         * Dispatch change events only so the shared
+         * custom-select component can refresh its
+         * displayed labels.
+         *
+         * Our own market/sector handlers are suppressed.
+         */
+        state.suppressFilterChange =
+          true;
+
+        try {
+          if (
+            market instanceof
+            HTMLSelectElement
+          ) {
+            market.dispatchEvent(
+              new Event(
+                "change",
+                {
+                  bubbles:
+                    true,
+                },
+              ),
+            );
+          }
+
+          if (
+            sector instanceof
+            HTMLSelectElement
+          ) {
+            sector.dispatchEvent(
+              new Event(
+                "change",
+                {
+                  bubbles:
+                    true,
+                },
+              ),
+            );
+          }
+        } finally {
+          state.suppressFilterChange =
+            false;
+        }
+
+        /* ----------------------------------------------------------------------
+           Reload
+           ---------------------------------------------------------------------- */
+
+        /*
+         * One reset click = one company request.
+         */
         loadCompanies();
 
         /*
-         * DirectoryAlphabet also handles the same
+         * DirectoryAlphabet also reacts to the native
          * form reset in requestAnimationFrame().
          *
-         * Keep the alphabet-change handler suppressed
-         * until that work has completed.
+         * Keep alphabet-change suppressed until all
+         * first-frame reset work has completed.
          */
         window.requestAnimationFrame(
           () => {
@@ -1588,6 +1832,10 @@
   function handleAlphabetChange(
     event,
   ) {
+    /*
+     * Ignore alphabet events generated as part of
+     * the native form reset lifecycle.
+     */
     if (state.resetting) {
       return;
     }
@@ -1620,9 +1868,9 @@
     }
 
     /*
-     * DirectoryAlphabet owns:
+     * DirectoryAlphabet already owns:
      *
-     * - active state
+     * - active button
      * - aria-pressed
      * - keyboard navigation
      * - hidden #letterId
@@ -1641,20 +1889,21 @@
     /*
      * Legacy behavior:
      *
-     * Explicit All alphabet click:
+     * Explicit All button:
      *
-     * letter = "All"
+     *   letter = "All"
      *
-     * Resets:
+     * Other filter resets:
      *
-     * letter = ""
+     *   letter = ""
      */
     state.backendLetterOverride =
       selectedLetter === ""
         ? "All"
         : null;
 
-    state.currentPage = 1;
+    state.currentPage =
+      1;
 
     loadCompanies();
   }
@@ -1672,18 +1921,21 @@
     state.backendLetterOverride =
       null;
 
-    state.currentPage = 1;
+    state.currentPage =
+      1;
 
     if (
       letterInput instanceof
       HTMLInputElement
     ) {
-      letterInput.value = "";
+      letterInput.value =
+        "";
     }
 
     /*
-     * DirectoryAlphabet refresh() does not dispatch
-     * another alphabet-change event.
+     * DirectoryAlphabet.refresh() synchronizes the
+     * active All button without dispatching another
+     * alphabet-change event.
      */
     refreshDirectory();
   }
@@ -1693,9 +1945,11 @@
      ========================================================================== */
 
   function buildArabicCharacterMaps() {
-    state.arabicAliasToLetter.clear();
+    state.arabicAliasToLetter
+      .clear();
 
-    state.arabicLetterToAliases.clear();
+    state.arabicLetterToAliases
+      .clear();
 
     const mapping =
       String(
@@ -1715,88 +1969,98 @@
           entry.trim(),
       )
       .filter(Boolean)
-      .forEach((entry) => {
-        const separatorIndex =
-          entry.indexOf("-");
+      .forEach(
+        (entry) => {
+          const separatorIndex =
+            entry.indexOf("-");
 
-        if (
-          separatorIndex === -1
-        ) {
-          return;
-        }
+          if (
+            separatorIndex ===
+            -1
+          ) {
+            return;
+          }
 
-        const displayLetter =
-          normalizeLetter(
-            entry.slice(
-              0,
-              separatorIndex,
-            ),
-          );
+          const displayLetter =
+            normalizeLetter(
+              entry.slice(
+                0,
+                separatorIndex,
+              ),
+            );
 
-        const alias =
-          normalizeLetter(
-            entry.slice(
-              separatorIndex + 1,
-            ),
-          );
+          const alias =
+            normalizeLetter(
+              entry.slice(
+                separatorIndex +
+                  1,
+              ),
+            );
 
-        if (
-          !displayLetter ||
-          !alias
-        ) {
-          return;
-        }
+          if (
+            !displayLetter ||
+            !alias
+          ) {
+            return;
+          }
 
-        /*
-         * Backend request mapping:
-         *
-         * displayed letter -> aliases[]
-         */
-        if (
-          !state
-            .arabicLetterToAliases
-            .has(displayLetter)
-        ) {
+          /* --------------------------------------------------------------------
+             Backend mapping:
+             displayed letter -> aliases[]
+             -------------------------------------------------------------------- */
+
+          if (
+            !state
+              .arabicLetterToAliases
+              .has(
+                displayLetter,
+              )
+          ) {
+            state
+              .arabicLetterToAliases
+              .set(
+                displayLetter,
+                [],
+              );
+          }
+
+          const aliases =
+            state
+              .arabicLetterToAliases
+              .get(
+                displayLetter,
+              );
+
+          if (
+            !aliases.includes(
+              alias,
+            )
+          ) {
+            aliases.push(
+              alias,
+            );
+          }
+
+          /* --------------------------------------------------------------------
+             Rendering mapping:
+             alias -> displayed letter
+             -------------------------------------------------------------------- */
+
           state
-            .arabicLetterToAliases
+            .arabicAliasToLetter
             .set(
               displayLetter,
-              [],
-            );
-        }
-
-        const aliases =
-          state
-            .arabicLetterToAliases
-            .get(
               displayLetter,
             );
 
-        if (
-          !aliases.includes(alias)
-        ) {
-          aliases.push(alias);
-        }
-
-        /*
-         * Rendering mapping:
-         *
-         * alias -> displayed letter
-         */
-        state
-          .arabicAliasToLetter
-          .set(
-            displayLetter,
-            displayLetter,
-          );
-
-        state
-          .arabicAliasToLetter
-          .set(
-            alias,
-            displayLetter,
-          );
-      });
+          state
+            .arabicAliasToLetter
+            .set(
+              alias,
+              displayLetter,
+            );
+        },
+      );
   }
 
   /* ==========================================================================
@@ -1805,8 +2069,7 @@
 
   function getBackendLetter() {
     if (
-      state
-        .backendLetterOverride !==
+      state.backendLetterOverride !==
       null
     ) {
       return state
@@ -1827,7 +2090,7 @@
      *
      * arabicMap[letter] + ""
      *
-     * Array#toString joins values with commas.
+     * Array#toString joins aliases with commas.
      */
     if (
       String(
@@ -1852,12 +2115,18 @@
         aliases &&
         aliases.length
       ) {
-        return aliases.join(",");
+        return aliases.join(
+          ",",
+        );
       }
     }
 
     return selectedLetter;
   }
+
+  /* ==========================================================================
+     Letter Normalization
+     ========================================================================== */
 
   function normalizeLetter(
     value,
@@ -1910,7 +2179,11 @@
      Restore Initial Sector Options
      ========================================================================== */
 
-  function restoreInitialSectorOptions() {
+  function restoreInitialSectorOptions(
+    {
+      notify = true,
+    } = {},
+  ) {
     const select =
       document.querySelector(
         SELECTORS.sector,
@@ -1930,11 +2203,14 @@
       state.initialSectorOptions,
     );
 
-    select.value = "All";
+    select.value =
+      "All";
 
-    notifySelectChanged(
-      select,
-    );
+    if (notify) {
+      notifySelectChanged(
+        select,
+      );
+    }
   }
 
   /* ==========================================================================
@@ -1962,9 +2238,10 @@
 
     abortSectorRequest();
 
-    /*
-     * Default / all markets.
-     */
+    /* --------------------------------------------------------------------------
+       All Markets
+       -------------------------------------------------------------------------- */
+
     if (!marketType) {
       restoreInitialSectorOptions();
 
@@ -1972,6 +2249,10 @@
 
       return;
     }
+
+    /* --------------------------------------------------------------------------
+       Validate URL
+       -------------------------------------------------------------------------- */
 
     if (
       !URLS.sectorsByMarket
@@ -2005,6 +2286,9 @@
           controller.signal,
         );
 
+      /*
+       * Ignore stale requests.
+       */
       if (
         state.sectorRequest !==
         controller
@@ -2071,16 +2355,22 @@
       sectorSelect.value =
         "All";
 
+      /*
+       * Synchronize the shared custom-select UI.
+       *
+       * This synthetic change does not issue another
+       * company request because our handler is suppressed.
+       */
       notifySelectChanged(
         sectorSelect,
       );
 
       /*
-       * Legacy flow:
+       * Legacy sequence:
        *
        * market
-       *   -> sectors
-       *   -> companies
+       *   -> load sectors
+       *   -> load companies
        */
       await loadCompanies();
     } catch (error) {
@@ -2110,6 +2400,10 @@
     }
   }
 
+  /* ==========================================================================
+     Abort Sector Request
+     ========================================================================== */
+
   function abortSectorRequest() {
     if (
       !state.sectorRequest
@@ -2117,7 +2411,8 @@
       return;
     }
 
-    state.sectorRequest.abort();
+    state.sectorRequest
+      .abort();
 
     state.sectorRequest =
       null;
@@ -2160,7 +2455,7 @@
     setBusy(true);
 
     /*
-     * Exact legacy backend contract.
+     * Exact legacy backend parameter contract.
      */
     const requestData = {
       marketType:
@@ -2190,6 +2485,9 @@
           controller.signal,
         );
 
+      /*
+       * Ignore stale response.
+       */
       if (
         state.companyRequest !==
         controller
@@ -2205,19 +2503,31 @@
           ? response.data
           : [];
 
-      state.currentPage = 1;
+      state.currentPage =
+        1;
 
+      /*
+       * Render both result views.
+       */
       renderDirectory(
         state.companies,
       );
 
       /*
-       * AJAX replaced the result groups.
+       * AJAX replaced directory groups.
+       *
+       * DirectoryAlphabet will:
+       *
+       * - recollect groups
+       * - learn available letters when this is an
+       *   unlettered/full response
+       * - preserve availability when a single letter
+       *   response is returned
        */
       refreshDirectory();
 
       /*
-       * Pagination runs on the backend result set.
+       * Paginate returned backend result set.
        */
       renderPage(1);
     } catch (error) {
@@ -2234,9 +2544,11 @@
         error,
       );
 
-      state.companies = [];
+      state.companies =
+        [];
 
-      state.currentPage = 1;
+      state.currentPage =
+        1;
 
       renderDirectory(
         state.companies,
@@ -2258,6 +2570,10 @@
     }
   }
 
+  /* ==========================================================================
+     Abort Company Request
+     ========================================================================== */
+
   function abortCompanyRequest() {
     if (
       !state.companyRequest
@@ -2265,7 +2581,8 @@
       return;
     }
 
-    state.companyRequest.abort();
+    state.companyRequest
+      .abort();
 
     state.companyRequest =
       null;
@@ -2283,7 +2600,9 @@
     const body =
       new URLSearchParams();
 
-    Object.entries(data).forEach(
+    Object.entries(
+      data,
+    ).forEach(
       ([key, value]) => {
         body.append(
           key,
@@ -2365,7 +2684,7 @@
         JSON.parse(text);
 
       /*
-       * Tolerate accidentally double-encoded JSON.
+       * Tolerate a double encoded JSON response.
        */
       if (
         typeof parsed ===
@@ -2480,13 +2799,16 @@
           );
 
         if (
-          !groups.has(letter)
+          !groups.has(
+            letter,
+          )
         ) {
           groups.set(
             letter,
             {
               letter,
-              items: [],
+              items:
+                [],
             },
           );
         }
@@ -2496,6 +2818,7 @@
           .items
           .push({
             company,
+
             index:
               companyIndex,
           });
@@ -2556,7 +2879,8 @@
           return 1;
         }
 
-        return groupA.letter
+        return groupA
+          .letter
           .localeCompare(
             groupB.letter,
             CONFIG.locale ||
@@ -2623,8 +2947,8 @@
       );
 
     /*
-     * Arabic aliases are normalized back to the
-     * displayed alphabet character.
+     * Normalize Arabic backend variants back into the
+     * displayed Arabic alphabet group.
      */
     if (
       state
@@ -2674,16 +2998,24 @@
     return `
       <section
         class="directory-group"
-        aria-labelledby="${escapeAttribute(headingId)}"
-        data-directory-group="${escapeAttribute(group.letter)}"
+        aria-labelledby="${escapeAttribute(
+          headingId,
+        )}"
+        data-directory-group="${escapeAttribute(
+          group.letter,
+        )}"
       >
         <header class="directory-group__header">
 
           <h3
-            id="${escapeAttribute(headingId)}"
+            id="${escapeAttribute(
+              headingId,
+            )}"
             class="directory-group__title"
           >
-            ${escapeHtml(group.letter)}
+            ${escapeHtml(
+              group.letter,
+            )}
           </h3>
 
           <span class="directory-group__count">
@@ -2774,7 +3106,9 @@
               >
                 <img
                   class="issuer-card__logo-image"
-                  src="${escapeAttribute(logoUrl)}"
+                  src="${escapeAttribute(
+                    logoUrl,
+                  )}"
                   alt=""
                   width="64"
                   height="64"
@@ -2786,22 +3120,24 @@
               <div class="issuer-card__identity-content">
 
                 <h4 class="issuer-card__name">
-
                   <a
                     class="issuer-card__name-link"
-                    href="${escapeAttribute(profileUrl)}"
+                    href="${escapeAttribute(
+                      profileUrl,
+                    )}"
                   >
-                    ${escapeHtml(name)}
+                    ${escapeHtml(
+                      name,
+                    )}
                   </a>
-
                 </h4>
 
                 <div class="issuer-card__symbol">
-
                   <span class="issuer-card__symbol-value">
-                    ${escapeHtml(symbol)}
+                    ${escapeHtml(
+                      symbol,
+                    )}
                   </span>
-
                 </div>
 
               </div>
@@ -2824,7 +3160,9 @@
                 </dt>
 
                 <dd class="issuer-card__metadata-value">
-                  ${escapeHtml(tradingName)}
+                  ${escapeHtml(
+                    tradingName,
+                  )}
                 </dd>
 
               </div>
@@ -2839,7 +3177,9 @@
                 </dt>
 
                 <dd class="issuer-card__metadata-value">
-                  ${escapeHtml(isinCode)}
+                  ${escapeHtml(
+                    isinCode,
+                  )}
                 </dd>
 
               </div>
@@ -2873,7 +3213,9 @@
 
             <a
               class="btn btn-outline-primary issuer-card__profile has-icon icon-arrow-up-right icon-end"
-              href="${escapeAttribute(profileUrl)}"
+              href="${escapeAttribute(
+                profileUrl,
+              )}"
             >
               ${escapeHtml(
                 LABELS.viewProfile ||
@@ -2916,16 +3258,25 @@
     return `
       <section
         class="directory-group directory-group--list"
-        aria-labelledby="${escapeAttribute(headingId)}"
-        data-directory-group="${escapeAttribute(group.letter)}"
+        aria-labelledby="${escapeAttribute(
+          headingId,
+        )}"
+        data-directory-group="${escapeAttribute(
+          group.letter,
+        )}"
       >
+
         <header class="directory-group__header">
 
           <h3
-            id="${escapeAttribute(headingId)}"
+            id="${escapeAttribute(
+              headingId,
+            )}"
             class="directory-group__title"
           >
-            ${escapeHtml(group.letter)}
+            ${escapeHtml(
+              group.letter,
+            )}
           </h3>
 
           <span class="directory-group__count">
@@ -3011,7 +3362,9 @@
           >
             <img
               class="issuer-row__logo-image"
-              src="${escapeAttribute(logoUrl)}"
+              src="${escapeAttribute(
+                logoUrl,
+              )}"
               alt=""
               width="64"
               height="64"
@@ -3023,18 +3376,22 @@
           <div class="issuer-row__identity-content">
 
             <h4 class="issuer-row__name">
-
               <a
                 class="issuer-row__name-link"
-                href="${escapeAttribute(profileUrl)}"
+                href="${escapeAttribute(
+                  profileUrl,
+                )}"
               >
-                ${escapeHtml(name)}
+                ${escapeHtml(
+                  name,
+                )}
               </a>
-
             </h4>
 
             <span class="issuer-row__code">
-              ${escapeHtml(symbol)}
+              ${escapeHtml(
+                symbol,
+              )}
             </span>
 
           </div>
@@ -3051,7 +3408,9 @@
           </span>
 
           <span class="issuer-row__value">
-            ${escapeHtml(tradingName)}
+            ${escapeHtml(
+              tradingName,
+            )}
           </span>
 
         </div>
@@ -3066,7 +3425,9 @@
           </span>
 
           <span class="issuer-row__value">
-            ${escapeHtml(isinCode)}
+            ${escapeHtml(
+              isinCode,
+            )}
           </span>
 
         </div>
@@ -3094,7 +3455,9 @@
 
         <a
           class="btn btn-outline-primary issuer-row__profile has-icon icon-arrow-up-right icon-end"
-          href="${escapeAttribute(profileUrl)}"
+          href="${escapeAttribute(
+            profileUrl,
+          )}"
           aria-label="${escapeAttribute(
             `${
               LABELS.viewProfile ||
@@ -3147,7 +3510,9 @@
           `${baseClass} price-up has-icon icon-triangle-up`,
 
         text:
-          `+${numericValue.toFixed(2)}%`,
+          `+${numericValue.toFixed(
+            2,
+          )}%`,
       };
     }
 
@@ -3159,7 +3524,9 @@
           `${baseClass} price-down has-icon icon-triangle-down`,
 
         text:
-          `${numericValue.toFixed(2)}%`,
+          `${numericValue.toFixed(
+            2,
+          )}%`,
       };
     }
 
@@ -3168,7 +3535,9 @@
         `${baseClass} priceEqual`,
 
       text:
-        `${numericValue.toFixed(2)}%`,
+        `${numericValue.toFixed(
+          2,
+        )}%`,
     };
   }
 
@@ -3197,7 +3566,9 @@
           page,
         )
       ) {
-        renderPage(page);
+        renderPage(
+          page,
+        );
       }
 
       return;
@@ -3406,12 +3777,12 @@
                   );
 
                 const visible =
-                  Number
-                    .isInteger(
-                      index,
-                    ) &&
-                  visibleIndexes
-                    .has(index);
+                  Number.isInteger(
+                    index,
+                  ) &&
+                  visibleIndexes.has(
+                    index,
+                  );
 
                 item.hidden =
                   !visible;
@@ -3424,12 +3795,9 @@
             );
 
           /*
-           * Do not modify group.hidden here.
+           * DirectoryAlphabet owns group.hidden.
            *
-           * DirectoryAlphabet owns semantic
-           * alphabet visibility.
-           *
-           * Pagination only controls display.
+           * Pagination only controls visual page visibility.
            */
           group.style.display =
             hasVisibleItem
@@ -3450,7 +3818,8 @@
   }) {
     const start =
       totalItems > 0
-        ? startIndex + 1
+        ? startIndex +
+          1
         : 0;
 
     const end =
@@ -3539,7 +3908,7 @@
     }
 
     /*
-     * Legacy compatibility fields.
+     * Legacy compatibility.
      */
     setControlValue(
       SELECTORS.pageLimit,
@@ -3557,7 +3926,8 @@
       navigation.hidden =
         true;
 
-      list.innerHTML = "";
+      list.innerHTML =
+        "";
 
       return;
     }
@@ -3600,7 +3970,7 @@
     `);
 
     /* --------------------------------------------------------------------------
-       Page Numbers / Ellipsis
+       Numbers / Ellipsis
        -------------------------------------------------------------------------- */
 
     const pageItems =
@@ -3724,7 +4094,10 @@
           length:
             totalPages,
         },
-        (_, index) =>
+        (
+          _,
+          index,
+        ) =>
           index + 1,
       );
     }
@@ -3757,7 +4130,7 @@
       );
 
     /*
-     * Shift window left near the end.
+     * Shift window left when close to the end.
      */
     if (
       end -
@@ -3775,11 +4148,14 @@
     }
 
     for (
-      let page = start;
+      let page =
+        start;
       page <= end;
       page += 1
     ) {
-      pages.add(page);
+      pages.add(
+        page,
+      );
     }
 
     const sortedPages =
@@ -3790,7 +4166,8 @@
           a - b,
       );
 
-    const result = [];
+    const result =
+      [];
 
     sortedPages.forEach(
       (
@@ -3878,7 +4255,9 @@
 
     results.setAttribute(
       "aria-busy",
-      String(isBusy),
+      String(
+        isBusy,
+      ),
     );
   }
 
@@ -3922,13 +4301,16 @@
     }
 
     /*
-     * Notify the shared custom-select implementation
-     * after programmatic option/value replacement.
+     * This event is intended for the shared custom-select
+     * component only.
      *
-     * Prevent this controller from issuing a duplicate
-     * company request for that synthetic change.
+     * Prevent our own filter handler from making another
+     * API request.
      */
-    state.suppressSectorChange =
+    const previousSuppression =
+      state.suppressFilterChange;
+
+    state.suppressFilterChange =
       true;
 
     try {
@@ -3942,13 +4324,13 @@
         ),
       );
     } finally {
-      state.suppressSectorChange =
-        false;
+      state.suppressFilterChange =
+        previousSuppression;
     }
   }
 
   /* ==========================================================================
-     Logo Fallback
+     Logo Error
      ========================================================================== */
 
   function handleImageError(
@@ -4104,7 +4486,9 @@
     }
 
     control.value =
-      String(value);
+      String(
+        value,
+      );
   }
 
   /* ==========================================================================
@@ -4141,7 +4525,9 @@
     if (
       value === null ||
       value === undefined ||
-      String(value).trim() ===
+      String(
+        value,
+      ).trim() ===
         ""
     ) {
       return "—";
@@ -4189,7 +4575,8 @@
   ) {
     const url =
       String(
-        value || "",
+        value ||
+          "",
       ).trim();
 
     if (!url) {
@@ -4199,16 +4586,21 @@
     /*
      * Allow:
      *
-     * - application-relative paths
+     * - site-relative URLs
      * - anchors
      * - HTTP
      * - HTTPS
      */
     if (
-      url.startsWith("/") ||
-      url.startsWith("#") ||
-      /^https?:\/\//i
-        .test(url)
+      url.startsWith(
+        "/",
+      ) ||
+      url.startsWith(
+        "#",
+      ) ||
+      /^https?:\/\//i.test(
+        url,
+      )
     ) {
       return url;
     }
@@ -4231,7 +4623,9 @@
       .forEach(
         (element) => {
           element.textContent =
-            String(value);
+            String(
+              value,
+            );
         },
       );
   }
@@ -4271,9 +4665,12 @@
     let timeoutId =
       null;
 
-    return function debounced(
+    function debounced(
       ...args
     ) {
+      const context =
+        this;
+
       window.clearTimeout(
         timeoutId,
       );
@@ -4281,14 +4678,39 @@
       timeoutId =
         window.setTimeout(
           () => {
+            timeoutId =
+              null;
+
             callback.apply(
-              this,
+              context,
               args,
             );
           },
           delay,
         );
-    };
+    }
+
+    /*
+     * Needed by Reset so a pending symbol search
+     * cannot issue a second request after reset.
+     */
+    debounced.cancel =
+      function cancel() {
+        if (
+          timeoutId === null
+        ) {
+          return;
+        }
+
+        window.clearTimeout(
+          timeoutId,
+        );
+
+        timeoutId =
+          null;
+      };
+
+    return debounced;
   }
 
   /* ==========================================================================
@@ -4357,7 +4779,8 @@
       "DOMContentLoaded",
       initIssuerDirectory,
       {
-        once: true,
+        once:
+          true,
       },
     );
   } else {

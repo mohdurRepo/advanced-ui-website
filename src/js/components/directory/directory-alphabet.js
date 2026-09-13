@@ -11,22 +11,21 @@ const instances = new WeakMap();
    ========================================================================== */
 
 /**
- * Controls alphabetical directory navigation.
+ * Reusable alphabetical directory controller.
  *
- * Two modes are supported:
+ * Supported modes:
  *
- * 1. Client-side mode
- *    - alphabet availability is determined from rendered groups
- *    - selecting a letter hides non-matching groups locally
+ * 1. Client-side directory
+ *    - derives available letters from rendered groups
+ *    - disables unavailable letters
+ *    - hides non-matching groups locally
  *
- * 2. Server-filter mode
+ * 2. Server-filtered directory
  *    - enabled with [data-directory-server-filter]
- *    - alphabet buttons remain available
- *    - selecting a letter updates state and dispatches the change event
- *    - page-specific code performs the backend request
- *    - returned results determine which groups are rendered
- *
- * The component does not own page-specific AJAX behavior.
+ *    - derives available letters from the latest complete server result
+ *    - preserves that availability while requesting one specific letter
+ *    - does not hide groups locally
+ *    - dispatches directory:alphabet-change for page-specific AJAX handling
  */
 export class DirectoryAlphabet {
   constructor(element) {
@@ -47,11 +46,36 @@ export class DirectoryAlphabet {
     this.letterInput = this.form?.querySelector(SELECTORS.letterInput) || null;
 
     /*
-     * Server-backed directories, such as Issuer Directory,
-     * should not infer alphabet availability from the currently
-     * rendered response.
+     * Server-filter mode.
      */
-    this.serverFilter = element.hasAttribute("data-directory-server-filter");
+    this.serverFilter = element.hasAttribute(ATTRIBUTES.serverFilter);
+
+    /*
+     * Cached availability for server-backed directories.
+     *
+     * This represents the letters available in the latest
+     * complete, unlettered backend response.
+     */
+    this.serverAvailableLetters = new Set();
+
+    /*
+     * false:
+     * We have not received a complete backend result yet.
+     *
+     * true:
+     * serverAvailableLetters is authoritative, including
+     * the valid case where the set is empty.
+     */
+    this.serverAvailabilityKnown = false;
+
+    /*
+     * Tracks the currently applied UI letter.
+     *
+     * null is important during initial construction so the
+     * empty server-rendered result container is not mistaken
+     * for an authoritative empty backend response.
+     */
+    this.activeLetter = null;
 
     this.panels = [];
     this.groups = [];
@@ -66,7 +90,7 @@ export class DirectoryAlphabet {
   }
 
   /* ==========================================================================
-     Static API
+     Static Instance API
      ========================================================================== */
 
   static getInstance(element) {
@@ -106,7 +130,17 @@ export class DirectoryAlphabet {
 
     this.collectPanels();
     this.collectGroups();
-    this.synchronizeAvailableLetters();
+
+    /*
+     * On first initialization, a server-backed directory may
+     * not have received AJAX results yet.
+     *
+     * Therefore do not treat the initial empty DOM as proof that
+     * every alphabet letter is unavailable.
+     */
+    this.synchronizeAvailableLetters({
+      captureServerAvailability: false,
+    });
 
     this.element.addEventListener("click", this.handleClick);
 
@@ -138,7 +172,9 @@ export class DirectoryAlphabet {
         .split(/\s+/)
         .map((value) => value.trim())
         .filter(Boolean)
-        .forEach((id) => panelIds.add(id));
+        .forEach((id) => {
+          panelIds.add(id);
+        });
     });
 
     this.panels = Array.from(panelIds)
@@ -147,7 +183,7 @@ export class DirectoryAlphabet {
   }
 
   /* ==========================================================================
-     Directory Groups
+     Result Groups
      ========================================================================== */
 
   collectGroups() {
@@ -170,48 +206,89 @@ export class DirectoryAlphabet {
     );
   }
 
-  /* ==========================================================================
-     Available Letters
-     ========================================================================== */
-
   getAvailableLetters() {
     return new Set(
       this.groups.map((group) => this.getGroupLetter(group)).filter(Boolean),
     );
   }
 
-  synchronizeAvailableLetters() {
+  /* ==========================================================================
+     Letter Availability
+     ========================================================================== */
+
+  synchronizeAvailableLetters({ captureServerAvailability = true } = {}) {
+    const availableLetters = this.getAvailableLetters();
+
     /*
-     * Server-filter mode
-     * ------------------------------------------------------------------------
-     *
-     * Do not disable alphabet buttons based on the current response.
-     *
-     * Example:
-     *
-     * - user selects A
-     * - backend returns only A companies
-     * - rendered DOM therefore only contains group A
-     *
-     * That must NOT cause B-Z to become disabled.
+     * ================================================================
+     * Server-backed directory
+     * ================================================================
      */
     if (this.serverFilter) {
+      const currentLetter = this.normalizeLetter(this.letterInput?.value);
+
+      /*
+       * Only capture availability when:
+       *
+       * - the backend request represents "All" / no letter
+       * - the previous UI state was also the All state
+       *
+       * Why activeLetter matters:
+       *
+       * If B was selected and page-specific code clears #letterId
+       * before the new AJAX request, the DOM may still contain only
+       * B companies.
+       *
+       * We must not incorrectly replace the availability cache with
+       * only B during that transition.
+       */
+      const canCaptureServerAvailability =
+        captureServerAvailability &&
+        currentLetter === "" &&
+        this.activeLetter === "";
+
+      if (canCaptureServerAvailability) {
+        /*
+         * Empty is also authoritative.
+         *
+         * Example:
+         * a sector filter legitimately returns zero companies.
+         *
+         * In that case every letter except All should be disabled.
+         */
+        this.serverAvailableLetters = new Set(availableLetters);
+
+        this.serverAvailabilityKnown = true;
+      }
+
       this.controls.forEach((control) => {
-        control.disabled = false;
+        const letter = this.getControlLetter(control);
 
-        control.classList.remove(CLASSES.disabled);
+        const isAllControl = letter === "";
 
-        control.removeAttribute(ATTRIBUTES.disabled);
+        /*
+         * Before the first full AJAX response arrives,
+         * keep letters clickable.
+         *
+         * Once availability is known, enable only letters
+         * actually present in that complete result set.
+         */
+        const isAvailable =
+          isAllControl ||
+          !this.serverAvailabilityKnown ||
+          this.serverAvailableLetters.has(letter);
+
+        this.setControlAvailability(control, isAvailable);
       });
 
       return;
     }
 
     /*
-     * Normal client-side directory behavior.
+     * ================================================================
+     * Client-side directory
+     * ================================================================
      */
-
-    const availableLetters = this.getAvailableLetters();
 
     this.controls.forEach((control) => {
       const letter = this.getControlLetter(control);
@@ -220,20 +297,24 @@ export class DirectoryAlphabet {
 
       const isAvailable = isAllControl || availableLetters.has(letter);
 
-      control.disabled = !isAvailable;
-
-      control.classList.toggle(CLASSES.disabled, !isAvailable);
-
-      if (isAvailable) {
-        control.removeAttribute(ATTRIBUTES.disabled);
-      } else {
-        control.setAttribute(ATTRIBUTES.disabled, "true");
-      }
+      this.setControlAvailability(control, isAvailable);
     });
   }
 
+  setControlAvailability(control, isAvailable) {
+    control.disabled = !isAvailable;
+
+    control.classList.toggle(CLASSES.disabled, !isAvailable);
+
+    if (isAvailable) {
+      control.removeAttribute(ATTRIBUTES.disabled);
+    } else {
+      control.setAttribute(ATTRIBUTES.disabled, "true");
+    }
+  }
+
   /* ==========================================================================
-     Letter Values
+     Letter Helpers
      ========================================================================== */
 
   normalizeLetter(value) {
@@ -273,8 +354,17 @@ export class DirectoryAlphabet {
     );
   }
 
+  getControl(letter) {
+    return (
+      this.controls.find(
+        (control) =>
+          !control.disabled && this.getControlLetter(control) === letter,
+      ) || null
+    );
+  }
+
   /* ==========================================================================
-     Active State
+     Active Control
      ========================================================================== */
 
   setActiveControl(letter) {
@@ -288,6 +378,10 @@ export class DirectoryAlphabet {
     });
   }
 
+  /* ==========================================================================
+     Hidden Letter Input
+     ========================================================================== */
+
   setPreservedLetter(letter) {
     if (this.letterInput) {
       this.letterInput.value = letter;
@@ -300,9 +394,10 @@ export class DirectoryAlphabet {
 
   setGroupVisibility(letter) {
     /*
-     * In server-filter mode the backend response owns which groups exist.
+     * Server-filtered directories receive only the appropriate
+     * result set from the backend.
      *
-     * Do not locally hide groups before or after the request.
+     * Do not perform a second client-side alphabet filter.
      */
     if (this.serverFilter) {
       return;
@@ -320,7 +415,7 @@ export class DirectoryAlphabet {
   }
 
   /* ==========================================================================
-     Result Counting
+     Active Results Panel
      ========================================================================== */
 
   getActivePanel() {
@@ -333,6 +428,10 @@ export class DirectoryAlphabet {
       null
     );
   }
+
+  /* ==========================================================================
+     Result Count
+     ========================================================================== */
 
   getVisibleResultCount() {
     const activePanel = this.getActivePanel();
@@ -351,7 +450,7 @@ export class DirectoryAlphabet {
   }
 
   /* ==========================================================================
-     Live Announcement
+     Live Status
      ========================================================================== */
 
   getLiveStatusElements() {
@@ -392,7 +491,7 @@ export class DirectoryAlphabet {
   }
 
   /* ==========================================================================
-     Public State
+     Apply Letter
      ========================================================================== */
 
   applyLetter(value, { announce = true, dispatch = true, focus = false } = {}) {
@@ -402,8 +501,12 @@ export class DirectoryAlphabet {
       ? requestedLetter
       : "";
 
+    this.activeLetter = letter;
+
     this.setActiveControl(letter);
+
     this.setPreservedLetter(letter);
+
     this.setGroupVisibility(letter);
 
     if (focus) {
@@ -411,12 +514,10 @@ export class DirectoryAlphabet {
     }
 
     /*
-     * For a server-backed directory, the current DOM still contains
-     * the previous response at click time. Announcing its result
-     * count would therefore be misleading.
+     * Server-backed directories cannot announce the new
+     * result count until their asynchronous request completes.
      *
-     * Page-specific code can update its live/result status after
-     * the AJAX response has rendered.
+     * The page-specific controller owns that status.
      */
     if (announce && !this.serverFilter) {
       this.announce(letter);
@@ -429,21 +530,16 @@ export class DirectoryAlphabet {
     return letter;
   }
 
-  getControl(letter) {
-    return (
-      this.controls.find(
-        (control) =>
-          !control.disabled && this.getControlLetter(control) === letter,
-      ) || null
-    );
-  }
+  /* ==========================================================================
+     Reset
+     ========================================================================== */
 
   reset() {
     this.applyLetter("");
   }
 
   /* ==========================================================================
-     Custom Event
+     Change Event
      ========================================================================== */
 
   dispatchChange(letter) {
@@ -508,7 +604,7 @@ export class DirectoryAlphabet {
 
     const currentIndex = controls.indexOf(currentControl);
 
-    if (currentIndex === -1) {
+    if (currentIndex === -1 || controls.length === 0) {
       return;
     }
 
@@ -553,13 +649,12 @@ export class DirectoryAlphabet {
   }
 
   /* ==========================================================================
-     Form Reset
+     Native Form Reset
      ========================================================================== */
 
   handleReset() {
     /*
-     * Wait until native form controls have returned to
-     * their default values.
+     * Native form values are restored after the reset event.
      */
     requestAnimationFrame(() => {
       this.reset();
@@ -580,16 +675,47 @@ export class DirectoryAlphabet {
     const currentLetter = this.normalizeLetter(this.letterInput?.value);
 
     /*
-     * Re-read this because the attribute may be added dynamically
-     * before a refresh.
+     * Re-read mode so dynamically updated markup is supported.
      */
-    this.serverFilter = this.element.hasAttribute(
-      "data-directory-server-filter",
-    );
+    this.serverFilter = this.element.hasAttribute(ATTRIBUTES.serverFilter);
 
     this.collectPanels();
     this.collectGroups();
-    this.synchronizeAvailableLetters();
+
+    /*
+     * Server availability rules:
+     *
+     * Initial state
+     * --------------------------------------------------------------
+     * activeLetter = null
+     * Do not capture the empty DOM.
+     *
+     * Full backend response
+     * --------------------------------------------------------------
+     * activeLetter = ""
+     * #letterId = ""
+     * Capture all rendered letters.
+     *
+     * Selected-letter response
+     * --------------------------------------------------------------
+     * activeLetter = "B"
+     * #letterId = "B"
+     * Preserve the previous full-response availability.
+     *
+     * Transition from selected letter back to All
+     * --------------------------------------------------------------
+     * activeLetter = "B"
+     * #letterId = ""
+     * Do not capture the stale B-only DOM.
+     *
+     * The next refresh after the full AJAX response will have:
+     * activeLetter = ""
+     * #letterId = ""
+     * and will correctly refresh availability.
+     */
+    this.synchronizeAvailableLetters({
+      captureServerAvailability: this.activeLetter === "",
+    });
 
     this.applyLetter(currentLetter, {
       announce: false,
@@ -611,8 +737,24 @@ export class DirectoryAlphabet {
     this.groups.forEach((group) => {
       group.hidden = false;
 
+      group.style.display = "";
+
       group.classList.remove(CLASSES.hidden);
     });
+
+    this.controls.forEach((control) => {
+      control.disabled = false;
+
+      control.classList.remove(CLASSES.disabled);
+
+      control.removeAttribute(ATTRIBUTES.disabled);
+    });
+
+    this.serverAvailableLetters.clear();
+
+    this.serverAvailabilityKnown = false;
+
+    this.activeLetter = null;
 
     instances.delete(this.element);
   }

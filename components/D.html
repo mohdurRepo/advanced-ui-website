@@ -1,1661 +1,1302 @@
-<%@page session="false" contentType="text/html"
-	pageEncoding="ISO-8859-1"
-	import="java.util.*,javax.portlet.*,sa.com.tadawul.eportal.issuer.financial.calendars.v2.portlet.*"%>
-<%@ taglib uri="http://java.sun.com/portlet_2_0" prefix="portlet"%>
-<%@taglib
-	uri="http://www.ibm.com/xmlns/prod/websphere/portal/v6.1/portlet-client-model"
-	prefix="portlet-client-model"%>
-<%@page
-	import="sa.com.tadawul.eportal.issuer.financial.calendars.v2.constants.IssuerFinancialCalendarsConstants"%>
-<%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
-<%@taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt"%>
-<%@taglib uri="/WEB-INF/tld/portal.tld" prefix="wps"%>
-
-<fmt:setBundle
-	basename="sa.nl.IssuerFinancialCalendarsV2PortletResource" />
-<%@page
-	import="sa.constants.DividendsParamsIfc"%>
-<%@ page
-	import="sa.CorpAnnInfoConstant"%>
-<%@ page
-	import="sa.constants.CalendarType"%>
-
-<portlet:defineObjects />
-<portlet-client-model:init>
-	<portlet-client-model:require module="ibm.portal.xml.*" />
-	<portlet-client-model:require module="ibm.portal.portlet.*" />
-</portlet-client-model:init>
-
-
-<!-- ============================= -->
-<!-- Determine Active Tab -->
-<!-- ============================= -->
-<c:set var="calendarType" value="${calendarType}" />
-<c:set var="dividends" value="<%=CalendarType.DIVIDENDS_CALENDAR%>" />
-<c:set var="generalMeetings"
-	value="<%=CalendarType.GEN_ASSEMBLY_MEETINGS_CALENDAR%>" />
-<c:set var="boards"
-	value="<%=CalendarType.DIRECTORS_SESSIONS_CALENDAR%>" />
-<c:set var="corporateActions"
-	value="<%=CalendarType.CORPORATE_ACTIONS_CALENDAR%>" />
-
-
-<c:set var="activeTab" value="" />
-
-<c:choose>
-
-	<c:when test="${calendarType == dividends}">
-		<c:set var="activeTab" value="dividends" />
-	</c:when>
-
-
-	<c:when test="${calendarType == generalMeetings}">
-		<c:set var="activeTab" value="generalMeetings" />
-	</c:when>
-
-	<c:when test="${calendarType == boards}">
-		<c:set var="activeTab" value="boards" />
-	</c:when>
-
-	<c:when test="${calendarType == corporateActions}">
-		<c:set var="activeTab" value="corporateActions" />
-	</c:when>
-
-</c:choose>
-
-
-<section class="app-container hero-banner-section">
-	<div class="profile-banner animate__animated animate__fadeIn">
-		<div class="profile-banner--pattern">
-
-			<div class="row">
-
-				<div class="col-12">
-					<h2>
-						<svg class="pc-icon pr-3 link-icon me-3" width="40" height="40"
-							style="color: #fff; fill: #fff">
-                            <use xlink:href="#tadawul-arrow-icon"></use>
-                        </svg>
-
-						<label style="color: #FFFFFF"> <fmt:message
-								key="issuer.financial.calendars.v2.title" />
-						</label>
-					</h2>
-				</div>
-
-
-				<!-- TABS CONTAINER -->
-				<section class="tabs-container" data-tabs
-					data-tabs-id="financialCalendars"
-					data-content-target="#financial-content">
-
-
-					<!-- TABS NAVIGATION -->
-					<div class="tabs" role="tablist"
-						aria-label="Issuer Financial Calendars Tabs">
-
-						<!-- Dividends -->
-						<button
-							class="tabs__item ${activeTab == 'dividends' ? 'is-active' : ''}"
-							type="button" role="tab" id="financial-tab-dividends"
-							aria-selected="${activeTab == 'dividends'}"
-							aria-controls="financial-panel-dividends" data-tab="dividends">
-
-							<fmt:message key="issuer.financial.calendars.v2.title.dividends" />
-
-						</button>
-
-						<!-- General Meetings -->
-						<button
-							class="tabs__item ${activeTab == 'generalMeetings' ? 'is-active' : ''}"
-							type="button" role="tab" id="financial-tab-generalMeetings"
-							aria-selected="${activeTab == 'generalMeetings'}"
-							aria-controls="financial-panel-generalMeetings"
-							data-tab="generalMeetings" tabindex="-1">
-
-							<fmt:message
-								key="issuer.financial.calendars.v2.title.generalmeetings" />
-
-						</button>
-
-						<!-- Board Sessions -->
-						<button
-							class="tabs__item ${activeTab == 'boards' ? 'is-active' : ''}"
-							type="button" role="tab" id="financial-tab-boardSessions"
-							aria-selected="${activeTab == 'boards'}"
-							aria-controls="financial-panel-boardSessions" data-tab="boards"
-							tabindex="-1">
-
-							<fmt:message
-								key="issuer.financial.calendars.v2.title.boraddirectorssessions" />
-
-						</button>
-
-						<!-- Corporate Actions -->
-						<button
-							class="tabs__item ${activeTab == 'corporateActions' ? 'is-active' : ''}"
-							type="button" role="tab" id="financial-tab-corporateActions"
-							aria-selected="${activeTab == 'corporateActions'}"
-							aria-controls="financial-panel-corporateActions"
-							data-tab="corporateActions" tabindex="-1">
-
-							<fmt:message
-								key="issuer.financial.calendars.v2.title.corporateactions" />
-
-						</button>
-
-						<span class="tabs__underline" aria-hidden="true"></span>
-
-					</div>
-
-
-					<!-- FILTERS -->
-					<div class="banner-filters" data-filters>
-
-
-						<!-- DIVIDENDS FILTERS -->
-						<div class="banner-filters__group is-active"
-							data-filters-for="dividends">
-
-							<div class="row">
-
-								<!-- MARKET -->
-								<div class="col-12 col-md-3 col-sm-6">
-									<div class="form-field">
-
-										<label class="form-label"> <fmt:message
-												key="generalassemblymeeting.markettype" />
-										</label>
-
-										<div class="form-control-shell is-select" data-select
-											data-field="market">
-
-											<div class="form-select-value"></div>
-
-											<input type="hidden" id="marketsList" name="marketsListId"
-												data-filter="marketsListId" value="M" /><span
-												class="form-suffix form-select-arrow"></span>
-
-											<div class="form-popover">
-												<div class="form-select-panel">
-													<div class="form-select-list">
-
-														<div class="form-select-option" data-value="M"
-															data-selected="true">
-															<fmt:message
-																key="generalassemblymeeting.label.market.main" />
-														</div>
-
-														<div class="form-select-option" data-value="S">
-															<fmt:message
-																key="generalassemblymeeting.label.market.nomu" />
-														</div>
-
-													</div>
-												</div>
-											</div>
-
-										</div>
-									</div>
-								</div>
-
-
-								<!-- SECTOR -->
-								<div class="col-12 col-md-3 col-sm-6">
-
-									<div class="form-field">
-
-										<label class="form-label"> <fmt:message
-												key="dividends.sector" />
-										</label>
-
-										<div class="form-control-shell is-select" data-select
-											data-field="sector">
-
-											<div class="form-select-value"></div>
-
-											<input type="hidden" id="sector" name="sector"
-												data-filter="sector" value="" /> <span
-												class="form-suffix form-select-arrow"></span>
-
-											<div class="form-popover">
-												<div class="form-select-panel">
-													<div class="form-select-list">
-
-														<div class="form-select-option" data-value=""
-															data-selected="true">
-															<fmt:message
-																key="generalassemblymeeting.archived.view.all.sectors" />
-														</div>
-
-														<!-- populated dynamically -->
-
-													</div>
-												</div>
-											</div>
-
-										</div>
-									</div>
-
-								</div>
-
-
-								<!-- SYMBOL / COMPANY -->
-								<div class="col-12 col-md-3 col-sm-6">
-
-									<div class="form-field">
-
-										<label class="form-label"> <fmt:message
-												key="issuer.financial.calendars.v2.table.search" />
-										</label>
-
-										<div class="form-control-shell">
-
-											<input type="text" id="symbolorcompany"
-												name="symbolorcompany" value="${requestScope.bySymbol}" class="form-input"
-												data-filter="symbolorcompany" />
-
-										</div>
-
-									</div>
-
-								</div>
-
-
-								<!-- PERIOD -->
-								<div class="col-12 col-md-3 col-sm-6">
-
-									<div class="form-field">
-
-										<label class="form-label"> <fmt:message
-												key="dividends.period" />
-										</label>
-
-										<div class="form-control-shell is-select" data-select
-											data-field="period">
-
-											<div class="form-select-value"></div>
-
-											<input type="hidden" id="period" name="period"
-												data-filter="period" value="CUSTOM" /> <span
-												class="form-suffix form-select-arrow"></span>
-
-											<div class="form-popover">
-												<div class="form-select-panel">
-													<div class="form-select-list">
-
-														<div class="form-select-option" data-value="CUSTOM"
-															data-selected="true">
-															<fmt:message key="dividends.customPeriod" />
-														</div>
-
-														<div class="form-select-option" data-value="7">
-															<fmt:message key="dividends.oneWeek" />
-														</div>
-
-														<div class="form-select-option" data-value="14">
-															<fmt:message key="dividends.twoWeeks" />
-														</div>
-
-														<div class="form-select-option" data-value="30">
-															<fmt:message key="dividends.oneMonth" />
-														</div>
-
-														<div class="form-select-option" data-value="90">
-															<fmt:message key="dividends.threeMonths" />
-														</div>
-
-														<div class="form-select-option" data-value="180">
-															<fmt:message key="dividends.sixMonths" />
-														</div>
-
-														<div class="form-select-option" data-value="270">
-															<fmt:message key="dividends.nineMonths" />
-														</div>
-
-														<div class="form-select-option" data-value="365">
-															<fmt:message key="dividends.oneYear" />
-														</div>
-
-														<div class="form-select-option" data-value="730">
-															<fmt:message key="dividends.twoYears" />
-														</div>
-
-														<div class="form-select-option" data-value="1095">
-															<fmt:message key="dividends.threeYears" />
-														</div>
-
-														<div class="form-select-option" data-value="1825">
-															<fmt:message key="dividends.fiveYears" />
-														</div>
-
-													</div>
-												</div>
-											</div>
-
-										</div>
-									</div>
-
-								</div>
-
-
-								<!-- Date Range -->
-								<div class="col-12 col-md-3 col-sm-6">
-									<div class="form-field">
-										<label class="form-label"> <fmt:message
-												key="issuer.financial.calendars.v2.table.search.timeperiod" />
-										</label>
-
-										<div class="form-control-shell form-date-range is-date"
-											data-date-range>
-											<input type="text" id="drp_start" name="start"
-												data-filter="start" class="form-date-input"
-												placeholder="Start date" readonly data-date-start /> <span
-												class="form-date-range-separator" aria-hidden="true">-</span>
-											<input type="text" id="drp_end" name="end" data-filter="end"
-												class="form-date-input" placeholder="End date" readonly
-												data-date-end /> <span class="form-suffix form-date-icon"></span>
-										</div>
-									</div>
-								</div>
-
-
-
-
-
-							</div>
-						</div>
-
-
-						<!-- GENERAL MEETINGS FILTERS -->
-						<div class="banner-filters__group"
-							data-filters-for="generalMeetings">
-
-							<div class="row g-3">
-
-								<!-- MARKET -->
-								<div class="col-12 col-md-3 col-sm-6">
-									<div class="form-field">
-
-										<label class="form-label"> <fmt:message
-												key="generalassemblymeeting.markettype" />
-										</label>
-
-										<div class="form-control-shell is-select" data-select
-											data-field="market">
-
-											<div class="form-select-value"></div>
-
-											<input type="hidden" data-filter="marketsListId" value="M" />
-
-											<span class="form-suffix form-select-arrow"></span>
-
-											<div class="form-popover">
-												<div class="form-select-panel">
-													<div class="form-select-list">
-
-														<div class="form-select-option" data-value="M"
-															data-selected="true">
-															<fmt:message
-																key="generalassemblymeeting.label.market.main" />
-														</div>
-
-														<div class="form-select-option" data-value="S">
-															<fmt:message
-																key="generalassemblymeeting.label.market.nomu" />
-														</div>
-
-													</div>
-												</div>
-											</div>
-
-										</div>
-									</div>
-								</div>
-
-
-								<!-- SECTOR -->
-								<div class="col-12 col-md-3 col-sm-6">
-									<div class="form-field">
-
-										<label class="form-label"> <fmt:message
-												key="generalassemblymeeting.archived.view.sector" />
-										</label>
-
-										<div class="form-control-shell is-select" data-select
-											data-field="sector">
-
-											<div class="form-select-value"></div>
-
-											<input type="hidden" data-filter="sector" value="" /> <span
-												class="form-suffix form-select-arrow"></span>
-
-											<div class="form-popover">
-												<div class="form-select-panel">
-													<div class="form-select-list">
-
-														<div class="form-select-option" data-value=""
-															data-selected="true">
-															<fmt:message
-																key="generalassemblymeeting.archived.view.all.sectors" />
-														</div>
-
-													</div>
-												</div>
-											</div>
-
-										</div>
-									</div>
-								</div>
-
-
-								<!-- COMPANY -->
-								<div class="col-12 col-md-3 col-sm-6">
-
-									<div class="form-field">
-
-										<label class="form-label"> <fmt:message
-												key="issuer.financial.calendars.v2.table.search" />
-										</label>
-
-										<div class="form-control-shell">
-
-											<input type="text" class="form-input"
-												data-filter="companySymbol" placeholder="" />
-
-										</div>
-
-									</div>
-
-								</div>
-
-
-								<!-- TYPE -->
-								<div class="col-12 col-md-3 col-sm-6">
-
-									<div class="form-field">
-
-										<label class="form-label"> <fmt:message
-												key="generalassemblymeeting.archived.view.type" />
-										</label>
-
-										<div class="form-control-shell is-select" data-select
-											data-field="type">
-
-											<div class="form-select-value"></div>
-
-											<input type="hidden" data-filter="type" value="" /> <span
-												class="form-suffix form-select-arrow"></span>
-
-											<div class="form-popover">
-												<div class="form-select-panel">
-													<div class="form-select-list">
-
-														<div class="form-select-option" data-value=""
-															data-selected="true">
-															<fmt:message
-																key="generalassemblymeeting.archived.view.select.type" />
-														</div>
-
-														<div class="form-select-option" data-value="Ordinary">
-															<fmt:message
-																key="generalassemblymeeting.archived.view.type.ordinary" />
-														</div>
-
-														<div class="form-select-option" data-value="Extraordinary">
-															<fmt:message
-																key="generalassemblymeeting.archived.view.type.extra.ordinary" />
-														</div>
-
-														<div class="form-select-option"
-															data-value="Extraordinary - Corporate Actions">
-															<fmt:message
-																key="generalassemblymeeting.archived.view.type.extra.ordinary.corporate.actions" />
-														</div>
-
-													</div>
-												</div>
-											</div>
-
-										</div>
-
-									</div>
-
-								</div>
-
-
-								<!-- STATUS -->
-								<div class="col-12 col-md-3 col-sm-6">
-
-									<div class="form-field">
-
-										<label class="form-label"> <fmt:message
-												key="generalassemblymeeting.archived.view.status" />
-										</label>
-
-										<div class="form-control-shell is-select" data-select
-											data-field="status">
-
-											<div class="form-select-value"></div>
-
-											<input type="hidden" data-filter="status" value="" /> <span
-												class="form-suffix form-select-arrow"></span>
-
-											<div class="form-popover">
-												<div class="form-select-panel">
-													<div class="form-select-list">
-
-														<div class="form-select-option" data-value=""
-															data-selected="true">
-															<fmt:message
-																key="generalassemblymeeting.archived.view.select.status" />
-														</div>
-
-														<div class="form-select-option" data-value="Convening">
-															<fmt:message
-																key="generalassemblymeeting.archived.view.status.convening" />
-														</div>
-
-														<div class="form-select-option" data-value="Non-Convening">
-															<fmt:message
-																key="generalassemblymeeting.archived.view.status.non.convening" />
-														</div>
-
-													</div>
-												</div>
-											</div>
-
-										</div>
-
-									</div>
-
-								</div>
-
-
-								<!-- Date Range -->
-								<div class="col-12 col-md-3 col-sm-6">
-									<div class="form-field">
-										<label class="form-label"> <fmt:message
-												key="issuer.financial.calendars.v2.table.search.timeperiod" />
-										</label>
-
-										<div class="form-control-shell form-date-range is-date"
-											data-date-range>
-											<input type="text" name="fromDate" data-filter="fromDate"
-												class="form-date-input" placeholder="Start date" readonly
-												data-date-start /> <span class="form-date-range-separator"
-												aria-hidden="true">-</span> <input type="text" name="toDate"
-												data-filter="toDate" class="form-date-input"
-												placeholder="End date" readonly data-date-end /> <span
-												class="form-suffix form-date-icon"></span>
-										</div>
-									</div>
-								</div>
-
-
-
-
-
-							</div>
-
-						</div>
-
-
-						<!-- BOARD SESSIONS FILTERS -->
-						<div class="banner-filters__group" data-filters-for="boards">
-
-							<div class="row">
-
-								<!-- MARKET -->
-								<div class="col-12 col-md-3 col-sm-6">
-
-									<div class="form-field">
-
-										<label class="form-label"> <fmt:message
-												key="generalassemblymeeting.markettype" />
-										</label>
-
-										<div class="form-control-shell is-select" data-select
-											data-field="market">
-
-											<div class="form-select-value"></div>
-
-											<input type="hidden" data-filter="marketsListId" value="M" />
-
-											<span class="form-suffix form-select-arrow"></span>
-
-											<div class="form-popover">
-												<div class="form-select-panel">
-													<div class="form-select-list">
-
-														<div class="form-select-option" data-value="M"
-															data-selected="true">
-															<fmt:message
-																key="generalassemblymeeting.label.market.main" />
-														</div>
-
-														<div class="form-select-option" data-value="S">
-															<fmt:message
-																key="generalassemblymeeting.label.market.nomu" />
-														</div>
-
-													</div>
-												</div>
-											</div>
-
-										</div>
-
-									</div>
-								</div>
-
-
-								<!-- COMPANY SEARCH -->
-
-								<div class="col-12 col-md-3 col-sm-6">
-
-									<div class="form-field">
-
-										<label class="form-label"> <fmt:message
-												key="issuer.financial.calendars.v2.table.search" />
-										</label>
-
-										<div class="form-control-shell">
-
-											<input type="text" class="form-input"
-												data-filter="companySymbol" placeholder="" />
-
-										</div>
-
-									</div>
-
-								</div>
-
-
-								<!-- Date Range -->
-								<div class="col-12 col-md-3 col-sm-6">
-									<div class="form-field">
-										<label class="form-label"> <fmt:message
-												key="issuer.financial.calendars.v2.table.search.timeperiod" />
-										</label>
-
-										<div class="form-control-shell form-date-range is-date"
-											data-date-range>
-											<input type="text" name="fromDate" data-filter="fromDate"
-												class="form-date-input" placeholder="Start date" readonly
-												data-date-start /> <span class="form-date-range-separator"
-												aria-hidden="true">-</span> <input type="text" name="toDate"
-												data-filter="toDate" class="form-date-input"
-												placeholder="End date" readonly data-date-end /> <span
-												class="form-suffix form-date-icon"></span>
-										</div>
-									</div>
-								</div>
-								
-								
-
-								
-
-							</div>
-
-						</div>
-
-
-						<!-- CORPORATE ACTIONS FILTERS -->
-						<div class="banner-filters__group"
-							data-filters-for="corporateActions">
-
-							<div class="row">
-
-								<!-- MARKET -->
-								<div class="col-12 col-md-3 col-sm-6">
-
-									<div class="form-field">
-
-										<label class="form-label"> <fmt:message
-												key="generalassemblymeeting.markettype" />
-										</label>
-
-										<div class="form-control-shell is-select" data-select
-											data-field="market">
-
-											<div class="form-select-value"></div>
-
-											<input type="hidden" data-filter="marketsListId" value="M" />
-
-											<span class="form-suffix form-select-arrow"></span>
-
-											<div class="form-popover">
-												<div class="form-select-panel">
-													<div class="form-select-list">
-
-														<div class="form-select-option" data-value="M"
-															data-selected="true">
-															<fmt:message
-																key="generalassemblymeeting.label.market.main" />
-														</div>
-
-														<div class="form-select-option" data-value="S">
-															<fmt:message
-																key="generalassemblymeeting.label.market.nomu" />
-														</div>
-
-													</div>
-												</div>
-											</div>
-
-										</div>
-
-									</div>
-								</div>
-
-
-								<!-- COMPANY SEARCH -->
-
-								<div class="col-12 col-md-3 col-sm-6">
-
-									<div class="form-field">
-
-										<label class="form-label"> <fmt:message
-												key="issuer.financial.calendars.v2.table.search" />
-										</label>
-
-										<div class="form-control-shell">
-
-											<input type="text" class="form-input"
-												data-filter="companySymbol" value="${requestScope.bySymbol}" placeholder="" />
-
-										</div>
-
-									</div>
-
-								</div>
-
-
-								<!-- Date Range -->
-								<div class="col-12 col-md-3 col-sm-6">
-									<div class="form-field">
-										<label class="form-label"> <fmt:message
-												key="issuer.financial.calendars.v2.table.search.timeperiod" />
-										</label>
-
-										<div class="form-control-shell form-date-range is-date"
-											data-date-range>
-											<input type="text" name="start" data-filter="start"
-												class="form-date-input" placeholder="Start date" readonly
-												data-date-start /> <span class="form-date-range-separator"
-												aria-hidden="true">-</span> <input type="text" name="end"
-												data-filter="end" class="form-date-input"
-												placeholder="End date" readonly data-date-end /> <span
-												class="form-suffix form-date-icon"></span>
-										</div>
-									</div>
-								</div>
-
-								
-							</div>
-
-						</div>
-
-					</div>
-				</section>
-
-			</div>
-
-		</div>
-
-	</div>
-
-	<!-- CONTENT AREA -->
-	<div class="intro-section">
-
-		
-
-
-		<section class="app-container mt-5">
-
-			<section id="financial-content" class="tab-content">
-
-
-				<!-- DIVIDENDS PANEL -->
-
-
-				<section class="tab-content__panel is-active"
-					id="financial-panel-dividends" data-tab="dividends" role="tabpanel">
-
-					<table id="dividendsTable" class="table">
-
-						<thead>
-
-							<tr>
-
-								<th><fmt:message
-										key="issuer.financial.calendars.v2.table.heading.symbol" /></th>
-
-								<th><fmt:message
-										key="issuer.financial.calendars.v2.table.heading.company" /></th>
-
-								<th class="text-center"><fmt:message
-										key="issuer.financial.calendars.v2.table.heading.announcementdate" />
-								</th>
-
-								<th class="text-center"><fmt:message
-										key="issuer.financial.calendars.v2.table.heading.duedate" /></th>
-
-								<th class="text-center"><fmt:message
-										key="issuer.financial.calendars.v2.table.heading.distributionmethod" />
-								</th>
-
-								<th class="text-center"><fmt:message
-										key="issuer.financial.calendars.v2.table.heading.distributiondate" />
-								</th>
-
-								<th class="text-center"><fmt:message
-										key="issuer.financial.calendars.v2.table.heading.amount" /></th>
-
-							</tr>
-
-						</thead>
-
-						<tbody></tbody>
-
-					</table>
-
-				</section>
-
-
-				<!-- GENERAL MEETINGS PANEL -->
-				<section class="tab-content__panel"
-					id="financial-panel-generalMeetings" data-tab="generalMeetings"
-					role="tabpanel">
-
-					<div class="table-responsive">
-
-						<table id="generalMeetingsTable" class="table" data-dt>
-
-							<thead>
-
-								<tr>
-
-									<th><fmt:message
-											key="issuer.financial.calendars.v2.table.heading.symbol" /></th>
-
-									<th><fmt:message
-											key="generalassemblymeeting.current.view.company.name" /></th>
-
-									<th class="text-center"><fmt:message
-											key="generalassemblymeeting.current.view.type.of.assembly" />
-									</th>
-
-									<th class="text-center"><fmt:message
-											key="generalassemblymeeting.current.view.date" /></th>
-
-									<th class="text-center"><fmt:message
-											key="generalassemblymeeting.current.view.time" /></th>
-
-									<th class="text-center"><fmt:message
-											key="generalassemblymeeting.current.view.site" /></th>
-
-									<th class="text-center"><fmt:message
-											key="generalassemblymeeting.current.view.status" /></th>
-
-								</tr>
-
-							</thead>
-
-							<tbody></tbody>
-
-						</table>
-
-					</div>
-
-				</section>
-
-				<!-- BOARD SESSIONS PANEL -->
-				<section class="tab-content__panel"
-					id="financial-panel-boardSessions" data-tab="boards"
-					role="tabpanel">
-
-					<div class="table-responsive">
-
-						<table id="boardsTable" class="table" data-dt>
-
-							<thead>
-
-								<tr>
-
-									<th><fmt:message
-											key="issuer.financial.calendars.v2.table.heading.symbol" /></th>
-
-									<th><fmt:message key="bod.company.name" /></th>
-
-									<th class="text-center"><fmt:message key="bod.start.date" /></th>
-
-									<th class="text-center"><fmt:message key="bod.end.date" /></th>
-
-									<th class="text-center"><fmt:message key="bod.session.type" /></th>
- 
-									<th class="text-center"><fmt:message key="bod.noof.members" /></th>
-
-									<th class="text-center"><fmt:message key="bod.start.date" /></th>
-
-									<th class="text-center"><fmt:message key="bod.end.date" /></th>
-
-								</tr>
-
-							</thead>
-
-							<tbody></tbody>
-
-						</table>
-
-					</div>
-
-				</section>
-
-
-				<!-- CORPORATE ACTIONS PANEL -->
-
-				<section class="tab-content__panel"
-					id="financial-panel-corporateActions" data-tab="corporateActions"
-					role="tabpanel">
-
-					<div class="table-responsive">
-
-						<table id="corporateActionsTable" class="table" data-dt>
-
-							<thead>
-
-								<tr>
-
-									<th><fmt:message key="corpAction.company.symbol" /></th>
-
-									<th><fmt:message key="corpAction.company.name" /></th>
-
-									<th><fmt:message key="corpAction.announceDate" /></th>
-
-									<th><fmt:message key="corpAction.issueType" /></th>
-
-									<th><fmt:message key="corpAction.dueDate" /></th>
-
-									<th><fmt:message key="corpAction.newCap" /></th>
-
-									<th><fmt:message key="corpAction.prevCap" /></th>
-
-								</tr>
-
-							</thead>
-
-							<tbody></tbody>
-
-						</table>
-
-					</div>
-
-				</section>
-
-			</section>
-
-		</section>
-
-	</div>
-
-</section>
-
 <script>
-    window.CALENDAR_TYPE_MAP = {
-        dividends: "<%=CalendarType.DIVIDENDS_CALENDAR%>",
-        generalMeetings: "<%=CalendarType.GEN_ASSEMBLY_MEETINGS_CALENDAR%>",
-        boards: "<%=CalendarType.DIRECTORS_SESSIONS_CALENDAR%>",
-        corporateActions: "<%=CalendarType.CORPORATE_ACTIONS_CALENDAR%>"
-	};
+  (() => {
+    "use strict";
+
+    /* ==========================================================================
+       Guard
+       ========================================================================== */
+
+    if (window.__marketOverviewChartsInitialized) {
+      return;
+    }
+
+    window.__marketOverviewChartsInitialized = true;
+
+    /* ==========================================================================
+       Production Configuration
+       ========================================================================== */
+
+    const LIVE_INTERVAL = 60_000;
+    const LIVE_WINDOW_DURATION = null;
+
+    /*
+     * Keep comfortable headroom above a complete one-minute trading session.
+     *
+     * This prevents the controller's bounded live store from evicting the
+     * session open during normal trading or after a short hidden-tab catch-up.
+     */
+    const MAX_POINTS = 900;
+
+    const REQUEST_TIMEOUT = 10_000;
+    const API_READY_TIMEOUT = 10_000;
+
+    const TIME_ZONE = "Asia/Riyadh";
+    const RIYADH_OFFSET = "+03:00";
+
+    /* ==========================================================================
+       Markets
+       ========================================================================== */
+
+    const MARKETS = Object.freeze([
+      Object.freeze({
+        key: "tasi",
+        apiId: "tasi",
+
+        symbol: "TASI",
+
+        nameEn: "Tadawul All Share Index",
+        nameAr: "مؤشر السوق الرئيسية (تاسي)",
+
+        currency: "SAR",
+        decimals: 2,
+
+        chartSelector: "#tasi-chart",
+        panelSelector: "#market-panel-tasi",
+      }),
+
+      Object.freeze({
+        key: "nomu",
+        apiId: "nomuc",
+
+        symbol: "NOMUC",
+
+        nameEn: "Parallel Market Capped Index",
+        nameAr: "مؤشر السوق الموازية (نمو حد أعلى)",
+
+        currency: "SAR",
+        decimals: 2,
+
+        chartSelector: "#nomu-chart",
+        panelSelector: "#market-panel-nomu",
+      }),
+
+      Object.freeze({
+        key: "sukuk",
+        apiId: "sukuk",
+
+        symbol: "SUKUK",
+
+        nameEn: "Sukuk/Bonds Market Index",
+        nameAr: "مؤشر سوق الصكوك / السندات",
+
+        currency: "SAR",
+        decimals: 2,
+
+        chartSelector: "#sukuk-chart",
+        panelSelector: "#market-panel-sukuk",
+      }),
+
+      Object.freeze({
+        key: "reits",
+        apiId: "reits",
+
+        symbol: "REITS",
+
+        nameEn: "REITs Index",
+        nameAr: "صناديق الاستثمار العقارية",
+
+        currency: "SAR",
+        decimals: 2,
+
+        chartSelector: "#reits-chart",
+        panelSelector: "#market-panel-funds",
+      }),
+
+      Object.freeze({
+        key: "mt30",
+        apiId: "mt30",
+
+        symbol: "MT30",
+
+        nameEn: "MT30 Index",
+        nameAr: "إم تي 30",
+
+        currency: "SAR",
+        decimals: 2,
+
+        chartSelector: "#mt30-chart",
+        panelSelector: "#market-panel-derivatives",
+      }),
+    ]);
+
+    /* ==========================================================================
+       Runtime
+       ========================================================================== */
+
+    const listenerController = new AbortController();
+
+    let chartAPI = null;
+
+    /*
+     * Exactly ONE Highcharts/controller runtime.
+     */
+    let activeRuntime = null;
+
+    /*
+     * Exactly ONE initial API request may be pending.
+     */
+    let pendingCreation = null;
+
+    let syncFrame = null;
+    let syncRevision = 0;
+
+    let destroyed = false;
+
+    /* ==========================================================================
+       Locale
+       ========================================================================== */
+
+    function getLanguage() {
+      return document.documentElement.lang || "en";
+    }
+
+    function isArabic() {
+      return String(getLanguage()).toLowerCase().startsWith("ar");
+    }
+
+    function getMarketName(market) {
+      return isArabic() ? market.nameAr : market.nameEn;
+    }
+
+    function getAxisLabels() {
+      return isArabic()
+        ? {
+            time: "الوقت",
+            value: "قيمة المؤشر",
+          }
+        : {
+            time: "Time",
+            value: "Index Value",
+          };
+    }
+
+    function getMessages(market) {
+      const name = getMarketName(market);
+
+      return isArabic()
+        ? {
+            loading: `جارٍ تحميل بيانات ${name}…`,
+            empty: `بيانات ${name} غير متاحة حالياً.`,
+            error: `تعذر تحميل بيانات ${name}.`,
+          }
+        : {
+            loading: `Loading ${name} data…`,
+            empty: `${name} data is currently unavailable.`,
+            error: `${name} data could not be loaded.`,
+          };
+    }
+
+    /* ==========================================================================
+       Number Normalization
+       ========================================================================== */
+
+    function toFiniteNumber(value) {
+      if (
+        value === null ||
+        value === undefined ||
+        (typeof value === "string" && value.trim() === "")
+      ) {
+        return null;
+      }
+
+      const normalized =
+        typeof value === "string" ? value.replaceAll(",", "").trim() : value;
+
+      const number = Number(normalized);
+
+      return Number.isFinite(number) ? number : null;
+    }
+
+    /* ==========================================================================
+       Timestamp Normalization
+       ========================================================================== */
+
+    function toTimestamp(value) {
+      if (
+        value === null ||
+        value === undefined ||
+        (typeof value === "string" && value.trim() === "")
+      ) {
+        return null;
+      }
+
+      /* ------------------------------------------------------------------------
+         Numeric epoch
+         ------------------------------------------------------------------------ */
+
+      const text = String(value).trim();
+
+      if (typeof value === "number" || /^\d+$/.test(text)) {
+        const numeric = Number(value);
+
+        if (!Number.isFinite(numeric)) {
+          return null;
+        }
+
+        return numeric < 10_000_000_000 ? numeric * 1_000 : numeric;
+      }
+
+      const source = text;
+
+      /* ------------------------------------------------------------------------
+         Zoned date/time
+         ------------------------------------------------------------------------ */
+
+      if (/(?:Z|[+-]\d{2}:?\d{2})$/i.test(source)) {
+        const timestamp = Date.parse(source);
+
+        return Number.isFinite(timestamp) ? timestamp : null;
+      }
+
+      /* ------------------------------------------------------------------------
+         Saudi local ISO date/time
+         ------------------------------------------------------------------------ */
+
+      const isoLocalMatch = source.match(
+        /^(\d{4})-(\d{2})-(\d{2})[ T](\d{1,2}):(\d{2})(?::(\d{2})(?:\.(\d{1,3}))?)?$/,
+      );
+
+      if (isoLocalMatch) {
+        const [
+          ,
+          year,
+          month,
+          day,
+          hour,
+          minute,
+          second = "00",
+          milliseconds = "",
+        ] = isoLocalMatch;
+
+        const fraction = milliseconds ? `.${milliseconds.padEnd(3, "0")}` : "";
+
+        const timestamp = Date.parse(
+          `${year}-${month}-${day}T${hour.padStart(
+            2,
+            "0",
+          )}:${minute}:${second}${fraction}${RIYADH_OFFSET}`,
+        );
+
+        return Number.isFinite(timestamp) ? timestamp : null;
+      }
+
+      /* ------------------------------------------------------------------------
+         Saudi local DD/MM/YYYY
+         ------------------------------------------------------------------------ */
+
+      const dayFirstMatch = source.match(
+        /^(\d{1,2})\/(\d{1,2})\/(\d{4})[ T](\d{1,2}):(\d{2})(?::(\d{2}))?$/,
+      );
+
+      if (dayFirstMatch) {
+        const [, day, month, year, hour, minute, second = "00"] = dayFirstMatch;
+
+        const timestamp = Date.parse(
+          `${year}-${month.padStart(2, "0")}-${day.padStart(
+            2,
+            "0",
+          )}T${hour.padStart(2, "0")}:${minute}:${second}${RIYADH_OFFSET}`,
+        );
+
+        return Number.isFinite(timestamp) ? timestamp : null;
+      }
+
+      /*
+       * Final fallback for backend representations
+       * already understood by the browser.
+       */
+      const timestamp = Date.parse(source);
+
+      return Number.isFinite(timestamp) ? timestamp : null;
+    }
+
+    /* ==========================================================================
+       Backend URL
+       ========================================================================== */
+
+    function buildMarketApiUrl(market) {
+      if (!market) {
+        return null;
+      }
+
+      const params = new URLSearchParams();
+
+      params.set("methodType", "parsingMethod");
+
+      /* ------------------------------------------------------------------------
+         Existing backend chart type
+         ------------------------------------------------------------------------ */
+
+      let chartType = "SQL_MI_MSPV";
+
+      if (market.apiId === "nomuc") {
+        chartType = "SQL_MI_MSPV_SME";
+      } else if (market.apiId === "sukuk") {
+        chartType = "SQL_MI_MSPV_SUKUK";
+      }
+
+      params.set("chart-type", chartType);
+
+      /* ------------------------------------------------------------------------
+         Existing parameter aliases
+         ------------------------------------------------------------------------ */
+
+      let chartParameter = market.apiId;
+
+      if (market.apiId === "sukuk") {
+        chartParameter = "tsbi";
+      } else if (market.apiId === "reits") {
+        chartParameter = "trti";
+      }
+
+      params.set("chart-parameter", chartParameter);
+
+      params.set("format", "json");
+
+      params.set("pageName", "MarketSummaryHomePageGraph");
+
+      params.set(
+        "jwtToken",
+        '<%=JwtBean.getJwtToken("marketStatusHomeGraph")%>',
+      );
+
+      return "/url?" + params.toString();
+    }
+
+    /* ==========================================================================
+       Snapshot Normalization
+       ========================================================================== */
+
+    function normalizeSnapshot(payload) {
+      if (!Array.isArray(payload) || !payload.length) {
+        return [];
+      }
+
+      /*
+       * Duplicate timestamp:
+       * latest backend occurrence wins.
+       */
+      const byTimestamp = new Map();
+
+      for (const item of payload) {
+        if (!item || typeof item !== "object") {
+          continue;
+        }
+
+        const timestamp = toTimestamp(item.dateTime);
+
+        const value = toFiniteNumber(item.indexPrice);
+
+        if (timestamp === null || value === null) {
+          continue;
+        }
+
+        byTimestamp.set(timestamp, [timestamp, value]);
+      }
+
+      const points = [...byTimestamp.values()].sort(
+        (first, second) => first[0] - second[0],
+      );
+
+      /*
+       * Keep one complete intraday session,
+       * not an unbounded history.
+       */
+      return points.length > MAX_POINTS ? points.slice(-MAX_POINTS) : points;
+    }
+
+    /* ==========================================================================
+       Abort Helpers
+       ========================================================================== */
+
+    function createAbortError(message = "The request was cancelled.") {
+      const error = new Error(message);
+
+      error.name = "AbortError";
+
+      return error;
+    }
+
+    function isAbortError(error) {
+      return error?.name === "AbortError";
+    }
+
+    /* ==========================================================================
+       Backend Request
+       ========================================================================== */
+
+    async function requestSnapshot(market, externalSignal = null) {
+      const url = buildMarketApiUrl(market);
+
+      if (!url) {
+        throw new Error(
+          `Unable to build ${market?.symbol || "market"} chart URL.`,
+        );
+      }
+
+      const controller = new AbortController();
+
+      let timedOut = false;
+
+      const handleExternalAbort = () => {
+        controller.abort();
+      };
+
+      if (externalSignal) {
+        if (externalSignal.aborted) {
+          throw externalSignal.reason || createAbortError();
+        }
+
+        externalSignal.addEventListener("abort", handleExternalAbort, {
+          once: true,
+        });
+      }
+
+      const timeoutId = window.setTimeout(() => {
+        timedOut = true;
+
+        controller.abort();
+      }, REQUEST_TIMEOUT);
+
+      try {
+        const response = await fetch(url, {
+          method: "GET",
+
+          credentials: "same-origin",
+
+          signal: controller.signal,
+
+          headers: {
+            Accept: "application/json",
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error(
+            `${market.symbol} chart request failed with HTTP ${response.status}.`,
+          );
+        }
+
+        return normalizeSnapshot(await response.json());
+      } catch (error) {
+        if (timedOut) {
+          const timeoutError = new Error(
+            `${market.symbol} chart request timed out.`,
+          );
+
+          timeoutError.name = "TimeoutError";
+
+          throw timeoutError;
+        }
+
+        if (externalSignal?.aborted) {
+          throw externalSignal.reason || createAbortError();
+        }
+
+        if (controller.signal.aborted) {
+          throw createAbortError();
+        }
+
+        throw error;
+      } finally {
+        window.clearTimeout(timeoutId);
+
+        externalSignal?.removeEventListener("abort", handleExternalAbort);
+      }
+    }
+
+    /* ==========================================================================
+       Live Delta
+       ========================================================================== */
+
+    function selectLivePoints(snapshot, since) {
+      if (!Array.isArray(snapshot) || !snapshot.length) {
+        return [];
+      }
+
+      const sinceTimestamp = toTimestamp(since);
+
+      /*
+       * Recovery from an empty initial chart.
+       */
+      if (sinceTimestamp === null) {
+        return snapshot;
+      }
+
+      /*
+       * Inclusive reconciliation boundary.
+       *
+       * The controller deliberately sends
+       * `sinceInclusive: true` and can
+       * reconcile both:
+       *
+       * - a correction at the latest known timestamp
+       * - every genuinely newer point returned after
+       *   a hidden-tab pause
+       *
+       * An unchanged boundary point becomes a
+       * canonical no-op inside market-chart.js,
+       * so it does not trigger a chart redraw.
+       */
+      return snapshot.filter((point) => point[0] >= sinceTimestamp);
+    }
+
+    /* ==========================================================================
+       DOM
+       ========================================================================== */
+
+    function resolveChartElement(market) {
+      return document.querySelector(market.chartSelector);
+    }
+
+    function resolvePanel(market, chartElement = resolveChartElement(market)) {
+      return (
+        document.querySelector(market.panelSelector) ||
+        chartElement?.closest("[data-market-detail-panel]") ||
+        chartElement?.closest("[data-performance-chart]") ||
+        chartElement?.closest(".performance-chart") ||
+        chartElement?.parentElement ||
+        null
+      );
+    }
+
+    function isElementVisible(element) {
+      if (
+        !element?.isConnected ||
+        element.closest("[hidden]") ||
+        element.closest('[aria-hidden="true"]')
+      ) {
+        return false;
+      }
+
+      const rect = element.getBoundingClientRect();
+
+      return Boolean(
+        element.getClientRects().length && rect.width > 0 && rect.height > 0,
+      );
+    }
+
+    function getVisibleMarket() {
+      return (
+        MARKETS.find((market) =>
+          isElementVisible(resolveChartElement(market)),
+        ) || null
+      );
+    }
+
+    /* ==========================================================================
+       Comparison
+       ========================================================================== */
+
+    function resolveComparisonValue(points) {
+      if (!Array.isArray(points) || !points.length) {
+        return null;
+      }
+
+      /*
+       * Current Overview endpoint does not expose
+       * a separate previous-close field.
+       */
+      return toFiniteNumber(points[0]?.[1]);
+    }
+
+    /* ==========================================================================
+       Chart Configuration
+       ========================================================================== */
+
+    function createChartOptions(market, panel, initialPoints) {
+      const labels = getAxisLabels();
+
+      const comparisonValue = resolveComparisonValue(initialPoints);
+
+      return {
+        context: "overview",
+
+        symbol: market.symbol,
+
+        name: getMarketName(market),
+
+        currency: market.currency,
+
+        previousClose: comparisonValue,
+
+        /*
+         * Overview remains intentionally simple.
+         */
+        mode: "trend",
+
+        range: "1D",
+
+        language: getLanguage(),
+
+        timeZone: TIME_ZONE,
+
+        decimals: market.decimals,
+
+        maxPoints: MAX_POINTS,
+
+        /*
+         * Keep the complete available
+         * intraday session visible.
+         */
+        liveWindowDuration: LIVE_WINDOW_DURATION,
+
+        /*
+         * Fresh active-market creation gets
+         * one restrained initial draw.
+         *
+         * Live ticks and controller refreshes
+         * remain non-animated.
+         */
+        animation: {
+          duration: 450,
+        },
+
+        xAxisTitle: labels.time,
+
+        yAxisTitle: labels.value,
+
+        capabilities: {
+          intraday: true,
+
+          historical: false,
+
+          live: true,
+
+          navigator: true,
+
+          intradayRange: "1D",
+        },
+
+        axis: {
+          x: {
+            labels: true,
+
+            rotation: 0,
+
+            /*
+             * market-chart-options.js now
+             * guarantees the real first
+             * intraday timestamp.
+             */
+            showFirstLabel: true,
+
+            showLastLabel: true,
+
+            minPadding: 0,
+
+            maxPadding: 0,
+          },
+
+          y: {
+            /*
+             * Physically right in both LTR/RTL.
+             */
+            opposite: true,
+
+            labels: true,
+
+            minPadding: 0.06,
+
+            maxPadding: 0.06,
+
+            format: {
+              decimals: market.decimals,
+
+              useGrouping: true,
+            },
+          },
+        },
+
+        dateFormats: {
+          "1D": {
+            hour: "2-digit",
+
+            minute: "2-digit",
+
+            hourCycle: "h23",
+          },
+        },
+
+        tooltipDateFormats: {
+          "1D": {
+            day: "2-digit",
+
+            month: "short",
+
+            year: "numeric",
+
+            hour: "2-digit",
+
+            minute: "2-digit",
+
+            second: "2-digit",
+
+            hourCycle: "h23",
+          },
+        },
+
+        ranges: {
+          "1D": {
+            comparisonValue,
+
+            trend: initialPoints,
+          },
+        },
+
+        controls: {
+          root: panel,
+        },
+
+        /* ----------------------------------------------------------------------
+           Navigator
+           ---------------------------------------------------------------------- */
+
+        navigatorEnabled: true,
+
+        navigator: {
+          enabled: true,
+
+          labels: true,
+
+          height: 32,
+
+          margin: 12,
+
+          handles: true,
+
+          handleWidth: 7,
+
+          handleHeight: 14,
+
+          labelY: -5,
+
+          showFirstLabel: true,
+
+          showLastLabel: true,
+
+          tickPixelInterval: 120,
+
+          dataGrouping: false,
+        },
+
+        /* ----------------------------------------------------------------------
+           Export
+           ---------------------------------------------------------------------- */
+
+        exporting: {
+          enabled: false,
+        },
+
+        /* ----------------------------------------------------------------------
+           Live
+           ---------------------------------------------------------------------- */
+
+        live: {
+          enabled: true,
+
+          interval: LIVE_INTERVAL,
+
+          alignToInterval: true,
+
+          /*
+           * Initial snapshot was fetched
+           * before Highstock creation.
+           */
+          immediate: false,
+
+          /*
+           * Browser-tab visibility only.
+           *
+           * Market tabs no longer use
+           * suspension.
+           */
+          pauseWhenHidden: true,
+
+          retry: true,
+
+          autostart: true,
+
+          requestTimeout: REQUEST_TIMEOUT,
+
+          async fetchUpdates({ signal, since } = {}) {
+            const snapshot = await requestSnapshot(market, signal);
+
+            const points = selectLivePoints(snapshot, since);
+
+            /*
+             * No newer timestamp:
+             *
+             * true no-op.
+             */
+            if (!points.length) {
+              return null;
+            }
+
+            return {
+              points,
+            };
+          },
+
+          onError(error, metadata) {
+            if (isAbortError(error)) {
+              return;
+            }
+
+            console.error(`${market.symbol} live chart update failed.`, {
+              error,
+              metadata,
+            });
+          },
+        },
+
+        accessibilityDescription: isArabic()
+          ? `الأداء اللحظي لمؤشر ${getMarketName(market)}.`
+          : `${getMarketName(market)} intraday market performance.`,
+
+        messages: getMessages(market),
+      };
+    }
+
+    /* ==========================================================================
+       Runtime Destruction
+       ========================================================================== */
+
+    function destroyActiveRuntime() {
+      const runtime = activeRuntime;
+
+      if (!runtime) {
+        return;
+      }
+
+      /*
+       * Immediately detach it from
+       * global state so no later callback
+       * considers this market active.
+       */
+      activeRuntime = null;
+
+      try {
+        /*
+         * market-chart.js destroy():
+         *
+         * - destroys live controller;
+         * - aborts active live request;
+         * - removes polling timer;
+         * - disconnects chart observers;
+         * - destroys Highstock.
+         */
+        runtime.controller?.destroy();
+      } catch (error) {
+        console.error(
+          `${runtime.market.symbol} chart destruction failed.`,
+          error,
+        );
+      }
+
+      if (runtime.panel.marketChartController === runtime.controller) {
+        delete runtime.panel.marketChartController;
+      }
+    }
+
+    /* ==========================================================================
+       Pending Initial Request
+       ========================================================================== */
+
+    function cancelPendingCreation() {
+      if (!pendingCreation) {
+        return;
+      }
+
+      pendingCreation.controller.abort();
+
+      pendingCreation = null;
+    }
+
+    /* ==========================================================================
+       Runtime Creation
+       ========================================================================== */
+
+    async function createRuntime(market, signal) {
+      const chartElement = resolveChartElement(market);
+
+      if (!chartElement) {
+        console.warn(
+          `${market.symbol} chart element was not found: ${market.chartSelector}`,
+        );
+
+        return null;
+      }
+
+      const panel = resolvePanel(market, chartElement);
+
+      if (!panel) {
+        console.warn(`${market.symbol} chart panel could not be resolved.`);
+
+        return null;
+      }
+
+      panel.setAttribute("aria-busy", "true");
+
+      chartElement.dataset.chartState = "loading";
+
+      let initialPoints = [];
+
+      try {
+        /*
+         * API first.
+         *
+         * Highstock is not constructed
+         * until the selected market
+         * snapshot is available.
+         */
+        initialPoints = await requestSnapshot(market, signal);
+      } catch (error) {
+        if (isAbortError(error)) {
+          panel.setAttribute("aria-busy", "false");
+
+          return null;
+        }
+
+        /*
+         * Allow live polling to recover
+         * from a temporary initial API
+         * failure.
+         */
+        console.error(`${market.symbol} initial chart request failed.`, error);
+      }
+
+      if (destroyed || signal.aborted) {
+        panel.setAttribute("aria-busy", "false");
+
+        return null;
+      }
+
+      let controller = null;
+
+      try {
+        controller = chartAPI.create(
+          chartElement,
+
+          createChartOptions(market, panel, initialPoints),
+        );
+
+        if (!controller) {
+          throw new Error(`${market.symbol} chart controller was not created.`);
+        }
+
+        const runtime = {
+          market,
+
+          panel,
+
+          chartElement,
+
+          controller,
+        };
+
+        panel.marketChartController = controller;
+
+        panel.setAttribute("aria-busy", "false");
+
+        return runtime;
+      } catch (error) {
+        controller?.destroy();
+
+        panel.setAttribute("aria-busy", "false");
+
+        console.error(`${market.symbol} chart initialization failed.`, error);
+
+        return null;
+      }
+    }
+
+    /* ==========================================================================
+       Selected Market Synchronization
+       ========================================================================== */
+
+    async function synchronizeSelectedMarket() {
+      syncFrame = null;
+
+      if (destroyed || !chartAPI) {
+        return;
+      }
+
+      const market = getVisibleMarket();
+
+      /*
+       * Already exactly the market
+       * we need.
+       */
+      if (market && activeRuntime?.market?.key === market.key) {
+        activeRuntime.controller?.getChart()?.reflow();
+
+        return;
+      }
+
+      /*
+       * Same market is already loading.
+       */
+      if (
+        market &&
+        !activeRuntime &&
+        pendingCreation?.marketKey === market.key
+      ) {
+        return;
+      }
+
+      const revision = ++syncRevision;
+
+      /*
+       * Any previous initial request
+       * is no longer useful.
+       */
+      cancelPendingCreation();
+
+      /*
+       * The old market must disappear
+       * completely.
+       *
+       * No hidden Highcharts instance
+       * survives while the selected
+       * market loads.
+       */
+      destroyActiveRuntime();
+
+      if (!market) {
+        return;
+      }
+
+      const creationController = new AbortController();
+
+      pendingCreation = {
+        marketKey: market.key,
+
+        controller: creationController,
+      };
+
+      const runtime = await createRuntime(market, creationController.signal);
+
+      if (pendingCreation?.controller === creationController) {
+        pendingCreation = null;
+      }
+
+      /*
+       * The user may have selected
+       * another tab while the network
+       * request was in flight.
+       */
+      if (
+        destroyed ||
+        creationController.signal.aborted ||
+        revision !== syncRevision ||
+        getVisibleMarket()?.key !== market.key
+      ) {
+        runtime?.controller?.destroy();
+
+        return;
+      }
+
+      activeRuntime = runtime;
+
+      if (runtime) {
+        console.info(
+          `[Market Chart] ${market.symbol} active — one Highstock instance.`,
+        );
+      }
+    }
+
+    function scheduleSelectedMarketSync() {
+      if (destroyed || syncFrame !== null) {
+        return;
+      }
+
+      /*
+       * One frame lets the page's tab
+       * component finish updating
+       * hidden/aria/class state first.
+       *
+       * Event-driven only.
+       *
+       * No MutationObserver.
+       */
+      syncFrame = window.requestAnimationFrame(() => {
+        void synchronizeSelectedMarket();
+      });
+    }
+
+    /* ==========================================================================
+       Market Tab Events
+       ========================================================================== */
+
+    function bindMarketActivity() {
+      const root = document.querySelector("[data-market-overview]") || document;
+
+      /*
+       * Existing tab implementation.
+       *
+       * We resolve the actually-visible
+       * market after its own click
+       * handler has completed.
+       */
+      root.addEventListener("click", scheduleSelectedMarketSync, {
+        passive: true,
+
+        signal: listenerController.signal,
+      });
+
+      /*
+       * Bootstrap-compatible tab event.
+       */
+      root.addEventListener("shown.bs.tab", scheduleSelectedMarketSync, {
+        signal: listenerController.signal,
+      });
+
+      /*
+       * Optional application-level event.
+       */
+      root.addEventListener("marketviewchange", scheduleSelectedMarketSync, {
+        signal: listenerController.signal,
+      });
+
+      window.addEventListener("hashchange", scheduleSelectedMarketSync, {
+        signal: listenerController.signal,
+      });
+    }
+
+    /* ==========================================================================
+       Chart API Readiness
+       ========================================================================== */
+
+    function waitForChartAPI() {
+      return new Promise((resolve, reject) => {
+        const started = performance.now();
+
+        function check() {
+          if (destroyed) {
+            reject(createAbortError());
+
+            return;
+          }
+
+          const api = window.SEMarketCharts;
+
+          if (api && typeof api.create === "function") {
+            resolve(api);
+
+            return;
+          }
+
+          if (performance.now() - started >= API_READY_TIMEOUT) {
+            reject(
+              new Error(
+                "SEMarketCharts did not become available within 10 seconds.",
+              ),
+            );
+
+            return;
+          }
+
+          window.setTimeout(check, 25);
+        }
+
+        check();
+      });
+    }
+
+    function waitForDOM() {
+      if (document.readyState !== "loading") {
+        return Promise.resolve();
+      }
+
+      return new Promise((resolve) => {
+        document.addEventListener("DOMContentLoaded", resolve, {
+          once: true,
+        });
+      });
+    }
+
+    /* ==========================================================================
+       Teardown
+       ========================================================================== */
+
+    function destroyOverviewCharts() {
+      if (destroyed) {
+        return;
+      }
+
+      destroyed = true;
+
+      syncRevision += 1;
+
+      listenerController.abort();
+
+      if (syncFrame !== null) {
+        window.cancelAnimationFrame(syncFrame);
+
+        syncFrame = null;
+      }
+
+      cancelPendingCreation();
+
+      destroyActiveRuntime();
+
+      chartAPI = null;
+    }
+
+    /* ==========================================================================
+       Initialization
+       ========================================================================== */
+
+    async function initializeOverviewCharts() {
+      try {
+        await waitForDOM();
+
+        chartAPI = await waitForChartAPI();
+
+        if (destroyed) {
+          return;
+        }
+
+        bindMarketActivity();
+
+        /*
+         * Initial page:
+         *
+         * fetch + create ONLY
+         * the selected market.
+         */
+        await synchronizeSelectedMarket();
+
+        window.addEventListener("pagehide", destroyOverviewCharts, {
+          once: true,
+        });
+
+        console.info(
+          "[Market Chart] Overview single-runtime architecture ready.",
+          {
+            activeChartLimit: 1,
+
+            runtimeCache: false,
+
+            mutationObservers: 0,
+
+            maxIntradayPoints: MAX_POINTS,
+
+            liveInterval: LIVE_INTERVAL,
+
+            timeZone: TIME_ZONE,
+          },
+        );
+      } catch (error) {
+        if (isAbortError(error)) {
+          return;
+        }
+
+        console.error("Market Overview chart initialization failed.", error);
+      }
+    }
+
+    void initializeOverviewCharts();
+  })();
 </script>
-<script>
-	/* =========================================================
-	 DEPENDENT DROPDOWN CONFIG
-	 ========================================================= */
-
-	window.DROPDOWN_CONFIG = {
-
-		market : {
-			init : true,
-
-			targets : [ {
-
-				field : "sector",
-
-				url : "<portlet:resourceURL id='getSectors1'/>",
-
-				method : "GET",
-
-				params : function(marketValue) {
-
-					return {
-						marketsListId : marketValue || "M"
-					};
-
-				},
-
-				map : function(item) {
-
-					return {
-						value : item.id,
-						label : item.name
-					};
-
-				},
-
-				placeholder : function(marketValue) {
-
-					return marketValue === "S" ? '<fmt:message key="generalassemblymeeting.sector.default.value"/>'
-							: '<fmt:message key="generalassemblymeeting.archived.view.all.sectors"/>';
-
-				}
-
-			} ]
-
-		}
-
-	};
-</script>
-
-
-<script>
-	(function() {
-
-		"use strict";
-
-		/* =========================================================
-		 Helpers
-		 ========================================================= */
-
-		function ensurePagination(target) {
-			const table = document.querySelector(target);
-			if (!table || !table.id)
-				return null;
-
-			let pagination = document
-					.querySelector('[data-feed-pagination-for="' + table.id
-							+ '"]');
-
-			if (pagination)
-				return pagination;
-
-			pagination = document.createElement("div");
-			pagination.className = "feed__pagination";
-			pagination.setAttribute("data-feed-pagination-for", table.id);
-
-			pagination.innerHTML = '<div class="feed__page-range" data-feed-range></div>'
-					+ '<div class="feed__page-controls">'
-					+ '<span class="feed__page-label">Page</span> '
-					+ '<select class="feed__select" data-feed-page></select> '
-					+ '<span>of <strong data-feed-total-pages>1</strong></span>'
-					+ '<button class="feed__page-btn" data-feed-prev disabled aria-label="Previous page">'
-					+ '<span class="se-icon icon-md icon-arrow" aria-hidden="true"></span>'
-					+ '</button>'
-					+ '<button class="feed__page-btn" data-feed-next disabled aria-label="Next page">'
-					+ '<span class="se-icon icon-md icon-arrow" aria-hidden="true"></span>'
-					+ '</button>' + '</div>';
-
-			table.insertAdjacentElement("afterend", pagination);
-
-			return pagination;
-		}
-
-		function normalizeResponse(response) {
-
-			if (!response)
-				return [];
-
-			if (typeof response === "string") {
-				try {
-					return normalizeResponse(JSON.parse(response));
-				} catch (e) {
-					return [];
-				}
-			}
-
-			if (Array.isArray(response))
-				return response;
-
-			if (Array.isArray(response.data))
-				return response.data;
-
-			return [];
-		}
-
-		function formatDate(d) {
-			return String(d.getDate()).padStart(2, "0") + "-"
-					+ String(d.getMonth() + 1).padStart(2, "0") + "-"
-					+ d.getFullYear();
-		}
-
-		/* =========================================================
-		 Default 5-Year Date Range
-		 ========================================================= */
-
-		function setDefaultDatesForGroup(group) {
-
-			const today = new Date();
-			const start = new Date();
-
-			start.setFullYear(today.getFullYear() - 5);
-
-			const startInput = group.querySelector("[data-date-start]");
-			const endInput = group.querySelector("[data-date-end]");
-
-			if (startInput && !startInput.value) {
-				startInput.value = formatDate(start);
-			}
-
-			if (endInput && !endInput.value) {
-				endInput.value = formatDate(today);
-			}
-		}
-
-		function initializeDefaultDates() {
-
-			document.querySelectorAll("[data-filters-for]").forEach(
-					setDefaultDatesForGroup);
-
-		}
-
-		/* =========================================================
-		 DataTable Options (shared)
-		 ========================================================= */
-
-		const defaultTableOptions = {
-			paging : true,
-			pageLength : 25,
-			lengthMenu : [ 25, 50, 100 ],
-			fixedHeader : true,
-			scrollX : false,
-			ordering : true,
-			searching : false,
-			info : false,
-			dom : "rt"
-		};
-
-		/* =========================================================
-		 Safe Table Renderer
-		 ========================================================= */
-
-		function renderTable(target, columns, rows) {
-			const pagination = ensurePagination(target);
-			const instance = DataTableCore.getInstance(target);
-
-			const options = Object.assign({}, defaultTableOptions);
-
-			if (pagination) {
-				options.dom = "rt";
-			}
-
-			const features = pagination ? {
-				feedPagination : {
-					container : pagination
-				}
-			} : {};
-
-			if (instance) {
-				DataTableCore.setData(target, rows);
-			} else {
-				DataTableCore.render({
-					target : target,
-					columns : columns,
-					data : rows,
-					features : features,
-					dtOptions : options
-				});
-			}
-
-			DataTableCore.onShow(target);
-		}
-
-		/* =========================================================
-		 TABLE COLUMNS
-		 ========================================================= */
-
-		const dividendsColumns = [
-
-				{
-					data : "symbol",
-					className : "align"
-				},
-
-				{
-					data : "company",
-					className : "align",
-					render : function(d, t, r) {
-
-						if (!r.companyUrl)
-							return d;
-
-						return '<a class="ellipsis" href="'+r.companyUrl+'">'
-								+ d + '</a>';
-
-					}
-				},
-
-				{
-					data : "announcedDate",
-					className : "text-center",
-				}, {
-					data : "dueDate",
-					className : "text-center",
-				}, {
-					data : "distributionWay",
-					className : "text-center",
-				}, {
-					data : "distributionDate",
-					className : "text-center",
-				},
-
-				{
-					data : "amountValue",
-					className : "text-center",
-					render : function(data) {
-						return '<span class="sar-symbol">^</span>' + data;
-					}
-				}
-
-		];
-
-		const generalMeetingsColumns = [
-
-				{
-					data : "compSymbolCode",
-					className : "align"
-				},
-
-				{
-					data : "companyName",
-					className : "align",
-					render : function(d, t, r) {
-
-						if (!r.companyURL)
-							return d;
-
-						return '<a class="ellipsis" href="'+r.companyURL+'">'
-								+ d + '</a>';
-
-					}
-				},
-
-				{
-					data : "natureOfGenMetng",
-					className : "text-center",
-					render : function(d, t, r) {
-
-						if (!r.annUrl)
-							return d;
-
-						return '<a class="ellipsis" href="'+r.annUrl+'">' + d
-								+ '</a>';
-
-					}
-				},
-
-				{
-					data : "holdingDt",
-					className : "text-center",
-				}, {
-					data : "holdingTime",
-					className : "text-center",
-				}, {
-					data : "holdingSite",
-					className : "text-center",
-				}, {
-					data : "status",
-					className : "text-center",
-				}
-
-		];
-
-		const boardsColumns = [
-
-				{
-					data : "companySymbol",
-					className : "align"
-				},
-
-				{
-					data : "companyName",
-					className : "align",
-					render : function(d, t, r) {
-
-						if (!r.companyURL)
-							return d;
-
-						return '<a class="ellipsis" href="'+r.companyURL+'">'
-								+ d + '</a>';
-
-					}
-				},
-
-				{
-					data : "sessionStartDate",
-					className : "text-center",
-				}, {
-					data : "sessionEndDate",
-					className : "text-center",
-				}, {
-					data : "sessionType",
-					className : "text-center",
-				}, {
-					data : "noofBOD",
-					className : "text-center",
-				}, {
-					data : "appStartDate",
-					className : "text-center",
-				}, {
-					data : "appEndDate",
-					className : "text-center",
-				}
-
-		];
-
-		const corporateActionsColumns = [
-
-				{
-					data : "companySymbol",
-					className : "align"
-				},
-
-				{
-					data : "companyName",
-					className : "align",
-					render : function(d, t, r) {
-
-						if (!r.companyURL)
-							return d;
-
-						return '<a class="ellipsis" href="'+r.companyURL+'">'
-								+ d + '</a>';
-
-					}
-				},
-
-				{
-					data : "announceDate",
-					className : "text-center",
-				}, {
-					data : "issueTypeDesc",
-					className : "text-center",
-				}, {
-					data : "dueDate",
-					className : "text-center",
-				},
-
-				{
-					data : "newCApitalWithCurrency",
-					className : "text-center",
-					render : function(data) {
-
-						if (!data)
-							return "";
-
-						const parts = data.split(":");
-						const currency = parts[0];
-						const value = parts[1];
-
-						if (currency === "SAR") {
-							return '<span class="riyal-symbol">'+ value +'</span>';
-						}
-
-						return currency + " " + value;
-					}
-				},
-
-				{
-					data : "prevCApitalWithCurrency",
-					className : "text-center",
-					render : function(data) {
-
-						if (!data)
-							return "";
-
-						const parts = data.split(":");
-						const currency = parts[0];
-						const value = parts[1];
-
-						if (currency === "SAR") {
-							return '<span class="riyal-symbol">'+ value +'</span>';
-						}
-
-						return currency + " " + value;
-					}
-				}
-
-		];
-
-		/* =========================================================
-		 PAGE INIT
-		 ========================================================= */
-
-		document
-				.addEventListener(
-						"DOMContentLoaded",
-						function() {
-
-							initializeDefaultDates();
-
-							const container = document
-									.querySelector('[data-tabs-id="financialCalendars"]');
-
-							if (!container || !window.TabsFeatureEngine
-									|| !window.DataTableCore) {
-								return;
-							}
-
-							TabsFeatureEngine
-									.mount(
-											container,
-											{
-
-												debounceMs : 300,
-												loadOnMount : false,
-
-												tabs : {
-
-													/* =====================================================
-													 DIVIDENDS
-													 ===================================================== */
-
-													dividends : {
-
-														getUrl : function() {
-															return '<portlet:resourceURL id="getDividendsDetails"/>';
-														},
-
-														getParams : function(
-																ctx) {
-
-															return {
-																calendarType : window.CALENDAR_TYPE_MAP.dividends,
-
-																symbolorcompany : ctx.filters.symbolorcompany
-																		|| "",
-																start : ctx.filters.start
-																		|| "",
-																end : ctx.filters.end
-																		|| "",
-																marketsListId : ctx.filters.marketsListId
-																		|| "M",
-																sector : ctx.filters.sector
-																		|| "",
-																period : ctx.filters.period
-																		|| "CUSTOM",
-																bySymbol : ctx.filters.symbolorcompany
-																		|| "",
-																market : ctx.filters.marketsListId
-																		|| "M"
-
-															};
-
-														},
-
-														normalize : normalizeResponse,
-
-														render : function(ctx) {
-
-															renderTable(
-																	"#dividendsTable",
-																	dividendsColumns,
-																	ctx.rows);
-
-														}
-
-													},
-
-													/* =====================================================
-													 GENERAL MEETINGS
-													 ===================================================== */
-
-													generalMeetings : {
-
-														getUrl : function() {
-															return '<portlet:resourceURL id="getGenAssemblyDetails"/>';
-														},
-
-														getParams : function(
-																ctx) {
-
-															return {
-																calendarType : window.CALENDAR_TYPE_MAP.generalMeetings,
-																searchType : "searchData",
-																marketsListId : ctx.filters.marketsListId
-																		|| "M",
-																fromDate : ctx.filters.fromDate
-																		|| "",
-																toDate : ctx.filters.toDate
-																		|| "",
-																companySymbol : ctx.filters.companySymbol
-																		|| "",
-																sector : ctx.filters.sector
-																		|| "",
-																type : ctx.filters.type
-																		|| "",
-																status : ctx.filters.status
-																		|| "",
-																bySymbol : ctx.filters.companySymbol
-																		|| "",
-																market : ctx.filters.marketsListId
-																		|| "M"
-
-															};
-
-														},
-
-														normalize : normalizeResponse,
-
-														render : function(ctx) {
-
-															renderTable(
-																	"#generalMeetingsTable",
-																	generalMeetingsColumns,
-																	ctx.rows);
-
-														}
-
-													},
-
-													/* =====================================================
-													 BOARDS
-													 ===================================================== */
-
-													boards : {
-
-														getUrl : function() {
-															return '<portlet:resourceURL id="getDirSessionDetails"/>';
-														},
-
-														getParams : function(
-																ctx) {
-
-															return {
-																calendarType : window.CALENDAR_TYPE_MAP.boards,
-
-																searchType : "searchData",
-																marketsListId : ctx.filters.marketsListId
-																		|| "M",
-																fromDate : ctx.filters.fromDate
-																		|| "",
-																toDate : ctx.filters.toDate
-																		|| "",
-																companySymbol : ctx.filters.companySymbol
-																		|| ""
-
-															};
-
-														},
-
-														normalize : normalizeResponse,
-
-														render : function(ctx) {
-
-															renderTable(
-																	"#boardsTable",
-																	boardsColumns,
-																	ctx.rows);
-
-														}
-
-													},
-
-													/* =====================================================
-													 CORPORATE ACTIONS
-													 ===================================================== */
-
-													corporateActions : {
-
-														getUrl : function() {
-															return '<portlet:resourceURL id="getCorpDetails"/>';
-														},
-
-														getParams : function(
-																ctx) {
-
-															return {
-																calendarType : window.CALENDAR_TYPE_MAP.corporateActions,
-
-																searchType : "searchData",
-																marketsListId : ctx.filters.marketsListId
-																		|| "M",
-																companySymbol : ctx.filters.companySymbol
-																		|| "",
-																start : ctx.filters.start
-																		|| "",
-																end : ctx.filters.end
-																		|| ""
-
-															};
-
-														},
-
-														normalize : normalizeResponse,
-
-														render : function(ctx) {
-
-															renderTable(
-																	"#corporateActionsTable",
-																	corporateActionsColumns,
-																	ctx.rows);
-
-														}
-
-													}
-
-												}
-
-											});
-
-						});
-
-	})();
-</script>
-<script src="${pageContext.request.contextPath}/js/tabs.controller.js"></script>
-<script src="${pageContext.request.contextPath}/js/dropdown-update.js"></script>
-<script
-	src="${pageContext.request.contextPath}/js/tabbed-feature.manager.js"></script>
-
-
-
