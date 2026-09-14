@@ -304,10 +304,11 @@
   background: transparent;
 
   box-shadow: none;
+
 }
 
 .clock-hand__brand-icon {
-  --icon-size: calc(var(--clock-size) * 0.1);
+  --icon-size: calc(var(--clock-size) * 0.12);
 
   position: absolute;
 
@@ -324,7 +325,7 @@
   inline-size: var(--icon-size);
   block-size: var(--icon-size);
 
-  color: var(--clock-hand-color);
+  color: var(--color-primary);
 
   filter: drop-shadow(0 0.0625rem 0.0625rem rgb(0 0 0 / 0.28));
 
@@ -332,7 +333,7 @@
    * Center the brand icon at the end of the rotating second-hand container.
    */
 
-  transform: translate(-50%, -50%) rotate(-45deg);
+  transform: translate(-50%, -10%) rotate(-45deg);
 
   transform-origin: center;
 
@@ -436,8 +437,6 @@
   --icon-size: 1rem;
 
   flex: 0 0 auto;
-
-  color: var(--color-primary);
 }
 
 .market-summary__location-text {

@@ -35,7 +35,7 @@ const DEFAULT_SPEED = 48;
 const MINIMUM_SPEED = 1;
 const MAXIMUM_FRAME_TIME = 0.1;
 
-const FALLBACK_LOGO_URL = "/no-image.png";
+const FALLBACK_LOGO_URL = "/default-Logo.png";
 
 const POSITION_SAVE_INTERVAL = 5000;
 const POSITION_STORAGE_PREFIX = "se-market-ticker-position";
