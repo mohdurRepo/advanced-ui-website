@@ -379,14 +379,6 @@
   letter-spacing: 0.015em;
 }
 
-/* ==========================================================================
-   Actions
-   ========================================================================== */
-
-.report-library .resource-card__actions {
-  gap: ds.space(2) ds.space(4);
-}
-
 .report-library .resource-card__primary-action,
 .report-library .resource-card__download {
   min-block-size: 2.25rem;
@@ -613,10 +605,6 @@
     gap: ds.space(2);
 
     padding-block: ds.space(3);
-  }
-
-  .report-library .resource-card__actions {
-    gap: ds.space(2) ds.space(3);
   }
 
   /* --------------------------------------------------------------------------

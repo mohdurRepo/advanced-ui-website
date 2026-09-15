@@ -238,7 +238,7 @@
 
 .company-snapshot__metrics {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
 
   min-inline-size: 0;
 
@@ -257,18 +257,8 @@
   margin: 0;
 
   padding: ds.space(4);
-}
 
-/* Vertical divider */
-
-.company-snapshot__metric:nth-child(odd) {
   border-inline-end: 1px solid var(--company-snapshot-border);
-}
-
-/* Second row divider */
-
-.company-snapshot__metric:nth-child(n + 3) {
-  border-block-start: 1px solid var(--company-snapshot-border);
 }
 
 /* ==========================================================================
