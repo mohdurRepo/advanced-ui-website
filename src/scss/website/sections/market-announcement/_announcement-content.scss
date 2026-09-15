@@ -1,0 +1,699 @@
+@use "../../../design-system/abstracts" as ds;
+
+/* ==========================================================================
+   Announcement Detail Content
+   ========================================================================== */
+
+/*
+ * Main disclosure panel used by Announcement Detail pages.
+ *
+ * HTML:
+ *
+ *   <article class="card announcement-content">
+ *
+ * Shared `.card` owns:
+ *
+ * - surface
+ * - border
+ * - radius
+ * - shadow
+ * - decorative pattern
+ *
+ * This file owns:
+ *
+ * - Announcement Detail layout
+ * - Announcement Details panel
+ * - panel heading / icon
+ * - disclosure content
+ *
+ * Important:
+ *
+ * Announcement Details and Company Update align at the top but retain
+ * independent natural heights. Company Update must not stretch to match
+ * long disclosure content because its chart requires a controlled height.
+ */
+
+/* ==========================================================================
+   Announcement Detail
+   ========================================================================== */
+
+.announcement-detail {
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Surface
+   ========================================================================== */
+
+.announcement-detail__surface {
+  display: grid;
+
+  gap: ds.space(5);
+
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Main Layout
+   ========================================================================== */
+
+/*
+ * Keep both panels top aligned.
+ *
+ * Do not use `align-items: stretch` here. Announcement disclosure content can
+ * be arbitrarily long while Company Update contains a fixed-height chart.
+ */
+
+.announcement-detail__layout {
+  align-items: start;
+
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Main Column
+   ========================================================================== */
+
+.announcement-detail__main {
+  min-inline-size: 0;
+  min-block-size: 0;
+}
+
+/* ==========================================================================
+   Aside Column
+   ========================================================================== */
+
+.announcement-detail__aside {
+  min-inline-size: 0;
+  min-block-size: 0;
+}
+
+/* ==========================================================================
+   Panel Width
+   ========================================================================== */
+
+.announcement-detail__main > .announcement-content,
+.announcement-detail__aside > .company-snapshot {
+  inline-size: 100%;
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Announcement Content Card
+   ========================================================================== */
+
+.announcement-content {
+  --announcement-content-bg: var(--color-surface);
+  --announcement-content-text: var(--color-text);
+  --announcement-content-heading: var(--color-heading);
+  --announcement-content-muted: var(--color-text-muted);
+  --announcement-content-border: var(--color-border);
+  --announcement-content-accent: var(--color-primary);
+
+  /* Shared Card mapping */
+
+  --card-bg: var(--announcement-content-bg);
+  --card-color: var(--announcement-content-text);
+  --card-heading-color: var(--announcement-content-heading);
+  --card-muted-color: var(--announcement-content-muted);
+
+  --card-border-color: var(--announcement-content-border);
+  --card-hover-border-color: var(--announcement-content-border);
+
+  --card-radius: var(--radius-lg);
+
+  --card-shadow: var(--shadow-sm);
+  --card-hover-shadow: var(--shadow-sm);
+
+  /* Keep the decorative pattern quiet. */
+
+  --card-pattern-size: 8rem;
+  --card-pattern-color: var(--color-primary);
+  --card-pattern-opacity: 0.02;
+  --card-pattern-hover-opacity: 0.02;
+
+  display: flex;
+  flex-direction: column;
+
+  inline-size: 100%;
+  min-inline-size: 0;
+  min-block-size: 0;
+
+  overflow: hidden;
+}
+
+/* ==========================================================================
+   Layering
+   ========================================================================== */
+
+.announcement-content__header,
+.announcement-content__body {
+  position: relative;
+  z-index: 1;
+}
+
+/* ==========================================================================
+   Header
+   ========================================================================== */
+
+.announcement-content__header {
+  display: flex;
+  align-items: center;
+
+  min-inline-size: 0;
+
+  padding-block: ds.space(4);
+  padding-inline: ds.space(5);
+
+  border-block-end: 1px solid var(--announcement-content-border);
+}
+
+/* ==========================================================================
+   Heading
+   ========================================================================== */
+
+.announcement-content__heading {
+  display: flex;
+  align-items: center;
+
+  gap: ds.space(3);
+
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Heading Icon
+   ========================================================================== */
+
+.announcement-content__heading-icon {
+  display: inline-grid;
+  place-items: center;
+
+  flex: 0 0 auto;
+
+  inline-size: 1.75rem;
+  block-size: 1.75rem;
+
+  color: var(--announcement-content-accent);
+
+  font-size: 1.75rem;
+  line-height: 1;
+}
+
+.announcement-content__heading-icon::before {
+  display: block;
+
+  margin: 0;
+
+  color: currentColor;
+
+  font-size: inherit;
+  line-height: 1;
+}
+
+/* ==========================================================================
+   Title
+   ========================================================================== */
+
+.announcement-content__title {
+  min-inline-size: 0;
+
+  margin: 0;
+
+  color: var(--announcement-content-heading);
+
+  font-size: var(--text-xl);
+  font-weight: ds.font-weight("heavy");
+  line-height: 1.2;
+
+  overflow-wrap: anywhere;
+  text-wrap: pretty;
+}
+
+/* ==========================================================================
+   Body
+   ========================================================================== */
+
+/*
+ * Disclosure content uses the complete available Card width.
+ *
+ * Do not introduce a fixed `ch` max-width here.
+ */
+
+.announcement-content__body {
+  inline-size: 100%;
+  min-inline-size: 0;
+
+  padding: ds.space(5);
+
+  color: var(--announcement-content-text);
+
+  font-size: var(--text-base);
+  line-height: 1.8;
+
+  overflow-wrap: anywhere;
+}
+
+/* ==========================================================================
+   First / Last Child
+   ========================================================================== */
+
+.announcement-content__body > :first-child {
+  margin-block-start: 0;
+}
+
+.announcement-content__body > :last-child {
+  margin-block-end: 0;
+}
+
+/* ==========================================================================
+   Paragraphs
+   ========================================================================== */
+
+.announcement-content__body p {
+  margin-block: 0;
+}
+
+.announcement-content__body p + p {
+  margin-block-start: ds.space(5);
+}
+
+/* ==========================================================================
+   Content Headings
+   ========================================================================== */
+
+.announcement-content__body h2,
+.announcement-content__body h3,
+.announcement-content__body h4 {
+  margin-block-start: ds.space(8);
+  margin-block-end: ds.space(3);
+
+  color: var(--announcement-content-heading);
+
+  font-weight: ds.font-weight("bold");
+
+  text-wrap: pretty;
+}
+
+.announcement-content__body h2 {
+  font-size: var(--text-xl);
+  line-height: 1.3;
+}
+
+.announcement-content__body h3 {
+  font-size: var(--text-lg);
+  line-height: 1.35;
+}
+
+.announcement-content__body h4 {
+  font-size: var(--text-base);
+  line-height: 1.4;
+}
+
+/* ==========================================================================
+   Links
+   ========================================================================== */
+
+.announcement-content__body a {
+  color: var(--color-link);
+
+  font-weight: ds.font-weight("semibold");
+
+  text-decoration-line: underline;
+  text-decoration-thickness: 0.075em;
+  text-underline-offset: 0.18em;
+
+  border-radius: var(--radius-sm);
+
+  @include ds.transition(color, "fast");
+}
+
+.announcement-content__body a:visited {
+  color: var(--color-link);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .announcement-content__body a:hover {
+    color: var(--announcement-content-accent);
+  }
+}
+
+.announcement-content__body a:focus {
+  outline: none;
+}
+
+.announcement-content__body a:focus-visible {
+  @include ds.focus-ring;
+}
+
+/* ==========================================================================
+   Lists
+   ========================================================================== */
+
+.announcement-content__body ul,
+.announcement-content__body ol {
+  margin-block: ds.space(5);
+
+  padding-inline-start: ds.space(6);
+}
+
+.announcement-content__body li + li {
+  margin-block-start: ds.space(2);
+}
+
+.announcement-content__body li::marker {
+  color: var(--announcement-content-accent);
+
+  font-weight: ds.font-weight("bold");
+}
+
+/* ==========================================================================
+   Strong / Emphasis
+   ========================================================================== */
+
+.announcement-content__body strong,
+.announcement-content__body b {
+  color: var(--announcement-content-heading);
+
+  font-weight: ds.font-weight("bold");
+}
+
+.announcement-content__body em,
+.announcement-content__body i {
+  font-style: italic;
+}
+
+/* ==========================================================================
+   Blockquote
+   ========================================================================== */
+
+.announcement-content__body blockquote {
+  margin-block: ds.space(6);
+  margin-inline: 0;
+
+  padding-block: ds.space(4);
+  padding-inline: ds.space(5);
+
+  border-inline-start: 3px solid var(--announcement-content-accent);
+
+  border-radius: 0 var(--radius-md) var(--radius-md) 0;
+
+  background: var(--color-surface-alt);
+  color: var(--announcement-content-text);
+}
+
+.announcement-content__body blockquote > :first-child {
+  margin-block-start: 0;
+}
+
+.announcement-content__body blockquote > :last-child {
+  margin-block-end: 0;
+}
+
+/* ==========================================================================
+   Divider
+   ========================================================================== */
+
+.announcement-content__body hr {
+  margin-block: ds.space(8);
+
+  border: 0;
+  border-block-start: 1px solid var(--announcement-content-border);
+}
+
+/* ==========================================================================
+   Media
+   ========================================================================== */
+
+.announcement-content__body img,
+.announcement-content__body video {
+  display: block;
+
+  max-inline-size: 100%;
+  block-size: auto;
+
+  margin-block: ds.space(6);
+
+  border-radius: var(--radius-md);
+}
+
+/* ==========================================================================
+   Figure
+   ========================================================================== */
+
+.announcement-content__body figure {
+  margin-block: ds.space(6);
+  margin-inline: 0;
+}
+
+.announcement-content__body figure img {
+  margin-block: 0;
+}
+
+.announcement-content__body figcaption {
+  margin-block-start: ds.space(2);
+
+  color: var(--announcement-content-muted);
+
+  font-size: var(--text-sm);
+  line-height: var(--line-height-normal);
+}
+
+/* ==========================================================================
+   Tablet
+   ========================================================================== */
+
+@include ds.respond-down("lg") {
+  .announcement-content__header {
+    padding-inline: ds.space(4);
+  }
+
+  .announcement-content__body {
+    padding: ds.space(4);
+  }
+}
+
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+
+@include ds.respond-down("sm") {
+  .announcement-detail__surface {
+    gap: ds.space(4);
+  }
+
+  .announcement-content {
+    --card-radius: var(--radius-md);
+  }
+
+  /* --------------------------------------------------------------------------
+     Header
+     -------------------------------------------------------------------------- */
+
+  .announcement-content__header {
+    padding-block: ds.space(4);
+    padding-inline: ds.space(4);
+  }
+
+  /* --------------------------------------------------------------------------
+     Heading
+     -------------------------------------------------------------------------- */
+
+  .announcement-content__heading {
+    gap: ds.space(2);
+  }
+
+  /* --------------------------------------------------------------------------
+     Icon
+     -------------------------------------------------------------------------- */
+
+  .announcement-content__heading-icon {
+    inline-size: 1.5rem;
+    block-size: 1.5rem;
+
+    font-size: 1.5rem;
+  }
+
+  /* --------------------------------------------------------------------------
+     Title
+     -------------------------------------------------------------------------- */
+
+  .announcement-content__title {
+    font-size: var(--text-lg);
+    line-height: 1.25;
+  }
+
+  /* --------------------------------------------------------------------------
+     Body
+     -------------------------------------------------------------------------- */
+
+  .announcement-content__body {
+    padding: ds.space(4);
+
+    font-size: var(--text-base);
+    line-height: 1.75;
+  }
+
+  .announcement-content__body p + p {
+    margin-block-start: ds.space(4);
+  }
+
+  /* --------------------------------------------------------------------------
+     Content Headings
+     -------------------------------------------------------------------------- */
+
+  .announcement-content__body h2,
+  .announcement-content__body h3,
+  .announcement-content__body h4 {
+    margin-block-start: ds.space(6);
+  }
+
+  /* --------------------------------------------------------------------------
+     Lists
+     -------------------------------------------------------------------------- */
+
+  .announcement-content__body ul,
+  .announcement-content__body ol {
+    margin-block: ds.space(4);
+
+    padding-inline-start: ds.space(5);
+  }
+
+  /* --------------------------------------------------------------------------
+     Blockquote
+     -------------------------------------------------------------------------- */
+
+  .announcement-content__body blockquote {
+    margin-block: ds.space(5);
+
+    padding-block: ds.space(3);
+    padding-inline: ds.space(4);
+  }
+}
+
+/* ==========================================================================
+   RTL
+   ========================================================================== */
+
+html[dir="rtl"] .announcement-detail,
+html[dir="rtl"] .announcement-content {
+  text-align: start;
+}
+
+html[dir="rtl"] .announcement-content__body blockquote {
+  border-inline-start: 3px solid var(--announcement-content-accent);
+
+  border-radius: var(--radius-md) 0 0 var(--radius-md);
+}
+
+/* ==========================================================================
+   Dark Theme
+   ========================================================================== */
+
+html[data-theme="dark"] .announcement-content {
+  --card-pattern-opacity: 0.04;
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] .announcement-content {
+  border-color: currentColor;
+
+  box-shadow: none;
+}
+
+html[data-contrast="high"] .announcement-content__header {
+  border-block-end-width: 2px;
+  border-color: currentColor;
+}
+
+html[data-contrast="high"] .announcement-content__heading-icon,
+html[data-contrast="high"] .announcement-content__title,
+html[data-contrast="high"] .announcement-content__body {
+  color: currentColor;
+}
+
+html[data-contrast="high"] .announcement-content__body blockquote {
+  border-width: 2px;
+  border-color: currentColor;
+
+  background: transparent;
+}
+
+/* ==========================================================================
+   Forced Colors
+   ========================================================================== */
+
+@media (forced-colors: active) {
+  .announcement-content {
+    border-color: CanvasText;
+
+    background: Canvas;
+    color: CanvasText;
+
+    box-shadow: none;
+  }
+
+  .announcement-content__header {
+    border-color: CanvasText;
+  }
+
+  .announcement-content__heading-icon,
+  .announcement-content__title,
+  .announcement-content__body {
+    color: CanvasText;
+  }
+
+  .announcement-content__body a {
+    color: LinkText;
+  }
+
+  .announcement-content__body blockquote {
+    border-color: CanvasText;
+
+    background: Canvas;
+    color: CanvasText;
+  }
+}
+
+/* ==========================================================================
+   Print
+   ========================================================================== */
+
+@media print {
+  .announcement-content {
+    --card-pattern-opacity: 0;
+
+    break-inside: avoid;
+
+    min-block-size: 0;
+
+    border-color: #000000;
+
+    background: #ffffff;
+    color: #000000;
+
+    box-shadow: none;
+  }
+
+  .announcement-content__header {
+    border-color: #000000;
+  }
+
+  .announcement-content__heading-icon,
+  .announcement-content__title,
+  .announcement-content__body,
+  .announcement-content__body strong,
+  .announcement-content__body b,
+  .announcement-content__body a {
+    color: #000000;
+  }
+
+  .announcement-content__body blockquote {
+    border-color: #000000;
+
+    background: transparent;
+  }
+}

@@ -129,6 +129,39 @@ function isColumnVisible(column, visibleGroups) {
 }
 
 /* ==========================================================================
+   Column Group Widths
+   ========================================================================== */
+
+/*
+ * Produces one <col> per column, carrying the schema's declared width when
+ * present.
+ *
+ * table-layout: fixed only reads widths from a table's first row (or a
+ * <colgroup>). Grouped headers put most per-column widths on the second
+ * header row, which fixed layout would otherwise ignore. A <colgroup> is
+ * the one width source every browser applies consistently regardless of
+ * header row structure, so it remains the authoritative width source even
+ * as real row content (long company names, favorite buttons, logos) is
+ * rendered in place of loading-skeleton placeholders.
+ */
+
+function buildColGroup(columns) {
+  const colgroup = document.createElement("colgroup");
+
+  columns.forEach((column) => {
+    const col = document.createElement("col");
+
+    if (column.width) {
+      col.style.width = column.width;
+    }
+
+    colgroup.append(col);
+  });
+
+  return colgroup;
+}
+
+/* ==========================================================================
    Header Creation
    ========================================================================== */
 
@@ -182,18 +215,12 @@ function createHeaderCell({
   return cell;
 }
 
-function replaceTableStructure(table, thead) {
+function replaceTableStructure(table, thead, colgroup) {
   const caption = table.caption;
 
   const tbody = document.createElement("tbody");
 
-  if (caption) {
-    table.replaceChildren(caption, thead, tbody);
-
-    return;
-  }
-
-  table.replaceChildren(thead, tbody);
+  table.replaceChildren(...[caption, colgroup, thead, tbody].filter(Boolean));
 }
 
 function normalizeGroups(groups = []) {
@@ -219,6 +246,8 @@ function normalizeGroups(groups = []) {
 }
 
 function buildSchemaHeader(table, columns, groups) {
+  const colgroup = buildColGroup(columns);
+
   const thead = document.createElement("thead");
 
   const hasGroupedHeaders = columns.some((column) =>
@@ -248,7 +277,7 @@ function buildSchemaHeader(table, columns, groups) {
 
     thead.append(row);
 
-    replaceTableStructure(table, thead);
+    replaceTableStructure(table, thead, colgroup);
 
     return;
   }
@@ -327,7 +356,7 @@ function buildSchemaHeader(table, columns, groups) {
 
   thead.append(topRow, bottomRow);
 
-  replaceTableStructure(table, thead);
+  replaceTableStructure(table, thead, colgroup);
 }
 
 /* ==========================================================================

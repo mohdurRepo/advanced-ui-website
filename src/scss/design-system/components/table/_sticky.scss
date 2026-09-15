@@ -267,18 +267,28 @@ html[dir="rtl"] .table-fixed-columns thead > tr:first-child > :nth-child(2) {
    Row-State Surface Preservation
    ========================================================================== */
 
-.table-striped tbody tr:nth-child(even) .table-sticky-start,
+/*
+ * :nth-child(even of tr:not(.table-group-row)) counts only real data rows,
+ * so RowGroup's injected sector/category header rows no longer shift the
+ * stripe parity at each group boundary. The selector already excludes group
+ * rows from matching, so a separate :not(.table-group-row) is unnecessary.
+ */
+
+.table-striped
+  tbody
+  tr:nth-child(even of tr:not(.table-group-row))
+  .table-sticky-start,
 .table-striped.table-fixed-column
   tbody
-  > tr:nth-child(even):not(.table-group-row)
+  > tr:nth-child(even of tr:not(.table-group-row))
   > :first-child,
 .table-striped.table-fixed-columns
   tbody
-  > tr:nth-child(even):not(.table-group-row)
+  > tr:nth-child(even of tr:not(.table-group-row))
   > :first-child,
 .table-striped.table-fixed-columns
   tbody
-  > tr:nth-child(even):not(.table-group-row)
+  > tr:nth-child(even of tr:not(.table-group-row))
   > :nth-child(2) {
   background-color: var(--table-striped-bg);
 }

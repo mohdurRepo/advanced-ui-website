@@ -1,0 +1,367 @@
+@use "../../../design-system/abstracts" as ds;
+
+/* ==========================================================================
+   Announcement Disclaimer
+   ========================================================================== */
+
+/*
+ * Regulatory / legal note displayed below the Announcement Details
+ * and Company Update panels.
+ *
+ * HTML:
+ *
+ *   <aside class="card announcement-disclaimer">
+ *
+ * Shared `.card` owns:
+ *
+ * - surface
+ * - border
+ * - radius
+ * - shadow
+ * - decorative pattern
+ *
+ * Announcement Disclaimer owns:
+ *
+ * - internal layout
+ * - information icon
+ * - title
+ * - disclaimer copy
+ * - responsive behavior
+ */
+
+/* ==========================================================================
+   Root
+   ========================================================================== */
+
+.announcement-disclaimer {
+  --announcement-disclaimer-bg: var(--color-surface);
+  --announcement-disclaimer-text: var(--color-text);
+  --announcement-disclaimer-heading: var(--color-heading);
+  --announcement-disclaimer-muted: var(--color-text-muted);
+  --announcement-disclaimer-border: var(--color-border);
+  --announcement-disclaimer-accent: var(--color-primary);
+
+  /* Shared Card mapping */
+
+  --card-bg: var(--announcement-disclaimer-bg);
+  --card-color: var(--announcement-disclaimer-text);
+  --card-heading-color: var(--announcement-disclaimer-heading);
+  --card-muted-color: var(--announcement-disclaimer-muted);
+
+  --card-border-color: var(--announcement-disclaimer-border);
+  --card-hover-border-color: var(--announcement-disclaimer-border);
+
+  --card-radius: var(--radius-lg);
+
+  --card-shadow: var(--shadow-sm);
+  --card-hover-shadow: var(--shadow-sm);
+
+  /*
+   * Keep the decorative pattern very quiet.
+   */
+
+  --card-pattern-size: 7rem;
+  --card-pattern-color: var(--color-primary);
+  --card-pattern-opacity: 0.018;
+  --card-pattern-hover-opacity: 0.018;
+
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+
+  gap: ds.space(3);
+
+  min-inline-size: 0;
+
+  padding: ds.space(5);
+
+  overflow: hidden;
+}
+
+/* ==========================================================================
+   Layering
+   ========================================================================== */
+
+.announcement-disclaimer__icon,
+.announcement-disclaimer__content {
+  position: relative;
+  z-index: 1;
+}
+
+/* ==========================================================================
+   Icon
+   ========================================================================== */
+
+.announcement-disclaimer__icon {
+  display: inline-grid;
+  place-items: center;
+
+  flex: 0 0 auto;
+
+  inline-size: 2rem;
+  block-size: 2rem;
+
+  border: 1px solid var(--announcement-disclaimer-border);
+  border-radius: var(--radius-pill);
+
+  background: var(--color-surface-alt);
+  color: var(--announcement-disclaimer-accent);
+
+  font-size: 1rem;
+  line-height: 1;
+}
+
+/* ==========================================================================
+   Icon Glyph
+   ========================================================================== */
+
+.announcement-disclaimer__icon::before {
+  display: block;
+
+  margin: 0;
+
+  color: currentColor;
+
+  font-size: inherit;
+  line-height: 1;
+}
+
+/* ==========================================================================
+   Content
+   ========================================================================== */
+
+.announcement-disclaimer__content {
+  display: grid;
+  align-content: start;
+
+  gap: ds.space(1);
+
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Title
+   ========================================================================== */
+
+.announcement-disclaimer__title {
+  margin: 0;
+
+  color: var(--announcement-disclaimer-heading);
+
+  font-size: var(--text-sm);
+  font-weight: ds.font-weight("bold");
+  line-height: 1.4;
+
+  overflow-wrap: anywhere;
+}
+
+/* ==========================================================================
+   Text
+   ========================================================================== */
+
+.announcement-disclaimer__text {
+  margin: 0;
+
+  color: var(--announcement-disclaimer-muted);
+
+  font-size: var(--text-sm);
+  line-height: 1.65;
+
+  overflow-wrap: anywhere;
+}
+
+/* ==========================================================================
+   Links
+   ========================================================================== */
+
+.announcement-disclaimer__text a {
+  color: var(--color-link);
+
+  font-weight: ds.font-weight("semibold");
+
+  text-decoration-line: underline;
+  text-decoration-thickness: 0.075em;
+  text-underline-offset: 0.18em;
+
+  border-radius: var(--radius-sm);
+
+  @include ds.transition(color, "fast");
+}
+
+.announcement-disclaimer__text a:visited {
+  color: var(--color-link);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .announcement-disclaimer__text a:hover {
+    color: var(--announcement-disclaimer-accent);
+  }
+}
+
+.announcement-disclaimer__text a:focus {
+  outline: none;
+}
+
+.announcement-disclaimer__text a:focus-visible {
+  @include ds.focus-ring;
+}
+
+/* ==========================================================================
+   Tablet
+   ========================================================================== */
+
+@include ds.respond-down("lg") {
+  .announcement-disclaimer {
+    padding: ds.space(4);
+  }
+}
+
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+
+@include ds.respond-down("sm") {
+  .announcement-disclaimer {
+    --card-radius: var(--radius-md);
+
+    gap: ds.space(3);
+
+    padding: ds.space(4);
+  }
+
+  .announcement-disclaimer__icon {
+    inline-size: 1.875rem;
+    block-size: 1.875rem;
+
+    font-size: 0.9375rem;
+  }
+
+  .announcement-disclaimer__title {
+    font-size: var(--text-sm);
+  }
+
+  .announcement-disclaimer__text {
+    font-size: var(--text-xs);
+    line-height: 1.65;
+  }
+}
+
+/* ==========================================================================
+   Narrow Mobile
+   ========================================================================== */
+
+@media (max-width: 23rem) {
+  .announcement-disclaimer {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .announcement-disclaimer__icon {
+    justify-self: start;
+  }
+}
+
+/* ==========================================================================
+   RTL
+   ========================================================================== */
+
+html[dir="rtl"] .announcement-disclaimer {
+  text-align: start;
+}
+
+/* ==========================================================================
+   Dark Theme
+   ========================================================================== */
+
+html[data-theme="dark"] .announcement-disclaimer {
+  --card-pattern-opacity: 0.035;
+}
+
+html[data-theme="dark"] .announcement-disclaimer__icon {
+  background: var(--color-surface-alt);
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] .announcement-disclaimer {
+  border-color: currentColor;
+
+  box-shadow: none;
+}
+
+html[data-contrast="high"] .announcement-disclaimer__icon {
+  border-width: 2px;
+  border-color: currentColor;
+
+  background: transparent;
+  color: currentColor;
+}
+
+html[data-contrast="high"] .announcement-disclaimer__title,
+html[data-contrast="high"] .announcement-disclaimer__text {
+  color: currentColor;
+}
+
+/* ==========================================================================
+   Forced Colors
+   ========================================================================== */
+
+@media (forced-colors: active) {
+  .announcement-disclaimer {
+    border-color: CanvasText;
+
+    background: Canvas;
+    color: CanvasText;
+
+    box-shadow: none;
+  }
+
+  .announcement-disclaimer__icon {
+    border-color: CanvasText;
+
+    background: Canvas;
+    color: CanvasText;
+  }
+
+  .announcement-disclaimer__title,
+  .announcement-disclaimer__text {
+    color: CanvasText;
+  }
+
+  .announcement-disclaimer__text a {
+    color: LinkText;
+  }
+}
+
+/* ==========================================================================
+   Print
+   ========================================================================== */
+
+@media print {
+  .announcement-disclaimer {
+    --card-pattern-opacity: 0;
+
+    break-inside: avoid;
+
+    border-color: #000000;
+
+    background: #ffffff;
+    color: #000000;
+
+    box-shadow: none;
+  }
+
+  .announcement-disclaimer__icon {
+    border-color: #000000;
+
+    background: transparent;
+    color: #000000;
+  }
+
+  .announcement-disclaimer__title,
+  .announcement-disclaimer__text,
+  .announcement-disclaimer__text a {
+    color: #000000;
+  }
+}

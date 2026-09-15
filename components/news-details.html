@@ -97,6 +97,16 @@
         root.setAttribute("data-motion", motion);
       })();
     </script>
+    <!-- Highcharts Stock -->
+    <script src="https://code.highcharts.com/stock/highstock.js"></script>
+
+    <!-- Export support -->
+    <script src="https://code.highcharts.com/stock/modules/exporting.js"></script>
+    <script src="https://code.highcharts.com/stock/modules/export-data.js"></script>
+    <script src="https://code.highcharts.com/modules/offline-exporting.js"></script>
+
+    <!-- Accessibility -->
+    <script src="https://code.highcharts.com/modules/accessibility.js"></script>
 
     <script type="module" src="/src/js/main.js"></script>
   </head>
@@ -5448,25 +5458,16 @@
         </details>
       </section>
 
-      <!-- ==========================================================================
-     Breadcrumb
-     ========================================================================== -->
+      <!-- =========================================================================
+     Page Breadcrumb
+============================================================================ -->
 
       <div class="page-breadcrumb">
         <div class="container">
           <nav class="breadcrumb" aria-label="Breadcrumb">
             <ol class="breadcrumb__list">
               <li class="breadcrumb__item">
-                <a class="breadcrumb__link" href="/"> Home </a>
-              </li>
-
-              <li class="breadcrumb__item">
-                <span
-                  class="breadcrumb__separator has-icon icon-chevron-right icon-flip-rtl"
-                  aria-hidden="true"
-                ></span>
-
-                <a class="breadcrumb__link" href="/listing/"> Listing </a>
+                <a class="breadcrumb__link" href="/">Home</a>
               </li>
 
               <li class="breadcrumb__item">
@@ -5476,7 +5477,7 @@
                 ></span>
 
                 <span class="breadcrumb__current" aria-current="page">
-                  Upcoming IPOs
+                  Company Profile Main Market
                 </span>
               </li>
             </ol>
@@ -5485,869 +5486,437 @@
       </div>
 
       <!-- ==========================================================================
-     Upcoming IPOs Hero
+     News Detail Hero
      ========================================================================== -->
 
       <section
-        class="hero-section market-summary-section"
-        aria-labelledby="upcoming-ipos-title"
-        aria-describedby="upcoming-ipos-description"
+        class="hero-section surface-hero news-detail-hero"
+        aria-labelledby="news-detail-title"
       >
-        <div class="hero-section__background" aria-hidden="true"></div>
+        <!-- Decorative Background -->
+
+        <div
+          class="hero-section__background news-detail-hero__background"
+          aria-hidden="true"
+        ></div>
+
+        <!-- Hero Content -->
 
         <div class="container hero-section__content">
-          <div class="market-summary market-summary--hero">
-            <header class="market-summary__header">
-              <div class="market-summary__brand">
-                <span
-                  class="market-summary__brand-icon has-icon icon-tadawul"
-                  aria-hidden="true"
-                ></span>
+          <div class="news-detail-hero__inner">
+            <!-- ====================================================================
+           News Identity
+           ================================================================= -->
 
-                <h1 id="upcoming-ipos-title" class="market-summary__title">
-                  Upcoming IPOs
-                </h1>
+            <header class="news-detail-hero__header">
+              <div class="news-detail-hero__identity">
+                <!-- Source Logo -->
+
+                <div class="news-detail-hero__media">
+                  <img
+                    class="news-detail-hero__logo"
+                    src="/assets/images/logos/capital-market-authority.svg"
+                    alt=""
+                    width="96"
+                    height="96"
+                    loading="eager"
+                    decoding="async"
+                  />
+                </div>
+
+                <!-- Heading -->
+
+                <div class="news-detail-hero__heading">
+                  <!-- Context -->
+
+                  <div class="news-detail-hero__context">
+                    <span class="news-detail-hero__eyebrow"> News </span>
+
+                    <span
+                      class="news-detail-hero__context-separator"
+                      aria-hidden="true"
+                    >
+                      ·
+                    </span>
+
+                    <span class="news-detail-hero__source">
+                      Capital Market Authority
+                    </span>
+                  </div>
+
+                  <!-- News Title -->
+
+                  <h1 id="news-detail-title" class="news-detail-hero__title">
+                    The Capital Market Authority Approves Saudi Vitrified Clay
+                    Pipes Company’s Request to Reduce its Capital
+                  </h1>
+                </div>
               </div>
+            </header>
 
-              <p
-                id="upcoming-ipos-description"
-                class="market-summary__description"
+            <!-- ====================================================================
+           Hero Footer
+           ================================================================= -->
+
+            <div class="news-detail-hero__footer">
+              <!-- Publication Date and Time -->
+
+              <time
+                class="news-detail-hero__published"
+                datetime="2026-09-07T19:00:00"
               >
-                Explore upcoming public offerings and discover companies
-                preparing to list their securities on the Saudi Exchange.
-              </p>
-            </header>
-          </div>
-        </div>
-      </section>
+                07/09/2026 19:00
+              </time>
 
-      <!-- ==========================================================================
-     Upcoming IPO Filters
-     ========================================================================== -->
+              <!-- ==================================================================
+     Share
+     ================================================================== -->
 
-      <section
-        class="section upcoming-ipo-filters"
-        aria-labelledby="upcoming-ipo-filters-title"
-      >
-        <div class="container">
-          <form
-            class="filter-bar filter-bar--stacked"
-            action="/listing/upcoming-ipos/"
-            method="get"
-            data-ipo-filter-form
-          >
-            <!-- ================================================================
-           Header
-           ================================================================ -->
-
-            <header class="filter-bar__header">
-              <div class="filter-bar__heading">
-                <h2 class="filter-bar__title" id="upcoming-ipo-filters-title">
-                  Filter upcoming offerings
-                </h2>
-
-                <p class="filter-bar__description">
-                  Refine the results by offering type, market, instrument, or
-                  offering period.
-                </p>
-              </div>
-            </header>
-
-            <!-- ================================================================
-           Primary Content
-           ================================================================ -->
-
-            <div class="filter-bar__inner">
-              <div class="filter-bar__fields grid-4">
-                <!-- ============================================================
-               IPO Type
-               ============================================================ -->
-
-                <div class="filter-bar__field">
-                  <label class="form-label" for="ipo-type"> IPO type </label>
-
-                  <div class="custom-select" data-custom-select>
-                    <div class="form-select-wrap custom-select__fallback">
-                      <select
-                        class="form-select custom-select__native"
-                        id="ipo-type"
-                        name="ipoType"
-                      >
-                        <option value="" selected>All IPO types</option>
-                        <option value="ipo">Initial public offering</option>
-                        <option value="direct-listing">Direct listing</option>
-                        <option value="rights-issue">Tradable rights</option>
-                        <option value="secondary-offering">
-                          Secondary offering
-                        </option>
-                      </select>
-
-                      <span
-                        class="form-select-icon has-icon icon-chevron-down"
-                        aria-hidden="true"
-                      ></span>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- ============================================================
-               Market
-               ============================================================ -->
-
-                <div class="filter-bar__field">
-                  <label class="form-label" for="ipo-market"> Market </label>
-
-                  <div class="custom-select" data-custom-select>
-                    <div class="form-select-wrap custom-select__fallback">
-                      <select
-                        class="form-select custom-select__native"
-                        id="ipo-market"
-                        name="market"
-                      >
-                        <option value="" selected>All markets</option>
-                        <option value="main-market">Main Market</option>
-                        <option value="nomu">Nomu – Parallel Market</option>
-                        <option value="sukuk-bonds">Sukuk &amp; Bonds</option>
-                        <option value="funds">Funds</option>
-                      </select>
-
-                      <span
-                        class="form-select-icon has-icon icon-chevron-down"
-                        aria-hidden="true"
-                      ></span>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- ============================================================
-               Instrument
-               ============================================================ -->
-
-                <div class="filter-bar__field">
-                  <label class="form-label" for="ipo-instrument">
-                    Instrument
-                  </label>
-
-                  <div class="custom-select" data-custom-select>
-                    <div class="form-select-wrap custom-select__fallback">
-                      <select
-                        class="form-select custom-select__native"
-                        id="ipo-instrument"
-                        name="instrument"
-                      >
-                        <option value="" selected>All instruments</option>
-                        <option value="shares">Shares</option>
-                        <option value="etf">Exchange-traded fund</option>
-                        <option value="reit">
-                          Real-estate investment trust
-                        </option>
-                        <option value="sukuk">Sukuk</option>
-                        <option value="bond">Bond</option>
-                      </select>
-
-                      <span
-                        class="form-select-icon has-icon icon-chevron-down"
-                        aria-hidden="true"
-                      ></span>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- ============================================================
-               Offering Period
-               ============================================================ -->
+              <div class="news-share" data-share data-share-state="closed">
+                <button
+                  class="news-share__toggle has-icon icon-share"
+                  type="button"
+                  data-share-toggle
+                  aria-expanded="false"
+                  aria-controls="news-share-menu"
+                  aria-label="Share this news"
+                ></button>
 
                 <div
-                  class="filter-bar__field"
-                  role="group"
-                  aria-labelledby="ipo-period-label"
-                  aria-describedby="ipo-period-help ipo-period-error"
+                  id="news-share-menu"
+                  class="news-share__menu"
+                  data-share-menu
+                  aria-hidden="true"
+                  aria-label="Share options"
                 >
-                  <span class="form-label-static" id="ipo-period-label">
-                    Offering period
-                  </span>
+                  <a
+                    class="news-share__action has-icon icon-brand-x"
+                    href="#"
+                    data-share-platform="x"
+                    aria-label="Share on X"
+                  ></a>
 
-                  <div
-                    class="custom-date custom-date--range"
-                    data-custom-date-range
-                    data-clearable
-                    data-presets="today,last7,last30,thisMonth,next30"
-                    data-placeholder="YYYY-MM-DD – YYYY-MM-DD"
-                  >
-                    <div class="custom-date__fallback">
-                      <div class="custom-date__native-range">
-                        <input
-                          class="form-control custom-date__native"
-                          id="ipo-period-start"
-                          name="dateFrom"
-                          type="date"
-                          data-date-start
-                          aria-label="Offering period start date"
-                          aria-describedby="ipo-period-help ipo-period-error"
-                        />
-
-                        <input
-                          class="form-control custom-date__native"
-                          id="ipo-period-end"
-                          name="dateTo"
-                          type="date"
-                          data-date-end
-                          aria-label="Offering period end date"
-                          aria-describedby="ipo-period-help ipo-period-error"
-                        />
-                      </div>
-
-                      <div
-                        class="custom-date__initial-trigger"
-                        aria-hidden="true"
-                      >
-                        <span class="custom-date__initial-value is-placeholder">
-                          YYYY-MM-DD – YYYY-MM-DD
-                        </span>
-
-                        <span
-                          class="custom-date__initial-indicator has-icon icon-calendar-scheduler"
-                          aria-hidden="true"
-                        ></span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <p class="form-help" id="ipo-period-help">
-                    Choose the offering start and end dates.
-                  </p>
-
-                  <p
-                    class="form-error"
-                    id="ipo-period-error"
-                    aria-live="polite"
-                    hidden
-                  >
-                    Choose a valid offering period.
-                  </p>
-                </div>
-              </div>
-
-              <!-- ================================================================
-             Actions
-             ================================================================ -->
-
-              <div class="filter-bar__actions">
-                <div class="filter-bar__action-group">
-                  <button
-                    class="btn btn-primary has-icon icon-filter-funnel"
-                    type="submit"
-                  >
-                    Apply filters
-                  </button>
+                  <a
+                    class="news-share__action has-icon icon-brand-facebook"
+                    href="#"
+                    data-share-platform="facebook"
+                    aria-label="Share on Facebook"
+                  ></a>
 
                   <button
-                    class="btn btn-outline-primary has-icon icon-sync-refresh"
-                    type="reset"
-                    data-ipo-filter-reset
-                  >
-                    Reset
-                  </button>
+                    class="news-share__action has-icon icon-copy"
+                    type="button"
+                    data-share-platform="copy"
+                    aria-label="Copy news link"
+                  ></button>
                 </div>
               </div>
             </div>
-          </form>
+          </div>
         </div>
       </section>
-
       <!-- ==========================================================================
-     Upcoming Offerings
+     News Article
      ========================================================================== -->
 
       <section
-        class="section upcoming-offerings offering-results"
-        aria-labelledby="upcoming-offerings-title"
-        aria-describedby="upcoming-offerings-description"
+        class="section company-market-overview news-detail-content"
+        aria-labelledby="news-article-title"
       >
         <div class="container">
-          <div class="content-page">
-            <div class="content-page__panel">
-              <div class="offering-results__content">
-                <!-- ==================================================================
-               Results Header
-               ================================================================== -->
+          <!-- ======================================================================
+         Shared Surface
+         ====================================================================== -->
 
-                <header class="offering-results__header">
-                  <div class="offering-results__heading">
-                    <h2
-                      id="upcoming-offerings-title"
-                      class="offering-results__title"
-                    >
-                      Upcoming offerings
-                    </h2>
+          <div
+            class="company-market-overview__surface news-detail-content__surface"
+          >
+            <!-- ====================================================================
+           Article
+           ================================================================= -->
 
-                    <p
-                      id="upcoming-offerings-description"
-                      class="offering-results__description"
+            <article class="card news-article">
+              <!-- ================================================================
+             Header
+             ============================================================== -->
+
+              <header class="news-article__header">
+                <div class="news-article__heading">
+                  <span
+                    class="news-article__heading-icon has-icon icon-tadawul"
+                    aria-hidden="true"
+                  ></span>
+
+                  <h2 id="news-article-title" class="news-article__title">
+                    News Details
+                  </h2>
+                </div>
+              </header>
+
+              <!-- ================================================================
+             Article Body
+             ============================================================== -->
+
+              <div class="news-article__content">
+                <p>
+                  The CMA has issued its resolution approving Saudi Vitrified
+                  Clay Pipes Company’s request to reduce its capital from SAR
+                  (150,000,000) to SAR (45,428,750), thus reducing the number of
+                  shares from (15,000,000) shares to (4,542,875) shares. This
+                  approval is conditional on the Company’s extraordinary general
+                  assembly approval and completion of the necessary procedures
+                  in relation to the applicable regulations.
+                </p>
+
+                <p>
+                  The Company will publish a disclosure document to its
+                  shareholders related to the proposed method of capital
+                  reduction and the expected effect of such reduction within
+                  sufficient time prior to the Extraordinary General Assembly
+                  Meeting to enable shareholders to vote on the capital
+                  decrease.
+                </p>
+
+                <p>
+                  The CMA’s approval of a particular company’s application to
+                  reduce its capital should never be viewed as an endorsement of
+                  the feasibility of the capital decrease. The CMA’s approval of
+                  a company’s application to reduce its capital merely means
+                  that the regulatory requirements as per the Capital Market Law
+                  and its Implementing Regulations have been met.
+                </p>
+              </div>
+            </article>
+          </div>
+        </div>
+      </section>
+      <!-- ==========================================================================
+     Related News
+     ========================================================================== -->
+
+      <section
+        class="section company-market-overview related-news"
+        aria-labelledby="related-news-title"
+      >
+        <div class="container">
+          <!-- ======================================================================
+         Shared Surface
+         ====================================================================== -->
+
+          <div class="company-market-overview__surface related-news__surface">
+            <!-- ====================================================================
+           Section Heading
+           ================================================================= -->
+
+            <div class="section-heading related-news__heading">
+              <div class="section-heading__content">
+                <h2 id="related-news-title" class="section-heading__title">
+                  Related News
+                </h2>
+              </div>
+            </div>
+
+            <!-- ====================================================================
+           News Grid
+           ================================================================= -->
+
+            <div class="grid-3 related-news__grid">
+              <!-- ==================================================================
+             Related News Item 1
+             ================================================================ -->
+
+              <article class="card related-news-card">
+                <div class="related-news-card__body">
+                  <!-- Metadata -->
+
+                  <div class="related-news-card__meta">
+                    <span class="related-news-card__source">
+                      Capital Market Authority
+                    </span>
+
+                    <time
+                      class="related-news-card__date"
+                      datetime="2026-09-14T16:15:04"
                     >
-                      Review companies and instruments preparing to list on the
-                      Saudi Exchange.
-                    </p>
+                      14/09/2026 16:15:04
+                    </time>
                   </div>
 
-                  <div
-                    class="offering-results__count"
-                    role="status"
-                    aria-live="polite"
-                    aria-atomic="true"
-                    aria-label="63 upcoming offering results"
-                  >
-                    <strong class="offering-results__count-value"> 63 </strong>
-
-                    <span class="offering-results__count-label"> results </span>
-                  </div>
-                </header>
-
-                <!-- ==================================================================
-               Results Grid
-               ================================================================== -->
-
-                <div class="grid-3 offering-results__grid">
-                  <!-- ================================================================
-                 Sahat AlMajd Trading Company
-                 ================================================================ -->
-
-                  <article
-                    class="card offering-card"
-                    aria-labelledby="offering-sahat-title"
-                  >
-                    <!-- --------------------------------------------------------------
-                   Header
-                   -------------------------------------------------------------- -->
-
-                    <header class="offering-card__header">
-                      <div class="offering-card__brand">
-                        <span class="offering-card__logo" aria-hidden="true">
-                          <img
-                            class="offering-card__logo-image"
-                            src="/assets/images/company-logos/sahat-almajd.svg"
-                            alt=""
-                            width="64"
-                            height="64"
-                            loading="lazy"
-                          />
-                        </span>
-
-                        <div class="offering-card__identity">
-                          <h3
-                            id="offering-sahat-title"
-                            class="offering-card__title"
-                          >
-                            <a
-                              class="offering-card__company-link"
-                              href="/listing/upcoming-ipos/sahat-almajd-trading/"
-                            >
-                              Sahat AlMajd Trading Co.
-                            </a>
-                          </h3>
-
-                          <span class="offering-card__symbol">
-                            Sahat AlMajd
-                          </span>
-                        </div>
-                      </div>
-
-                      <span class="offering-card__status"> IPO </span>
-                    </header>
-
-                    <!-- --------------------------------------------------------------
-                   Body
-                   -------------------------------------------------------------- -->
-
-                    <div class="offering-card__body">
-                      <dl class="offering-card__details">
-                        <!-- Market -->
-
-                        <div
-                          class="offering-card__detail offering-card__detail--wide"
-                        >
-                          <dt class="offering-card__detail-label">Market</dt>
-
-                          <dd class="offering-card__detail-value">
-                            Nomu – Parallel Market
-                          </dd>
-                        </div>
-
-                        <!-- Offering Size -->
-
-                        <div class="offering-card__detail">
-                          <dt class="offering-card__detail-label">
-                            Offering size
-                          </dt>
-
-                          <dd class="offering-card__detail-value" data-numeric>
-                            4,375,000
-                          </dd>
-                        </div>
-
-                        <!-- Offering Price -->
-
-                        <div class="offering-card__detail">
-                          <dt class="offering-card__detail-label">
-                            Offering price
-                          </dt>
-
-                          <dd class="offering-card__detail-value" data-numeric>
-                            7.00
-                          </dd>
-                        </div>
-
-                        <!-- Opening Date -->
-
-                        <div class="offering-card__detail">
-                          <dt class="offering-card__detail-label">
-                            Opening date
-                          </dt>
-
-                          <dd class="offering-card__detail-value">
-                            <time datetime="2026-08-20"> 20 Aug 2026 </time>
-                          </dd>
-                        </div>
-
-                        <!-- Closing Date -->
-
-                        <div class="offering-card__detail">
-                          <dt class="offering-card__detail-label">
-                            Closing date
-                          </dt>
-
-                          <dd class="offering-card__detail-value">
-                            <time datetime="2026-08-21"> 21 Aug 2026 </time>
-                          </dd>
-                        </div>
-                      </dl>
-                    </div>
-
-                    <!-- --------------------------------------------------------------
-                   Footer
-                   -------------------------------------------------------------- -->
-
-                    <footer class="offering-card__footer">
-                      <a
-                        class="btn btn-link offering-card__primary-action has-icon icon-arrow-up-right icon-end"
-                        href="/listing/upcoming-ipos/sahat-almajd-trading/"
-                      >
-                        View details
-                      </a>
-
-                      <a
-                        class="btn btn-link offering-card__document-action has-icon icon-pdf-file"
-                        href="/assets/documents/prospectuses/sahat-almajd-prospectus.pdf"
-                        target="_blank"
-                        rel="noopener"
-                        aria-label="Open the Sahat AlMajd Trading prospectus in a new window"
-                      >
-                        Prospectus
-                      </a>
-                    </footer>
-                  </article>
-
-                  <!-- ================================================================
-                 Albilad MSCI Saudi Equity ETF
-                 ================================================================ -->
-
-                  <article
-                    class="card offering-card"
-                    aria-labelledby="offering-albilad-title"
-                  >
-                    <!-- --------------------------------------------------------------
-                   Header
-                   -------------------------------------------------------------- -->
-
-                    <header class="offering-card__header">
-                      <div class="offering-card__brand">
-                        <span class="offering-card__logo" aria-hidden="true">
-                          <img
-                            class="offering-card__logo-image"
-                            src="/assets/images/company-logos/albilad-capital.svg"
-                            alt=""
-                            width="64"
-                            height="64"
-                            loading="lazy"
-                          />
-                        </span>
-
-                        <div class="offering-card__identity">
-                          <h3
-                            id="offering-albilad-title"
-                            class="offering-card__title"
-                          >
-                            <a
-                              class="offering-card__company-link"
-                              href="/listing/upcoming-ipos/albilad-msci-saudi-equity-etf/"
-                            >
-                              Albilad MSCI Saudi Equity ETF
-                            </a>
-                          </h3>
-
-                          <span class="offering-card__symbol">
-                            Albilad Capital
-                          </span>
-                        </div>
-                      </div>
-
-                      <span class="offering-card__status"> ETF </span>
-                    </header>
-
-                    <!-- --------------------------------------------------------------
-                   Body
-                   -------------------------------------------------------------- -->
-
-                    <div class="offering-card__body">
-                      <dl class="offering-card__details">
-                        <!-- Market -->
-
-                        <div
-                          class="offering-card__detail offering-card__detail--wide"
-                        >
-                          <dt class="offering-card__detail-label">Market</dt>
-
-                          <dd class="offering-card__detail-value">
-                            Exchange-Traded Funds
-                          </dd>
-                        </div>
-
-                        <!-- Offering Size -->
-
-                        <div class="offering-card__detail">
-                          <dt class="offering-card__detail-label">
-                            Offering size
-                          </dt>
-
-                          <dd class="offering-card__detail-value">
-                            To be announced
-                          </dd>
-                        </div>
-
-                        <!-- Offering Price -->
-
-                        <div class="offering-card__detail">
-                          <dt class="offering-card__detail-label">
-                            Offering price
-                          </dt>
-
-                          <dd class="offering-card__detail-value" data-numeric>
-                            10.00
-                          </dd>
-                        </div>
-
-                        <!-- Opening Date -->
-
-                        <div class="offering-card__detail">
-                          <dt class="offering-card__detail-label">
-                            Opening date
-                          </dt>
-
-                          <dd class="offering-card__detail-value">
-                            <time datetime="2026-09-14"> 14 Sep 2026 </time>
-                          </dd>
-                        </div>
-
-                        <!-- Closing Date -->
-
-                        <div class="offering-card__detail">
-                          <dt class="offering-card__detail-label">
-                            Closing date
-                          </dt>
-
-                          <dd class="offering-card__detail-value">
-                            <time datetime="2026-09-20"> 20 Sep 2026 </time>
-                          </dd>
-                        </div>
-                      </dl>
-                    </div>
-
-                    <!-- --------------------------------------------------------------
-                   Footer
-                   -------------------------------------------------------------- -->
-
-                    <footer class="offering-card__footer">
-                      <a
-                        class="btn btn-link offering-card__primary-action has-icon icon-arrow-up-right icon-end"
-                        href="/listing/upcoming-ipos/albilad-msci-saudi-equity-etf/"
-                      >
-                        View details
-                      </a>
-
-                      <a
-                        class="btn btn-link offering-card__document-action has-icon icon-pdf-file"
-                        href="/assets/documents/prospectuses/albilad-msci-saudi-equity-etf-prospectus.pdf"
-                        target="_blank"
-                        rel="noopener"
-                        aria-label="Open the Albilad MSCI Saudi Equity ETF prospectus in a new window"
-                      >
-                        Prospectus
-                      </a>
-                    </footer>
-                  </article>
-
-                  <!-- ================================================================
-                 Saudi Industrial Development Company
-                 ================================================================ -->
-
-                  <article
-                    class="card offering-card"
-                    aria-labelledby="offering-sidc-title"
-                  >
-                    <!-- --------------------------------------------------------------
-                   Header
-                   -------------------------------------------------------------- -->
-
-                    <header class="offering-card__header">
-                      <div class="offering-card__brand">
-                        <span class="offering-card__logo" aria-hidden="true">
-                          <img
-                            class="offering-card__logo-image"
-                            src="/assets/images/company-logos/saudi-industrial-development.svg"
-                            alt=""
-                            width="64"
-                            height="64"
-                            loading="lazy"
-                          />
-                        </span>
-
-                        <div class="offering-card__identity">
-                          <h3
-                            id="offering-sidc-title"
-                            class="offering-card__title"
-                          >
-                            <a
-                              class="offering-card__company-link"
-                              href="/listing/upcoming-ipos/saudi-industrial-development/"
-                            >
-                              Saudi Industrial Development Co.
-                            </a>
-                          </h3>
-
-                          <span class="offering-card__symbol"> SIDC </span>
-                        </div>
-                      </div>
-
-                      <span class="offering-card__status">
-                        Tradable rights
-                      </span>
-                    </header>
-
-                    <!-- --------------------------------------------------------------
-                   Body
-                   -------------------------------------------------------------- -->
-
-                    <div class="offering-card__body">
-                      <dl class="offering-card__details">
-                        <!-- Market -->
-
-                        <div
-                          class="offering-card__detail offering-card__detail--wide"
-                        >
-                          <dt class="offering-card__detail-label">Market</dt>
-
-                          <dd class="offering-card__detail-value">
-                            Main Market
-                          </dd>
-                        </div>
-
-                        <!-- Offering Size -->
-
-                        <div class="offering-card__detail">
-                          <dt class="offering-card__detail-label">
-                            Offering size
-                          </dt>
-
-                          <dd class="offering-card__detail-value" data-numeric>
-                            16,500,000
-                          </dd>
-                        </div>
-
-                        <!-- Offering Price -->
-
-                        <div class="offering-card__detail">
-                          <dt class="offering-card__detail-label">
-                            Offering price
-                          </dt>
-
-                          <dd class="offering-card__detail-value" data-numeric>
-                            10.00
-                          </dd>
-                        </div>
-
-                        <!-- Subscription Period -->
-
-                        <div
-                          class="offering-card__detail offering-card__detail--period"
-                        >
-                          <dt class="offering-card__detail-label">
-                            Subscription period
-                          </dt>
-
-                          <dd
-                            class="offering-card__detail-value offering-card__period-value"
-                          >
-                            <span class="offering-card__period-line">
-                              <span class="offering-card__period-label">
-                                From:
-                              </span>
-
-                              <time datetime="2026-11-12"> 12 Nov 2026 </time>
-                            </span>
-
-                            <span class="offering-card__period-line">
-                              <span class="offering-card__period-label">
-                                To:
-                              </span>
-
-                              <time datetime="2026-11-24"> 24 Nov 2026 </time>
-                            </span>
-                          </dd>
-                        </div>
-
-                        <!-- Rights Trading Period -->
-
-                        <div
-                          class="offering-card__detail offering-card__detail--period"
-                        >
-                          <dt class="offering-card__detail-label">
-                            Rights trading period
-                          </dt>
-
-                          <dd
-                            class="offering-card__detail-value offering-card__period-value"
-                          >
-                            <span class="offering-card__period-line">
-                              <span class="offering-card__period-label">
-                                From:
-                              </span>
-
-                              <time datetime="2026-11-12"> 12 Nov 2026 </time>
-                            </span>
-
-                            <span class="offering-card__period-line">
-                              <span class="offering-card__period-label">
-                                To:
-                              </span>
-
-                              <time datetime="2026-11-19"> 19 Nov 2026 </time>
-                            </span>
-                          </dd>
-                        </div>
-                      </dl>
-                    </div>
-
-                    <!-- --------------------------------------------------------------
-                   Footer
-                   -------------------------------------------------------------- -->
-
-                    <footer class="offering-card__footer">
-                      <a
-                        class="btn btn-link offering-card__primary-action has-icon icon-arrow-up-right icon-end"
-                        href="/listing/upcoming-ipos/saudi-industrial-development/"
-                      >
-                        View details
-                      </a>
-
-                      <a
-                        class="btn btn-link offering-card__document-action has-icon icon-pdf-file"
-                        href="/assets/documents/prospectuses/saudi-industrial-development-rights-prospectus.pdf"
-                        target="_blank"
-                        rel="noopener"
-                        aria-label="Open the Saudi Industrial Development Company rights prospectus in a new window"
-                      >
-                        Prospectus
-                      </a>
-                    </footer>
-                  </article>
+                  <!-- Title -->
+
+                  <h3 class="related-news-card__title">
+                    <a class="related-news-card__link" href="#">
+                      The CMA Approves the Registration of “Kreston NBB for
+                      Professional Consulting” to Carry on Audit Engagements for
+                      Entities Subject to Its Supervision
+                    </a>
+                  </h3>
                 </div>
 
-                <!-- ==================================================================
-               Pagination
-               ================================================================== -->
+                <!-- Footer -->
 
-                <nav
-                  class="pagination offering-results__pagination"
-                  aria-label="Upcoming offerings pages"
-                >
-                  <p class="pagination__status">
-                    Showing
-                    <strong>1–3</strong>
-                    of
-                    <strong>63</strong>
-                    offerings
-                  </p>
+                <footer class="related-news-card__footer">
+                  <a
+                    class="btn btn-link related-news-card__action has-icon icon-arrow-up-right icon-end"
+                    href="#"
+                  >
+                    Read more
+                  </a>
+                </footer>
+              </article>
 
-                  <ol class="pagination__list">
-                    <li class="pagination__item">
-                      <span
-                        class="pagination__link pagination__link--previous is-disabled has-icon icon-chevron-left icon-flip-rtl"
-                        aria-disabled="true"
-                      >
-                        Previous
-                      </span>
-                    </li>
+              <!-- ==================================================================
+             Related News Item 2
+             ================================================================ -->
 
-                    <li class="pagination__item">
-                      <a
-                        class="pagination__link is-current"
-                        href="?page=1"
-                        aria-current="page"
-                        aria-label="Page 1"
-                      >
-                        1
-                      </a>
-                    </li>
+              <article class="card related-news-card">
+                <div class="related-news-card__body">
+                  <div class="related-news-card__meta">
+                    <span class="related-news-card__source">
+                      Capital Market Authority
+                    </span>
 
-                    <li class="pagination__item">
-                      <a
-                        class="pagination__link"
-                        href="?page=2"
-                        aria-label="Page 2"
-                      >
-                        2
-                      </a>
-                    </li>
-
-                    <li class="pagination__item">
-                      <a
-                        class="pagination__link"
-                        href="?page=3"
-                        aria-label="Page 3"
-                      >
-                        3
-                      </a>
-                    </li>
-
-                    <li
-                      class="pagination__item pagination__item--ellipsis"
-                      aria-hidden="true"
+                    <time
+                      class="related-news-card__date"
+                      datetime="2026-09-13T09:28:32"
                     >
-                      <span class="pagination__ellipsis"> … </span>
-                    </li>
+                      13/09/2026 09:28:32
+                    </time>
+                  </div>
 
-                    <li class="pagination__item">
-                      <a
-                        class="pagination__link"
-                        href="?page=21"
-                        aria-label="Page 21"
-                      >
-                        21
-                      </a>
-                    </li>
+                  <h3 class="related-news-card__title">
+                    <a class="related-news-card__link" href="#">
+                      The Capital Market Authority announcement in relation to
+                      the suspension of trading the shares of United Cooperative
+                      Assurance Co.
+                    </a>
+                  </h3>
+                </div>
 
-                    <li class="pagination__item">
-                      <a
-                        class="pagination__link pagination__link--next has-icon icon-chevron-right icon-flip-rtl icon-end"
-                        href="?page=2"
-                        rel="next"
-                      >
-                        Next
-                      </a>
-                    </li>
-                  </ol>
-                </nav>
-              </div>
+                <footer class="related-news-card__footer">
+                  <a
+                    class="btn btn-link related-news-card__action has-icon icon-arrow-up-right icon-end"
+                    href="#"
+                  >
+                    Read more
+                  </a>
+                </footer>
+              </article>
+
+              <!-- ==================================================================
+             Related News Item 3
+             ================================================================ -->
+
+              <article class="card related-news-card">
+                <div class="related-news-card__body">
+                  <div class="related-news-card__meta">
+                    <span class="related-news-card__source">
+                      Saudi Exchange
+                    </span>
+
+                    <time
+                      class="related-news-card__date"
+                      datetime="2026-09-10T08:01:03"
+                    >
+                      10/09/2026 08:01:03
+                    </time>
+                  </div>
+
+                  <h3 class="related-news-card__title">
+                    <a class="related-news-card__link" href="#">
+                      Announcement from the Saudi Exchange Regarding the
+                      Suspension of Trading the Shares of National Gypsum Co.
+                    </a>
+                  </h3>
+                </div>
+
+                <footer class="related-news-card__footer">
+                  <a
+                    class="btn btn-link related-news-card__action has-icon icon-arrow-up-right icon-end"
+                    href="#"
+                  >
+                    Read more
+                  </a>
+                </footer>
+              </article>
+
+              <!-- ==================================================================
+             Related News Item 4
+             ================================================================ -->
+
+              <article class="card related-news-card">
+                <div class="related-news-card__body">
+                  <div class="related-news-card__meta">
+                    <span class="related-news-card__source">
+                      Saudi Exchange
+                    </span>
+
+                    <time
+                      class="related-news-card__date"
+                      datetime="2026-09-08T16:49:56"
+                    >
+                      08/09/2026 16:49:56
+                    </time>
+                  </div>
+
+                  <h3 class="related-news-card__title">
+                    <a class="related-news-card__link" href="#">
+                      Saudi Exchange Company announces the approval of Merrill
+                      Lynch Kingdom of Saudi Arabia to conduct Market Making
+                      activities on thirteen listed securities in the Main
+                      Market and in Nomu – Parallel Market
+                    </a>
+                  </h3>
+                </div>
+
+                <footer class="related-news-card__footer">
+                  <a
+                    class="btn btn-link related-news-card__action has-icon icon-arrow-up-right icon-end"
+                    href="#"
+                  >
+                    Read more
+                  </a>
+                </footer>
+              </article>
+
+              <!-- ==================================================================
+             Related News Item 5
+             ================================================================ -->
+
+              <article class="card related-news-card">
+                <div class="related-news-card__body">
+                  <div class="related-news-card__meta">
+                    <span class="related-news-card__source">
+                      Saudi Exchange
+                    </span>
+
+                    <time
+                      class="related-news-card__date"
+                      datetime="2026-09-08T15:52:04"
+                    >
+                      08/09/2026 15:52:04
+                    </time>
+                  </div>
+
+                  <h3 class="related-news-card__title">
+                    <a class="related-news-card__link" href="#">
+                      Saudi Exchange Company announces the approval of Merrill
+                      Lynch Kingdom of Saudi Arabia to conduct Market Making
+                      activities on 13 listed securities in the Main Market and
+                      in Nomu – Parallel Market
+                    </a>
+                  </h3>
+                </div>
+
+                <footer class="related-news-card__footer">
+                  <a
+                    class="btn btn-link related-news-card__action has-icon icon-arrow-up-right icon-end"
+                    href="#"
+                  >
+                    Read more
+                  </a>
+                </footer>
+              </article>
             </div>
           </div>
         </div>
@@ -7766,4 +7335,3248 @@
       title="Back to top"
     ></button>
   </body>
+  <script>
+    (() => {
+      "use strict";
+
+      /* ==========================================================================
+   MOCK TEST HARNESS — NOT FOR PRODUCTION
+
+   This is the real main-market-performance script with exactly one thing
+   swapped out: requestSnapshot() no longer calls fetch() against a real
+   backend, it returns generated data instead. Everything else — timestamp
+   parsing, payload normalization, range slicing/downsampling, candle
+   aggregation, live reconciliation, chart configuration, export menu,
+   compare, live-status UI — is the unmodified production logic, so this
+   genuinely exercises the real integration rather than a shortcut.
+
+   Open this page and either:
+     - use the range/mode buttons directly, or
+     - run `await mainMarketChartTest.runAll()` in the console for an
+       automated pass/fail report across every range, mode, and the live
+       path.
+   ========================================================================== */
+
+      if (window.__mainMarketPerformanceInitialized) {
+        return;
+      }
+
+      window.__mainMarketPerformanceInitialized = true;
+
+      /* ==========================================================================
+   Constants
+   ========================================================================== */
+
+      const TIME_ZONE = "Asia/Riyadh";
+      const RIYADH_OFFSET = "+03:00";
+      const RIYADH_OFFSET_MS = 3 * 60 * 60 * 1_000;
+
+      /*
+       * Shortened from the production 60_000ms so live ticks are actually
+       * visible while testing interactively, instead of waiting a full minute.
+       * MOCK.forceTick() is also available for instant, deterministic testing.
+       */
+      const LIVE_INTERVAL = 4_000;
+      const LIVE_CANDLE_BUCKET = 60_000;
+
+      /*
+       * At one point per minute, a full trading session plus any pre/post-market
+       * ticks needs to fit comfortably under this cap — otherwise the session's
+       * own opening data gets silently evicted before the session even ends,
+       * with no backgrounded tab required (see trimLiveData()'s onEvict warning
+       * in market-chart.js). 480 (8 hours) had essentially zero margin; 900
+       * (15 hours) comfortably covers a full session plus catch-up headroom.
+       */
+      const MAX_LIVE_POINTS = 900;
+      const MAX_HISTORICAL_POINTS = 1_000;
+
+      const DAY = 24 * 60 * 60 * 1_000;
+
+      const RANGE_WINDOWS = Object.freeze({
+        "1W": 7 * DAY,
+        "1M": 30 * DAY,
+        "3M": 90 * DAY,
+        "6M": 180 * DAY,
+        "1Y": 365 * DAY,
+        "5Y": 5 * 365 * DAY,
+        ALL: null,
+      });
+
+      const CANDLE_BUCKETS = Object.freeze({
+        "1D": LIVE_CANDLE_BUCKET,
+        "1W": DAY,
+        "1M": DAY,
+        "3M": 7 * DAY,
+        "6M": 7 * DAY,
+        "1Y": 30 * DAY,
+        "5Y": 90 * DAY,
+        ALL: 365 * DAY,
+      });
+
+      const LIVE_STATUS_LABELS = Object.freeze({
+        live: { open: true, en: "Live", ar: "مباشر" },
+        updating: { open: true, en: "Live", ar: "مباشر" },
+        waiting: { open: true, en: "Live", ar: "مباشر" },
+        starting: { open: true, en: "Live", ar: "مباشر" },
+        offline: { open: false, en: "Offline", ar: "غير متصل" },
+        hidden: { open: false, en: "Paused", ar: "متوقف مؤقتاً" },
+        paused: { open: false, en: "Paused", ar: "متوقف مؤقتاً" },
+        stopped: { open: false, en: "Closed", ar: "مغلق" },
+        error: { open: false, en: "Reconnecting", ar: "إعادة الاتصال" },
+        idle: { open: false, en: "Closed", ar: "مغلق" },
+        destroyed: { open: false, en: "Closed", ar: "مغلق" },
+      });
+
+      /* ==========================================================================
+   Runtime
+   ========================================================================== */
+
+      const pageController = new AbortController();
+      const { signal: pageSignal } = pageController;
+
+      let root = null;
+      let chartElement = null;
+      let titleElement = null;
+
+      let exportRoot = null;
+      let exportTrigger = null;
+      let exportMenu = null;
+      let compareButton = null;
+
+      let liveStatusText = null;
+      let liveStatusIcon = null;
+
+      let serverConfiguration = null;
+
+      let marketChartAPI = null;
+      let controller = null;
+
+      let destroyed = false;
+
+      /* ==========================================================================
+   DOM
+   ========================================================================== */
+
+      function resolveDOM() {
+        root = document.querySelector("[data-performance-chart]");
+
+        if (!root) {
+          throw new Error("Main Market Performance root is missing.");
+        }
+
+        chartElement = root.querySelector("[data-market-chart]");
+
+        if (!chartElement) {
+          throw new Error("Main Market Performance chart element is missing.");
+        }
+
+        titleElement = root.querySelector(".chart-toolbar__title");
+
+        exportRoot = root.querySelector("[data-chart-export]");
+        exportTrigger = exportRoot?.querySelector(
+          "[data-chart-export-trigger]",
+        );
+        exportMenu = exportRoot?.querySelector("[data-chart-export-menu]");
+
+        compareButton = root.querySelector("[data-chart-compare]");
+
+        liveStatusText = root.querySelector("[data-chart-live-status]");
+        liveStatusIcon = root.querySelector(".market-status");
+      }
+
+      /* ==========================================================================
+   Server Configuration (mock: no real symbol/token required)
+   ========================================================================== */
+
+      function resolveServerConfiguration() {
+        const external =
+          window.marketPerformanceConfig &&
+          typeof window.marketPerformanceConfig === "object"
+            ? window.marketPerformanceConfig
+            : {};
+
+        return Object.freeze({
+          symbol: external.symbol || root.dataset.chartSymbol || "TASI",
+          parameter: external.parameter || root.dataset.chartParameter || null,
+          pageName: external.pageName || "MainMarketWatch",
+          intradayChartType: "MOCK_INTRADAY",
+          historicalChartType: "MOCK_HISTORICAL",
+          /*
+           * Main Market Performance is an index chart, so no currency label
+           * is shown in the tooltip.
+           */
+          currency: "",
+          /*
+           * Display whole index values. Source data may still contain decimal
+           * precision; presentation rounds to zero decimal places.
+           */
+          decimals: 0,
+        });
+      }
+
+      /* ==========================================================================
+   Locale
+   ========================================================================== */
+
+      function getLanguage() {
+        return document.documentElement.lang || "en";
+      }
+
+      function isArabic() {
+        return String(getLanguage()).toLowerCase().startsWith("ar");
+      }
+
+      function getChartName() {
+        return titleElement?.textContent?.trim() || "Main Market Performance";
+      }
+
+      function getLabels() {
+        return isArabic()
+          ? { time: "الوقت", date: "التاريخ", value: "قيمة المؤشر" }
+          : { time: "Time", date: "Date", value: "Index Value" };
+      }
+
+      function getMessages() {
+        const name = getChartName();
+
+        return isArabic()
+          ? {
+              loading: `جارٍ تحميل بيانات ${name}…`,
+              empty: `بيانات ${name} غير متاحة حالياً.`,
+              error: `تعذر تحميل بيانات ${name}.`,
+            }
+          : {
+              loading: `Loading ${name} data…`,
+              empty: `${name} data is currently unavailable.`,
+              error: `${name} data could not be loaded.`,
+            };
+      }
+
+      /* ==========================================================================
+   Generic Helpers
+   ========================================================================== */
+
+      function isPlainObject(value) {
+        return Boolean(
+          value && typeof value === "object" && !Array.isArray(value),
+        );
+      }
+
+      function toFiniteNumber(value) {
+        if (
+          value === null ||
+          value === undefined ||
+          typeof value === "boolean" ||
+          (typeof value === "string" && value.trim() === "")
+        ) {
+          return null;
+        }
+
+        const normalized =
+          typeof value === "string" ? value.replaceAll(",", "").trim() : value;
+        const number = Number(normalized);
+
+        return Number.isFinite(number) ? number : null;
+      }
+
+      function getCloseValue(point) {
+        if (!Array.isArray(point)) {
+          return null;
+        }
+
+        return toFiniteNumber(point.length >= 5 ? point[4] : point[1]);
+      }
+
+      function createAbortError(message = "The request was cancelled.") {
+        const error = new Error(message);
+        error.name = "AbortError";
+
+        return error;
+      }
+
+      function isAbortError(error) {
+        return error?.name === "AbortError";
+      }
+
+      /* ==========================================================================
+   Timestamp — unchanged from production, exercised for real by the mock
+   payloads below (dateTime strings, not pre-built timestamps).
+   ========================================================================== */
+
+      function toTimestamp(value) {
+        if (
+          value === null ||
+          value === undefined ||
+          (typeof value === "string" && value.trim() === "")
+        ) {
+          return null;
+        }
+
+        const text = String(value).trim();
+
+        if (typeof value === "number" || /^\d+$/.test(text)) {
+          const number = Number(value);
+
+          if (!Number.isFinite(number)) {
+            return null;
+          }
+
+          return number < 10_000_000_000 ? number * 1_000 : number;
+        }
+
+        if (/(?:Z|[+-]\d{2}:?\d{2})$/i.test(text)) {
+          const timestamp = Date.parse(text);
+
+          return Number.isFinite(timestamp) ? timestamp : null;
+        }
+
+        const dateOnly = text.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+
+        if (dateOnly) {
+          const [, year, month, day] = dateOnly;
+          const timestamp = Date.parse(
+            `${year}-${month}-${day}T12:00:00${RIYADH_OFFSET}`,
+          );
+
+          return Number.isFinite(timestamp) ? timestamp : null;
+        }
+
+        const localDateTime = text.match(
+          /^(\d{4})-(\d{2})-(\d{2})[ T](\d{1,2}):(\d{2})(?::(\d{2})(?:\.(\d{1,3}))?)?$/,
+        );
+
+        if (localDateTime) {
+          const [
+            ,
+            year,
+            month,
+            day,
+            hour,
+            minute,
+            second = "00",
+            milliseconds = "",
+          ] = localDateTime;
+          const fraction = milliseconds
+            ? `.${milliseconds.padEnd(3, "0")}`
+            : "";
+
+          const timestamp = Date.parse(
+            `${year}-${month}-${day}T${hour.padStart(2, "0")}:${minute}:${second}${fraction}${RIYADH_OFFSET}`,
+          );
+
+          return Number.isFinite(timestamp) ? timestamp : null;
+        }
+
+        const timestamp = Date.parse(text);
+
+        return Number.isFinite(timestamp) ? timestamp : null;
+      }
+
+      /* ==========================================================================
+   Payload Normalization — unchanged from production.
+   ========================================================================== */
+
+      function unwrapPayload(payload) {
+        if (Array.isArray(payload)) {
+          return payload;
+        }
+
+        if (!isPlainObject(payload)) {
+          return [];
+        }
+
+        return (
+          [payload.data, payload.items, payload.results, payload.rows].find(
+            Array.isArray,
+          ) || []
+        );
+      }
+
+      function normalizeSnapshot(payload) {
+        const source = unwrapPayload(payload);
+
+        const trendByTimestamp = new Map();
+        const candlesByTimestamp = new Map();
+
+        for (const item of source) {
+          if (!item || typeof item !== "object") {
+            continue;
+          }
+
+          const timestamp = toTimestamp(
+            item.dateTime ?? item.timestamp ?? item.time ?? item.date,
+          );
+
+          if (timestamp === null) {
+            continue;
+          }
+
+          const close = toFiniteNumber(
+            item.closePrice ??
+              item.close ??
+              item.indexPrice ??
+              item.value ??
+              item.price,
+          );
+
+          if (close !== null && close !== 0) {
+            trendByTimestamp.set(timestamp, [timestamp, close]);
+          }
+
+          const open = toFiniteNumber(item.openPrice ?? item.open);
+          const high = toFiniteNumber(item.highPrice ?? item.high);
+          const low = toFiniteNumber(item.lowPrice ?? item.low);
+
+          if (
+            open === null ||
+            high === null ||
+            low === null ||
+            close === null
+          ) {
+            continue;
+          }
+
+          if (
+            high < Math.max(open, close) ||
+            low > Math.min(open, close) ||
+            high < low
+          ) {
+            continue;
+          }
+
+          candlesByTimestamp.set(timestamp, [
+            timestamp,
+            open,
+            high,
+            low,
+            close,
+          ]);
+        }
+
+        return {
+          trend: [...trendByTimestamp.values()].sort((a, b) => a[0] - b[0]),
+          candlestick: [...candlesByTimestamp.values()].sort(
+            (a, b) => a[0] - b[0],
+          ),
+        };
+      }
+
+      /* ==========================================================================
+   MOCK BACKEND
+
+   Generates raw "backend-shaped" items (dateTime/openPrice/highPrice/
+   lowPrice/closePrice) — the same shape normalizeSnapshot() parses in
+   production — instead of pre-built [timestamp, value] tuples, so the
+   parsing path above is genuinely exercised too.
+   ========================================================================== */
+
+      const MOCK = (() => {
+        const SEED = 20_260_912;
+        const BASE_CLOSE = 10_838.1;
+        const AMPLITUDE = 12;
+        const NOISE = 1.6;
+        const HISTORY_DAYS = 6 * 365;
+
+        function randomFrom(seed) {
+          let state = seed >>> 0;
+
+          return () => {
+            state += 0x6d2b79f5;
+
+            let value = state;
+
+            value = Math.imul(value ^ (value >>> 15), value | 1);
+            value ^= value + Math.imul(value ^ (value >>> 7), value | 61);
+
+            return ((value ^ (value >>> 14)) >>> 0) / 4_294_967_296;
+          };
+        }
+
+        function round(value) {
+          return Math.round(value * 100) / 100;
+        }
+
+        function pad(n) {
+          return String(n).padStart(2, "0");
+        }
+
+        /* Asia/Riyadh has no DST, so a fixed +3h offset is safe and cheap. */
+        function riyadhParts(utcMillis) {
+          const shifted = new Date(utcMillis + RIYADH_OFFSET_MS);
+
+          return {
+            year: shifted.getUTCFullYear(),
+            month: shifted.getUTCMonth() + 1,
+            day: shifted.getUTCDate(),
+            hour: shifted.getUTCHours(),
+            minute: shifted.getUTCMinutes(),
+            second: shifted.getUTCSeconds(),
+            weekday: shifted.getUTCDay(),
+          };
+        }
+
+        function riyadhDateString(utcMillis) {
+          const p = riyadhParts(utcMillis);
+
+          return `${p.year}-${pad(p.month)}-${pad(p.day)}`;
+        }
+
+        function riyadhDateTimeString(utcMillis) {
+          const p = riyadhParts(utcMillis);
+
+          return `${p.year}-${pad(p.month)}-${pad(p.day)} ${pad(p.hour)}:${pad(p.minute)}:${pad(p.second)}`;
+        }
+
+        function sessionStartUTC(utcMillisOnThatDay) {
+          const p = riyadhParts(utcMillisOnThatDay);
+
+          /* 10:00 Riyadh session open. */
+          return Date.UTC(p.year, p.month - 1, p.day, 7, 0, 0, 0);
+        }
+
+        /* ---------------------------------------------------------------- History */
+
+        const random = randomFrom(SEED);
+        const historyItems = [];
+
+        let price = BASE_CLOSE - AMPLITUDE * 4;
+
+        for (let daysAgo = HISTORY_DAYS; daysAgo >= 1; daysAgo -= 1) {
+          const dayMillis = Date.now() - DAY * daysAgo;
+          const weekday = riyadhParts(dayMillis).weekday;
+
+          /* Skip a couple of days a week so history isn't perfectly dense — not meant to model the real Saudi trading week exactly. */
+          if (weekday === 5 || weekday === 6) {
+            continue;
+          }
+
+          const target =
+            BASE_CLOSE +
+            Math.sin(daysAgo * 0.05) * AMPLITUDE * 3 +
+            Math.sin(daysAgo * 0.011) * AMPLITUDE * 6;
+
+          price += (target - price) * 0.05 + (random() - 0.5) * NOISE * 3;
+          price = round(Math.max(100, price));
+
+          const open = round(price - (random() - 0.5) * NOISE);
+          const high = round(Math.max(open, price) + random() * NOISE);
+          const low = round(Math.min(open, price) - random() * NOISE);
+
+          historyItems.push({
+            dateTime: riyadhDateString(dayMillis),
+            openPrice: open,
+            highPrice: high,
+            lowPrice: low,
+            closePrice: price,
+          });
+        }
+
+        /* This is the value the previousClose fix should surface on the 1D range. */
+        const previousClose = historyItems.at(-1)?.closePrice ?? BASE_CLOSE;
+
+        /* --------------------------------------------------------------- Intraday */
+
+        const intraday = {
+          items: [],
+          price: previousClose,
+          sequence: 0,
+          open: true,
+          lastTickAt: 0,
+        };
+
+        function addTick(utcMillis) {
+          const target =
+            previousClose +
+            Math.sin(intraday.sequence * 0.15) * AMPLITUDE * 0.6;
+          const openP = intraday.price;
+
+          const close = round(
+            Math.max(
+              1,
+              intraday.price +
+                (target - intraday.price) * 0.3 +
+                (random() - 0.5) * NOISE,
+            ),
+          );
+
+          const wick = Math.max(Math.abs(close - openP) * 0.4, NOISE * 0.2);
+          const high = round(Math.max(openP, close) + wick);
+          const low = round(Math.max(1, Math.min(openP, close) - wick));
+
+          intraday.items.push({
+            dateTime: riyadhDateTimeString(utcMillis),
+            openPrice: openP,
+            highPrice: high,
+            lowPrice: low,
+            closePrice: close,
+          });
+
+          intraday.price = close;
+          intraday.sequence += 1;
+        }
+
+        function seedIntraday() {
+          const start = sessionStartUTC(Date.now());
+          const now = Date.now();
+
+          intraday.items.length = 0;
+          intraday.price = previousClose;
+          intraday.sequence = 0;
+
+          for (let ts = start; ts <= now; ts += LIVE_CANDLE_BUCKET) {
+            addTick(ts);
+          }
+
+          intraday.lastTickAt = now;
+        }
+
+        function sync() {
+          if (!intraday.open) {
+            return;
+          }
+
+          const elapsed = Math.max(0, Date.now() - intraday.lastTickAt);
+          const steps = Math.floor(elapsed / LIVE_INTERVAL);
+
+          for (let i = 0; i < steps; i += 1) {
+            addTick(Date.now());
+          }
+
+          if (steps > 0) {
+            intraday.lastTickAt = Date.now();
+          }
+        }
+
+        seedIntraday();
+
+        return {
+          previousClose,
+
+          getHistoricalItems() {
+            return historyItems.map((item) => ({ ...item }));
+          },
+
+          getIntradayItems() {
+            sync();
+
+            return intraday.items.map((item) => ({ ...item }));
+          },
+
+          /* Instant, deterministic tick for automated testing — no wall-clock wait. */
+          forceTick() {
+            addTick(Date.now());
+
+            return intraday.items.at(-1);
+          },
+
+          correctLatest() {
+            const latest = intraday.items.at(-1);
+
+            if (!latest) {
+              return false;
+            }
+
+            const change = NOISE * 0.4;
+
+            latest.closePrice = round(
+              Math.max(
+                1,
+                latest.closePrice + (intraday.sequence % 2 ? -change : change),
+              ),
+            );
+            latest.highPrice = round(
+              Math.max(latest.highPrice, latest.closePrice),
+            );
+            latest.lowPrice = round(
+              Math.min(latest.lowPrice, latest.closePrice),
+            );
+
+            return true;
+          },
+
+          close() {
+            intraday.open = false;
+          },
+
+          open() {
+            intraday.open = true;
+            intraday.lastTickAt = Date.now() - LIVE_INTERVAL;
+          },
+
+          isOpen() {
+            return intraday.open;
+          },
+        };
+      })();
+
+      /* ==========================================================================
+   Mock Request (replaces fetch)
+   ========================================================================== */
+
+      async function requestSnapshot(chartType, externalSignal = null) {
+        if (externalSignal?.aborted) {
+          throw externalSignal.reason || createAbortError();
+        }
+
+        /* Simulated network latency, still cancellable like a real request. */
+        await new Promise((resolve, reject) => {
+          const timer = window.setTimeout(resolve, 120 + Math.random() * 200);
+
+          const onAbort = () => {
+            window.clearTimeout(timer);
+
+            reject(externalSignal.reason || createAbortError());
+          };
+
+          externalSignal?.addEventListener("abort", onAbort, { once: true });
+        });
+
+        const rawItems =
+          chartType === serverConfiguration.intradayChartType
+            ? MOCK.getIntradayItems()
+            : chartType === serverConfiguration.historicalChartType
+              ? MOCK.getHistoricalItems()
+              : [];
+
+        /* Reuses the real, unmodified parser. */
+        return normalizeSnapshot(rawItems);
+      }
+
+      /* ==========================================================================
+   Sorted Range Helpers — unchanged from production.
+   ========================================================================== */
+
+      function lowerBound(points, timestamp) {
+        let low = 0;
+        let high = points.length;
+
+        while (low < high) {
+          const middle = (low + high) >> 1;
+
+          if (points[middle][0] < timestamp) {
+            low = middle + 1;
+          } else {
+            high = middle;
+          }
+        }
+
+        return low;
+      }
+
+      function upperBound(points, timestamp) {
+        let low = 0;
+        let high = points.length;
+
+        while (low < high) {
+          const middle = (low + high) >> 1;
+
+          if (points[middle][0] <= timestamp) {
+            low = middle + 1;
+          } else {
+            high = middle;
+          }
+        }
+
+        return low;
+      }
+
+      function sliceByTime(points, minimum, maximum) {
+        if (!Array.isArray(points) || !points.length) {
+          return [];
+        }
+
+        return points.slice(
+          lowerBound(points, minimum),
+          upperBound(points, maximum),
+        );
+      }
+
+      function downsampleTrend(points, maximumPoints) {
+        if (!Array.isArray(points) || points.length <= maximumPoints) {
+          return points;
+        }
+
+        if (maximumPoints <= 2) {
+          return [points[0], points.at(-1)];
+        }
+
+        const first = points[0];
+        const last = points.at(-1);
+        const interior = points.slice(1, -1);
+
+        const targetInterior = Math.max(2, maximumPoints - 2);
+        const pairBudget = Math.max(1, Math.floor(targetInterior / 2));
+        const bucketSize = Math.ceil(interior.length / pairBudget);
+
+        const sampled = [first];
+
+        for (let start = 0; start < interior.length; start += bucketSize) {
+          const bucket = interior.slice(start, start + bucketSize);
+
+          if (!bucket.length) {
+            continue;
+          }
+
+          let minPoint = bucket[0];
+          let maxPoint = bucket[0];
+
+          for (const point of bucket) {
+            if (point[1] < minPoint[1]) {
+              minPoint = point;
+            }
+
+            if (point[1] > maxPoint[1]) {
+              maxPoint = point;
+            }
+          }
+
+          if (minPoint[0] === maxPoint[0]) {
+            sampled.push(minPoint);
+          } else if (minPoint[0] < maxPoint[0]) {
+            sampled.push(minPoint, maxPoint);
+          } else {
+            sampled.push(maxPoint, minPoint);
+          }
+        }
+
+        sampled.push(last);
+
+        if (sampled.length <= maximumPoints) {
+          return sampled;
+        }
+
+        const result = [sampled[0]];
+        const step = (sampled.length - 1) / (maximumPoints - 1);
+
+        for (let index = 1; index < maximumPoints - 1; index += 1) {
+          result.push(sampled[Math.round(index * step)]);
+        }
+
+        result.push(sampled.at(-1));
+
+        return result;
+      }
+
+      function aggregateCandles(candles, bucketSize) {
+        if (!Array.isArray(candles) || !candles.length) {
+          return [];
+        }
+
+        const result = [];
+        let current = null;
+
+        for (const candle of candles) {
+          const [timestamp, open, high, low, close] = candle;
+          const bucket = Math.floor(timestamp / bucketSize) * bucketSize;
+
+          if (!current || current[0] !== bucket) {
+            if (current) {
+              result.push(current);
+            }
+
+            current = [bucket, open, high, low, close];
+
+            continue;
+          }
+
+          current[2] = Math.max(current[2], high);
+          current[3] = Math.min(current[3], low);
+          current[4] = close;
+        }
+
+        if (current) {
+          result.push(current);
+        }
+
+        return result;
+      }
+
+      function createCandlesFromSamples(points, bucketSize) {
+        if (!Array.isArray(points) || !points.length) {
+          return [];
+        }
+
+        const result = [];
+        let current = null;
+
+        for (const [timestamp, value] of points) {
+          const bucket = Math.floor(timestamp / bucketSize) * bucketSize;
+
+          if (!current || current[0] !== bucket) {
+            if (current) {
+              result.push(current);
+            }
+
+            current = [bucket, value, value, value, value];
+
+            continue;
+          }
+
+          current[2] = Math.max(current[2], value);
+          current[3] = Math.min(current[3], value);
+          current[4] = value;
+        }
+
+        if (current) {
+          result.push(current);
+        }
+
+        return result;
+      }
+
+      /* ==========================================================================
+   Range Records — unchanged from production, including the previousClose fix.
+   ========================================================================== */
+
+      function createRangeRecord({
+        range,
+        trend,
+        candles,
+        minimum,
+        maximum,
+        referenceClose = null,
+      }) {
+        const rawTrend = sliceByTime(trend, minimum, maximum);
+
+        const displayTrend =
+          range === "1D"
+            ? rawTrend.slice(-MAX_LIVE_POINTS)
+            : downsampleTrend(rawTrend, MAX_HISTORICAL_POINTS);
+
+        const sourceCandles = sliceByTime(candles, minimum, maximum);
+        const bucketSize = CANDLE_BUCKETS[range];
+
+        const candlestick = sourceCandles.length
+          ? aggregateCandles(sourceCandles, bucketSize)
+          : createCandlesFromSamples(rawTrend, bucketSize);
+
+        return {
+          comparisonValue:
+            referenceClose ?? rawTrend[0]?.[1] ?? candlestick[0]?.[1] ?? null,
+          trend: displayTrend,
+          candlestick,
+        };
+      }
+
+      function createRanges(intraday, historical) {
+        const ranges = {};
+
+        const historicalReference = historical.trend.length
+          ? historical.trend
+          : historical.candlestick;
+
+        const previousClose = historicalReference.length
+          ? getCloseValue(historicalReference.at(-1))
+          : null;
+
+        const intradayReference = intraday.trend.length
+          ? intraday.trend
+          : intraday.candlestick;
+
+        if (intradayReference.length) {
+          const first = intradayReference[0][0];
+          const end = intradayReference.at(-1)[0];
+
+          ranges["1D"] = createRangeRecord({
+            range: "1D",
+            trend: intraday.trend,
+            candles: intraday.candlestick,
+            minimum: first,
+            maximum: end,
+            referenceClose: previousClose,
+          });
+        }
+
+        if (!historicalReference.length) {
+          return ranges;
+        }
+
+        const historicalStart = historicalReference[0][0];
+        const historicalEnd = historicalReference.at(-1)[0];
+
+        for (const [range, duration] of Object.entries(RANGE_WINDOWS)) {
+          const minimum =
+            duration === null
+              ? historicalStart
+              : Math.max(historicalStart, historicalEnd - duration);
+
+          const record = createRangeRecord({
+            range,
+            trend: historical.trend,
+            candles: historical.candlestick,
+            minimum,
+            maximum: historicalEnd,
+          });
+
+          if (record.trend.length || record.candlestick.length) {
+            ranges[range] = record;
+          }
+        }
+
+        return ranges;
+      }
+
+      /* ==========================================================================
+   Live Reconciliation — unchanged from production.
+   ========================================================================== */
+
+      function selectLivePoints(snapshot, since) {
+        const candleByTimestamp = new Map(
+          snapshot.candlestick.map((point) => [point[0], point]),
+        );
+        const scalarByTimestamp = new Map(
+          snapshot.trend.map((point) => [point[0], point]),
+        );
+
+        const timestamps = new Set([
+          ...scalarByTimestamp.keys(),
+          ...candleByTimestamp.keys(),
+        ]);
+
+        if (!timestamps.size) {
+          return [];
+        }
+
+        const ordered = [...timestamps].sort((a, b) => a - b);
+        const sinceTimestamp = toTimestamp(since);
+
+        const selected =
+          sinceTimestamp === null
+            ? ordered.slice(-MAX_LIVE_POINTS)
+            : ordered.filter((timestamp) => timestamp >= sinceTimestamp);
+
+        return selected
+          .map(
+            (timestamp) =>
+              candleByTimestamp.get(timestamp) ||
+              scalarByTimestamp.get(timestamp),
+          )
+          .filter(Boolean);
+      }
+
+      /* ==========================================================================
+   Initial Data
+   ========================================================================== */
+
+      async function loadInitialData() {
+        const [intradayResult, historicalResult] = await Promise.allSettled([
+          requestSnapshot(serverConfiguration.intradayChartType, pageSignal),
+          requestSnapshot(serverConfiguration.historicalChartType, pageSignal),
+        ]);
+
+        if (pageSignal.aborted) {
+          throw pageSignal.reason || createAbortError();
+        }
+
+        const empty = { trend: [], candlestick: [] };
+
+        const intraday =
+          intradayResult.status === "fulfilled" ? intradayResult.value : empty;
+        const historical =
+          historicalResult.status === "fulfilled"
+            ? historicalResult.value
+            : empty;
+
+        return {
+          intraday,
+          historical,
+          ranges: createRanges(intraday, historical),
+        };
+      }
+
+      /* ==========================================================================
+   Chart Configuration
+   ========================================================================== */
+
+      function createChartConfiguration(initialData) {
+        const labels = getLabels();
+        const previousClose =
+          initialData.ranges?.["1D"]?.comparisonValue ?? null;
+
+        return {
+          context: "performance",
+          symbol: serverConfiguration.symbol,
+          name: getChartName(),
+          currency: serverConfiguration.currency,
+          previousClose,
+
+          range: "1D",
+          mode: "trend",
+
+          language: getLanguage(),
+          timeZone: TIME_ZONE,
+          decimals: serverConfiguration.decimals,
+
+          maxPoints: MAX_LIVE_POINTS,
+          candleBucketSize: LIVE_CANDLE_BUCKET,
+
+          liveWindowDuration: null,
+          animation: false,
+          xAxisTitle: null,
+          yAxisTitle: labels.value,
+
+          capabilities: {
+            intraday: true,
+            historical: true,
+            live: true,
+            navigator: true,
+            intradayRange: "1D",
+          },
+
+          axis: {
+            x: {
+              title: { "1D": labels.time, default: labels.date },
+              rotation: { "1D": 0, default: -20 },
+              labels: true,
+              showFirstLabel: true,
+              showLastLabel: true,
+              minPadding: 0,
+              maxPadding: 0,
+            },
+            y: {
+              opposite: true,
+              labels: true,
+              minPadding: 0.06,
+              maxPadding: 0.06,
+              format: {
+                decimals: serverConfiguration.decimals,
+                useGrouping: true,
+              },
+            },
+          },
+
+          dateFormats: {
+            "1D": { hour: "2-digit", minute: "2-digit", hourCycle: "h23" },
+          },
+
+          tooltipDateFormats: {
+            "1D": {
+              day: "2-digit",
+              month: "short",
+              year: "numeric",
+              hour: "2-digit",
+              minute: "2-digit",
+              second: "2-digit",
+              hourCycle: "h23",
+            },
+          },
+
+          ranges: initialData.ranges,
+          controls: { root },
+
+          navigatorEnabled: true,
+          navigator: {
+            enabled: true,
+            labels: true,
+            height: 40,
+            margin: 14,
+            handles: true,
+            handleWidth: 6,
+            handleHeight: 16,
+            showFirstLabel: false,
+            showLastLabel: false,
+            tickPixelInterval: 110,
+            dataGrouping: false,
+          },
+
+          exporting: {
+            enabled: true,
+            showContextButton: false,
+            fallbackToExportServer: false,
+            sourceWidth: 1_200,
+            sourceHeight: 675,
+            scale: 2,
+          },
+
+          live: {
+            enabled: true,
+            interval: LIVE_INTERVAL,
+            alignToInterval: true,
+            immediate: false,
+            pauseWhenHidden: true,
+            retry: true,
+            autostart: true,
+
+            async fetchUpdates({ signal, since } = {}) {
+              const snapshot = await requestSnapshot(
+                serverConfiguration.intradayChartType,
+                signal,
+              );
+              const points = selectLivePoints(snapshot, since);
+
+              return points.length ? { points } : null;
+            },
+
+            onStateChange(state) {
+              updateLiveStatusUI(state.state);
+            },
+
+            onError(error, metadata) {
+              if (isAbortError(error)) {
+                return;
+              }
+
+              console.error("Main Market live chart update failed.", {
+                error,
+                metadata,
+              });
+            },
+          },
+
+          accessibilityDescription: isArabic()
+            ? `الأداء التاريخي واللحظي لـ ${getChartName()}.`
+            : `${getChartName()} historical and live market performance.`,
+
+          messages: getMessages(),
+        };
+      }
+
+      /* ==========================================================================
+   Live Status UI — unchanged from production.
+   ========================================================================== */
+
+      function updateLiveStatusUI(stateValue) {
+        const mapping =
+          LIVE_STATUS_LABELS[stateValue] || LIVE_STATUS_LABELS.idle;
+
+        if (liveStatusText) {
+          liveStatusText.textContent = isArabic() ? mapping.ar : mapping.en;
+        }
+
+        liveStatusIcon?.classList.toggle("market-status--open", mapping.open);
+        liveStatusIcon?.classList.toggle(
+          "market-status--closed",
+          !mapping.open,
+        );
+      }
+
+      function bindLiveStatus() {
+        chartElement.addEventListener(
+          "marketchartlivestatechange",
+          (event) => updateLiveStatusUI(event.detail?.state),
+          { signal: pageSignal },
+        );
+      }
+
+      /* ==========================================================================
+   Export Filename / Menu / Compare — unchanged from production.
+   ========================================================================== */
+
+      function slugify(value) {
+        return String(value || "market")
+          .trim()
+          .toLowerCase()
+          .replace(/\s+/g, "-")
+          .replace(/[^\u0600-\u06ffa-z0-9_-]+/gi, "")
+          .replace(/-+/g, "-")
+          .replace(/^-|-$/g, "");
+      }
+
+      function getExportFileName() {
+        const state = controller?.getState?.();
+
+        return [
+          slugify(getChartName()),
+          String(state?.range || "1D").toLowerCase(),
+          String(state?.mode || "trend").toLowerCase(),
+          "performance",
+        ]
+          .filter(Boolean)
+          .join("-");
+      }
+
+      function getExportItems() {
+        return exportMenu
+          ? [...exportMenu.querySelectorAll('[role="menuitem"]')]
+          : [];
+      }
+
+      function isExportOpen() {
+        return Boolean(exportMenu && !exportMenu.hasAttribute("hidden"));
+      }
+
+      function openExportMenu({ focusFirst = false } = {}) {
+        if (!exportMenu || !exportTrigger) {
+          return;
+        }
+
+        exportMenu.removeAttribute("hidden");
+        exportTrigger.setAttribute("aria-expanded", "true");
+
+        if (focusFirst) {
+          getExportItems()[0]?.focus();
+        }
+      }
+
+      function closeExportMenu({ restoreFocus = false } = {}) {
+        if (!exportMenu || !exportTrigger) {
+          return;
+        }
+
+        exportMenu.setAttribute("hidden", "");
+        exportTrigger.setAttribute("aria-expanded", "false");
+
+        if (restoreFocus) {
+          exportTrigger.focus();
+        }
+      }
+
+      function executeExport(action) {
+        const chart = controller?.getChart?.();
+
+        if (!chart) {
+          return;
+        }
+
+        const filename = getExportFileName();
+
+        switch (action) {
+          case "fullscreen":
+            chart.fullscreen?.toggle?.();
+            break;
+          case "print":
+            chart.print?.();
+            break;
+          case "png":
+            chart.exportChart?.({ type: "image/png", filename });
+            break;
+          case "pdf":
+            chart.exportChart?.({ type: "application/pdf", filename });
+            break;
+          default:
+            break;
+        }
+      }
+
+      function bindExportMenu() {
+        if (!exportRoot || !exportTrigger || !exportMenu) {
+          return;
+        }
+
+        exportTrigger.addEventListener(
+          "click",
+          (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+
+            if (isExportOpen()) {
+              closeExportMenu();
+              return;
+            }
+
+            openExportMenu();
+          },
+          { signal: pageSignal },
+        );
+
+        exportMenu.addEventListener(
+          "click",
+          (event) => {
+            const button = event.target?.closest?.("[data-export-action]");
+
+            if (!button) {
+              return;
+            }
+
+            event.preventDefault();
+            event.stopPropagation();
+
+            const action = button.dataset.exportAction;
+
+            closeExportMenu();
+
+            try {
+              executeExport(action);
+            } catch (error) {
+              console.error(
+                `Market chart export action "${action}" failed.`,
+                error,
+              );
+            }
+          },
+          { signal: pageSignal },
+        );
+
+        document.addEventListener(
+          "click",
+          (event) => {
+            if (!isExportOpen() || exportRoot.contains(event.target)) {
+              return;
+            }
+
+            closeExportMenu();
+          },
+          { signal: pageSignal },
+        );
+
+        document.addEventListener(
+          "keydown",
+          (event) => {
+            if (event.key === "Escape" && isExportOpen()) {
+              closeExportMenu({ restoreFocus: true });
+            }
+          },
+          { signal: pageSignal },
+        );
+      }
+
+      function bindCompare() {
+        if (!compareButton) {
+          return;
+        }
+
+        compareButton.addEventListener(
+          "click",
+          () => {
+            const active =
+              compareButton.getAttribute("aria-pressed") !== "true";
+
+            compareButton.setAttribute("aria-pressed", String(active));
+            compareButton.classList.toggle("is-active", active);
+          },
+          { signal: pageSignal },
+        );
+      }
+
+      /* ==========================================================================
+   Market Chart API
+   ========================================================================== */
+
+      function waitForMarketChartAPI() {
+        if (window.SEMarketCharts?.create) {
+          return Promise.resolve(window.SEMarketCharts);
+        }
+
+        return new Promise((resolve, reject) => {
+          const started = performance.now();
+
+          function check() {
+            if (destroyed) {
+              reject(createAbortError());
+              return;
+            }
+
+            if (window.SEMarketCharts?.create) {
+              resolve(window.SEMarketCharts);
+              return;
+            }
+
+            if (performance.now() - started >= 10_000) {
+              reject(
+                new Error(
+                  "SEMarketCharts did not become available within 10 seconds.",
+                ),
+              );
+              return;
+            }
+
+            window.setTimeout(check, 25);
+          }
+
+          check();
+        });
+      }
+
+      function waitForDOM() {
+        if (document.readyState !== "loading") {
+          return Promise.resolve();
+        }
+
+        return new Promise((resolve) =>
+          document.addEventListener("DOMContentLoaded", resolve, {
+            once: true,
+          }),
+        );
+      }
+
+      /* ==========================================================================
+   Chart Creation
+   ========================================================================== */
+
+      async function createPerformanceChart() {
+        root.setAttribute("aria-busy", "true");
+        chartElement.dataset.chartState = "loading";
+
+        try {
+          const initialData = await loadInitialData();
+
+          if (destroyed) {
+            return;
+          }
+
+          controller = marketChartAPI.create(
+            chartElement,
+            createChartConfiguration(initialData),
+          );
+
+          if (!controller) {
+            throw new Error(
+              "Main Market Performance controller was not created.",
+            );
+          }
+
+          root.marketChartController = controller;
+          chartElement.dataset.chartState = "ready";
+
+          updateLiveStatusUI(controller.getState().live?.state);
+        } finally {
+          root.setAttribute("aria-busy", "false");
+        }
+      }
+
+      function destroy() {
+        if (destroyed) {
+          return;
+        }
+
+        destroyed = true;
+
+        pageController.abort();
+        closeExportMenu();
+
+        controller?.destroy?.();
+
+        if (root?.marketChartController === controller) {
+          delete root.marketChartController;
+        }
+
+        controller = null;
+      }
+
+      /* ==========================================================================
+   Test Helpers
+   ========================================================================== */
+
+      function wait(ms) {
+        return new Promise((resolve) => setTimeout(resolve, ms));
+      }
+
+      async function waitUntil(
+        predicate,
+        { timeout = 4_000, interval = 50 } = {},
+      ) {
+        const deadline = Date.now() + timeout;
+
+        while (Date.now() < deadline) {
+          if (predicate()) {
+            return true;
+          }
+
+          await wait(interval);
+        }
+
+        return predicate();
+      }
+
+      /* ==========================================================================
+   Automated Smoke Test
+
+     await mainMarketChartTest.runAll()
+
+   Drives the chart through every range, both modes, a forced live tick,
+   a same-timestamp correction, and market close/reopen, asserting on
+   controller.getState() after each step.
+   ========================================================================== */
+
+      async function runAll() {
+        const results = [];
+        const record = (description, pass) =>
+          results.push({ description, pass: Boolean(pass) });
+
+        console.group("[Main Market Chart Test]");
+
+        try {
+          record("chart created", Boolean(controller));
+
+          if (!controller) {
+            return finish();
+          }
+
+          record(
+            "initial state is ready",
+            controller.getState().state === "ready",
+          );
+          record("initial range is 1D", controller.getState().range === "1D");
+
+          /*
+           * The whole point of the previousClose fix: this must equal the
+           * mock's known previous-day close, not today's first intraday tick.
+           */
+          const comparisonValue = controller.getState().comparisonValue;
+
+          record(
+            `1D comparisonValue (${comparisonValue}) matches previous close (${MOCK.previousClose})`,
+            Math.abs((comparisonValue ?? Number.NaN) - MOCK.previousClose) <
+              0.005,
+          );
+
+          /* Range switching */
+          for (const range of [
+            "1W",
+            "1M",
+            "3M",
+            "6M",
+            "1Y",
+            "5Y",
+            "ALL",
+            "1D",
+          ]) {
+            const ok = controller.setRange(range, { redraw: true });
+
+            record(
+              `setRange("${range}") succeeds`,
+              ok && controller.getState().range === range,
+            );
+          }
+
+          controller.setRange("1D", { redraw: true, resetViewport: true });
+
+          /* Mode switching */
+          for (const mode of ["candlestick", "line", "trend"]) {
+            const ok = controller.setMode(mode);
+
+            record(
+              `setMode("${mode}") succeeds`,
+              ok && controller.getState().mode === mode,
+            );
+          }
+
+          /* Forced, deterministic live tick */
+          const beforePoints = controller.getActiveData().length;
+          const beforeUpdatedAt =
+            controller.getState().live?.lastDataUpdatedAt ?? null;
+
+          MOCK.forceTick();
+
+          const refreshed = controller.refreshLive();
+
+          const ticked = await waitUntil(
+            () =>
+              (controller.getState().live?.lastDataUpdatedAt ?? null) !==
+              beforeUpdatedAt,
+          );
+
+          record("refreshLive() accepted after forced tick", refreshed);
+          record("live tick produced a data update", ticked);
+          record(
+            "chart data grew after live tick",
+            controller.getActiveData().length >= beforePoints,
+          );
+
+          /* Same-timestamp correction */
+          const corrected = MOCK.correctLatest();
+          const correctionRefreshed = corrected
+            ? controller.refreshLive()
+            : false;
+
+          await wait(300);
+
+          record(
+            "correctLatest() + refreshLive() accepted",
+            corrected && correctionRefreshed !== false,
+          );
+
+          /* Market close / reopen */
+          MOCK.close();
+          controller.pauseLive("market-closed");
+
+          await wait(50);
+
+          record(
+            "live paused after simulated close",
+            controller.getState().live?.paused === true,
+          );
+
+          MOCK.open();
+          controller.resumeLiveUpdates("market-closed");
+
+          await wait(50);
+
+          record(
+            "live resumed after simulated reopen",
+            controller.getState().live?.active === true,
+          );
+
+          /* Historical range auto-pauses live */
+          controller.setRange("1M", { redraw: true });
+
+          record(
+            "live paused while a historical range is selected",
+            controller
+              .getState()
+              .live?.pauseReasons?.includes("historical-range") === true,
+          );
+
+          controller.setRange("1D", { redraw: true });
+
+          record(
+            "live resumes when returning to 1D",
+            controller
+              .getState()
+              .live?.pauseReasons?.includes("historical-range") !== true,
+          );
+        } catch (error) {
+          record(`unexpected error: ${error?.message || error}`, false);
+        }
+
+        return finish();
+
+        function finish() {
+          const passed = results.filter((r) => r.pass).length;
+
+          console.table(
+            results.map((r) => ({
+              pass: r.pass ? "✅" : "❌",
+              check: r.description,
+            })),
+          );
+          console.info(
+            `[Main Market Chart Test] ${passed}/${results.length} passed.`,
+          );
+          console.groupEnd();
+
+          return {
+            passed,
+            failed: results.length - passed,
+            total: results.length,
+            results,
+          };
+        }
+      }
+
+      /* ==========================================================================
+   Test / Debug API
+   ========================================================================== */
+
+      window.mainMarketChartTest = {
+        getController() {
+          return controller;
+        },
+
+        getChart() {
+          return controller?.getChart?.() || null;
+        },
+
+        getState() {
+          return controller?.getState?.() || null;
+        },
+
+        refreshLive() {
+          return controller?.refreshLive?.() ?? false;
+        },
+
+        setRange(range) {
+          return controller?.setRange?.(range) ?? false;
+        },
+
+        setMode(mode) {
+          return controller?.setMode?.(mode) ?? false;
+        },
+
+        forceTick() {
+          MOCK.forceTick();
+
+          return controller?.refreshLive?.() ?? false;
+        },
+
+        closeMarket() {
+          MOCK.close();
+
+          return controller?.pauseLive?.("market-closed") ?? false;
+        },
+
+        openMarket() {
+          MOCK.open();
+
+          return controller?.resumeLiveUpdates?.("market-closed") ?? false;
+        },
+
+        getMockPreviousClose() {
+          return MOCK.previousClose;
+        },
+
+        runAll,
+        destroy,
+      };
+
+      /* ==========================================================================
+   Initialize
+   ========================================================================== */
+
+      async function initialize() {
+        try {
+          await waitForDOM();
+          resolveDOM();
+
+          serverConfiguration = resolveServerConfiguration();
+          marketChartAPI = await waitForMarketChartAPI();
+
+          if (destroyed) {
+            return;
+          }
+
+          bindExportMenu();
+          bindCompare();
+          bindLiveStatus();
+
+          await createPerformanceChart();
+
+          window.addEventListener("pagehide", destroy, { once: true });
+
+          console.info(
+            "[Market Chart] Main Market Performance (MOCK) ready. Run `await mainMarketChartTest.runAll()` to test.",
+          );
+        } catch (error) {
+          if (isAbortError(error)) {
+            return;
+          }
+
+          if (chartElement) {
+            chartElement.dataset.chartState = "error";
+          }
+
+          console.error(
+            "Main Market Performance (mock) initialization failed.",
+            error,
+          );
+        }
+      }
+
+      void initialize();
+    })();
+  </script>
+  <script>
+    (() => {
+      "use strict";
+
+      /* ========================================================================
+     Market Summary — Static Live Demo
+     ======================================================================== */
+
+      const INITIAL_LOAD_DELAY = 1200;
+      const REFRESH_INTERVAL = 5000;
+      const LIVE_UPDATE_DURATION = 900;
+
+      const locale =
+        document.documentElement.lang || navigator.language || "en-US";
+
+      /* ========================================================================
+     Number Formatters
+     ======================================================================== */
+
+      const priceFormatter = new Intl.NumberFormat(locale, {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      });
+
+      const signedPriceFormatter = new Intl.NumberFormat(locale, {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+        signDisplay: "exceptZero",
+      });
+
+      const integerFormatter = new Intl.NumberFormat(locale, {
+        maximumFractionDigits: 0,
+      });
+
+      const signedPercentageFormatter = new Intl.NumberFormat(locale, {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+        signDisplay: "exceptZero",
+      });
+
+      const compactFormatter = new Intl.NumberFormat(locale, {
+        notation: "compact",
+        maximumFractionDigits: 2,
+      });
+
+      const moneyFormatter = new Intl.NumberFormat(locale, {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      });
+
+      /* ========================================================================
+     Runtime State
+     ======================================================================== */
+
+      const state = {
+        initialized: false,
+        refreshInFlight: false,
+        refreshTimer: null,
+        snapshotNumber: 0,
+
+        watchlist: new Set(),
+
+        index: {
+          previousClose: 10775.46,
+          value: 10801.01,
+        },
+
+        metrics: {
+          valueTraded: 7014665452.12,
+          volumeTraded: 315557435,
+          marketCapitalization: 10251004.26,
+          symbolsUp: 102,
+          symbolsDown: 122,
+          symbolsListed: 250,
+        },
+
+        securities: [
+          {
+            symbol: "4072",
+            name: "MBC Group",
+            previousClose: 42.45,
+            price: 45.0,
+            volume: 4215000,
+            tradedValue: 189675000,
+            history: ["up", "up", "down", "up", "up"],
+          },
+          {
+            symbol: "2090",
+            name: "NGC",
+            previousClose: 20.46,
+            price: 21.42,
+            volume: 7125000,
+            tradedValue: 152617500,
+            history: ["up", "down", "down", "up", "up"],
+          },
+          {
+            symbol: "2240",
+            name: "Zamil Industrial",
+            previousClose: 44.2,
+            price: 46.05,
+            volume: 3280000,
+            tradedValue: 151044000,
+            history: ["up", "up", "up", "down", "up"],
+          },
+          {
+            symbol: "2080",
+            name: "GASCO",
+            previousClose: 28.8,
+            price: 30.0,
+            volume: 5380000,
+            tradedValue: 161400000,
+            history: ["down", "up", "up", "up", "down"],
+          },
+          {
+            symbol: "1120",
+            name: "Al Rajhi Bank",
+            previousClose: 96.1,
+            price: 95.72,
+            volume: 12540000,
+            tradedValue: 1200248880,
+            history: ["up", "down", "up", "down", "down"],
+          },
+          {
+            symbol: "2222",
+            name: "Saudi Aramco",
+            previousClose: 27.95,
+            price: 27.76,
+            volume: 19850000,
+            tradedValue: 551036000,
+            history: ["down", "down", "up", "down", "up"],
+          },
+          {
+            symbol: "7010",
+            name: "stc",
+            previousClose: 43.6,
+            price: 43.17,
+            volume: 6830000,
+            tradedValue: 294851100,
+            history: ["up", "down", "down", "up", "down"],
+          },
+          {
+            symbol: "2010",
+            name: "SABIC",
+            previousClose: 68.7,
+            price: 67.82,
+            volume: 4960000,
+            tradedValue: 336387200,
+            history: ["down", "up", "down", "down", "down"],
+          },
+          {
+            symbol: "1180",
+            name: "SNB",
+            previousClose: 36.4,
+            price: 36.18,
+            volume: 10450000,
+            tradedValue: 378081000,
+            history: ["up", "up", "down", "down", "up"],
+          },
+          {
+            symbol: "1010",
+            name: "Riyad Bank",
+            previousClose: 29.85,
+            price: 30.12,
+            volume: 8940000,
+            tradedValue: 269272800,
+            history: ["down", "up", "up", "down", "up"],
+          },
+        ],
+      };
+
+      /* ========================================================================
+     DOM Cache
+     ======================================================================== */
+
+      const dom = {
+        index: document.querySelector("[data-market-index]"),
+
+        indexLoading: document.querySelectorAll("[data-market-index-loading]"),
+
+        indexLive: document.querySelectorAll("[data-market-index-live]"),
+
+        indexValue: document.querySelector("[data-market-index-value]"),
+
+        indexChangeState: document.querySelector(
+          "[data-market-index-change-state]",
+        ),
+
+        indexChangeIcon: document.querySelector(
+          "[data-market-index-change-icon]",
+        ),
+
+        indexChange: document.querySelector("[data-market-index-change]"),
+
+        indexChangePercent: document.querySelector(
+          "[data-market-index-change-percent]",
+        ),
+
+        metrics: document.querySelector("[data-market-metrics]"),
+      };
+
+      const liveUpdateTimers = new WeakMap();
+
+      /* ========================================================================
+     Utilities
+     ======================================================================== */
+
+      function clamp(value, min, max) {
+        return Math.min(Math.max(value, min), max);
+      }
+
+      function round(value, precision = 2) {
+        const multiplier = 10 ** precision;
+        return Math.round(value * multiplier) / multiplier;
+      }
+
+      function randomBetween(min, max) {
+        return min + Math.random() * (max - min);
+      }
+
+      function sanitizeId(value) {
+        return String(value)
+          .toLowerCase()
+          .replace(/[^a-z0-9_-]+/g, "-")
+          .replace(/^-+|-+$/g, "");
+      }
+
+      function escapeAttribute(value) {
+        return String(value)
+          .replace(/&/g, "&amp;")
+          .replace(/"/g, "&quot;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;");
+      }
+
+      function getDirection(value) {
+        if (value > 0) return "up";
+        if (value < 0) return "down";
+        return "neutral";
+      }
+
+      function getPriceStateClass(value) {
+        const direction = getDirection(value);
+
+        if (direction === "up") return "price-up";
+        if (direction === "down") return "price-down";
+        return "price-neutral";
+      }
+
+      function applyPriceState(element, value) {
+        if (!element) return;
+
+        element.classList.remove("price-up", "price-down", "price-neutral");
+
+        element.classList.add(getPriceStateClass(value));
+      }
+
+      function setDataValue(
+        element,
+        rawValue,
+        formattedValue,
+        { animate = false } = {},
+      ) {
+        if (!element) return;
+
+        const previousValue = Number(element.value);
+
+        element.value = String(rawValue);
+        element.textContent = formattedValue;
+
+        if (
+          animate &&
+          Number.isFinite(previousValue) &&
+          previousValue !== rawValue
+        ) {
+          triggerLiveUpdate(element, previousValue, rawValue);
+        }
+      }
+
+      /* ========================================================================
+     Live Update Feedback
+     ======================================================================== */
+
+      function triggerLiveUpdate(element, previousValue, nextValue) {
+        if (!element || previousValue === nextValue) return;
+
+        const direction =
+          nextValue > previousValue
+            ? "up"
+            : nextValue < previousValue
+              ? "down"
+              : "neutral";
+
+        const updateClasses = [
+          "is-updating-up",
+          "is-updating-down",
+          "is-updating-neutral",
+        ];
+
+        element.classList.remove(...updateClasses);
+
+        const existingTimer = liveUpdateTimers.get(element);
+
+        if (existingTimer) {
+          window.clearTimeout(existingTimer);
+        }
+
+        void element.offsetWidth;
+
+        element.classList.add(`is-updating-${direction}`);
+
+        const timer = window.setTimeout(() => {
+          element.classList.remove(...updateClasses);
+          liveUpdateTimers.delete(element);
+        }, LIVE_UPDATE_DURATION);
+
+        liveUpdateTimers.set(element, timer);
+      }
+
+      /* ========================================================================
+     Market Calculations
+     ======================================================================== */
+
+      function enrichSecurity(security) {
+        const change = round(security.price - security.previousClose, 2);
+
+        const changePercent = round((change / security.previousClose) * 100, 2);
+
+        return {
+          ...security,
+          change,
+          changePercent,
+        };
+      }
+
+      function getActivityDatasets() {
+        const securities = state.securities.map(enrichSecurity);
+
+        return {
+          gainers: [...securities]
+            .sort((a, b) => b.changePercent - a.changePercent)
+            .slice(0, 4),
+
+          losers: [...securities]
+            .sort((a, b) => a.changePercent - b.changePercent)
+            .slice(0, 4),
+
+          volume: [...securities]
+            .sort((a, b) => b.volume - a.volume)
+            .slice(0, 4),
+
+          value: [...securities]
+            .sort((a, b) => b.tradedValue - a.tradedValue)
+            .slice(0, 4),
+        };
+      }
+
+      /* ========================================================================
+     Mock Snapshot Boundary
+     ======================================================================== */
+
+      function getMockSnapshot({ initial = false } = {}) {
+        if (!initial) {
+          mutateMockMarket();
+        }
+
+        const indexChange = round(
+          state.index.value - state.index.previousClose,
+          2,
+        );
+
+        const indexChangePercent = round(
+          (indexChange / state.index.previousClose) * 100,
+          2,
+        );
+
+        return {
+          index: {
+            value: state.index.value,
+            change: indexChange,
+            changePercent: indexChangePercent,
+          },
+
+          metrics: {
+            ...state.metrics,
+          },
+
+          activity: getActivityDatasets(),
+        };
+      }
+
+      /* ========================================================================
+     Static Demo Mutation
+     ======================================================================== */
+
+      function mutateMockMarket() {
+        state.snapshotNumber += 1;
+
+        const indexMovement = randomBetween(-0.0012, 0.0012);
+
+        state.index.value = round(state.index.value * (1 + indexMovement), 2);
+
+        state.securities.forEach((security) => {
+          const movement = randomBetween(-0.0065, 0.0065);
+
+          security.price = Math.max(
+            0.01,
+            round(security.price * (1 + movement), 2),
+          );
+
+          const addedVolume = Math.round(randomBetween(15000, 220000));
+
+          security.volume += addedVolume;
+
+          security.tradedValue = round(
+            security.tradedValue + addedVolume * security.price,
+            2,
+          );
+
+          if (Math.random() < 0.2) {
+            const direction =
+              movement > 0.0005
+                ? "up"
+                : movement < -0.0005
+                  ? "down"
+                  : "neutral";
+
+            security.history = [...security.history.slice(1), direction];
+          }
+        });
+
+        state.metrics.volumeTraded += Math.round(
+          randomBetween(450000, 1800000),
+        );
+
+        state.metrics.valueTraded = round(
+          state.metrics.valueTraded + randomBetween(18000000, 85000000),
+          2,
+        );
+
+        state.metrics.marketCapitalization = Math.max(
+          0,
+          round(
+            state.metrics.marketCapitalization *
+              (1 + randomBetween(-0.0008, 0.0008)),
+            2,
+          ),
+        );
+
+        const listed = state.metrics.symbolsListed;
+
+        const unchanged = clamp(
+          listed - state.metrics.symbolsUp - state.metrics.symbolsDown,
+          0,
+          listed,
+        );
+
+        const upAdjustment = Math.round(randomBetween(-3, 3));
+
+        state.metrics.symbolsUp = clamp(
+          state.metrics.symbolsUp + upAdjustment,
+          0,
+          listed - unchanged,
+        );
+
+        state.metrics.symbolsDown = clamp(
+          listed - unchanged - state.metrics.symbolsUp,
+          0,
+          listed,
+        );
+      }
+
+      /* ========================================================================
+     Hero — TASI
+     ======================================================================== */
+
+      function renderMarketIndex(index, { initial = false } = {}) {
+        if (!dom.index) return;
+
+        const direction = getDirection(index.change);
+
+        setDataValue(
+          dom.indexValue,
+          index.value,
+          priceFormatter.format(index.value),
+          { animate: !initial },
+        );
+
+        /*
+         * Important:
+         * Positive change includes "+".
+         * Negative change includes "-".
+         * Zero has no sign.
+         */
+
+        setDataValue(
+          dom.indexChange,
+          index.change,
+          signedPriceFormatter.format(index.change),
+        );
+
+        if (dom.indexChangePercent) {
+          dom.indexChangePercent.textContent = `(${signedPercentageFormatter.format(index.changePercent)}%)`;
+        }
+
+        applyPriceState(dom.indexChangeState, index.change);
+
+        if (dom.indexChangeIcon) {
+          if (direction === "neutral") {
+            dom.indexChangeIcon.hidden = true;
+            dom.indexChangeIcon.style.transform = "";
+          } else {
+            dom.indexChangeIcon.hidden = false;
+            dom.indexChangeIcon.style.transform =
+              direction === "down" ? "rotate(180deg)" : "";
+          }
+        }
+
+        const directionText =
+          direction === "up"
+            ? "Increased"
+            : direction === "down"
+              ? "Decreased"
+              : "Unchanged";
+
+        dom.index.setAttribute(
+          "aria-label",
+          [
+            `TASI Index: ${priceFormatter.format(index.value)} points.`,
+            `${directionText} by ${priceFormatter.format(Math.abs(index.change))} points,`,
+            `or ${priceFormatter.format(Math.abs(index.changePercent))} percent.`,
+          ].join(" "),
+        );
+
+        if (initial) {
+          dom.indexLoading.forEach((element) => {
+            element.hidden = true;
+          });
+
+          dom.indexLive.forEach((element) => {
+            element.hidden = false;
+          });
+
+          dom.index.setAttribute("aria-busy", "false");
+        }
+      }
+
+      /* ========================================================================
+     Dashboard Metrics
+     ======================================================================== */
+
+      const metricConfiguration = {
+        "value-traded": {
+          source: "valueTraded",
+          format: moneyFormatter.format.bind(moneyFormatter),
+          animate: true,
+        },
+
+        "volume-traded": {
+          source: "volumeTraded",
+          format: integerFormatter.format.bind(integerFormatter),
+          animate: true,
+        },
+
+        "market-capitalization": {
+          source: "marketCapitalization",
+          format: moneyFormatter.format.bind(moneyFormatter),
+          animate: true,
+        },
+
+        "symbols-up": {
+          source: "symbolsUp",
+          format: integerFormatter.format.bind(integerFormatter),
+          animate: false,
+        },
+
+        "symbols-down": {
+          source: "symbolsDown",
+          format: integerFormatter.format.bind(integerFormatter),
+          animate: false,
+        },
+
+        "symbols-listed": {
+          source: "symbolsListed",
+          format: integerFormatter.format.bind(integerFormatter),
+          animate: false,
+        },
+      };
+
+      function renderMetrics(metrics, { initial = false } = {}) {
+        if (!dom.metrics) return;
+
+        Object.entries(metricConfiguration).forEach(
+          ([metricName, configuration]) => {
+            const element = dom.metrics.querySelector(
+              `[data-market-metric="${metricName}"]`,
+            );
+
+            if (!element) return;
+
+            const value = metrics[configuration.source];
+
+            setDataValue(element, value, configuration.format(value), {
+              animate: !initial && configuration.animate,
+            });
+
+            if (initial) {
+              element.hidden = false;
+            }
+          },
+        );
+
+        if (initial) {
+          dom.metrics
+            .querySelectorAll("[data-market-metric-loading]")
+            .forEach((element) => {
+              element.hidden = true;
+            });
+
+          dom.metrics.setAttribute("aria-busy", "false");
+        }
+      }
+
+      /* ========================================================================
+     Today’s Activity — Formatting
+     ======================================================================== */
+
+      function getActivitySecondaryRaw(type, security) {
+        if (type === "gainers" || type === "losers") {
+          return security.change;
+        }
+
+        if (type === "volume") {
+          return security.volume;
+        }
+
+        return security.tradedValue;
+      }
+
+      function formatActivitySecondary(type, security) {
+        if (type === "gainers" || type === "losers") {
+          return signedPriceFormatter.format(security.change);
+        }
+
+        if (type === "volume") {
+          return integerFormatter.format(security.volume);
+        }
+
+        return compactFormatter.format(security.tradedValue);
+      }
+
+      function shouldAnimateSecondary(type) {
+        return type === "volume" || type === "value";
+      }
+
+      function getSecondaryLabel(type) {
+        if (type === "volume") return "Volume";
+        if (type === "value") return "Value";
+        return "Change";
+      }
+
+      /* ========================================================================
+     Five-day Performance
+     ======================================================================== */
+
+      function getPerformanceLabel(history) {
+        return `Five-day performance: ${history.join(", ")}`;
+      }
+
+      function createPerformanceMarkup(history) {
+        return `
+      <div
+        class="market-activity-table__performance"
+        role="img"
+        aria-label="${escapeAttribute(getPerformanceLabel(history))}"
+      >
+        ${history
+          .map(
+            (direction) => `
+              <span
+                class="is-${direction}"
+                aria-hidden="true"
+              ></span>
+            `,
+          )
+          .join("")}
+      </div>
+    `;
+      }
+
+      function updatePerformanceElement(element, history) {
+        if (!element) return;
+
+        element.setAttribute("aria-label", getPerformanceLabel(history));
+
+        const bars = element.querySelectorAll(":scope > span");
+
+        if (bars.length !== history.length) {
+          element.innerHTML = history
+            .map(
+              (direction) => `
+            <span
+              class="is-${direction}"
+              aria-hidden="true"
+            ></span>
+          `,
+            )
+            .join("");
+
+          return;
+        }
+
+        bars.forEach((bar, index) => {
+          bar.classList.remove("is-up", "is-down", "is-neutral");
+
+          bar.classList.add(`is-${history[index]}`);
+        });
+      }
+
+      /* ========================================================================
+     Watchlist
+     ======================================================================== */
+
+      function isWatched(symbol) {
+        return state.watchlist.has(String(symbol));
+      }
+
+      function getWatchlistLabel(security, watched) {
+        return watched
+          ? `Remove ${security.name} from watchlist`
+          : `Add ${security.name} to watchlist`;
+      }
+
+      function syncWatchlistButtons(symbol) {
+        const security = state.securities.find(
+          (item) => item.symbol === String(symbol),
+        );
+
+        if (!security) return;
+
+        const watched = isWatched(symbol);
+
+        document
+          .querySelectorAll(
+            `[data-market-watchlist="${CSS.escape(String(symbol))}"]`,
+          )
+          .forEach((button) => {
+            button.setAttribute("aria-pressed", String(watched));
+            button.setAttribute(
+              "aria-label",
+              getWatchlistLabel(security, watched),
+            );
+          });
+      }
+
+      function toggleWatchlist(symbol) {
+        const normalizedSymbol = String(symbol);
+
+        if (state.watchlist.has(normalizedSymbol)) {
+          state.watchlist.delete(normalizedSymbol);
+        } else {
+          state.watchlist.add(normalizedSymbol);
+        }
+
+        syncWatchlistButtons(normalizedSymbol);
+      }
+
+      /* ========================================================================
+     Desktop Table Rows
+     ======================================================================== */
+
+      function createActivityRow(type, security) {
+        const row = document.createElement("tr");
+
+        row.dataset.marketSymbol = security.symbol;
+
+        row.innerHTML = `
+      <th
+        class="market-activity-table__company"
+        scope="row"
+      >
+        <div class="market-activity-table__company-content">
+          <button
+            class="market-activity-table__watchlist has-icon icon-star-outline"
+            type="button"
+            aria-pressed="false"
+            data-market-watchlist="${escapeAttribute(security.symbol)}"
+          ></button>
+
+          <span class="market-activity-table__company-identity">
+            <span class="market-activity-table__company-name"></span>
+
+            <span
+              class="market-activity-table__company-symbol"
+              dir="ltr"
+            ></span>
+          </span>
+        </div>
+      </th>
+
+      <td
+        class="market-activity-table__number"
+        dir="ltr"
+      >
+        <data
+          class="market-live-update"
+          data-market-field="price"
+        ></data>
+      </td>
+
+      <td
+        class="market-activity-table__number"
+        dir="ltr"
+        data-market-secondary-cell
+      >
+        <data
+          class="market-live-update"
+          data-market-field="secondary"
+        ></data>
+      </td>
+
+      <td
+        class="market-activity-table__number"
+        dir="ltr"
+        data-market-change-percent-cell
+      >
+        <data data-market-field="change-percent"></data>
+      </td>
+
+      <td class="market-activity-table__performance-cell">
+        ${createPerformanceMarkup(security.history)}
+      </td>
+    `;
+
+        return row;
+      }
+
+      function updateActivityRow(
+        row,
+        type,
+        security,
+        rank,
+        { initial = false } = {},
+      ) {
+        row.dataset.rank = String(rank);
+        row.dataset.marketSymbol = security.symbol;
+
+        const name = row.querySelector(".market-activity-table__company-name");
+
+        const symbol = row.querySelector(
+          ".market-activity-table__company-symbol",
+        );
+
+        const watchlistButton = row.querySelector("[data-market-watchlist]");
+
+        const price = row.querySelector('[data-market-field="price"]');
+
+        const secondary = row.querySelector('[data-market-field="secondary"]');
+
+        const secondaryCell = row.querySelector("[data-market-secondary-cell]");
+
+        const percent = row.querySelector(
+          '[data-market-field="change-percent"]',
+        );
+
+        const percentCell = row.querySelector(
+          "[data-market-change-percent-cell]",
+        );
+
+        const performance = row.querySelector(
+          ".market-activity-table__performance",
+        );
+
+        if (name) name.textContent = security.name;
+        if (symbol) symbol.textContent = security.symbol;
+
+        if (watchlistButton) {
+          const watched = isWatched(security.symbol);
+
+          watchlistButton.dataset.marketWatchlist = security.symbol;
+          watchlistButton.setAttribute("aria-pressed", String(watched));
+          watchlistButton.setAttribute(
+            "aria-label",
+            getWatchlistLabel(security, watched),
+          );
+        }
+
+        setDataValue(
+          price,
+          security.price,
+          priceFormatter.format(security.price),
+          { animate: !initial },
+        );
+
+        const secondaryRaw = getActivitySecondaryRaw(type, security);
+
+        setDataValue(
+          secondary,
+          secondaryRaw,
+          formatActivitySecondary(type, security),
+          {
+            animate: !initial && shouldAnimateSecondary(type),
+          },
+        );
+
+        if (type === "gainers" || type === "losers") {
+          applyPriceState(secondaryCell, security.change);
+        } else {
+          secondaryCell?.classList.remove(
+            "price-up",
+            "price-down",
+            "price-neutral",
+          );
+        }
+
+        if (percent) {
+          percent.value = String(security.changePercent);
+          percent.textContent = `${signedPercentageFormatter.format(security.changePercent)}%`;
+        }
+
+        applyPriceState(percentCell, security.changePercent);
+
+        updatePerformanceElement(performance, security.history);
+      }
+
+      function renderActivityTable(type, securities, { initial = false } = {}) {
+        const body = document.querySelector(
+          `[data-market-activity-body="${type}"]`,
+        );
+
+        const table = document.querySelector(
+          `[data-market-activity-table="${type}"]`,
+        );
+
+        if (!body) return;
+
+        const existingRows = new Map(
+          Array.from(body.querySelectorAll("tr[data-market-symbol]")).map(
+            (row) => [row.dataset.marketSymbol, row],
+          ),
+        );
+
+        if (initial) {
+          body
+            .querySelectorAll("tr:not([data-market-symbol])")
+            .forEach((row) => row.remove());
+        }
+
+        const visibleSymbols = new Set();
+
+        securities.forEach((security, index) => {
+          visibleSymbols.add(security.symbol);
+
+          let row = existingRows.get(security.symbol);
+          const isNewRow = !row;
+
+          if (!row) {
+            row = createActivityRow(type, security);
+          }
+
+          updateActivityRow(row, type, security, index + 1, {
+            initial: initial || isNewRow,
+          });
+
+          body.appendChild(row);
+        });
+
+        existingRows.forEach((row, symbol) => {
+          if (!visibleSymbols.has(symbol)) {
+            row.remove();
+          }
+        });
+
+        if (initial && table) {
+          table.setAttribute("aria-busy", "false");
+        }
+      }
+
+      /* ========================================================================
+     Mobile Cards
+     ======================================================================== */
+
+      function createActivityCard(type, security) {
+        const article = document.createElement("article");
+
+        article.className = "data-card data-card--compact";
+        article.dataset.marketSymbol = security.symbol;
+
+        const detailsId = `market-${sanitizeId(type)}-${sanitizeId(security.symbol)}-details`;
+
+        article.innerHTML = `
+      <div class="data-card__main">
+        <div class="data-card__identity">
+          <button
+            class="data-card__favorite has-icon icon-star-outline"
+            type="button"
+            aria-pressed="false"
+            data-market-watchlist="${escapeAttribute(security.symbol)}"
+          ></button>
+
+          <div class="data-card__identity-content">
+            <span class="data-card__title"></span>
+
+            <span class="data-card__identity-code">
+              <span
+                class="data-card__symbol"
+                dir="ltr"
+              ></span>
+            </span>
+          </div>
+        </div>
+
+        <div class="data-card__quote">
+          <div class="data-card__quote-item">
+            <span
+              class="data-card__quote-label"
+              data-market-card-primary-label
+            ></span>
+
+            <data
+              class="data-card__price market-live-update"
+              data-market-card-primary
+            ></data>
+          </div>
+
+          <div class="data-card__quote-item">
+            <span class="data-card__quote-label">
+              Change %
+            </span>
+
+            <data
+              class="data-card__change"
+              data-market-card-change-percent
+            ></data>
+          </div>
+        </div>
+      </div>
+
+      <button
+        class="data-card__toggle"
+        type="button"
+        aria-expanded="false"
+        aria-controls="${escapeAttribute(detailsId)}"
+        data-market-card-toggle
+      >
+        <span
+          class="has-icon icon-chevron-down"
+          aria-hidden="true"
+        ></span>
+
+        <span class="data-card__toggle-label">
+          Show details
+        </span>
+      </button>
+
+      <div
+        id="${escapeAttribute(detailsId)}"
+        class="data-card__details"
+        hidden
+        data-market-card-details
+      >
+        <dl class="data-card__fields">
+          <div class="data-card__field">
+            <dt class="data-card__label">Price</dt>
+
+            <dd
+              class="data-card__value data-card__value--numeric"
+            >
+              <data data-market-card-detail-price></data>
+            </dd>
+          </div>
+
+          <div class="data-card__field">
+            <dt
+              class="data-card__label"
+              data-market-card-secondary-label
+            ></dt>
+
+            <dd
+              class="data-card__value data-card__value--numeric"
+              data-market-card-secondary-state
+            >
+              <data data-market-card-secondary></data>
+            </dd>
+          </div>
+
+          <div class="data-card__field data-card__field--full">
+            <dt class="data-card__label">
+              5 Day Performance
+            </dt>
+
+            <dd class="data-card__value">
+              ${createPerformanceMarkup(security.history)}
+            </dd>
+          </div>
+        </dl>
+      </div>
+    `;
+
+        return article;
+      }
+
+      function updateActivityCard(
+        card,
+        type,
+        security,
+        rank,
+        { initial = false } = {},
+      ) {
+        card.dataset.rank = String(rank);
+        card.dataset.marketSymbol = security.symbol;
+
+        const title = card.querySelector(".data-card__title");
+        const symbol = card.querySelector(".data-card__symbol");
+
+        const watchlistButton = card.querySelector("[data-market-watchlist]");
+
+        const primaryLabel = card.querySelector(
+          "[data-market-card-primary-label]",
+        );
+
+        const primary = card.querySelector("[data-market-card-primary]");
+
+        const changePercent = card.querySelector(
+          "[data-market-card-change-percent]",
+        );
+
+        const detailPrice = card.querySelector(
+          "[data-market-card-detail-price]",
+        );
+
+        const secondaryLabel = card.querySelector(
+          "[data-market-card-secondary-label]",
+        );
+
+        const secondaryState = card.querySelector(
+          "[data-market-card-secondary-state]",
+        );
+
+        const secondary = card.querySelector("[data-market-card-secondary]");
+
+        const performance = card.querySelector(
+          ".market-activity-table__performance",
+        );
+
+        if (title) title.textContent = security.name;
+        if (symbol) symbol.textContent = security.symbol;
+
+        if (watchlistButton) {
+          const watched = isWatched(security.symbol);
+
+          watchlistButton.dataset.marketWatchlist = security.symbol;
+          watchlistButton.setAttribute("aria-pressed", String(watched));
+          watchlistButton.setAttribute(
+            "aria-label",
+            getWatchlistLabel(security, watched),
+          );
+        }
+
+        let primaryRaw;
+        let primaryFormatted;
+        let primaryName;
+
+        if (type === "volume") {
+          primaryName = "Volume";
+          primaryRaw = security.volume;
+          primaryFormatted = compactFormatter.format(security.volume);
+        } else if (type === "value") {
+          primaryName = "Value";
+          primaryRaw = security.tradedValue;
+          primaryFormatted = compactFormatter.format(security.tradedValue);
+        } else {
+          primaryName = "Price";
+          primaryRaw = security.price;
+          primaryFormatted = priceFormatter.format(security.price);
+        }
+
+        if (primaryLabel) {
+          primaryLabel.textContent = primaryName;
+        }
+
+        setDataValue(primary, primaryRaw, primaryFormatted, {
+          animate: !initial,
+        });
+
+        if (changePercent) {
+          changePercent.value = String(security.changePercent);
+          changePercent.textContent = `${signedPercentageFormatter.format(security.changePercent)}%`;
+
+          applyPriceState(changePercent, security.changePercent);
+        }
+
+        if (detailPrice) {
+          detailPrice.value = String(security.price);
+          detailPrice.textContent = priceFormatter.format(security.price);
+        }
+
+        if (secondaryLabel) {
+          secondaryLabel.textContent = getSecondaryLabel(type);
+        }
+
+        const secondaryRaw = getActivitySecondaryRaw(type, security);
+
+        if (secondary) {
+          secondary.value = String(secondaryRaw);
+          secondary.textContent = formatActivitySecondary(type, security);
+        }
+
+        if (type === "gainers" || type === "losers") {
+          applyPriceState(secondaryState, security.change);
+        } else {
+          secondaryState?.classList.remove(
+            "price-up",
+            "price-down",
+            "price-neutral",
+          );
+        }
+
+        updatePerformanceElement(performance, security.history);
+      }
+
+      function renderActivityCards(type, securities, { initial = false } = {}) {
+        const container = document.querySelector(
+          `[data-market-activity-cards="${type}"]`,
+        );
+
+        if (!container) return;
+
+        const existingCards = new Map(
+          Array.from(container.querySelectorAll("[data-market-symbol]")).map(
+            (card) => [card.dataset.marketSymbol, card],
+          ),
+        );
+
+        if (initial) {
+          container
+            .querySelectorAll(".data-card:not([data-market-symbol])")
+            .forEach((card) => card.remove());
+        }
+
+        const visibleSymbols = new Set();
+
+        securities.forEach((security, index) => {
+          visibleSymbols.add(security.symbol);
+
+          let card = existingCards.get(security.symbol);
+          const isNewCard = !card;
+
+          if (!card) {
+            card = createActivityCard(type, security);
+          }
+
+          updateActivityCard(card, type, security, index + 1, {
+            initial: initial || isNewCard,
+          });
+
+          container.appendChild(card);
+        });
+
+        existingCards.forEach((card, symbol) => {
+          if (!visibleSymbols.has(symbol)) {
+            card.remove();
+          }
+        });
+      }
+
+      /* ========================================================================
+     Today’s Activity
+     ======================================================================== */
+
+      function renderActivity(activity, { initial = false } = {}) {
+        Object.entries(activity).forEach(([type, securities]) => {
+          renderActivityTable(type, securities, { initial });
+          renderActivityCards(type, securities, { initial });
+
+          const view = document.querySelector(
+            `[data-market-activity-view="${type}"]`,
+          );
+
+          if (initial && view) {
+            view.setAttribute("aria-busy", "false");
+          }
+        });
+      }
+
+      /* ========================================================================
+     Full Snapshot
+     ======================================================================== */
+
+      function renderSnapshot(snapshot, { initial = false } = {}) {
+        renderMarketIndex(snapshot.index, { initial });
+        renderMetrics(snapshot.metrics, { initial });
+        renderActivity(snapshot.activity, { initial });
+      }
+
+      /* ========================================================================
+     Mobile Card Expansion
+     ======================================================================== */
+
+      function toggleCardDetails(button) {
+        const card = button.closest(".data-card");
+
+        if (!card) return;
+
+        const details = card.querySelector("[data-market-card-details]");
+
+        if (!details) return;
+
+        const expanded = button.getAttribute("aria-expanded") === "true";
+
+        const nextExpanded = !expanded;
+
+        button.setAttribute("aria-expanded", String(nextExpanded));
+
+        details.hidden = !nextExpanded;
+
+        card.classList.toggle("is-expanded", nextExpanded);
+
+        const label = button.querySelector(".data-card__toggle-label");
+
+        if (label) {
+          label.textContent = nextExpanded ? "Hide details" : "Show details";
+        }
+      }
+
+      /* ========================================================================
+     Interaction Delegation
+     ======================================================================== */
+
+      document.addEventListener("click", (event) => {
+        const watchlistButton = event.target.closest("[data-market-watchlist]");
+
+        if (watchlistButton) {
+          toggleWatchlist(watchlistButton.dataset.marketWatchlist);
+          return;
+        }
+
+        const cardToggle = event.target.closest("[data-market-card-toggle]");
+
+        if (cardToggle) {
+          toggleCardDetails(cardToggle);
+        }
+      });
+
+      /* ========================================================================
+     Refresh
+     ======================================================================== */
+
+      async function refreshMarket() {
+        if (state.refreshInFlight || document.hidden) {
+          return;
+        }
+
+        state.refreshInFlight = true;
+
+        try {
+          const snapshot = getMockSnapshot();
+
+          renderSnapshot(snapshot, {
+            initial: false,
+          });
+        } catch (error) {
+          console.error("Market refresh failed:", error);
+        } finally {
+          state.refreshInFlight = false;
+        }
+      }
+
+      /* ========================================================================
+     Initial Load
+     ======================================================================== */
+
+      function initializeMarket() {
+        window.setTimeout(() => {
+          try {
+            const snapshot = getMockSnapshot({
+              initial: true,
+            });
+
+            renderSnapshot(snapshot, {
+              initial: true,
+            });
+
+            state.initialized = true;
+
+            startRefreshTimer();
+          } catch (error) {
+            console.error("Initial market load failed:", error);
+          }
+        }, INITIAL_LOAD_DELAY);
+      }
+
+      /* ========================================================================
+     Refresh Timer
+     ======================================================================== */
+
+      function startRefreshTimer() {
+        stopRefreshTimer();
+
+        state.refreshTimer = window.setInterval(
+          refreshMarket,
+          REFRESH_INTERVAL,
+        );
+      }
+
+      function stopRefreshTimer() {
+        if (!state.refreshTimer) return;
+
+        window.clearInterval(state.refreshTimer);
+        state.refreshTimer = null;
+      }
+
+      /* ========================================================================
+     Page Visibility
+     ======================================================================== */
+
+      document.addEventListener("visibilitychange", () => {
+        if (!state.initialized) return;
+
+        if (document.hidden) {
+          stopRefreshTimer();
+          return;
+        }
+
+        refreshMarket();
+        startRefreshTimer();
+      });
+
+      /* ========================================================================
+     Start
+     ======================================================================== */
+
+      initializeMarket();
+    })();
+  </script>
 </html>

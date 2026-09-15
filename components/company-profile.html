@@ -5503,11 +5503,61 @@
                         aria-pressed="false"
                       ></button>
 
-                      <button
-                        class="market-identity__utility has-icon icon-share"
-                        type="button"
-                        aria-label="Share Al Rajhi Bank profile"
-                      ></button>
+                      <div
+                        class="market-identity__utilities"
+                        aria-label="Company profile actions"
+                      >
+                        <button
+                          class="market-identity__utility has-icon icon-star-outline"
+                          type="button"
+                          aria-label="Add Al Rajhi Bank to watchlist"
+                          aria-pressed="false"
+                        ></button>
+
+                        <div
+                          class="market-identity-share"
+                          data-share
+                          data-share-state="closed"
+                        >
+                          <button
+                            class="market-identity__utility market-identity-share__toggle has-icon icon-share"
+                            type="button"
+                            data-share-toggle
+                            aria-expanded="false"
+                            aria-controls="company-profile-share-menu"
+                            aria-label="Share Al Rajhi Bank profile"
+                          ></button>
+
+                          <div
+                            id="company-profile-share-menu"
+                            class="market-identity-share__menu"
+                            data-share-menu
+                            aria-hidden="true"
+                            aria-label="Share options"
+                          >
+                            <a
+                              class="market-identity-share__action has-icon icon-brand-x"
+                              href="#"
+                              data-share-platform="x"
+                              aria-label="Share Al Rajhi Bank profile on X"
+                            ></a>
+
+                            <a
+                              class="market-identity-share__action has-icon icon-brand-facebook"
+                              href="#"
+                              data-share-platform="facebook"
+                              aria-label="Share Al Rajhi Bank profile on Facebook"
+                            ></a>
+
+                            <button
+                              class="market-identity-share__action has-icon icon-copy"
+                              type="button"
+                              data-share-platform="copy"
+                              aria-label="Copy Al Rajhi Bank profile link"
+                            ></button>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </div>
 
@@ -10882,7 +10932,6 @@
                                   </div>
                                 </div>
                               </div>
-
                             </fieldset>
 
                             <button
@@ -15720,10 +15769,7 @@
 
           <div class="modal-body">
             <div class="modal-visual__surface leadership-profile">
-              <dl class="leadership-profile__details">
-               
-                
-              </dl>
+              <dl class="leadership-profile__details"></dl>
             </div>
           </div>
         </div>

@@ -7,9 +7,19 @@
 /*
  * Composition for report and publication listing pages.
  *
- * The design system owns tabs, buttons, grids, and resource-card internals.
- * This component owns report-library rhythm, header hierarchy, grid
- * progression, and feedback-state placement.
+ * The design system owns tabs, buttons, grids, and generic Resource Card
+ * behavior.
+ *
+ * This component owns:
+ *
+ * - report-library rhythm
+ * - header hierarchy
+ * - grid progression
+ * - report-specific Resource Card presentation
+ * - feedback-state placement
+ *
+ * All Resource Card refinements remain scoped beneath `.report-library`
+ * so Resource Cards used elsewhere remain unchanged.
  */
 
 .report-library {
@@ -175,6 +185,248 @@
 }
 
 /* ==========================================================================
+   Report Resource Card
+   ========================================================================== */
+
+/*
+ * Report Cards use a compact editorial composition.
+ *
+ * The Card keeps enough vertical rhythm for a professional report-library
+ * presentation without the excessive whitespace of the generic Resource Card
+ * minimum height.
+ */
+
+.report-library .resource-card {
+  --resource-card-min-height: 17rem;
+  --resource-card-gap: #{ds.space(3)};
+
+  /*
+   * The shared financial pattern remains a supporting brand detail.
+   */
+
+  --resource-card-pattern-opacity: 0.35;
+  --resource-card-pattern-hover-opacity: 0.2;
+}
+
+/* ==========================================================================
+   Card Header
+   ========================================================================== */
+
+.report-library .resource-card__header {
+  gap: ds.space(4);
+
+  padding-block-end: 0;
+}
+
+.report-library .resource-card__heading {
+  gap: ds.space(2);
+}
+
+/* ==========================================================================
+   Eyebrow
+   ========================================================================== */
+
+.report-library .resource-card__eyebrow {
+  padding-block: 0.25rem;
+  padding-inline: 0.625rem;
+
+  border-color: var(--color-border);
+
+  background: var(--color-surface-alt);
+  color: var(--resource-card-muted);
+
+  font-weight: ds.font-weight("bold");
+}
+
+/* ==========================================================================
+   Document Icon
+   ========================================================================== */
+
+.report-library .resource-card__icon {
+  inline-size: 2.75rem;
+  block-size: 2.75rem;
+
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.035);
+}
+
+/* ==========================================================================
+   Title
+   ========================================================================== */
+
+.report-library .resource-card__title {
+  line-height: 1.25;
+}
+
+/* ==========================================================================
+   Card Body
+   ========================================================================== */
+
+/*
+ * The body occupies the remaining content region between the Card header and
+ * footer.
+ *
+ * Description content stays near the title while metadata is anchored toward
+ * the bottom of this region. This gives Cards with and without descriptions
+ * the same deliberate visual structure.
+ */
+
+.report-library .resource-card__body {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+
+  gap: ds.space(3);
+
+  min-block-size: 0;
+
+  padding-block-start: ds.space(4);
+  padding-block-end: ds.space(3);
+}
+
+/* ==========================================================================
+   Description
+   ========================================================================== */
+
+.report-library .resource-card__description {
+  max-inline-size: 52ch;
+
+  line-height: var(--line-height-relaxed);
+}
+
+/* ==========================================================================
+   Metadata
+   ========================================================================== */
+
+/*
+ * Metadata is intentionally positioned at the bottom of the content region.
+ *
+ * This creates a stable visual baseline across report Cards while the reduced
+ * Card height prevents the excessive empty space that previously occurred.
+ */
+
+.report-library .resource-card__meta {
+  margin-block-start: auto;
+
+  gap: ds.space(2) ds.space(4);
+
+  padding-block-start: ds.space(3);
+}
+
+.report-library .resource-card__meta-item {
+  gap: ds.space(1);
+}
+
+.report-library .resource-card__meta-item::before {
+  color: var(--color-text-muted);
+}
+
+.report-library .resource-card__meta-label {
+  color: var(--resource-card-muted);
+}
+
+.report-library .resource-card__meta-value {
+  color: var(--resource-card-heading);
+
+  font-weight: ds.font-weight("medium");
+}
+
+/* ==========================================================================
+   Footer
+   ========================================================================== */
+
+/*
+ * The footer is a quiet document-action region rather than a separate heavy
+ * panel.
+ */
+
+.report-library .resource-card__footer {
+  margin-block-start: 0;
+
+  gap: ds.space(2);
+
+  padding-block: ds.space(3);
+
+  border-block-start-color: var(--resource-card-border);
+}
+
+/*
+ * A restrained surface wash separates footer actions from content while
+ * allowing the financial pattern to remain visible.
+ */
+
+@supports (background: color-mix(in srgb, white, transparent)) {
+  .report-library .resource-card__footer {
+    background: color-mix(in srgb, var(--color-surface-alt) 62%, transparent);
+  }
+}
+
+/* ==========================================================================
+   File Information
+   ========================================================================== */
+
+.report-library .resource-card__file {
+  gap: ds.space(1);
+
+  color: var(--resource-card-muted);
+
+  line-height: 1.35;
+}
+
+.report-library .resource-card__file-type {
+  color: var(--resource-card-heading);
+
+  font-weight: ds.font-weight("bold");
+  letter-spacing: 0.015em;
+}
+
+/* ==========================================================================
+   Actions
+   ========================================================================== */
+
+.report-library .resource-card__actions {
+  gap: ds.space(2) ds.space(4);
+}
+
+.report-library .resource-card__primary-action,
+.report-library .resource-card__download {
+  min-block-size: 2.25rem;
+
+  font-weight: ds.font-weight("bold");
+}
+
+.report-library .resource-card__primary-action {
+  color: var(--color-primary);
+}
+
+.report-library .resource-card__download {
+  color: var(--color-heading);
+}
+
+/* ==========================================================================
+   Card Interaction
+   ========================================================================== */
+
+/*
+ * Keep report-card movement restrained. Financial/reporting interfaces should
+ * feel stable rather than overly animated.
+ */
+
+@media (hover: hover) and (pointer: fine) {
+  .report-library .resource-card:hover {
+    transform: translateY(-0.125rem);
+  }
+
+  .report-library .resource-card:hover .resource-card__icon {
+    transform: translateY(-0.0625rem);
+  }
+
+  .report-library .resource-card__primary-action:hover,
+  .report-library .resource-card__download:hover {
+    text-decoration-thickness: 0.1em;
+  }
+}
+
+/* ==========================================================================
    Empty State
    ========================================================================== */
 
@@ -250,6 +502,10 @@
   .report-library__description {
     font-size: var(--text-sm);
   }
+
+  .report-library .resource-card {
+    --resource-card-min-height: 17rem;
+  }
 }
 
 /* ==========================================================================
@@ -272,6 +528,19 @@
   .report-library__description {
     font-size: var(--text-sm);
     line-height: var(--line-height-normal);
+  }
+
+  .report-library .resource-card {
+    --resource-card-min-height: 16.5rem;
+  }
+
+  .report-library .resource-card__body {
+    padding-block-start: ds.space(3);
+    padding-block-end: ds.space(3);
+  }
+
+  .report-library .resource-card__meta {
+    padding-block-start: ds.space(2);
   }
 }
 
@@ -309,6 +578,51 @@
     font-size: var(--text-sm);
   }
 
+  /* --------------------------------------------------------------------------
+     Resource Card
+     -------------------------------------------------------------------------- */
+
+  /*
+   * Mobile uses normal document flow. With only one Card per row there is no
+   * need to manufacture vertical space solely for row alignment.
+   */
+
+  .report-library .resource-card {
+    --resource-card-min-height: 0;
+    --resource-card-gap: #{ds.space(3)};
+    --resource-card-pattern-size: 10rem;
+  }
+
+  .report-library .resource-card__header {
+    gap: ds.space(3);
+  }
+
+  .report-library .resource-card__body {
+    flex: 0 0 auto;
+
+    padding-block-start: ds.space(3);
+    padding-block-end: ds.space(3);
+  }
+
+  .report-library .resource-card__meta {
+    margin-block-start: 0;
+    padding-block-start: 0;
+  }
+
+  .report-library .resource-card__footer {
+    gap: ds.space(2);
+
+    padding-block: ds.space(3);
+  }
+
+  .report-library .resource-card__actions {
+    gap: ds.space(2) ds.space(3);
+  }
+
+  /* --------------------------------------------------------------------------
+     Empty State
+     -------------------------------------------------------------------------- */
+
   .report-library__empty {
     min-block-size: 12rem;
     padding: ds.space(6);
@@ -331,6 +645,11 @@ html[data-contrast="high"] .report-library__empty-icon {
   color: currentColor;
 }
 
+html[data-contrast="high"] .report-library .resource-card__primary-action,
+html[data-contrast="high"] .report-library .resource-card__download {
+  color: currentColor;
+}
+
 /* ==========================================================================
    Forced Colors
    ========================================================================== */
@@ -345,6 +664,11 @@ html[data-contrast="high"] .report-library__empty-icon {
   }
 
   .report-library__empty-icon {
+    color: LinkText;
+  }
+
+  .report-library .resource-card__primary-action,
+  .report-library .resource-card__download {
     color: LinkText;
   }
 }

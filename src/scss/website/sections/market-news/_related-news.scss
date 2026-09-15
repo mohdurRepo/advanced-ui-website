@@ -1,0 +1,185 @@
+@use "../../../design-system/abstracts" as ds;
+
+/* ==========================================================================
+   Related News
+   ========================================================================== */
+
+/*
+ * Related editorial content displayed inside the shared
+ * `.company-market-overview__surface`.
+ *
+ * Shared surface owns:
+ *
+ * - outer background
+ * - outer border
+ * - outer padding
+ *
+ * Related News owns:
+ *
+ * - internal section spacing
+ * - section heading
+ * - responsive news grid
+ * - equal-height card placement
+ *
+ * Individual Card presentation is owned by:
+ *
+ *   `_related-news-card.scss`
+ */
+
+/* ==========================================================================
+   Root
+   ========================================================================== */
+
+.related-news {
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Surface
+   ========================================================================== */
+
+/*
+ * Do not add another background, border, radius, or padding here.
+ *
+ * `.company-market-overview__surface` already owns the containing surface.
+ */
+
+.related-news__surface {
+  display: grid;
+
+  gap: ds.space(5);
+
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Heading
+   ========================================================================== */
+
+.related-news__heading {
+  min-inline-size: 0;
+
+  margin: 0;
+}
+
+.related-news__heading .section-heading__content {
+  min-inline-size: 0;
+}
+
+.related-news__heading .section-heading__title {
+  margin: 0;
+
+  color: var(--color-heading);
+
+  font-size: var(--text-2xl);
+  font-weight: ds.font-weight("heavy");
+  line-height: 1.2;
+
+  text-wrap: pretty;
+}
+
+/* ==========================================================================
+   Grid
+   ========================================================================== */
+
+.related-news__grid {
+  align-items: stretch;
+
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Equal Height Cards
+   ========================================================================== */
+
+.related-news__grid > .related-news-card {
+  inline-size: 100%;
+  min-inline-size: 0;
+
+  block-size: 100%;
+}
+
+/* ==========================================================================
+   Tablet
+   ========================================================================== */
+
+@include ds.respond-between("md", "lg") {
+  .related-news__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* ==========================================================================
+   Below Tablet
+   ========================================================================== */
+
+@include ds.respond-down("md") {
+  .related-news__surface {
+    gap: ds.space(4);
+  }
+
+  .related-news__grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .related-news__heading .section-heading__title {
+    font-size: var(--text-xl);
+  }
+}
+
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+
+@include ds.respond-down("sm") {
+  .related-news__surface {
+    gap: ds.space(4);
+  }
+
+  .related-news__heading .section-heading__title {
+    font-size: var(--text-xl);
+    line-height: 1.25;
+  }
+}
+
+/* ==========================================================================
+   RTL
+   ========================================================================== */
+
+html[dir="rtl"] .related-news {
+  text-align: start;
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] .related-news__heading .section-heading__title {
+  color: currentColor;
+}
+
+/* ==========================================================================
+   Forced Colors
+   ========================================================================== */
+
+@media (forced-colors: active) {
+  .related-news__heading .section-heading__title {
+    color: CanvasText;
+  }
+}
+
+/* ==========================================================================
+   Print
+   ========================================================================== */
+
+@media print {
+  .related-news__surface {
+    gap: 1rem;
+  }
+
+  .related-news__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+
+    gap: 1rem;
+  }
+}

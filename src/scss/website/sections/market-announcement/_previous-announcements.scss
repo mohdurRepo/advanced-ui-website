@@ -1,0 +1,250 @@
+@use "../../../design-system/abstracts" as ds;
+
+/* ==========================================================================
+   Previous Announcements
+   ========================================================================== */
+
+/*
+ * Previous company announcements displayed inside the shared
+ * `.company-market-overview__surface`.
+ *
+ * Shared surface owns:
+ *
+ * - outer background
+ * - outer border
+ * - outer padding
+ *
+ * This component owns:
+ *
+ * - internal section spacing
+ * - heading
+ * - announcements grid
+ * - equal-height cards
+ * - section footer
+ */
+
+/* ==========================================================================
+   Root
+   ========================================================================== */
+
+.previous-announcements {
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Surface
+   ========================================================================== */
+
+/*
+ * Do not add another background / border / padding here.
+ *
+ * `.company-market-overview__surface` already owns the containing surface.
+ */
+
+.previous-announcements__surface {
+  display: grid;
+
+  gap: ds.space(5);
+
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Heading
+   ========================================================================== */
+
+.previous-announcements__heading {
+  min-inline-size: 0;
+
+  margin: 0;
+}
+
+.previous-announcements__heading .section-heading__content {
+  min-inline-size: 0;
+}
+
+.previous-announcements__heading .section-heading__title {
+  margin: 0;
+
+  color: var(--color-heading);
+
+  font-size: var(--text-2xl);
+  font-weight: ds.font-weight("heavy");
+  line-height: 1.2;
+
+  text-wrap: pretty;
+}
+
+/* ==========================================================================
+   Grid
+   ========================================================================== */
+
+.previous-announcements__grid {
+  align-items: stretch;
+
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Equal Height Cards
+   ========================================================================== */
+
+.previous-announcements__grid > .announcement-card {
+  inline-size: 100%;
+  min-inline-size: 0;
+
+  block-size: 100%;
+}
+
+/* ==========================================================================
+   Section Footer
+   ========================================================================== */
+
+.previous-announcements__footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+
+  min-inline-size: 0;
+
+  padding-block-start: ds.space(1);
+}
+
+/* ==========================================================================
+   View All Action
+   ========================================================================== */
+
+.previous-announcements .previous-announcements__all {
+  --icon-size: 0.875rem;
+
+  min-block-size: auto;
+
+  padding: 0;
+
+  color: var(--color-primary);
+
+  font-size: var(--text-sm);
+  font-weight: ds.font-weight("semibold");
+  line-height: var(--line-height-normal);
+
+  text-decoration: none;
+}
+
+.previous-announcements .previous-announcements__all:visited {
+  color: var(--color-primary);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .previous-announcements .previous-announcements__all:hover {
+    color: var(--color-primary);
+
+    text-decoration-line: underline;
+    text-decoration-thickness: 0.08em;
+    text-underline-offset: 0.18em;
+  }
+}
+
+/* ==========================================================================
+   Tablet
+   ========================================================================== */
+
+@include ds.respond-between("md", "lg") {
+  .previous-announcements__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* ==========================================================================
+   Below Tablet
+   ========================================================================== */
+
+@include ds.respond-down("md") {
+  .previous-announcements__surface {
+    gap: ds.space(4);
+  }
+
+  .previous-announcements__grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .previous-announcements__heading .section-heading__title {
+    font-size: var(--text-xl);
+  }
+}
+
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+
+@include ds.respond-down("sm") {
+  .previous-announcements__surface {
+    gap: ds.space(4);
+  }
+
+  .previous-announcements__heading .section-heading__title {
+    font-size: var(--text-xl);
+    line-height: 1.25;
+  }
+
+  .previous-announcements__footer {
+    justify-content: stretch;
+  }
+
+  .previous-announcements .previous-announcements__all {
+    inline-size: 100%;
+
+    justify-content: center;
+  }
+}
+
+/* ==========================================================================
+   RTL
+   ========================================================================== */
+
+html[dir="rtl"] .previous-announcements {
+  text-align: start;
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"]
+  .previous-announcements
+  .previous-announcements__all {
+  color: currentColor;
+
+  text-decoration-line: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 0.2em;
+}
+
+/* ==========================================================================
+   Forced Colors
+   ========================================================================== */
+
+@media (forced-colors: active) {
+  .previous-announcements .previous-announcements__all {
+    color: LinkText;
+  }
+}
+
+/* ==========================================================================
+   Print
+   ========================================================================== */
+
+@media print {
+  .previous-announcements__surface {
+    gap: 1rem;
+  }
+
+  .previous-announcements__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+
+    gap: 1rem;
+  }
+
+  .previous-announcements__footer {
+    display: none;
+  }
+}

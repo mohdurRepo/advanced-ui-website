@@ -1,0 +1,526 @@
+@use "../../../design-system/abstracts" as ds;
+
+/* ==========================================================================
+   Related News Card
+   ========================================================================== */
+
+/*
+ * Compact editorial Card used by Related News.
+ *
+ * Shared `.card` owns:
+ *
+ * - outer surface
+ * - border
+ * - radius
+ * - base shadow
+ * - decorative financial pattern
+ *
+ * This component owns:
+ *
+ * - publication metadata
+ * - headline
+ * - action footer
+ * - card interaction
+ */
+
+/* ==========================================================================
+   Root
+   ========================================================================== */
+
+.related-news-card {
+  --related-news-card-bg: var(--color-surface);
+  --related-news-card-heading: var(--color-heading);
+  --related-news-card-text: var(--color-text);
+  --related-news-card-muted: var(--color-text-muted);
+  --related-news-card-border: var(--color-border);
+  --related-news-card-accent: var(--color-primary);
+
+  /* Shared Card mapping */
+
+  --card-bg: var(--related-news-card-bg);
+  --card-color: var(--related-news-card-text);
+  --card-heading-color: var(--related-news-card-heading);
+  --card-muted-color: var(--related-news-card-muted);
+
+  --card-border-color: var(--related-news-card-border);
+  --card-hover-border-color: var(--related-news-card-accent);
+
+  --card-radius: var(--radius-lg);
+
+  --card-shadow: var(--shadow-sm);
+  --card-hover-shadow: var(--shadow-md);
+
+  /* --------------------------------------------------------------------------
+     Financial Pattern
+     -------------------------------------------------------------------------- */
+
+  /*
+   * The pattern is intentionally more visible than before.
+   *
+   * It remains decorative and secondary, but should clearly appear in the
+   * lower corner of each Card.
+   */
+
+  --card-pattern-size: 12rem;
+  --card-pattern-color: var(--color-primary);
+  --card-pattern-opacity: 0.35;
+  --card-pattern-hover-opacity: 0.25;
+
+  position: relative;
+  isolation: isolate;
+
+  display: flex;
+  flex-direction: column;
+
+  inline-size: 100%;
+  min-inline-size: 0;
+  block-size: 100%;
+
+  overflow: hidden;
+
+  @include ds.transition((border-color, box-shadow, transform), "normal");
+}
+
+/* ==========================================================================
+   Layering
+   ========================================================================== */
+
+/*
+ * Content remains above `.card::before`.
+ */
+
+.related-news-card__body,
+.related-news-card__footer {
+  position: relative;
+  z-index: 1;
+}
+
+/* ==========================================================================
+   Body
+   ========================================================================== */
+
+.related-news-card__body {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+
+  gap: ds.space(3);
+
+  min-inline-size: 0;
+
+  padding: ds.space(5);
+}
+
+/* ==========================================================================
+   Metadata
+   ========================================================================== */
+
+.related-news-card__meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+
+  gap: ds.space(1) ds.space(2);
+
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Source
+   ========================================================================== */
+
+.related-news-card__source {
+  min-inline-size: 0;
+
+  color: var(--related-news-card-accent);
+
+  font-size: var(--text-xs);
+  font-weight: ds.font-weight("semibold");
+  line-height: var(--line-height-normal);
+
+  overflow-wrap: anywhere;
+}
+
+/* Metadata separator */
+
+.related-news-card__source::after {
+  content: "·";
+
+  margin-inline-start: ds.space(2);
+
+  color: var(--related-news-card-muted);
+
+  font-weight: ds.font-weight("regular");
+}
+
+/* ==========================================================================
+   Date
+   ========================================================================== */
+
+.related-news-card__date {
+  direction: ltr;
+  unicode-bidi: isolate;
+
+  color: var(--related-news-card-muted);
+
+  font-size: var(--text-xs);
+  font-weight: ds.font-weight("regular");
+  font-variant-numeric: tabular-nums;
+  line-height: var(--line-height-normal);
+
+  white-space: nowrap;
+}
+
+/* ==========================================================================
+   Title
+   ========================================================================== */
+
+.related-news-card__title {
+  margin: 0;
+
+  color: var(--related-news-card-heading);
+
+  font-size: var(--text-base);
+  font-weight: ds.font-weight("bold");
+  line-height: 1.45;
+
+  overflow-wrap: anywhere;
+  text-wrap: pretty;
+}
+
+/* ==========================================================================
+   Title Link
+   ========================================================================== */
+
+/*
+ * Extra specificity prevents generic Card / anchor rules from introducing
+ * unwanted underline or oversized link typography.
+ */
+
+.related-news-card .related-news-card__link {
+  color: inherit;
+
+  font: inherit;
+
+  text-decoration: none;
+  text-decoration-line: none;
+}
+
+.related-news-card .related-news-card__link:visited {
+  color: inherit;
+
+  text-decoration: none;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .related-news-card .related-news-card__link:hover {
+    color: var(--related-news-card-accent);
+
+    text-decoration: none;
+  }
+}
+
+.related-news-card .related-news-card__link:focus {
+  outline: none;
+}
+
+.related-news-card .related-news-card__link:focus-visible {
+  border-radius: var(--radius-sm);
+
+  @include ds.focus-ring;
+}
+
+/* ==========================================================================
+   Footer
+   ========================================================================== */
+
+/*
+ * Keep the footer visually distinct without completely masking the
+ * bottom-corner financial pattern.
+ */
+
+.related-news-card__footer {
+  display: flex;
+  align-items: center;
+
+  min-inline-size: 0;
+
+  margin-block-start: auto;
+
+  padding-block: ds.space(3);
+  padding-inline: ds.space(5);
+
+  border-block-start: 1px solid var(--related-news-card-border);
+
+  background: transparent;
+}
+
+@supports (background: color-mix(in srgb, white, transparent)) {
+  .related-news-card__footer {
+    background: color-mix(in srgb, var(--color-surface-alt) 68%, transparent);
+  }
+}
+
+/* ==========================================================================
+   Action
+   ========================================================================== */
+
+.related-news-card .related-news-card__action {
+  --icon-size: 0.8125rem;
+
+  min-block-size: auto;
+
+  padding: 0;
+
+  color: var(--related-news-card-accent);
+
+  font-size: var(--text-sm);
+  font-weight: ds.font-weight("semibold");
+  line-height: var(--line-height-normal);
+
+  text-decoration: none;
+}
+
+.related-news-card .related-news-card__action:visited {
+  color: var(--related-news-card-accent);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .related-news-card .related-news-card__action:hover {
+    color: var(--related-news-card-accent);
+
+    text-decoration-line: underline;
+    text-decoration-thickness: 0.08em;
+    text-underline-offset: 0.18em;
+  }
+}
+
+.related-news-card .related-news-card__action:focus {
+  outline: none;
+}
+
+.related-news-card .related-news-card__action:focus-visible {
+  @include ds.focus-ring;
+}
+
+/* ==========================================================================
+   Card Interaction
+   ========================================================================== */
+
+@media (hover: hover) and (pointer: fine) {
+  .related-news-card:hover {
+    border-color: var(--related-news-card-accent);
+
+    box-shadow: var(--card-hover-shadow);
+
+    transform: translateY(-0.125rem);
+  }
+
+  .related-news-card:hover::before {
+    opacity: var(--card-pattern-hover-opacity);
+  }
+}
+
+/* ==========================================================================
+   Focus Within
+   ========================================================================== */
+
+.related-news-card:focus-within {
+  border-color: var(--related-news-card-accent);
+
+  box-shadow: var(--card-hover-shadow);
+}
+
+/* ==========================================================================
+   RTL
+   ========================================================================== */
+
+html[dir="rtl"] .related-news-card {
+  text-align: start;
+}
+
+html[dir="rtl"] .related-news-card__date {
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+
+/*
+ * Do not mirror the pattern here.
+ *
+ * Shared Card already owns:
+ *
+ *   html[dir="rtl"] .card::before
+ *
+ * which mirrors and repositions the decorative pattern automatically.
+ */
+
+/* ==========================================================================
+   Dark Theme
+   ========================================================================== */
+
+html[data-theme="dark"] .related-news-card {
+  --card-pattern-opacity: 0.1;
+  --card-pattern-hover-opacity: 0.15;
+}
+
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+
+@include ds.respond-down("sm") {
+  .related-news-card {
+    --card-radius: var(--radius-md);
+
+    --card-pattern-size: 7rem;
+  }
+
+  .related-news-card__body {
+    gap: ds.space(3);
+
+    padding: ds.space(4);
+  }
+
+  .related-news-card__meta {
+    gap: ds.space(1) ds.space(2);
+  }
+
+  .related-news-card__title {
+    font-size: var(--text-base);
+    line-height: 1.45;
+  }
+
+  .related-news-card__footer {
+    padding-block: ds.space(3);
+    padding-inline: ds.space(4);
+  }
+
+  .related-news-card__action {
+    inline-size: 100%;
+
+    justify-content: center;
+  }
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] .related-news-card {
+  --card-pattern-opacity: 0;
+  --card-pattern-hover-opacity: 0;
+
+  border-color: currentColor;
+
+  box-shadow: none;
+}
+
+html[data-contrast="high"] .related-news-card__source,
+html[data-contrast="high"] .related-news-card__date,
+html[data-contrast="high"] .related-news-card__title {
+  color: currentColor;
+}
+
+html[data-contrast="high"] .related-news-card__footer {
+  border-color: currentColor;
+
+  background: transparent;
+}
+
+html[data-contrast="high"] .related-news-card__action {
+  color: currentColor;
+
+  text-decoration-line: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 0.2em;
+}
+
+/* ==========================================================================
+   Forced Colors
+   ========================================================================== */
+
+@media (forced-colors: active) {
+  .related-news-card {
+    --card-pattern-opacity: 0;
+    --card-pattern-hover-opacity: 0;
+
+    border-color: CanvasText;
+
+    background: Canvas;
+    color: CanvasText;
+
+    box-shadow: none;
+  }
+
+  .related-news-card__source,
+  .related-news-card__date,
+  .related-news-card__title {
+    color: CanvasText;
+  }
+
+  .related-news-card__footer {
+    border-color: CanvasText;
+
+    background: Canvas;
+  }
+
+  .related-news-card .related-news-card__link,
+  .related-news-card .related-news-card__action {
+    color: LinkText;
+  }
+}
+
+/* ==========================================================================
+   Reduced Motion
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .related-news-card {
+    transition: none;
+  }
+
+  .related-news-card:hover {
+    transform: none;
+  }
+}
+
+html[data-motion="reduce"] .related-news-card {
+  transition: none;
+}
+
+html[data-motion="reduce"] .related-news-card:hover {
+  transform: none;
+}
+
+/* ==========================================================================
+   Print
+   ========================================================================== */
+
+@media print {
+  .related-news-card {
+    --card-pattern-opacity: 0;
+    --card-pattern-hover-opacity: 0;
+
+    break-inside: avoid;
+
+    border-color: #000000;
+
+    background: #ffffff;
+    color: #000000;
+
+    box-shadow: none;
+  }
+
+  .related-news-card__source,
+  .related-news-card__date,
+  .related-news-card__title,
+  .related-news-card .related-news-card__link,
+  .related-news-card .related-news-card__action {
+    color: #000000;
+  }
+
+  .related-news-card__footer {
+    border-color: #000000;
+
+    background: transparent;
+  }
+}

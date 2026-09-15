@@ -413,15 +413,23 @@ table.fixedHeader-locked thead .dtfc-fixed-end {
   background-clip: padding-box;
 }
 
+/*
+ * :nth-child(even of ...) counts only real data rows, excluding both this
+ * design system's .table-group-row and DataTables' native RowGroup compat
+ * rows (.dtrg-group / .dtrg-start). Plain :nth-child(even) would include
+ * those rows in the count, shifting the stripe parity at every group
+ * boundary.
+ */
+
 .dt-container
   table.dataTable.table-striped
   tbody
-  > tr:nth-child(even)
+  > tr:nth-child(even of tr:not(.table-group-row, .dtrg-group, .dtrg-start))
   > .dtfc-fixed-start,
 .dt-container
   table.dataTable.table-striped
   tbody
-  > tr:nth-child(even)
+  > tr:nth-child(even of tr:not(.table-group-row, .dtrg-group, .dtrg-start))
   > .dtfc-fixed-end {
   background-color: var(--table-striped-bg, var(--color-surface-alt));
 }

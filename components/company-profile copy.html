@@ -5481,11 +5481,42 @@
                         aria-pressed="false"
                       ></button>
 
-                      <button
-                        class="market-identity__utility has-icon icon-share"
-                        type="button"
-                        aria-label="Share Al Rajhi Bank profile"
-                      ></button>
+                      <div
+                        class="market-identity-share"
+                        data-share
+                        data-share-state="closed"
+                      >
+                        <button
+                          class="market-identity__utility market-identity-share__toggle has-icon icon-share"
+                          type="button"
+                          data-share-toggle
+                          aria-expanded="false"
+                          aria-controls="company-profile-share-menu"
+                          aria-label="Share Al Rajhi Bank profile"
+                        ></button>
+
+                        <div
+                          id="company-profile-share-menu"
+                          class="market-identity-share__menu"
+                          data-share-menu
+                          aria-hidden="true"
+                          aria-label="Share options"
+                        >
+                          <a
+                            class="market-identity-share__action has-icon icon-brand-x"
+                            href="#"
+                            data-share-platform="x"
+                            aria-label="Share Al Rajhi Bank profile on X"
+                          ></a>
+
+                          <a
+                            class="market-identity-share__action has-icon icon-brand-facebook"
+                            href="#"
+                            data-share-platform="facebook"
+                            aria-label="Share Al Rajhi Bank profile on Facebook"
+                          ></a>
+                        </div>
+                      </div>
                     </div>
                   </div>
 

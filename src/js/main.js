@@ -56,6 +56,11 @@ import { initIndicesHeatmap } from "./components/market-summary";
 import { initWatchlists } from "./components/watchlist";
 
 /* ========================================================================== 
+   Share Components 
+   ========================================================================== */
+
+import { initShare } from "./components/share";
+/* ========================================================================== 
    Public Design-system API 
    ========================================================================== */
 
@@ -195,6 +200,11 @@ function initApp() {
    */
 
   initWatchlists();
+
+  /*
+   * Share behavior.
+   */
+  initShare();
 }
 
 /* ========================================================================== 

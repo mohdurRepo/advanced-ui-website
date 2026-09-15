@@ -17,7 +17,13 @@
  * - other securities and market entities.
  *
  * The component inherits its semantic colors from its containing surface.
+ *
+ * Share functionality uses the global `[data-share]` JavaScript controller.
  */
+
+/* ==========================================================================
+   Root
+   ========================================================================== */
 
 .market-identity {
   --market-identity-color: var(--color-text);
@@ -52,6 +58,7 @@
 .market-identity__brand {
   display: flex;
   align-items: center;
+
   gap: var(--space-4, #{ds.space(4)});
 
   min-inline-size: 0;
@@ -111,6 +118,7 @@
 .market-identity__heading {
   display: grid;
   align-content: center;
+
   gap: var(--space-2, #{ds.space(2)});
 
   flex: 1 1 auto;
@@ -148,6 +156,7 @@
   color: var(--market-identity-heading-color);
 
   font-size: clamp(var(--text-2xl), 1.75rem + 1.25vw, var(--text-4xl));
+
   font-weight: ds.font-weight("heavy");
   line-height: 1.05;
 
@@ -169,6 +178,7 @@
   color: var(--market-identity-muted-color);
 
   font-size: clamp(var(--text-sm), 0.875rem + 0.25vw, var(--text-lg));
+
   font-weight: ds.font-weight("medium");
   line-height: var(--line-height-normal);
 
@@ -223,6 +233,7 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
+
   gap: var(--space-3, #{ds.space(3)}) var(--space-4, #{ds.space(4)});
 
   min-inline-size: 0;
@@ -238,12 +249,15 @@
   display: inline-flex;
   flex-wrap: wrap;
   align-items: center;
+
   gap: var(--space-2, #{ds.space(2)});
 
   min-inline-size: 0;
 
   direction: ltr;
+
   font-variant-numeric: tabular-nums;
+
   unicode-bidi: isolate;
 }
 
@@ -258,6 +272,7 @@
   justify-content: center;
 
   min-block-size: 2.25rem;
+
   padding-inline: 0.875rem;
 
   border: 1px solid var(--market-identity-border);
@@ -289,7 +304,10 @@
   display: inline-flex;
   flex: 0 0 auto;
   align-items: center;
+
   gap: var(--space-2, #{ds.space(2)});
+
+  min-inline-size: 0;
 }
 
 /* ==========================================================================
@@ -317,6 +335,7 @@
 
   inline-size: 2.5rem;
   block-size: 2.5rem;
+
   padding: 0;
 
   border: 1px solid var(--market-identity-border);
@@ -339,13 +358,23 @@
   );
 }
 
-.market-identity__utility:hover:not(:disabled) {
-  border-color: var(--market-identity-border-hover);
+/* ==========================================================================
+   Utility Hover
+   ========================================================================== */
 
-  background: var(--market-identity-surface-hover);
+@media (hover: hover) and (pointer: fine) {
+  .market-identity__utility:hover:not(:disabled) {
+    border-color: var(--market-identity-border-hover);
 
-  transform: translateY(-0.0625rem);
+    background: var(--market-identity-surface-hover);
+
+    transform: translateY(-0.0625rem);
+  }
 }
+
+/* ==========================================================================
+   Utility Focus
+   ========================================================================== */
 
 .market-identity__utility:focus {
   outline: none;
@@ -355,9 +384,17 @@
   @include ds.focus-ring;
 }
 
+/* ==========================================================================
+   Utility Active
+   ========================================================================== */
+
 .market-identity__utility:active:not(:disabled) {
   transform: translateY(0) scale(0.97);
 }
+
+/* ==========================================================================
+   Utility Pressed
+   ========================================================================== */
 
 .market-identity__utility[aria-pressed="true"] {
   border-color: var(--color-primary);
@@ -367,6 +404,10 @@
 
   box-shadow: var(--shadow-sm);
 }
+
+/* ==========================================================================
+   Utility Disabled
+   ========================================================================== */
 
 .market-identity__utility:disabled,
 .market-identity__utility[aria-disabled="true"] {
@@ -382,6 +423,474 @@
 }
 
 /* ==========================================================================
+   Market Identity Share
+   ========================================================================== */
+
+/**
+ * Expandable share utility used by Market Identity / Company Profile.
+ *
+ * The global `[data-share]` controller owns:
+ *
+ * - open / close state;
+ * - aria-expanded;
+ * - aria-hidden;
+ * - keyboard handling;
+ * - outside-click handling;
+ * - X / Facebook URLs.
+ *
+ * This component owns presentation and motion only.
+ *
+ * Company Profile intentionally keeps the Share trigger beside the other
+ * primary utility controls. The social destinations then expand away from the
+ * Share trigger in normal document flow.
+ *
+ * LTR:
+ *
+ *   ( Watchlist )   ( Share )   │   ( X )   ( Facebook )
+ *
+ * RTL:
+ *
+ *   ( Facebook )   ( X )   │   ( Share )   ( Watchlist )
+ */
+
+/* ==========================================================================
+   Share Root
+   ========================================================================== */
+
+.market-identity-share {
+  --market-identity-share-size: 2.5rem;
+
+  --market-identity-share-action-gap: 0.625rem;
+  --market-identity-share-trigger-gap: 1.5rem;
+
+  --market-identity-share-border: var(--market-identity-border);
+  --market-identity-share-border-hover: var(--market-identity-border-hover);
+
+  --market-identity-share-bg: var(--market-identity-surface);
+  --market-identity-share-bg-hover: var(--market-identity-surface-hover);
+
+  --market-identity-share-color: var(--market-identity-color);
+  --market-identity-share-separator: rgb(255 255 255 / 0.28);
+
+  /*
+   * Closed social actions sit slightly toward the Share trigger.
+   *
+   * LTR: menu sits after Share, so actions shift left toward Share.
+   * RTL: overridden below.
+   */
+
+  --market-identity-share-action-shift: -0.875rem;
+
+  position: relative;
+  z-index: 2;
+
+  display: inline-flex;
+  align-items: center;
+
+  flex: 0 0 auto;
+
+  min-inline-size: 0;
+
+  overflow: visible;
+
+  isolation: isolate;
+}
+
+/* ==========================================================================
+   Share Toggle
+   ========================================================================== */
+
+/**
+ * The toggle deliberately retains `.market-identity__utility`, so it inherits
+ * the exact same sizing, surface, hover, focus, active and contrast behavior
+ * as the surrounding utility controls.
+ */
+
+.market-identity-share__toggle {
+  position: relative;
+  z-index: 3;
+
+  flex: 0 0 auto;
+}
+
+/* ==========================================================================
+   Share Toggle Icon
+   ========================================================================== */
+
+/*
+ * Keep the Share glyph visually stable. The social actions provide the state
+ * animation, so rotating the Share icon would add unnecessary visual noise.
+ */
+
+.market-identity-share__toggle::before {
+  transform: scaleX(var(--icon-scale-x));
+}
+
+/* ==========================================================================
+   Share Open Toggle
+   ========================================================================== */
+
+.market-identity-share[data-share-state="open"] .market-identity-share__toggle {
+  border-color: var(--market-identity-share-border-hover);
+
+  background: var(--market-identity-share-bg-hover);
+
+  box-shadow: 0 0 0 1px rgb(255 255 255 / 0.04);
+}
+
+.market-identity-share[data-share-state="open"]
+  .market-identity-share__toggle::before {
+  transform: scaleX(var(--icon-scale-x));
+}
+
+/* ==========================================================================
+   Share Menu
+   ========================================================================== */
+
+/*
+ * The menu remains in normal flex flow after the Share trigger.
+ *
+ * LTR -> actions expand to the right.
+ * RTL -> actions expand to the left.
+ *
+ * This keeps Share visually grouped with Watchlist while the platform actions
+ * read clearly as destinations belonging to Share.
+ */
+
+.market-identity-share__menu {
+  position: relative;
+
+  display: flex;
+  align-items: center;
+
+  gap: var(--market-identity-share-action-gap);
+
+  flex: 0 1 auto;
+
+  max-inline-size: 0;
+  min-inline-size: 0;
+
+  margin-inline-start: 0;
+  padding-inline-start: 0;
+
+  overflow: hidden;
+
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+
+  transition:
+    max-inline-size 300ms cubic-bezier(0.22, 1, 0.36, 1),
+    margin-inline-start 280ms cubic-bezier(0.22, 1, 0.36, 1),
+    padding-inline-start 280ms cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 160ms ease,
+    visibility 0s linear 300ms;
+}
+
+/* ==========================================================================
+   Share Separator
+   ========================================================================== */
+
+/*
+ * Separator sits between the stable Share trigger and the expanding social
+ * destinations.
+ */
+
+.market-identity-share__menu::before {
+  content: "";
+
+  position: absolute;
+
+  inset-block-start: 50%;
+  inset-inline-start: 0;
+
+  inline-size: 1px;
+  block-size: 1.375rem;
+
+  border-radius: var(--radius-pill);
+
+  background: var(--market-identity-share-separator);
+
+  opacity: 0;
+
+  transform: translateY(-50%) scaleY(0.4);
+
+  transform-origin: center;
+
+  transition:
+    opacity 160ms ease,
+    transform 220ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* ==========================================================================
+   Share Open Menu
+   ========================================================================== */
+
+.market-identity-share[data-share-state="open"] .market-identity-share__menu {
+  /*
+   * This is only a ceiling. The menu still occupies the natural width of its
+   * two social actions and separator spacing.
+   */
+
+  max-inline-size: 12rem;
+
+  margin-inline-start: calc(var(--market-identity-share-trigger-gap) / 2);
+  padding-inline-start: calc(var(--market-identity-share-trigger-gap) / 2);
+
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+
+  transition:
+    max-inline-size 300ms cubic-bezier(0.22, 1, 0.36, 1),
+    margin-inline-start 280ms cubic-bezier(0.22, 1, 0.36, 1),
+    padding-inline-start 280ms cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 160ms ease,
+    visibility 0s linear 0s;
+}
+
+.market-identity-share[data-share-state="open"]
+  .market-identity-share__menu::before {
+  opacity: 1;
+
+  transform: translateY(-50%) scaleY(1);
+
+  transition-delay: 45ms;
+}
+
+/* ==========================================================================
+   Share Action
+   ========================================================================== */
+
+.market-identity-share__action {
+  all: unset;
+
+  box-sizing: border-box;
+
+  --icon-size: 1rem;
+  --icon-gap: 0;
+
+  position: relative;
+
+  display: inline-grid;
+  place-items: center;
+
+  flex: 0 0 auto;
+
+  inline-size: var(--market-identity-share-size);
+  block-size: var(--market-identity-share-size);
+
+  min-inline-size: var(--market-identity-share-size);
+  min-block-size: var(--market-identity-share-size);
+
+  border: 1px solid var(--market-identity-share-border);
+  border-radius: var(--radius-pill);
+
+  background: var(--market-identity-share-bg);
+  color: var(--market-identity-share-color);
+
+  cursor: pointer;
+
+  opacity: 0;
+
+  transform: translateX(var(--market-identity-share-action-shift)) scale(0.86);
+
+  transform-origin: center;
+
+  backdrop-filter: blur(0.5rem);
+  -webkit-backdrop-filter: blur(0.5rem);
+
+  -webkit-tap-highlight-color: transparent;
+
+  transition:
+    opacity 150ms ease,
+    transform 260ms cubic-bezier(0.22, 1, 0.36, 1),
+    background-color var(--transition-normal),
+    border-color var(--transition-normal),
+    color var(--transition-normal);
+}
+
+/* ==========================================================================
+   Share Action Icon
+   ========================================================================== */
+
+.market-identity-share__action::before {
+  display: block;
+
+  margin: 0;
+
+  color: currentColor;
+}
+
+/* ==========================================================================
+   Share Open Actions
+   ========================================================================== */
+
+.market-identity-share[data-share-state="open"] .market-identity-share__action {
+  opacity: 1;
+
+  transform: translateX(0) scale(1);
+}
+
+/* ==========================================================================
+   Share Opening Stagger
+   ========================================================================== */
+
+/*
+ * Markup order:
+ *
+ * 1. X
+ * 2. Facebook
+ *
+ * X is closest to the Share trigger, so it reveals first. Facebook follows.
+ */
+
+.market-identity-share[data-share-state="open"]
+  .market-identity-share__action:nth-child(1) {
+  transition-delay: 35ms;
+}
+
+.market-identity-share[data-share-state="open"]
+  .market-identity-share__action:nth-child(2) {
+  transition-delay: 70ms;
+}
+
+.market-identity-share[data-share-state="open"]
+  .market-identity-share__action:nth-child(3) {
+  transition-delay: 105ms;
+}
+/* ==========================================================================
+   Share Closing Stagger
+   ========================================================================== */
+
+/*
+ * Reverse the reveal while closing: the outer Facebook action begins first,
+ * then X follows it back toward the Share trigger.
+ */
+
+.market-identity-share[data-share-state="closed"]
+  .market-identity-share__action:nth-child(3) {
+  transition-delay: 0ms;
+}
+
+.market-identity-share[data-share-state="closed"]
+  .market-identity-share__action:nth-child(2) {
+  transition-delay: 35ms;
+}
+
+.market-identity-share[data-share-state="closed"]
+  .market-identity-share__action:nth-child(1) {
+  transition-delay: 70ms;
+}
+
+/* ==========================================================================
+   Copy Feedback
+   ========================================================================== */
+
+.market-identity-share__action[data-copy-state="copied"] {
+  position: relative;
+}
+
+.market-identity-share__action[data-copy-state="copied"]::after {
+  content: "Copied";
+
+  position: absolute;
+
+  inset-block-end: calc(100% + 0.5rem);
+
+  inset-inline-start: 50%;
+
+  padding: 0.375rem 0.625rem;
+
+  border-radius: var(--radius-md);
+
+  background: var(--color-heading);
+
+  color: var(--color-bg);
+
+  box-shadow: var(--shadow-md);
+
+  font-size: var(--text-xs);
+
+  font-weight: ds.font-weight("semibold");
+
+  line-height: 1;
+
+  white-space: nowrap;
+
+  pointer-events: none;
+
+  transform: translateX(-50%);
+
+  animation: market-identity-share-copied-in 180ms ease-out;
+}
+
+@keyframes market-identity-share-copied-in {
+  from {
+    opacity: 0;
+
+    transform: translateX(-50%) translateY(0.25rem);
+  }
+
+  to {
+    opacity: 1;
+
+    transform: translateX(-50%) translateY(0);
+  }
+}
+/* ==========================================================================
+   Share Action Hover
+   ========================================================================== */
+
+@media (hover: hover) and (pointer: fine) {
+  .market-identity-share[data-share-state="open"]
+    .market-identity-share__action:hover {
+    border-color: var(--market-identity-share-border-hover);
+
+    background: var(--market-identity-share-bg-hover);
+
+    transform: translateX(0) translateY(-0.0625rem) scale(1);
+  }
+}
+
+/* ==========================================================================
+   Share Action Active
+   ========================================================================== */
+
+.market-identity-share[data-share-state="open"]
+  .market-identity-share__action:active {
+  transform: translateX(0) scale(0.94);
+}
+
+/* ==========================================================================
+   Share Action Focus
+   ========================================================================== */
+
+.market-identity-share__action:focus {
+  outline: none;
+}
+
+.market-identity-share__action:focus-visible {
+  @include ds.focus-ring;
+}
+
+/* ==========================================================================
+   Share Overflow Safety
+   ========================================================================== */
+
+/*
+ * Keep the complete Market Identity share chain visible. This prevents the
+ * reveal from being clipped by the local identity/toolbar wrappers.
+ */
+
+.market-identity,
+.market-identity__toolbar,
+.market-identity__utilities,
+.market-identity-share {
+  overflow: visible;
+}
+
+/* ==========================================================================
    Metadata
    ========================================================================== */
 
@@ -390,21 +899,22 @@
  *
  * Company example:
  *
- * Market Type  Main Market
- * Industry Group  Banks
- * Share Type  Common Shares
+ * Market Type      Main Market
+ * Industry Group   Banks
+ * Share Type       Common Shares
  *
  * Sukuk example:
  *
- * Market  Sukuk/Bonds Index
+ * Market           Sukuk/Bonds Index
  * Instrument Type  Government Sukuk
- * Currency  SAR
+ * Currency         SAR
  */
 
 .market-identity__metadata {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
+
   gap: var(--space-3, #{ds.space(3)}) var(--space-6, #{ds.space(6)});
 
   min-inline-size: 0;
@@ -424,6 +934,7 @@
   display: inline-flex;
   flex: 0 0 auto;
   align-items: baseline;
+
   gap: var(--space-2, #{ds.space(2)});
 
   min-inline-size: 0;
@@ -437,6 +948,7 @@
   flex: 0 0 auto;
 
   inline-size: var(--space-1, #{ds.space(1)});
+
   block-size: var(--space-1, #{ds.space(1)});
 
   margin-inline-start: var(--space-4, #{ds.space(4)});
@@ -492,6 +1004,7 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
+
   gap: var(--space-2, #{ds.space(2)});
 
   min-inline-size: 0;
@@ -508,9 +1021,11 @@
   flex: 0 0 auto;
   align-items: center;
   justify-content: center;
+
   gap: var(--space-2, #{ds.space(2)});
 
   min-block-size: 2.25rem;
+
   padding: var(--space-2, #{ds.space(2)}) 0.875rem;
 
   border: 1px solid var(--market-identity-border);
@@ -535,16 +1050,27 @@
   );
 }
 
-.market-identity__link:hover {
-  border-color: var(--market-identity-border-hover);
+/* ==========================================================================
+   Related Instrument Hover
+   ========================================================================== */
 
-  background: var(--market-identity-surface-hover);
-  color: var(--market-identity-color);
+@media (hover: hover) and (pointer: fine) {
+  .market-identity__link:hover {
+    border-color: var(--market-identity-border-hover);
 
-  box-shadow: var(--shadow-sm);
+    background: var(--market-identity-surface-hover);
 
-  transform: translateY(-0.0625rem);
+    color: var(--market-identity-color);
+
+    box-shadow: var(--shadow-sm);
+
+    transform: translateY(-0.0625rem);
+  }
 }
+
+/* ==========================================================================
+   Related Instrument Focus
+   ========================================================================== */
 
 .market-identity__link:focus {
   outline: none;
@@ -553,6 +1079,10 @@
 .market-identity__link:focus-visible {
   @include ds.focus-ring;
 }
+
+/* ==========================================================================
+   Related Instrument Active
+   ========================================================================== */
 
 .market-identity__link:active {
   transform: translateY(0);
@@ -572,8 +1102,10 @@
   @include ds.transition(transform, "fast");
 }
 
-.market-identity__link:hover .market-identity__link-icon {
-  transform: translateX(0.125rem);
+@media (hover: hover) and (pointer: fine) {
+  .market-identity__link:hover .market-identity__link-icon {
+    transform: translateX(0.125rem);
+  }
 }
 
 /* ==========================================================================
@@ -587,6 +1119,16 @@ html[dir="rtl"] {
 
   .market-identity__link:hover .market-identity__link-icon {
     transform: translateX(-0.125rem);
+  }
+
+  /*
+   * Normal logical flex flow automatically places the Share menu on the
+   * opposite physical side in RTL. Only the closed action travel direction
+   * needs reversing.
+   */
+
+  .market-identity-share {
+    --market-identity-share-action-shift: 0.875rem;
   }
 }
 
@@ -621,13 +1163,25 @@ html[dir="rtl"] {
     --market-identity-media-size: 3.75rem;
   }
 
+  /* --------------------------------------------------------------------------
+     Brand
+     -------------------------------------------------------------------------- */
+
   .market-identity__brand {
     align-items: flex-start;
   }
 
+  /* --------------------------------------------------------------------------
+     Media
+     -------------------------------------------------------------------------- */
+
   .market-identity__media {
     border-radius: var(--radius-md);
   }
+
+  /* --------------------------------------------------------------------------
+     Typography
+     -------------------------------------------------------------------------- */
 
   .market-identity__title,
   .market-identity--compact-title .market-identity__title {
@@ -639,19 +1193,32 @@ html[dir="rtl"] {
     font-size: var(--text-sm);
   }
 
+  /* --------------------------------------------------------------------------
+     Toolbar
+     -------------------------------------------------------------------------- */
+
   .market-identity__toolbar {
     gap: var(--space-2, #{ds.space(2)});
 
     margin-block-start: var(--space-4, #{ds.space(4)});
   }
 
+  /* --------------------------------------------------------------------------
+     Codes
+     -------------------------------------------------------------------------- */
+
   .market-identity__code,
   .market-identity__symbol {
     min-block-size: 2rem;
+
     padding-inline: var(--space-3, #{ds.space(3)});
 
     font-size: var(--text-xs);
   }
+
+  /* --------------------------------------------------------------------------
+     Utility
+     -------------------------------------------------------------------------- */
 
   .market-identity__utility {
     --icon-size: 0.9375rem;
@@ -660,13 +1227,46 @@ html[dir="rtl"] {
     block-size: 2.25rem;
   }
 
-  /* Preserve the structured metadata row on narrow screens. */
+  /* --------------------------------------------------------------------------
+     Share
+     -------------------------------------------------------------------------- */
+
+  .market-identity-share {
+    --market-identity-share-size: 2.25rem;
+
+    --market-identity-share-action-gap: 0.5rem;
+    --market-identity-share-trigger-gap: 1.25rem;
+
+    --market-identity-share-action-shift: -0.75rem;
+  }
+
+  html[dir="rtl"] .market-identity-share {
+    --market-identity-share-action-shift: 0.75rem;
+  }
+
+  .market-identity-share__action {
+    --icon-size: 0.9375rem;
+  }
+
+  .market-identity-share__menu::before {
+    block-size: 1.25rem;
+  }
+
+  /* --------------------------------------------------------------------------
+     Metadata
+     -------------------------------------------------------------------------- */
+
+  /*
+   * Preserve the structured metadata row on narrow screens.
+   */
 
   .market-identity__metadata {
     flex-wrap: nowrap;
 
     inline-size: 100%;
+
     padding-block-end: var(--space-1, #{ds.space(1)});
+
     margin-block-start: var(--space-4, #{ds.space(4)});
 
     overflow-x: auto;
@@ -674,6 +1274,7 @@ html[dir="rtl"] {
 
     overscroll-behavior-inline: contain;
     scroll-snap-type: inline proximity;
+
     scrollbar-width: none;
 
     -webkit-overflow-scrolling: touch;
@@ -700,13 +1301,21 @@ html[dir="rtl"] {
     font-size: var(--text-xs);
   }
 
-  /* Related instruments retain their horizontal grouped presentation. */
+  /* --------------------------------------------------------------------------
+     Related Instruments
+     -------------------------------------------------------------------------- */
+
+  /*
+   * Related instruments retain their horizontal grouped presentation.
+   */
 
   .market-identity__related {
     flex-wrap: nowrap;
 
     inline-size: 100%;
+
     padding-block-end: var(--space-1, #{ds.space(1)});
+
     margin-block-start: var(--space-5, #{ds.space(5)});
 
     overflow-x: auto;
@@ -714,6 +1323,7 @@ html[dir="rtl"] {
 
     overscroll-behavior-inline: contain;
     scroll-snap-type: inline proximity;
+
     scrollbar-width: none;
 
     -webkit-overflow-scrolling: touch;
@@ -727,6 +1337,7 @@ html[dir="rtl"] {
 
   .market-identity__link {
     min-block-size: 2.125rem;
+
     padding: 0.4375rem var(--space-3, #{ds.space(3)});
 
     scroll-snap-align: start;
@@ -761,6 +1372,27 @@ html[dir="rtl"] {
     inline-size: 2rem;
     block-size: 2rem;
   }
+
+  .market-identity-share {
+    --market-identity-share-size: 2rem;
+
+    --market-identity-share-action-gap: 0.375rem;
+    --market-identity-share-trigger-gap: 1rem;
+
+    --market-identity-share-action-shift: -0.625rem;
+  }
+
+  html[dir="rtl"] .market-identity-share {
+    --market-identity-share-action-shift: 0.625rem;
+  }
+
+  .market-identity-share__action {
+    --icon-size: 0.875rem;
+  }
+
+  .market-identity-share__menu::before {
+    block-size: 1.125rem;
+  }
 }
 
 /* ==========================================================================
@@ -780,7 +1412,8 @@ html[data-contrast="high"] {
   .market-identity__code,
   .market-identity__symbol,
   .market-identity__utility,
-  .market-identity__link {
+  .market-identity__link,
+  .market-identity-share__action {
     border-width: 2px;
 
     backdrop-filter: none;
@@ -788,6 +1421,28 @@ html[data-contrast="high"] {
   }
 
   .market-identity__meta::after {
+    background: currentColor;
+  }
+
+  /* --------------------------------------------------------------------------
+     Share
+     -------------------------------------------------------------------------- */
+
+  .market-identity-share {
+    --market-identity-share-border: currentColor;
+
+    --market-identity-share-border-hover: currentColor;
+
+    --market-identity-share-bg: transparent;
+
+    --market-identity-share-bg-hover: transparent;
+
+    --market-identity-share-color: currentColor;
+
+    --market-identity-share-separator: currentColor;
+  }
+
+  .market-identity-share__menu::before {
     background: currentColor;
   }
 }
@@ -826,6 +1481,7 @@ html[data-contrast="high"] {
   .market-identity__utility:hover:not(:disabled),
   .market-identity__link:hover {
     border-color: Highlight;
+
     color: Highlight;
   }
 
@@ -839,11 +1495,53 @@ html[data-contrast="high"] {
   .market-identity__utility:disabled,
   .market-identity__utility[aria-disabled="true"] {
     border-color: GrayText;
+
     color: GrayText;
   }
 
   .market-identity__meta::after {
     background: CanvasText;
+  }
+
+  /* --------------------------------------------------------------------------
+     Share
+     -------------------------------------------------------------------------- */
+
+  .market-identity-share {
+    --market-identity-share-border: CanvasText;
+
+    --market-identity-share-border-hover: Highlight;
+
+    --market-identity-share-bg: Canvas;
+
+    --market-identity-share-bg-hover: Canvas;
+
+    --market-identity-share-color: CanvasText;
+
+    --market-identity-share-separator: CanvasText;
+  }
+
+  .market-identity-share__action {
+    border-color: ButtonText;
+
+    background: ButtonFace;
+    color: ButtonText;
+
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+
+    forced-color-adjust: auto;
+  }
+
+  .market-identity-share__menu::before {
+    background: CanvasText;
+  }
+
+  .market-identity-share[data-share-state="open"]
+    .market-identity-share__action:hover {
+    border-color: Highlight;
+
+    color: Highlight;
   }
 }
 
@@ -854,7 +1552,10 @@ html[data-contrast="high"] {
 @media (prefers-reduced-motion: reduce) {
   .market-identity__utility,
   .market-identity__link,
-  .market-identity__link-icon {
+  .market-identity__link-icon,
+  .market-identity-share__menu,
+  .market-identity-share__menu::before,
+  .market-identity-share__action {
     transition: none;
   }
 
@@ -865,12 +1566,39 @@ html[data-contrast="high"] {
   .market-identity__link:hover .market-identity__link-icon {
     transform: none;
   }
+
+  .market-identity-share[data-share-state="closed"]
+    .market-identity-share__action,
+  .market-identity-share[data-share-state="open"]
+    .market-identity-share__action,
+  .market-identity-share__action:hover,
+  .market-identity-share__action:active {
+    transform: none;
+  }
+
+  .market-identity-share[data-share-state="open"]
+    .market-identity-share__toggle::before {
+    transform: scaleX(var(--icon-scale-x));
+  }
+
+  .market-identity-share__menu::before,
+  .market-identity-share[data-share-state="open"]
+    .market-identity-share__menu::before {
+    transform: translateY(-50%) scaleY(1);
+  }
 }
+
+/* ==========================================================================
+   Explicit Reduced Motion
+   ========================================================================== */
 
 html[data-motion="reduce"] {
   .market-identity__utility,
   .market-identity__link,
-  .market-identity__link-icon {
+  .market-identity__link-icon,
+  .market-identity-share__menu,
+  .market-identity-share__menu::before,
+  .market-identity-share__action {
     transition: none;
   }
 
@@ -880,6 +1608,26 @@ html[data-motion="reduce"] {
   .market-identity__link:active,
   .market-identity__link:hover .market-identity__link-icon {
     transform: none;
+  }
+
+  .market-identity-share[data-share-state="closed"]
+    .market-identity-share__action,
+  .market-identity-share[data-share-state="open"]
+    .market-identity-share__action,
+  .market-identity-share__action:hover,
+  .market-identity-share__action:active {
+    transform: none;
+  }
+
+  .market-identity-share[data-share-state="open"]
+    .market-identity-share__toggle::before {
+    transform: scaleX(var(--icon-scale-x));
+  }
+
+  .market-identity-share__menu::before,
+  .market-identity-share[data-share-state="open"]
+    .market-identity-share__menu::before {
+    transform: translateY(-50%) scaleY(1);
   }
 }
 
@@ -923,6 +1671,11 @@ html[data-motion="reduce"] {
 
     overflow: visible;
   }
+
+  /*
+   * All contextual controls, including the Share wrapper, disappear through
+   * the utilities container.
+   */
 
   .market-identity__utilities {
     display: none;

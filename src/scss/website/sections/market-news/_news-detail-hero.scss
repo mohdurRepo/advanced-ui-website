@@ -1,0 +1,493 @@
+@use "../../../design-system/abstracts" as ds;
+
+/* ==========================================================================
+   News Detail Hero
+   ========================================================================== */
+
+/*
+ * Editorial Hero for News Detail pages.
+ *
+ * Shared Hero components own:
+ *
+ * - outer Hero structure
+ * - branded surface
+ * - decorative background
+ * - container spacing
+ *
+ * News Detail Hero owns:
+ *
+ * - source identity
+ * - source image
+ * - editorial context
+ * - headline
+ * - publication date/time
+ * - Share placement
+ *
+ * Share appearance is owned exclusively by `_news-share.scss`.
+ */
+
+/* ==========================================================================
+   Root
+   ========================================================================== */
+
+.news-detail-hero {
+  --news-detail-hero-logo-size: 5rem;
+  --news-detail-hero-content-gap: #{ds.space(5)};
+  --news-detail-hero-identity-gap: #{ds.space(5)};
+
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Background
+   ========================================================================== */
+
+.news-detail-hero__background {
+  pointer-events: none;
+}
+
+/* ==========================================================================
+   Inner
+   ========================================================================== */
+
+/*
+ * The shared `.hero-section__content` already owns outer Hero padding.
+ * Do not add a second layer of block padding here.
+ */
+
+.news-detail-hero__inner {
+  display: grid;
+  align-content: start;
+
+  gap: var(--news-detail-hero-content-gap);
+
+  inline-size: 100%;
+  min-inline-size: 0;
+
+  padding-block: 0;
+}
+
+/* ==========================================================================
+   Header
+   ========================================================================== */
+
+.news-detail-hero__header {
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Identity
+   ========================================================================== */
+
+.news-detail-hero__identity {
+  display: grid;
+  grid-template-columns:
+    var(--news-detail-hero-logo-size)
+    minmax(0, 1fr);
+
+  align-items: start;
+
+  gap: var(--news-detail-hero-identity-gap);
+
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Source Media
+   ========================================================================== */
+
+.news-detail-hero__media {
+  position: relative;
+
+  inline-size: var(--news-detail-hero-logo-size);
+  block-size: var(--news-detail-hero-logo-size);
+
+  overflow: hidden;
+
+  border: 1px solid rgb(255 255 255 / 0.26);
+  border-radius: var(--radius-lg);
+
+  background: #ffffff;
+}
+
+/* ==========================================================================
+   Source Image
+   ========================================================================== */
+
+/*
+ * Source image fills the complete square.
+ */
+
+.news-detail-hero__logo {
+  display: block;
+
+  inline-size: 100%;
+  block-size: 100%;
+
+  object-fit: cover;
+  object-position: center;
+}
+
+/* ==========================================================================
+   Heading
+   ========================================================================== */
+
+.news-detail-hero__heading {
+  display: grid;
+  align-content: start;
+
+  gap: ds.space(3);
+
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Context
+   ========================================================================== */
+
+.news-detail-hero__context {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+
+  gap: ds.space(2);
+
+  min-inline-size: 0;
+
+  font-size: var(--text-sm);
+  line-height: var(--line-height-normal);
+}
+
+/* ==========================================================================
+   Eyebrow
+   ========================================================================== */
+
+.news-detail-hero__eyebrow {
+  color: #ffffff;
+
+  font-weight: ds.font-weight("bold");
+}
+
+/* ==========================================================================
+   Context Separator
+   ========================================================================== */
+
+.news-detail-hero__context-separator {
+  flex: 0 0 auto;
+
+  color: rgb(255 255 255 / 0.56);
+}
+
+/* ==========================================================================
+   Source
+   ========================================================================== */
+
+.news-detail-hero__source {
+  min-inline-size: 0;
+
+  color: rgb(255 255 255 / 0.8);
+
+  font-weight: ds.font-weight("medium");
+
+  overflow-wrap: anywhere;
+}
+
+/* ==========================================================================
+   Title
+   ========================================================================== */
+
+/*
+ * News titles should use the available Hero width before wrapping.
+ *
+ * Avoid a narrow `ch` constraint here because regulatory headlines are
+ * naturally long.
+ */
+
+.news-detail-hero__title {
+  inline-size: 100%;
+  max-inline-size: none;
+
+  margin: 0;
+
+  color: #ffffff;
+
+  font-size: clamp(var(--text-2xl), 2.35vw, var(--text-4xl));
+
+  font-weight: ds.font-weight("heavy");
+  line-height: 1.13;
+
+  letter-spacing: -0.015em;
+
+  overflow-wrap: break-word;
+  text-wrap: pretty;
+}
+
+/* ==========================================================================
+   Footer
+   ========================================================================== */
+
+.news-detail-hero__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: ds.space(4);
+
+  min-inline-size: 0;
+
+  padding-block-start: ds.space(4);
+
+  border-block-start: 1px solid rgb(255 255 255 / 0.18);
+}
+
+/* ==========================================================================
+   Publication Date / Time
+   ========================================================================== */
+
+/*
+ * Display format remains exactly as supplied:
+ *
+ * 07/09/2026 19:00
+ */
+
+.news-detail-hero__published {
+  direction: ltr;
+  unicode-bidi: isolate;
+
+  flex: 0 0 auto;
+
+  color: rgb(255 255 255 / 0.9);
+
+  font-size: var(--text-sm);
+  font-weight: ds.font-weight("medium");
+  font-variant-numeric: tabular-nums;
+  line-height: var(--line-height-normal);
+
+  white-space: nowrap;
+}
+
+/* ==========================================================================
+   Share Placement
+   ========================================================================== */
+
+/*
+ * Do not style the button here.
+ * `_news-share.scss` is the single visual owner.
+ */
+
+.news-detail-hero__footer .news-share {
+  flex: 0 0 auto;
+
+  margin-inline-start: auto;
+}
+
+/* ==========================================================================
+   Tablet
+   ========================================================================== */
+
+@include ds.respond-down("lg") {
+  .news-detail-hero {
+    --news-detail-hero-logo-size: 4.5rem;
+    --news-detail-hero-content-gap: #{ds.space(5)};
+    --news-detail-hero-identity-gap: #{ds.space(4)};
+  }
+
+  .news-detail-hero__title {
+    font-size: clamp(var(--text-xl), 3.5vw, var(--text-3xl));
+  }
+}
+
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+
+@include ds.respond-down("sm") {
+  .news-detail-hero {
+    --news-detail-hero-logo-size: 3.75rem;
+    --news-detail-hero-content-gap: #{ds.space(4)};
+    --news-detail-hero-identity-gap: #{ds.space(3)};
+  }
+
+  /* --------------------------------------------------------------------------
+     Identity
+     -------------------------------------------------------------------------- */
+
+  .news-detail-hero__identity {
+    grid-template-columns:
+      var(--news-detail-hero-logo-size)
+      minmax(0, 1fr);
+  }
+
+  /* --------------------------------------------------------------------------
+     Media
+     -------------------------------------------------------------------------- */
+
+  .news-detail-hero__media {
+    border-radius: var(--radius-md);
+  }
+
+  /* --------------------------------------------------------------------------
+     Heading
+     -------------------------------------------------------------------------- */
+
+  .news-detail-hero__heading {
+    gap: ds.space(2);
+  }
+
+  /* --------------------------------------------------------------------------
+     Context
+     -------------------------------------------------------------------------- */
+
+  .news-detail-hero__context {
+    gap: ds.space(1) ds.space(2);
+
+    font-size: var(--text-xs);
+  }
+
+  /* --------------------------------------------------------------------------
+     Title
+     -------------------------------------------------------------------------- */
+
+  .news-detail-hero__title {
+    font-size: var(--text-xl);
+    line-height: 1.18;
+
+    letter-spacing: normal;
+  }
+
+  /* --------------------------------------------------------------------------
+     Footer
+     -------------------------------------------------------------------------- */
+
+  .news-detail-hero__footer {
+    gap: ds.space(3);
+
+    padding-block-start: ds.space(3);
+  }
+
+  .news-detail-hero__published {
+    font-size: var(--text-xs);
+  }
+}
+
+/* ==========================================================================
+   Narrow Mobile
+   ========================================================================== */
+
+@media (max-width: 27rem) {
+  /*
+   * On very narrow screens move the logo above the headline so the text does
+   * not become unnecessarily compressed.
+   */
+
+  .news-detail-hero__identity {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .news-detail-hero__media {
+    justify-self: start;
+  }
+}
+
+/* ==========================================================================
+   RTL
+   ========================================================================== */
+
+html[dir="rtl"] .news-detail-hero {
+  text-align: start;
+}
+
+/*
+ * Preserve the original numeric date/time order.
+ */
+
+html[dir="rtl"] .news-detail-hero__published {
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+
+/*
+ * Do not force Latin tracking onto Arabic headlines.
+ */
+
+html[dir="rtl"] .news-detail-hero__title {
+  letter-spacing: normal;
+}
+
+/* ==========================================================================
+   Dark Theme
+   ========================================================================== */
+
+html[data-theme="dark"] .news-detail-hero__media {
+  border-color: rgb(255 255 255 / 0.3);
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] .news-detail-hero__media {
+  border-width: 2px;
+  border-color: currentColor;
+}
+
+html[data-contrast="high"] .news-detail-hero__footer {
+  border-block-start-width: 2px;
+  border-color: currentColor;
+}
+
+html[data-contrast="high"] .news-detail-hero__eyebrow,
+html[data-contrast="high"] .news-detail-hero__source,
+html[data-contrast="high"] .news-detail-hero__published {
+  color: currentColor;
+}
+
+/* ==========================================================================
+   Forced Colors
+   ========================================================================== */
+
+@media (forced-colors: active) {
+  .news-detail-hero__media {
+    border-color: CanvasText;
+
+    background: Canvas;
+  }
+
+  .news-detail-hero__footer {
+    border-color: CanvasText;
+  }
+
+  .news-detail-hero__eyebrow,
+  .news-detail-hero__source,
+  .news-detail-hero__title,
+  .news-detail-hero__published {
+    color: CanvasText;
+  }
+}
+
+/* ==========================================================================
+   Print
+   ========================================================================== */
+
+@media print {
+  .news-detail-hero__media {
+    border-color: #000000;
+
+    background: #ffffff;
+  }
+
+  .news-detail-hero__eyebrow,
+  .news-detail-hero__source,
+  .news-detail-hero__title,
+  .news-detail-hero__published {
+    color: #000000;
+  }
+
+  .news-detail-hero__footer {
+    border-color: #000000;
+  }
+
+  .news-detail-hero .news-share {
+    display: none;
+  }
+}

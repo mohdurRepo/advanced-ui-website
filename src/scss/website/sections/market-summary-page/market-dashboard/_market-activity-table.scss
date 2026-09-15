@@ -4,6 +4,18 @@
    Market Activity Table
    ========================================================================== */
 
+/*
+ * Owns:
+ *
+ * - desktop / tablet activity-table presentation
+ * - 5-column Gainers / Losers layout
+ * - 6-column Volume / Value layout
+ * - company identity / watchlist
+ * - financial number states
+ * - five-day performance bars
+ * - responsive / accessibility / print behavior
+ */
+
 .market-activity-table {
   min-inline-size: 0;
   max-inline-size: 100%;
@@ -45,7 +57,7 @@
 }
 
 /* ==========================================================================
-   Standard Five-Column Layout
+   Five-Column Layout
    Gainers / Losers
    ========================================================================== */
 
@@ -79,9 +91,20 @@
 }
 
 /* ==========================================================================
-   Standard Six-Column Layout
+   Six-Column Layout
    Volume / Value
    ========================================================================== */
+
+/*
+ * Column contract:
+ *
+ * 1. Company
+ * 2. Price
+ * 3. Change
+ * 4. Change %
+ * 5. Volume / Value
+ * 6. 5 Day Performance
+ */
 
 .market-activity-table__table:is(
   [data-market-activity-table="volume"],
@@ -131,12 +154,23 @@
 
 /* ==========================================================================
    Compact Six-Column Layout
-   Today’s Activity Side Panel
+   Today’s Activity Dashboard Panel
    ========================================================================== */
 
 /*
- * Inside the narrow dashboard side panel, Volume / Value need a denser layout
- * so they fit more often without initial horizontal scrolling.
+ * The dashboard side panel is narrower than a normal full-width table.
+ *
+ * Keep all six columns visible without forcing the Volume / Value column
+ * into the 5 Day Performance column.
+ *
+ * Total = 100%
+ *
+ * Company         24%
+ * Price           11%
+ * Change          12%
+ * Change %        11%
+ * Volume / Value  24%
+ * 5 Day           18%
  */
 
 .market-activity
@@ -144,12 +178,13 @@
     [data-market-activity-table="volume"],
     [data-market-activity-table="value"]
   ) {
+  inline-size: 100%;
   min-inline-size: 100%;
 
   th,
   td {
     &:nth-child(1) {
-      inline-size: 33%;
+      inline-size: 24%;
     }
 
     &:nth-child(2) {
@@ -157,20 +192,36 @@
     }
 
     &:nth-child(3) {
-      inline-size: 18%;
-    }
-
-    &:nth-child(4) {
       inline-size: 12%;
     }
 
+    &:nth-child(4) {
+      inline-size: 11%;
+    }
+
     &:nth-child(5) {
-      inline-size: 0;
+      inline-size: 24%;
     }
 
     &:nth-child(6) {
-      inline-size: 26%;
+      inline-size: 18%;
     }
+  }
+
+  /*
+   * Volume / Value contains the longest numeric values.
+   */
+
+  thead th:nth-child(5),
+  tbody td:nth-child(5) {
+    white-space: nowrap;
+  }
+
+  tbody td:nth-child(5) {
+    font-size: 0.6875rem;
+    font-variant-numeric: tabular-nums;
+
+    letter-spacing: -0.01em;
   }
 }
 
@@ -207,6 +258,20 @@
 }
 
 /* ==========================================================================
+   Compact Six-Column Header
+   ========================================================================== */
+
+.market-activity
+  .market-activity-table__table:is(
+    [data-market-activity-table="volume"],
+    [data-market-activity-table="value"]
+  )
+  thead
+  th {
+  padding-inline: 0.375rem;
+}
+
+/* ==========================================================================
    Stacked Heading
    ========================================================================== */
 
@@ -214,6 +279,8 @@
   display: inline-grid;
   justify-items: center;
   gap: 0.0625rem;
+
+  max-inline-size: 100%;
 
   line-height: 1.15;
 }
@@ -245,6 +312,27 @@
 
 .market-activity-table__table tbody td:last-child {
   padding-inline-end: 0.75rem;
+}
+
+/* ==========================================================================
+   Compact Six-Column Body
+   ========================================================================== */
+
+.market-activity
+  .market-activity-table__table:is(
+    [data-market-activity-table="volume"],
+    [data-market-activity-table="value"]
+  )
+  tbody
+  th,
+.market-activity
+  .market-activity-table__table:is(
+    [data-market-activity-table="volume"],
+    [data-market-activity-table="value"]
+  )
+  tbody
+  td {
+  padding-inline: 0.375rem;
 }
 
 /* ==========================================================================
@@ -383,6 +471,8 @@
    ========================================================================== */
 
 .market-activity-table__number {
+  min-inline-size: 0;
+
   color: var(--color-text);
 
   font-weight: font-weight("medium");
@@ -420,6 +510,8 @@
    ========================================================================== */
 
 .market-activity-table__performance-cell {
+  min-inline-size: 0;
+
   text-align: center;
 }
 
@@ -460,7 +552,7 @@
 
 /* ==========================================================================
    Compact Performance Bars
-   Volume / Value in Today’s Activity
+   Volume / Value
    ========================================================================== */
 
 .market-activity
@@ -494,10 +586,29 @@
     min-inline-size: 28rem;
   }
 
+  /*
+   * Mobile normally renders data cards instead of the table.
+   *
+   * Keep a safe intrinsic width if the table is displayed as a fallback.
+   */
+
   .market-activity-table__table:is(
     [data-market-activity-table="volume"],
     [data-market-activity-table="value"]
   ) {
+    min-inline-size: 36rem;
+  }
+
+  /*
+   * Match the specificity of the dashboard compact rule so the fallback
+   * minimum width is not accidentally overridden.
+   */
+
+  .market-activity
+    .market-activity-table__table:is(
+      [data-market-activity-table="volume"],
+      [data-market-activity-table="value"]
+    ) {
     min-inline-size: 36rem;
   }
 
@@ -586,10 +697,7 @@ html[data-contrast="high"] {
     background: currentColor;
   }
 
-  .market-activity-table__performance > .is-down {
-    background: transparent;
-  }
-
+  .market-activity-table__performance > .is-down,
   .market-activity-table__performance > .is-neutral {
     background: transparent;
   }
@@ -677,7 +785,12 @@ html[data-motion="reduce"] {
   .market-activity-table__table:is(
     [data-market-activity-table="volume"],
     [data-market-activity-table="value"]
-  ) {
+  ),
+  .market-activity
+    .market-activity-table__table:is(
+      [data-market-activity-table="volume"],
+      [data-market-activity-table="value"]
+    ) {
     min-inline-size: 0;
 
     color: #000000;
@@ -711,5 +824,9 @@ html[data-motion="reduce"] {
       #000000 58%,
       transparent 58%
     );
+  }
+
+  .market-activity-table__performance > .is-neutral {
+    background: transparent;
   }
 }

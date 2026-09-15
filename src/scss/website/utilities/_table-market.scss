@@ -21,7 +21,13 @@
  */
 
 .table-market {
-  --table-market-company-width: 14rem;
+  /*
+   * Matches the JS schema's WIDTHS.company (market-watch.columns.js) so
+   * there is exactly one source of truth for the Company column width.
+   * Combined with table-layout: fixed and the JS-generated <colgroup>,
+   * this value is now what actually determines the rendered width.
+   */
+  --table-market-company-width: 15.5rem;
   --table-market-range-width: 8.5rem;
 
   --table-market-group-bg: var(--color-primary);
@@ -52,13 +58,18 @@
  *
  * Horizontal overflow should appear only when the available viewport becomes
  * too narrow for readable market data.
+ *
+ * table-layout: fixed keeps column widths locked to the widths declared on
+ * the JS-generated <colgroup> (see common/data-view/data-table.js), so real
+ * cell content (company names, favorite button, logo) can never grow a
+ * column beyond its intended width the way table-layout: auto allowed.
  */
 
 .table-market--watch {
   inline-size: 100%;
   min-inline-size: 72rem;
 
-  table-layout: auto;
+  table-layout: fixed;
 }
 
 /* ==========================================================================
@@ -276,9 +287,6 @@
   flex: 0 0 auto;
 }
 
-.data-card__identity-code .status-state {
-  flex: 0 0 auto;
-}
 /* ==========================================================================
    Company Logo
    ========================================================================== */
@@ -497,6 +505,7 @@ html[dir="rtl"] {
     transform: translateX(50%) translateY(0.25rem);
   }
 }
+
 /* ==========================================================================
    Range Interaction
    ========================================================================== */
@@ -696,7 +705,7 @@ html[dir="rtl"] {
 .table-market--results {
   inline-size: 100%;
 
-  table-layout: auto;
+  table-layout: fixed;
 }
 
 .table-market--results thead {
@@ -750,7 +759,7 @@ html[dir="rtl"] {
   inline-size: 100%;
   min-inline-size: 78rem;
 
-  table-layout: auto;
+  table-layout: fixed;
 }
 
 /* ==========================================================================

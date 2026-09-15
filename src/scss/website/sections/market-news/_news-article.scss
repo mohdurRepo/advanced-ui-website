@@ -1,0 +1,715 @@
+@use "../../../design-system/abstracts" as ds;
+
+/* ==========================================================================
+   News Article
+   ========================================================================== */
+
+/*
+ * Long-form News Detail content displayed inside:
+ *
+ *   <article class="card news-article">
+ *
+ * Shared `.card` owns:
+ *
+ * - surface
+ * - border
+ * - radius
+ * - shadow
+ * - decorative financial pattern
+ *
+ * Shared `.company-market-overview__surface` owns:
+ *
+ * - outer soft background
+ * - outer border
+ * - outer padding
+ *
+ * News Article owns:
+ *
+ * - panel header
+ * - Tadawul heading icon
+ * - article typography
+ * - rich editorial content
+ */
+
+/* ==========================================================================
+   Section
+   ========================================================================== */
+
+.news-detail-content {
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Surface
+   ========================================================================== */
+
+.news-detail-content__surface {
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Article
+   ========================================================================== */
+
+.news-article {
+  --news-article-bg: var(--color-surface);
+  --news-article-text: var(--color-text);
+  --news-article-heading: var(--color-heading);
+  --news-article-muted: var(--color-text-muted);
+  --news-article-border: var(--color-border);
+  --news-article-accent: var(--color-primary);
+
+  /* Shared Card mapping */
+
+  --card-bg: var(--news-article-bg);
+  --card-color: var(--news-article-text);
+  --card-heading-color: var(--news-article-heading);
+  --card-muted-color: var(--news-article-muted);
+
+  --card-border-color: var(--news-article-border);
+  --card-hover-border-color: var(--news-article-border);
+
+  --card-radius: var(--radius-lg);
+
+  --card-shadow: var(--shadow-sm);
+  --card-hover-shadow: var(--shadow-sm);
+
+  --card-pattern-size: 8rem;
+  --card-pattern-color: var(--color-primary);
+  --card-pattern-opacity: 0.02;
+  --card-pattern-hover-opacity: 0.02;
+
+  display: flex;
+  flex-direction: column;
+
+  inline-size: 100%;
+  min-inline-size: 0;
+
+  overflow: hidden;
+}
+
+/* ==========================================================================
+   Layering
+   ========================================================================== */
+
+.news-article__header,
+.news-article__content {
+  position: relative;
+  z-index: 1;
+}
+
+/* ==========================================================================
+   Header
+   ========================================================================== */
+
+.news-article__header {
+  display: flex;
+  align-items: center;
+
+  min-inline-size: 0;
+
+  padding-block: ds.space(4);
+  padding-inline: ds.space(5);
+
+  border-block-end: 1px solid var(--news-article-border);
+}
+
+/* ==========================================================================
+   Heading
+   ========================================================================== */
+
+.news-article__heading {
+  display: flex;
+  align-items: center;
+
+  gap: ds.space(3);
+
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Heading Icon
+   ========================================================================== */
+
+.news-article__heading-icon {
+  display: inline-grid;
+  place-items: center;
+
+  flex: 0 0 auto;
+
+  inline-size: 1.75rem;
+  block-size: 1.75rem;
+
+  color: var(--news-article-accent);
+
+  font-size: 1.75rem;
+  line-height: 1;
+}
+
+.news-article__heading-icon::before {
+  display: block;
+
+  margin: 0;
+
+  color: currentColor;
+
+  font-size: inherit;
+  line-height: 1;
+}
+
+/* ==========================================================================
+   Title
+   ========================================================================== */
+
+.news-article__title {
+  min-inline-size: 0;
+
+  margin: 0;
+
+  color: var(--news-article-heading);
+
+  font-size: var(--text-xl);
+  font-weight: ds.font-weight("heavy");
+  line-height: 1.2;
+
+  overflow-wrap: anywhere;
+  text-wrap: pretty;
+}
+
+/* ==========================================================================
+   Content
+   ========================================================================== */
+
+/*
+ * No fixed `ch` width.
+ *
+ * The article uses the complete width available inside the Card.
+ */
+
+.news-article__content {
+  inline-size: 100%;
+  min-inline-size: 0;
+
+  padding: ds.space(5);
+
+  color: var(--news-article-text);
+
+  font-size: var(--text-base);
+  line-height: 1.8;
+
+  overflow-wrap: anywhere;
+}
+
+/* ==========================================================================
+   First / Last Child
+   ========================================================================== */
+
+.news-article__content > :first-child {
+  margin-block-start: 0;
+}
+
+.news-article__content > :last-child {
+  margin-block-end: 0;
+}
+
+/* ==========================================================================
+   Paragraphs
+   ========================================================================== */
+
+.news-article__content p {
+  margin: 0;
+}
+
+.news-article__content p + p {
+  margin-block-start: ds.space(5);
+}
+
+/* ==========================================================================
+   Headings
+   ========================================================================== */
+
+.news-article__content h2,
+.news-article__content h3,
+.news-article__content h4 {
+  margin: 0;
+
+  color: var(--news-article-heading);
+
+  line-height: var(--line-height-tight);
+
+  text-wrap: pretty;
+}
+
+.news-article__content h2 {
+  margin-block-start: ds.space(10);
+
+  font-size: var(--text-2xl);
+  font-weight: ds.font-weight("heavy");
+}
+
+.news-article__content h3 {
+  margin-block-start: ds.space(8);
+
+  font-size: var(--text-xl);
+  font-weight: ds.font-weight("bold");
+}
+
+.news-article__content h4 {
+  margin-block-start: ds.space(6);
+
+  font-size: var(--text-lg);
+  font-weight: ds.font-weight("bold");
+}
+
+.news-article__content h2 + *,
+.news-article__content h3 + *,
+.news-article__content h4 + * {
+  margin-block-start: ds.space(3);
+}
+
+/* ==========================================================================
+   Links
+   ========================================================================== */
+
+.news-article__content a {
+  border-radius: var(--radius-sm);
+
+  color: var(--color-link);
+
+  font-weight: ds.font-weight("medium");
+
+  text-decoration-line: underline;
+  text-decoration-thickness: 0.08em;
+  text-underline-offset: 0.18em;
+
+  @include ds.transition(color, "fast");
+}
+
+.news-article__content a:visited {
+  color: var(--color-link);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .news-article__content a:hover {
+    color: var(--news-article-accent);
+  }
+}
+
+.news-article__content a:focus {
+  outline: none;
+}
+
+.news-article__content a:focus-visible {
+  @include ds.focus-ring;
+}
+
+/* ==========================================================================
+   Strong / Emphasis
+   ========================================================================== */
+
+.news-article__content strong,
+.news-article__content b {
+  color: var(--news-article-heading);
+
+  font-weight: ds.font-weight("bold");
+}
+
+.news-article__content em,
+.news-article__content i {
+  font-style: italic;
+}
+
+/* ==========================================================================
+   Lists
+   ========================================================================== */
+
+.news-article__content ul,
+.news-article__content ol {
+  display: grid;
+
+  gap: ds.space(2);
+
+  margin-block: ds.space(5);
+  margin-inline: 0;
+
+  padding-inline-start: 1.5rem;
+}
+
+.news-article__content li {
+  padding-inline-start: ds.space(1);
+}
+
+.news-article__content li::marker {
+  color: var(--news-article-accent);
+}
+
+/* ==========================================================================
+   Blockquote
+   ========================================================================== */
+
+.news-article__content blockquote {
+  margin-block: ds.space(8);
+  margin-inline: 0;
+
+  padding-block: ds.space(4);
+  padding-inline: ds.space(5);
+
+  border-inline-start: 3px solid var(--news-article-accent);
+  border-radius: 0 var(--radius-md) var(--radius-md) 0;
+
+  background: var(--color-surface-alt);
+  color: var(--news-article-text);
+
+  font-size: var(--text-base);
+  line-height: 1.75;
+}
+
+.news-article__content blockquote > :first-child {
+  margin-block-start: 0;
+}
+
+.news-article__content blockquote > :last-child {
+  margin-block-end: 0;
+}
+
+/* ==========================================================================
+   Numeric / LTR Content
+   ========================================================================== */
+
+.news-article__content [dir="ltr"] {
+  unicode-bidi: isolate;
+}
+
+/* ==========================================================================
+   Media
+   ========================================================================== */
+
+.news-article__content img,
+.news-article__content video,
+.news-article__content iframe {
+  display: block;
+
+  max-inline-size: 100%;
+
+  margin-block: ds.space(8);
+  margin-inline: auto;
+
+  border-radius: var(--radius-lg);
+}
+
+.news-article__content img {
+  block-size: auto;
+}
+
+/* ==========================================================================
+   Figure
+   ========================================================================== */
+
+.news-article__content figure {
+  margin-block: ds.space(8);
+  margin-inline: 0;
+}
+
+.news-article__content figure > img {
+  margin-block: 0;
+}
+
+.news-article__content figcaption {
+  margin-block-start: ds.space(2);
+
+  color: var(--news-article-muted);
+
+  font-size: var(--text-sm);
+  line-height: var(--line-height-normal);
+
+  text-align: center;
+}
+
+/* ==========================================================================
+   Horizontal Rule
+   ========================================================================== */
+
+.news-article__content hr {
+  margin-block: ds.space(10);
+
+  border: 0;
+  border-block-start: 1px solid var(--news-article-border);
+}
+
+/* ==========================================================================
+   Tablet
+   ========================================================================== */
+
+@include ds.respond-down("lg") {
+  .news-article__header {
+    padding-inline: ds.space(4);
+  }
+
+  .news-article__content {
+    padding: ds.space(4);
+  }
+}
+
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+
+@include ds.respond-down("sm") {
+  .news-article {
+    --card-radius: var(--radius-md);
+  }
+
+  /* --------------------------------------------------------------------------
+     Header
+     -------------------------------------------------------------------------- */
+
+  .news-article__header {
+    padding-block: ds.space(4);
+    padding-inline: ds.space(4);
+  }
+
+  /* --------------------------------------------------------------------------
+     Heading
+     -------------------------------------------------------------------------- */
+
+  .news-article__heading {
+    gap: ds.space(2);
+  }
+
+  /* --------------------------------------------------------------------------
+     Icon
+     -------------------------------------------------------------------------- */
+
+  .news-article__heading-icon {
+    inline-size: 1.5rem;
+    block-size: 1.5rem;
+
+    font-size: 1.5rem;
+  }
+
+  /* --------------------------------------------------------------------------
+     Title
+     -------------------------------------------------------------------------- */
+
+  .news-article__title {
+    font-size: var(--text-lg);
+    line-height: 1.25;
+  }
+
+  /* --------------------------------------------------------------------------
+     Content
+     -------------------------------------------------------------------------- */
+
+  .news-article__content {
+    padding: ds.space(4);
+
+    font-size: var(--text-sm);
+    line-height: 1.75;
+  }
+
+  .news-article__content p + p {
+    margin-block-start: ds.space(4);
+  }
+
+  /* --------------------------------------------------------------------------
+     Headings
+     -------------------------------------------------------------------------- */
+
+  .news-article__content h2 {
+    margin-block-start: ds.space(8);
+
+    font-size: var(--text-xl);
+  }
+
+  .news-article__content h3 {
+    margin-block-start: ds.space(6);
+
+    font-size: var(--text-lg);
+  }
+
+  .news-article__content h4 {
+    margin-block-start: ds.space(5);
+
+    font-size: var(--text-base);
+  }
+
+  /* --------------------------------------------------------------------------
+     Blockquote
+     -------------------------------------------------------------------------- */
+
+  .news-article__content blockquote {
+    margin-block: ds.space(6);
+
+    padding-block: ds.space(3);
+    padding-inline: ds.space(4);
+
+    font-size: var(--text-base);
+  }
+
+  /* --------------------------------------------------------------------------
+     Media
+     -------------------------------------------------------------------------- */
+
+  .news-article__content img,
+  .news-article__content video,
+  .news-article__content iframe,
+  .news-article__content figure {
+    margin-block: ds.space(6);
+  }
+}
+
+/* ==========================================================================
+   RTL
+   ========================================================================== */
+
+html[dir="rtl"] .news-detail-content,
+html[dir="rtl"] .news-article {
+  text-align: start;
+}
+
+html[dir="rtl"] .news-article__content blockquote {
+  border-inline-start: 3px solid var(--news-article-accent);
+
+  border-radius: var(--radius-md) 0 0 var(--radius-md);
+}
+
+/* ==========================================================================
+   Dark Theme
+   ========================================================================== */
+
+html[data-theme="dark"] .news-article {
+  --card-pattern-opacity: 0.04;
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] .news-article {
+  border-color: currentColor;
+
+  box-shadow: none;
+}
+
+html[data-contrast="high"] .news-article__header {
+  border-block-end-width: 2px;
+  border-color: currentColor;
+}
+
+html[data-contrast="high"] .news-article__heading-icon,
+html[data-contrast="high"] .news-article__title,
+html[data-contrast="high"] .news-article__content {
+  color: currentColor;
+}
+
+html[data-contrast="high"] .news-article__content h2,
+html[data-contrast="high"] .news-article__content h3,
+html[data-contrast="high"] .news-article__content h4,
+html[data-contrast="high"] .news-article__content strong,
+html[data-contrast="high"] .news-article__content b {
+  color: currentColor;
+}
+
+html[data-contrast="high"] .news-article__content blockquote,
+html[data-contrast="high"] .news-article__content hr {
+  border-color: currentColor;
+}
+
+/* ==========================================================================
+   Forced Colors
+   ========================================================================== */
+
+@media (forced-colors: active) {
+  .news-article {
+    border-color: CanvasText;
+
+    background: Canvas;
+    color: CanvasText;
+
+    box-shadow: none;
+  }
+
+  .news-article__header {
+    border-color: CanvasText;
+  }
+
+  .news-article__heading-icon,
+  .news-article__title,
+  .news-article__content,
+  .news-article__content h2,
+  .news-article__content h3,
+  .news-article__content h4,
+  .news-article__content strong,
+  .news-article__content b,
+  .news-article__content blockquote {
+    color: CanvasText;
+  }
+
+  .news-article__content a {
+    color: LinkText;
+  }
+
+  .news-article__content blockquote,
+  .news-article__content hr {
+    border-color: CanvasText;
+  }
+}
+
+/* ==========================================================================
+   Print
+   ========================================================================== */
+
+@media print {
+  .news-detail-content {
+    padding-block: 1rem;
+  }
+
+  .news-article {
+    --card-pattern-opacity: 0;
+
+    break-inside: avoid;
+
+    border-color: #000000;
+
+    background: #ffffff;
+    color: #000000;
+
+    box-shadow: none;
+  }
+
+  .news-article__header {
+    border-color: #000000;
+  }
+
+  .news-article__heading-icon,
+  .news-article__title,
+  .news-article__content,
+  .news-article__content h2,
+  .news-article__content h3,
+  .news-article__content h4,
+  .news-article__content strong,
+  .news-article__content b,
+  .news-article__content a,
+  .news-article__content blockquote {
+    color: #000000;
+  }
+
+  .news-article__content {
+    font-size: 11pt;
+    line-height: 1.6;
+  }
+
+  .news-article__content a {
+    text-decoration: underline;
+  }
+
+  .news-article__content blockquote,
+  .news-article__content hr {
+    border-color: #000000;
+  }
+
+  .news-article__content img,
+  .news-article__content figure {
+    break-inside: avoid;
+  }
+}

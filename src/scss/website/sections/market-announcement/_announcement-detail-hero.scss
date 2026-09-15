@@ -1,0 +1,720 @@
+@use "../../../design-system/abstracts" as ds;
+
+/* ==========================================================================
+   Announcement Detail Hero
+   ========================================================================== */
+
+/*
+ * Company-focused Hero for Announcement Detail pages.
+ *
+ * Shared ownership:
+ *
+ * `.hero-section`
+ *   - outer Hero structure
+ *   - general Hero spacing
+ *
+ * `.surface-hero`
+ *   - branded Hero surface
+ *
+ * `.hero-section__background`
+ *   - decorative background treatment
+ *
+ * Existing financial components own:
+ *
+ * `.instrument-price`
+ * `.price-up`
+ * `.price-down`
+ *
+ * Announcement Detail Hero owns:
+ *
+ * - company identity
+ * - company logo
+ * - announcement context
+ * - announcement headline
+ * - trading identity placement
+ * - market price placement
+ * - publication date/time
+ * - Share placement
+ *
+ * Share appearance belongs exclusively to:
+ *
+ * `_announcement-share.scss`
+ */
+
+/* ==========================================================================
+   Root
+   ========================================================================== */
+
+.announcement-detail-hero {
+  --announcement-detail-hero-logo-size: 5rem;
+  --announcement-detail-hero-content-gap: #{ds.space(5)};
+  --announcement-detail-hero-identity-gap: #{ds.space(5)};
+
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Background
+   ========================================================================== */
+
+.announcement-detail-hero__background {
+  pointer-events: none;
+}
+
+/* ==========================================================================
+   Inner
+   ========================================================================== */
+
+/*
+ * `.hero-section__content` already controls the Hero's outer spacing.
+ *
+ * Do not introduce another layer of block padding here.
+ */
+
+.announcement-detail-hero__inner {
+  display: grid;
+  align-content: start;
+
+  gap: var(--announcement-detail-hero-content-gap);
+
+  inline-size: 100%;
+  min-inline-size: 0;
+
+  padding-block: 0;
+}
+
+/* ==========================================================================
+   Header
+   ========================================================================== */
+
+.announcement-detail-hero__header {
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Company Identity
+   ========================================================================== */
+
+.announcement-detail-hero__identity {
+  display: grid;
+  grid-template-columns:
+    var(--announcement-detail-hero-logo-size)
+    minmax(0, 1fr);
+
+  align-items: start;
+
+  gap: var(--announcement-detail-hero-identity-gap);
+
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Company Media
+   ========================================================================== */
+
+.announcement-detail-hero__media {
+  position: relative;
+
+  inline-size: var(--announcement-detail-hero-logo-size);
+  block-size: var(--announcement-detail-hero-logo-size);
+
+  overflow: hidden;
+
+  border: 1px solid rgb(255 255 255 / 0.26);
+  border-radius: var(--radius-lg);
+
+  background: #ffffff;
+}
+
+/* ==========================================================================
+   Company Logo
+   ========================================================================== */
+
+/*
+ * Logo artwork fills the complete media square.
+ */
+
+.announcement-detail-hero__logo {
+  display: block;
+
+  inline-size: 100%;
+  block-size: 100%;
+
+  object-fit: cover;
+  object-position: center;
+}
+
+/* ==========================================================================
+   Heading
+   ========================================================================== */
+
+.announcement-detail-hero__heading {
+  display: grid;
+  align-content: start;
+
+  gap: ds.space(3);
+
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Context
+   ========================================================================== */
+
+.announcement-detail-hero__context {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+
+  gap: ds.space(2);
+
+  min-inline-size: 0;
+
+  font-size: var(--text-sm);
+  line-height: var(--line-height-normal);
+}
+
+/* ==========================================================================
+   Eyebrow
+   ========================================================================== */
+
+.announcement-detail-hero__eyebrow {
+  color: #ffffff;
+
+  font-weight: ds.font-weight("bold");
+}
+
+/* ==========================================================================
+   Context Separator
+   ========================================================================== */
+
+.announcement-detail-hero__context-separator {
+  flex: 0 0 auto;
+
+  color: rgb(255 255 255 / 0.56);
+}
+
+/* ==========================================================================
+   Company Name
+   ========================================================================== */
+
+.announcement-detail-hero__company {
+  min-inline-size: 0;
+
+  color: rgb(255 255 255 / 0.8);
+
+  font-weight: ds.font-weight("medium");
+
+  overflow-wrap: anywhere;
+}
+
+/* ==========================================================================
+   Title
+   ========================================================================== */
+
+/*
+ * Announcement headlines can be long.
+ *
+ * Allow them to use the available Hero width before wrapping.
+ */
+
+.announcement-detail-hero__title {
+  inline-size: 100%;
+  max-inline-size: none;
+
+  margin: 0;
+
+  color: #ffffff;
+
+  font-size: clamp(var(--text-2xl), 2.35vw, var(--text-4xl));
+
+  font-weight: ds.font-weight("heavy");
+  line-height: 1.13;
+
+  letter-spacing: -0.015em;
+
+  overflow-wrap: break-word;
+  text-wrap: pretty;
+}
+
+/* ==========================================================================
+   Trading Summary
+   ========================================================================== */
+
+/*
+ * Trading information is intentionally grouped vertically:
+ *
+ * [3092] [RIYADH CEMENT]
+ *
+ * ﷼ 22.46
+ * ▼ −1.16 (-4.91%)
+ *
+ * This follows the same information hierarchy as the Company Profile Hero.
+ */
+
+.announcement-detail-hero__market {
+  display: flex;
+  align-items: flex-start;
+  flex-direction: column;
+
+  gap: ds.space(4);
+
+  min-inline-size: 0;
+
+  padding-inline-start: calc(
+    var(--announcement-detail-hero-logo-size) +
+      var(--announcement-detail-hero-identity-gap)
+  );
+}
+
+/* ==========================================================================
+   Trading Identity
+   ========================================================================== */
+
+.announcement-detail-hero__codes {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+
+  gap: ds.space(2);
+
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Trading Code
+   ========================================================================== */
+
+.announcement-detail-hero__code {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  min-block-size: 2.25rem;
+
+  padding-block: ds.space(2);
+  padding-inline: ds.space(4);
+
+  border: 1px solid rgb(255 255 255 / 0.26);
+  border-radius: var(--radius-pill);
+
+  background: rgb(255 255 255 / 0.06);
+  color: #ffffff;
+
+  font-size: var(--text-sm);
+  font-weight: ds.font-weight("bold");
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+
+  white-space: nowrap;
+}
+
+/* ==========================================================================
+   Trading Symbol
+   ========================================================================== */
+
+.announcement-detail-hero__symbol {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  min-block-size: 2.25rem;
+
+  padding-block: ds.space(2);
+  padding-inline: ds.space(4);
+
+  border: 1px solid rgb(255 255 255 / 0.26);
+  border-radius: var(--radius-pill);
+
+  background: rgb(255 255 255 / 0.06);
+  color: #ffffff;
+
+  font-size: var(--text-sm);
+  font-weight: ds.font-weight("bold");
+  line-height: 1;
+
+  white-space: nowrap;
+}
+
+/* ==========================================================================
+   Price
+   ========================================================================== */
+
+/*
+ * `.instrument-price` owns the internal presentation.
+ *
+ * This component only controls placement.
+ */
+
+.announcement-detail-hero__price {
+  flex: 0 0 auto;
+
+  align-self: flex-start;
+}
+
+/* ==========================================================================
+   Price Scale
+   ========================================================================== */
+
+/*
+ * The announcement Hero should remain slightly more compact than the full
+ * Company Profile Hero while preserving the same visual language.
+ */
+
+.announcement-detail-hero__price .instrument-price__current {
+  justify-content: flex-start;
+}
+
+.announcement-detail-hero__price .instrument-price__value {
+  font-size: clamp(var(--text-3xl), 3vw, var(--text-4xl));
+}
+
+.announcement-detail-hero__price .instrument-price__change {
+  justify-content: flex-start;
+}
+
+/* ==========================================================================
+   Footer
+   ========================================================================== */
+
+.announcement-detail-hero__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: ds.space(4);
+
+  min-inline-size: 0;
+
+  padding-block-start: ds.space(4);
+
+  border-block-start: 1px solid rgb(255 255 255 / 0.18);
+}
+
+/* ==========================================================================
+   Publication Date / Time
+   ========================================================================== */
+
+/*
+ * Preserve the backend display format exactly:
+ *
+ * 14/09/2026 16:02:52
+ */
+
+.announcement-detail-hero__published {
+  direction: ltr;
+  unicode-bidi: isolate;
+
+  flex: 0 0 auto;
+
+  color: rgb(255 255 255 / 0.9);
+
+  font-size: var(--text-sm);
+  font-weight: ds.font-weight("medium");
+  font-variant-numeric: tabular-nums;
+  line-height: var(--line-height-normal);
+
+  white-space: nowrap;
+}
+
+/* ==========================================================================
+   Share Placement
+   ========================================================================== */
+
+/*
+ * `_announcement-share.scss` owns all visual styling.
+ *
+ * Hero controls placement only.
+ */
+
+.announcement-detail-hero__footer .announcement-share {
+  flex: 0 0 auto;
+
+  margin-inline-start: auto;
+}
+
+/* ==========================================================================
+   Tablet
+   ========================================================================== */
+
+@include ds.respond-down("lg") {
+  .announcement-detail-hero {
+    --announcement-detail-hero-logo-size: 4.5rem;
+    --announcement-detail-hero-content-gap: #{ds.space(5)};
+    --announcement-detail-hero-identity-gap: #{ds.space(4)};
+  }
+
+  /* --------------------------------------------------------------------------
+     Title
+     -------------------------------------------------------------------------- */
+
+  .announcement-detail-hero__title {
+    font-size: clamp(var(--text-xl), 3.5vw, var(--text-3xl));
+  }
+
+  /* --------------------------------------------------------------------------
+     Trading Summary
+     -------------------------------------------------------------------------- */
+
+  .announcement-detail-hero__market {
+    gap: ds.space(3);
+
+    padding-inline-start: calc(
+      var(--announcement-detail-hero-logo-size) +
+        var(--announcement-detail-hero-identity-gap)
+    );
+  }
+
+  /* --------------------------------------------------------------------------
+     Price
+     -------------------------------------------------------------------------- */
+
+  .announcement-detail-hero__price .instrument-price__value {
+    font-size: var(--text-3xl);
+  }
+}
+
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+
+@include ds.respond-down("sm") {
+  .announcement-detail-hero {
+    --announcement-detail-hero-logo-size: 3.75rem;
+    --announcement-detail-hero-content-gap: #{ds.space(4)};
+    --announcement-detail-hero-identity-gap: #{ds.space(3)};
+  }
+
+  /* --------------------------------------------------------------------------
+     Identity
+     -------------------------------------------------------------------------- */
+
+  .announcement-detail-hero__identity {
+    grid-template-columns:
+      var(--announcement-detail-hero-logo-size)
+      minmax(0, 1fr);
+  }
+
+  /* --------------------------------------------------------------------------
+     Media
+     -------------------------------------------------------------------------- */
+
+  .announcement-detail-hero__media {
+    border-radius: var(--radius-md);
+  }
+
+  /* --------------------------------------------------------------------------
+     Heading
+     -------------------------------------------------------------------------- */
+
+  .announcement-detail-hero__heading {
+    gap: ds.space(2);
+  }
+
+  /* --------------------------------------------------------------------------
+     Context
+     -------------------------------------------------------------------------- */
+
+  .announcement-detail-hero__context {
+    gap: ds.space(1) ds.space(2);
+
+    font-size: var(--text-xs);
+  }
+
+  /* --------------------------------------------------------------------------
+     Title
+     -------------------------------------------------------------------------- */
+
+  .announcement-detail-hero__title {
+    font-size: var(--text-xl);
+    line-height: 1.18;
+
+    letter-spacing: normal;
+  }
+
+  /* --------------------------------------------------------------------------
+     Trading Summary
+     -------------------------------------------------------------------------- */
+
+  .announcement-detail-hero__market {
+    gap: ds.space(3);
+
+    padding-inline-start: 0;
+  }
+
+  /* --------------------------------------------------------------------------
+     Trading Codes
+     -------------------------------------------------------------------------- */
+
+  .announcement-detail-hero__code,
+  .announcement-detail-hero__symbol {
+    min-block-size: 2rem;
+
+    padding-block: ds.space(1);
+    padding-inline: ds.space(3);
+
+    font-size: var(--text-xs);
+  }
+
+  /* --------------------------------------------------------------------------
+     Price
+     -------------------------------------------------------------------------- */
+
+  .announcement-detail-hero__price .instrument-price__value {
+    font-size: var(--text-2xl);
+  }
+
+  /* --------------------------------------------------------------------------
+     Footer
+     -------------------------------------------------------------------------- */
+
+  .announcement-detail-hero__footer {
+    gap: ds.space(3);
+
+    padding-block-start: ds.space(3);
+  }
+
+  /* --------------------------------------------------------------------------
+     Publication
+     -------------------------------------------------------------------------- */
+
+  .announcement-detail-hero__published {
+    font-size: var(--text-xs);
+  }
+}
+
+/* ==========================================================================
+   Narrow Mobile
+   ========================================================================== */
+
+@media (max-width: 27rem) {
+  /*
+   * Give long headlines the complete width on narrow devices.
+   */
+
+  .announcement-detail-hero__identity {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .announcement-detail-hero__media {
+    justify-self: start;
+  }
+}
+
+/* ==========================================================================
+   RTL
+   ========================================================================== */
+
+html[dir="rtl"] .announcement-detail-hero {
+  text-align: start;
+}
+
+/*
+ * Preserve trading identity and publication sequences in LTR.
+ */
+
+html[dir="rtl"] .announcement-detail-hero__codes,
+html[dir="rtl"] .announcement-detail-hero__published {
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+
+html[dir="rtl"] .announcement-detail-hero__title {
+  letter-spacing: normal;
+}
+
+/* ==========================================================================
+   Dark Theme
+   ========================================================================== */
+
+html[data-theme="dark"] .announcement-detail-hero__media {
+  border-color: rgb(255 255 255 / 0.3);
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] .announcement-detail-hero__media,
+html[data-contrast="high"] .announcement-detail-hero__code,
+html[data-contrast="high"] .announcement-detail-hero__symbol {
+  border-width: 2px;
+  border-color: currentColor;
+}
+
+html[data-contrast="high"] .announcement-detail-hero__footer {
+  border-block-start-width: 2px;
+  border-color: currentColor;
+}
+
+html[data-contrast="high"] .announcement-detail-hero__eyebrow,
+html[data-contrast="high"] .announcement-detail-hero__company,
+html[data-contrast="high"] .announcement-detail-hero__published {
+  color: currentColor;
+}
+
+/* ==========================================================================
+   Forced Colors
+   ========================================================================== */
+
+@media (forced-colors: active) {
+  .announcement-detail-hero__media {
+    border-color: CanvasText;
+
+    background: Canvas;
+  }
+
+  .announcement-detail-hero__code,
+  .announcement-detail-hero__symbol {
+    border-color: CanvasText;
+
+    background: Canvas;
+    color: CanvasText;
+  }
+
+  .announcement-detail-hero__footer {
+    border-color: CanvasText;
+  }
+
+  .announcement-detail-hero__eyebrow,
+  .announcement-detail-hero__company,
+  .announcement-detail-hero__title,
+  .announcement-detail-hero__published {
+    color: CanvasText;
+  }
+}
+
+/* ==========================================================================
+   Print
+   ========================================================================== */
+
+@media print {
+  .announcement-detail-hero__media {
+    border-color: #000000;
+
+    background: #ffffff;
+  }
+
+  .announcement-detail-hero__code,
+  .announcement-detail-hero__symbol {
+    border-color: #000000;
+
+    background: transparent;
+    color: #000000;
+  }
+
+  .announcement-detail-hero__eyebrow,
+  .announcement-detail-hero__company,
+  .announcement-detail-hero__title,
+  .announcement-detail-hero__published {
+    color: #000000;
+  }
+
+  .announcement-detail-hero__footer {
+    border-color: #000000;
+  }
+
+  .announcement-detail-hero .announcement-share {
+    display: none;
+  }
+}

@@ -513,11 +513,24 @@
    RTL
    ========================================================================== */
 
-html[dir="rtl"] .card::before {
-  transform-origin: left bottom;
+/*
+ * The shared financial pattern is directional artwork.
+ *
+ * Logical positioning already moves the pattern from the bottom-end corner
+ * in LTR to the bottom-end corner in RTL. Mirror the artwork itself as well
+ * so its visual flow follows the document direction.
+ *
+ * Use the independent `scale` property rather than `transform` because Card
+ * variants use `transform` for hover/focus animation.
+ */
 
+html[dir="rtl"] .card::before {
   -webkit-mask-position: left bottom;
   mask-position: left bottom;
+
+  transform-origin: center bottom;
+
+  scale: -1 1;
 }
 
 /* ==========================================================================
