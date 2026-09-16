@@ -553,3 +553,867 @@ window.DROPDOWN_CONFIG = {
 	src="${pageContext.request.contextPath}/js/historical.table.engine.js"></script>
 <script
 	src="${pageContext.request.contextPath}/js/historical.feature.manager.js"></script>
+
+
+	<%-- ==========================================================================
+     Historical Reports Hero
+     ========================================================================== --%>
+
+<section
+  class="hero-section surface-hero"
+  aria-labelledby="historical-reports-title"
+>
+  <div class="hero-section__background" aria-hidden="true"></div>
+
+  <div class="container hero-section__content">
+    <header class="hero-intro">
+      <div class="hero-intro__header">
+        <div class="hero-intro__brand">
+          <span
+            class="hero-intro__icon has-icon icon-tadawul"
+            aria-hidden="true"
+          ></span>
+
+          <h2 id="historical-reports-title" class="hero-intro__title">
+            <fmt:message key="page.header" />
+          </h2>
+        </div>
+      </div>
+    </header>
+  </div>
+</section>
+<%-- ==========================================================================
+     Historical Reports Filters
+     ========================================================================== --%>
+
+<section
+  class="section historical-filters pb-0"
+  aria-labelledby="historical-filters-title"
+>
+  <div class="container">
+    <form
+      class="filter-bar"
+      data-historical-filters
+      aria-labelledby="historical-filters-title"
+      novalidate
+    >
+      <h2 class="visually-hidden" id="historical-filters-title">
+        <fmt:message key="page.header" />
+      </h2>
+
+      <div class="filter-bar__inner">
+        <div class="filter-bar__fields grid-4">
+          <!-- ===================== MARKET ===================== -->
+          <div class="filter-bar__field">
+            <label class="form-label" for="historical-market">
+              <fmt:message key="market.title" />
+              <span class="form-required" aria-hidden="true">*</span>
+            </label>
+
+            <div class="custom-select" data-custom-select data-searchable>
+              <div class="form-select-wrap custom-select__fallback">
+                <select
+                  class="form-select custom-select__native"
+                  id="historical-market"
+                  name="market"
+                  data-historical-market
+                  required
+                >
+                  <option
+                    value="-1"
+                    <c:if test="${empty requestScope.selectedMarket or requestScope.selectedMarket eq '-1'}">selected</c:if>
+                  >
+                    <fmt:message key="market.default.value" />
+                  </option>
+
+                  <c:forEach items="${requestScope.marketIndicesList}" var="item">
+                    <option
+                      value="<c:out value='${item.value}' />"
+                      <c:if test="${item.value == requestScope.selectedMarket}">selected</c:if>
+                    >
+                      <c:out value="${item.text}" />
+                    </option>
+                  </c:forEach>
+                </select>
+
+                <span
+                  class="form-select-icon has-icon icon-chevron-down"
+                  aria-hidden="true"
+                ></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- ===================== SECTOR ===================== -->
+          <div class="filter-bar__field">
+            <label class="form-label" for="historical-sector">
+              <fmt:message key="sector.title" />
+            </label>
+
+            <div
+              class="custom-select"
+              data-custom-select
+              data-searchable
+              data-clearable
+            >
+              <div class="form-select-wrap custom-select__fallback">
+                <select
+                  class="form-select custom-select__native"
+                  id="historical-sector"
+                  name="sector"
+                  data-historical-sector
+                >
+                  <option
+                    value="0"
+                    <c:if test="${empty requestScope.selectedSector or requestScope.selectedSector eq '0'}">selected</c:if>
+                  >
+                    <fmt:message key="sector.default.value" />
+                  </option>
+
+                  <c:forEach items="${requestScope.sectorList}" var="item">
+                    <option
+                      value="<c:out value='${item.dropdownValue}' />"
+                      <c:if test="${item.dropdownValue == requestScope.selectedSector}">selected</c:if>
+                    >
+                      <c:out value="${item.name}" />
+                    </option>
+                  </c:forEach>
+                </select>
+
+                <span
+                  class="form-select-icon has-icon icon-chevron-down"
+                  aria-hidden="true"
+                ></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- ===================== ENTITY ===================== -->
+          <div class="filter-bar__field">
+            <label class="form-label" for="historical-entity">
+              <fmt:message key="entity.title" />
+              <span class="form-required" aria-hidden="true">*</span>
+            </label>
+
+            <div class="custom-select" data-custom-select data-searchable>
+              <div class="form-select-wrap custom-select__fallback">
+                <select
+                  class="form-select custom-select__native"
+                  id="historical-entity"
+                  name="entity"
+                  data-historical-entity
+                  required
+                >
+                  <option
+                    value="0"
+                    <c:if test="${empty requestScope.selectedEntity or requestScope.selectedEntity eq '0'}">selected</c:if>
+                  >
+                    <fmt:message key="entity.default.value" />
+                  </option>
+
+                  <c:forEach items="${requestScope.entityList}" var="item">
+                    <option
+                      value="<c:out value='${item.entitySymbol}' />"
+                      <c:if test="${item.entitySymbol == requestScope.selectedEntity}">selected</c:if>
+                    >
+                      <c:out value="${item.entityName}" />
+                    </option>
+                  </c:forEach>
+                </select>
+
+                <span
+                  class="form-select-icon has-icon icon-chevron-down"
+                  aria-hidden="true"
+                ></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- ===================== TRADE TYPE ===================== -->
+          <!--
+            Hidden by default. historical.rules.js reveals this field only
+            when market is SUKUK and sector is G or S.
+          -->
+
+          <div class="filter-bar__field" id="tradeTypeFilter" hidden>
+            <label class="form-label" for="historical-trade-type">
+              <fmt:message key="trade.title" />
+            </label>
+
+            <div class="custom-select" data-custom-select>
+              <div class="form-select-wrap custom-select__fallback">
+                <select
+                  class="form-select custom-select__native"
+                  id="historical-trade-type"
+                  name="tradeType"
+                  data-historical-trade-type
+                >
+                  <option value="OB" selected>
+                    <fmt:message key="type.of.trade.option.1" />
+                  </option>
+
+                  <option value="OTC">
+                    <fmt:message key="type.of.trade.option.2" />
+                  </option>
+
+                  <option value="ND">
+                    <fmt:message key="type.of.trade.option.3" />
+                  </option>
+                </select>
+
+                <span
+                  class="form-select-icon has-icon icon-chevron-down"
+                  aria-hidden="true"
+                ></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- ===================== DATE RANGE ===================== -->
+          <fieldset class="filter-bar__field form-fieldset">
+            <legend class="form-label">
+              <fmt:message key="filter.date" />
+              <span class="form-required" aria-hidden="true">*</span>
+            </legend>
+
+            <div
+              class="custom-date custom-date--range"
+              data-custom-date-range
+              data-placeholder="YYYY-MM-DD – YYYY-MM-DD"
+            >
+              <div class="custom-date__fallback">
+                <div class="custom-date__native-range">
+                  <input
+                    class="form-control custom-date__native"
+                    id="historical-date-start"
+                    name="startDate"
+                    type="date"
+                    data-date-start
+                    data-historical-date-start
+                    aria-label="<fmt:message key='filter.date' /> start"
+                    required
+                  />
+
+                  <input
+                    class="form-control custom-date__native"
+                    id="historical-date-end"
+                    name="endDate"
+                    type="date"
+                    data-date-end
+                    data-historical-date-end
+                    aria-label="<fmt:message key='filter.date' /> end"
+                    required
+                  />
+                </div>
+
+                <div class="custom-date__initial-trigger" aria-hidden="true">
+                  <span class="custom-date__initial-value is-placeholder">
+                    YYYY-MM-DD – YYYY-MM-DD
+                  </span>
+
+                  <span
+                    class="custom-date__initial-indicator has-icon icon-calendar-scheduler"
+                    aria-hidden="true"
+                  ></span>
+                </div>
+              </div>
+            </div>
+          </fieldset>
+        </div>
+
+        <!-- ===================== ACTIONS ===================== -->
+        <div class="filter-bar__actions">
+          <button
+            id="historicalResetBtn"
+            type="button"
+            class="btn btn-outline-primary"
+            data-historical-reset
+          >
+            <span><fmt:message key="reset.btn.title" /></span>
+            <span
+              class="has-icon icon-sync-refresh icon-md"
+              aria-hidden="true"
+            ></span>
+          </button>
+        </div>
+      </div>
+
+      <p
+        id="historicalFilterMessage"
+        class="form-error"
+        aria-live="polite"
+        hidden
+      ></p>
+    </form>
+  </div>
+</section>
+<%-- ==========================================================================
+     Historical Reports Content
+     ========================================================================== --%>
+
+<section class="section">
+  <div class="container">
+    <!-- ======================================================================
+         Tabs
+
+         Fixed to match tabs.controller.js's selectors exactly:
+         - root needs BOTH .tabs class AND data-tabs attribute (legacy had
+           data-tabs on a different, unrelated wrapper)
+         - tabs use role="tab" + data-tab-target (not data-tab-content)
+         - panels use role="tabpanel" and live directly under .tabs-content
+         data-tab is kept alongside data-tab-target so historical.feature-
+         manager.js can read a stable semantic key ("performance") rather
+         than a DOM id.
+         ====================================================================== -->
+
+    <div class="tabs" data-tabs>
+      <div class="tabs-nav" role="tablist">
+        <button
+          type="button"
+          class="tab-link"
+          role="tab"
+          id="historical-tab-performance"
+          data-tab="performance"
+          data-tab-target="historical-panel-performance"
+          aria-selected="true"
+        >
+          <fmt:message key="performance.tab.title" />
+        </button>
+
+        <button
+          type="button"
+          class="tab-link"
+          role="tab"
+          id="historical-tab-unadjusted"
+          data-tab="unadjusted"
+          data-tab-target="historical-panel-unadjusted"
+          aria-selected="false"
+          tabindex="-1"
+        >
+          <fmt:message key="unadjust.price.tab.title" />
+        </button>
+      </div>
+
+      <div class="tabs-content">
+        <!-- ==================================================================
+             Performance Panel
+             ================================================================== -->
+
+        <section
+          class="tab-pane"
+          role="tabpanel"
+          id="historical-panel-performance"
+        >
+          <div class="data-view" data-historical-view="performance">
+            <div class="data-view__workspace">
+              <div class="data-view__table">
+                <div class="table-shell" data-table-shell>
+                  <section
+                    class="table-responsive custom-scrollbar"
+                    tabindex="0"
+                    role="region"
+                    aria-label="<fmt:message key='performance.tab.title' />"
+                  >
+                    <table
+                      id="historical-performance-table"
+                      class="table table-hover table-nowrap"
+                      data-historical-table="performance"
+                      aria-busy="true"
+                    >
+                      <caption class="visually-hidden">
+                        <fmt:message key="performance.tab.title" />
+                      </caption>
+
+                      <thead>
+                        <tr></tr>
+                      </thead>
+
+                      <tbody></tbody>
+                    </table>
+                  </section>
+
+                  <button
+                    type="button"
+                    class="table-scroll-jump has-icon icon-chevron-right-bold icon-md icon-flip-rtl"
+                    data-table-scroll-jump
+                    data-table-scroll-direction="end"
+                    aria-label="Jump to last columns"
+                    title="Jump to last columns"
+                    hidden
+                  >
+                    <span class="visually-hidden">Jump to last columns</span>
+                  </button>
+                </div>
+              </div>
+
+              <div
+                class="data-view__cards"
+                data-historical-mobile="performance"
+              >
+                <div
+                  class="data-view__cards-inner"
+                  data-historical-mobile-cards="performance"
+                  aria-busy="true"
+                ></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ==================================================================
+             Unadjusted Price Panel
+             ================================================================== -->
+
+        <section
+          class="tab-pane"
+          role="tabpanel"
+          id="historical-panel-unadjusted"
+          hidden
+        >
+          <div class="data-view" data-historical-view="unadjusted">
+            <div class="data-view__workspace">
+              <div class="data-view__table">
+                <div class="table-shell" data-table-shell>
+                  <section
+                    class="table-responsive custom-scrollbar"
+                    tabindex="0"
+                    role="region"
+                    aria-label="<fmt:message key='unadjust.price.tab.title' />"
+                  >
+                    <table
+                      id="historical-unadjusted-table"
+                      class="table table-hover table-nowrap"
+                      data-historical-table="unadjusted"
+                      aria-busy="true"
+                    >
+                      <caption class="visually-hidden">
+                        <fmt:message key="unadjust.price.tab.title" />
+                      </caption>
+
+                      <thead>
+                        <tr></tr>
+                      </thead>
+
+                      <tbody></tbody>
+                    </table>
+                  </section>
+
+                  <button
+                    type="button"
+                    class="table-scroll-jump has-icon icon-chevron-right-bold icon-md icon-flip-rtl"
+                    data-table-scroll-jump
+                    data-table-scroll-direction="end"
+                    aria-label="Jump to last columns"
+                    title="Jump to last columns"
+                    hidden
+                  >
+                    <span class="visually-hidden">Jump to last columns</span>
+                  </button>
+                </div>
+              </div>
+
+              <div
+                class="data-view__cards"
+                data-historical-mobile="unadjusted"
+              >
+                <div
+                  class="data-view__cards-inner"
+                  data-historical-mobile-cards="unadjusted"
+                  aria-busy="true"
+                ></div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <!-- ======================================================================
+         Derivatives Underlying (Single Stock Options)
+
+         Not a tab. historical.rules.js shows this in place of the tabs
+         entirely when the market/sector combination resolves to
+         isDerivativeUnderlying. Kept as a sibling section, matching legacy.
+         ====================================================================== -->
+
+    <section
+      id="historical-underlying-section"
+      aria-labelledby="historical-underlying-title"
+      hidden
+    >
+      <h2 class="visually-hidden" id="historical-underlying-title">
+        <fmt:message key="derivatives.market.watch.sso" />
+      </h2>
+
+      <div class="data-view" data-historical-view="underlying">
+        <div class="data-view__workspace">
+          <div class="data-view__table">
+            <div class="table-shell" data-table-shell>
+              <section
+                class="table-responsive custom-scrollbar"
+                tabindex="0"
+                role="region"
+                aria-label="<fmt:message key='derivatives.market.watch.sso' />"
+              >
+                <table
+                  id="historical-underlying-table"
+                  class="table table-hover table-nowrap"
+                  data-historical-table="underlying"
+                  aria-busy="true"
+                >
+                  <caption class="visually-hidden">
+                    <fmt:message key="derivatives.market.watch.sso" />
+                  </caption>
+
+                  <thead>
+                    <tr></tr>
+                  </thead>
+
+                  <tbody></tbody>
+                </table>
+              </section>
+
+              <button
+                type="button"
+                class="table-scroll-jump has-icon icon-chevron-right-bold icon-md icon-flip-rtl"
+                data-table-scroll-jump
+                data-table-scroll-direction="end"
+                aria-label="Jump to last columns"
+                title="Jump to last columns"
+                hidden
+              >
+                <span class="visually-hidden">Jump to last columns</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="data-view__cards" data-historical-mobile="underlying">
+            <div
+              class="data-view__cards-inner"
+              data-historical-mobile-cards="underlying"
+              aria-busy="true"
+            ></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================================
+         Notes
+         ====================================================================== -->
+
+    <div
+      class="alert alert-info mt-6"
+      id="historical-note"
+      data-historical-note="default"
+      role="note"
+      hidden
+    >
+      <p id="historical-note-text" data-historical-note-text></p>
+    </div>
+
+    <div
+      class="alert alert-info mt-6"
+      id="historical-note-derivatives"
+      data-historical-note="derivatives"
+      role="note"
+      hidden
+    >
+      <p id="historical-note-derivatives-text" data-historical-note-text></p>
+    </div>
+
+    <!-- ======================================================================
+         Empty / Invalid / No-data Placeholder
+         ====================================================================== -->
+
+    <section
+      id="historical-empty-state"
+      class="text-center py-8"
+      hidden
+    >
+      <img
+        id="historical-empty-image"
+        src="${pageContext.request.contextPath}/images/no-data.png"
+        class="w-100"
+        style="max-width: 300px; margin-inline: auto;"
+        alt=""
+        hidden
+      />
+
+      <p
+        id="historical-placeholder-message"
+        class="text-muted mt-4"
+        data-historical-placeholder-message
+      ></p>
+    </section>
+
+    <!-- ======================================================================
+         Pagination
+         ====================================================================== -->
+
+    <div class="data-view__pagination" data-historical-pagination hidden>
+      <div class="data-view__pagination-range" data-feed-range>0–0</div>
+
+      <div class="data-view__pagination-controls">
+        <span class="text-muted"><fmt:message key="pagination.page" /></span>
+
+        <div class="custom-select custom-select--sm" data-custom-select>
+          <div class="form-select-wrap custom-select__fallback">
+            <select
+              class="form-select form-select-sm custom-select__native"
+              data-feed-page
+              aria-label="<fmt:message key='pagination.page' />"
+            ></select>
+
+            <span
+              class="form-select-icon has-icon icon-chevron-down"
+              aria-hidden="true"
+            ></span>
+          </div>
+        </div>
+
+        <span class="text-muted">
+          <fmt:message key="pagination.of" />
+          <strong data-feed-total-pages>1</strong>
+        </span>
+
+        <button
+          type="button"
+          class="btn btn-outline-primary btn-icon"
+          data-feed-prev
+          disabled
+          aria-label="<fmt:message key='pagination.previous' />"
+        >
+          <span
+            class="has-icon icon-chevron-left icon-flip-rtl"
+            aria-hidden="true"
+          ></span>
+        </button>
+
+        <button
+          type="button"
+          class="btn btn-outline-primary btn-icon"
+          data-feed-next
+          disabled
+          aria-label="<fmt:message key='pagination.next' />"
+        >
+          <span
+            class="has-icon icon-chevron-right icon-flip-rtl"
+            aria-hidden="true"
+          ></span>
+        </button>
+      </div>
+    </div>
+  </div>
+</section>
+<%-- ==========================================================================
+     Historical Reports Page Configuration
+     ========================================================================== --%>
+
+<script>
+  window.HistoricalConfig = {
+    /* ======================================================================
+       Locale
+       ====================================================================== */
+
+    locale: "${requestScope.requestLocale}",
+
+    /* ======================================================================
+       Endpoints
+       ====================================================================== */
+
+    /*
+     * "report" is shared by both the Performance and Unadjusted tabs.
+     * historical.table.js differentiates them with the existing
+     * tableTabId request parameter ("0" / "1"), exactly as legacy did.
+     */
+    endpoints: {
+      report: "<portlet:resourceURL id='populateCompanyDetails'></portlet:resourceURL>",
+      underlying: "<portlet:resourceURL id='getSingleStockOptionsTableCompanyData'></portlet:resourceURL>",
+      sectors: "<portlet:resourceURL id='populateSectors'></portlet:resourceURL>",
+      entities: "<portlet:resourceURL id='populateEntity'></portlet:resourceURL>"
+    },
+
+    /* ======================================================================
+       Defaults
+       ====================================================================== */
+
+    /*
+     * Raw request-scope values only. Fallback constants (INDICES / M /
+     * M:TASI / OB) belong in historical.config.js, matching the
+     * normalizeLabel(value, fallback) pattern market-watch.config.js uses.
+     *
+     * These same values also serve as the Reset target, matching legacy's
+     * resetFilters() behavior exactly: reset returns to the page's initial
+     * state, not to a hardcoded value.
+     */
+    defaults: {
+      market: "${requestScope.selectedMarket}",
+      sector: "${requestScope.selectedSector}",
+      entity: "${requestScope.selectedEntity}",
+      tradeType: "OB"
+    },
+
+    /* ======================================================================
+       Constants
+       ====================================================================== */
+
+    constants: {
+      marketsWithoutSector: ["ETFS", "MF", "TR"]
+    },
+
+    /* ======================================================================
+       Table Options
+       ====================================================================== */
+
+    /*
+     * Two blocks because Performance/Unadjusted and Underlying are
+     * genuinely different DataTables integrations (server-side paged vs.
+     * client-side single-shot), not just column-schema variants.
+     */
+    table: {
+      report: {
+        serverSide: true,
+        paging: true,
+        pagingType: "simple",
+        pageLength: 100,
+        searching: false,
+        ordering: false,
+        info: false,
+        scrollX: true,
+        scrollCollapse: true,
+        autoWidth: true,
+        fixedHeader: true
+      },
+
+      underlying: {
+        serverSide: false,
+        paging: false,
+        searching: false,
+        ordering: false,
+        info: false,
+        scrollX: true,
+        scrollCollapse: true,
+        autoWidth: true,
+        fixedHeader: true
+      }
+    },
+
+    /* ======================================================================
+       Labels
+       ====================================================================== */
+
+    labels: {
+      placeholderSelectFilters:
+        "<fmt:message key='historical.placeholder.select.filters' />",
+
+      noData: "<fmt:message key='historical.placeholder.no.data' />",
+
+      /* --------------------------------------------------------------------
+         Validation
+         -------------------------------------------------------------------- */
+
+      validation: {
+        market: "<fmt:message key='market.validation.message' />",
+        sector: "<fmt:message key='sector.validation.message' />",
+        entity: "<fmt:message key='entity.validation.message' />",
+        dateRange: "<fmt:message key='date.validation.message' />",
+        dateOrder: "<fmt:message key='date.order.validation.message' />"
+      },
+
+      /* --------------------------------------------------------------------
+         Select Placeholders
+         -------------------------------------------------------------------- */
+
+      placeholders: {
+        market: "<fmt:message key='market.default.value' />",
+        sector: "<fmt:message key='sector.default.value' />",
+        entity: "<fmt:message key='entity.default.value' />"
+      },
+
+      /* --------------------------------------------------------------------
+         Mobile
+
+         Net new: Historical Reports had no mobile card presentation before
+         this refactor, so no legacy i18n keys exist for these two labels.
+         Placeholder keys below need real translation entries.
+         -------------------------------------------------------------------- */
+
+      mobile: {
+        showDetails: "<fmt:message key='historical.mobile.show.details' />",
+        hideDetails: "<fmt:message key='historical.mobile.hide.details' />"
+      },
+
+      /* --------------------------------------------------------------------
+         Table Columns
+         -------------------------------------------------------------------- */
+
+      table: {
+        date: "<fmt:message key='table.header.date' />",
+        open: "<fmt:message key='table.header.open' />",
+        high: "<fmt:message key='table.header.high' />",
+        low: "<fmt:message key='table.header.low' />",
+        close: "<fmt:message key='table.header.close' />",
+        change: "<fmt:message key='table.header.change' />",
+        changePoints: "<fmt:message key='table.header.change.points' />",
+        changePercent: "<fmt:message key='table.header.percnt.change' />",
+        volumeTraded: "<fmt:message key='table.header.volume.traded' />",
+        nominalValueTraded:
+          "<fmt:message key='table.header.nominal.value.traded' />",
+        turnOver: "<fmt:message key='table.header.turn.over' />",
+        noOfTrades: "<fmt:message key='table.header.no.of.trades' />",
+        nav: "<fmt:message key='table.header.nav' />",
+        closeYield: "<fmt:message key='table.header.close.yeild' />",
+        mfDate: "<fmt:message key='table.header.mf.date' />",
+        mfNav: "<fmt:message key='table.header.mf.nav' />",
+        dailySettPrice: "<fmt:message key='table.header.daily.sett.price' />",
+        openInterest: "<fmt:message key='table.header.open.interest' />",
+
+        /*
+         * Preserved exactly as legacy had it: a literal English string
+         * rather than an i18n key. Flagging in case this was an oversight
+         * rather than intentional â€” happy to add a real message key instead.
+         */
+        aum: "AUM",
+
+        underlying: {
+          instrumentType:
+            "<fmt:message key='derivatives.market.watch.underlying.table.instrumenttype' />",
+          symbol:
+            "<fmt:message key='derivatives.market.watch.underlying.table.symbol' />",
+          underlying:
+            "<fmt:message key='derivatives.market.watch.underlying.table.Underlying' />",
+          expiryDate:
+            "<fmt:message key='derivatives.market.watch.underlying.table.ExpiryDate' />",
+          type:
+            "<fmt:message key='derivatives.market.watch.underlying.table.Type' />",
+          strikePrice:
+            "<fmt:message key='derivatives.market.watch.underlying.table.StrikePrice' />",
+          referencePrice:
+            "<fmt:message key='derivatives.market.watch.underlying.table.ReferencePrice' />",
+          lastTradedPrice:
+            "<fmt:message key='derivatives.market.watch.underlying.table.LastTradedPrice' />",
+          volume:
+            "<fmt:message key='derivatives.market.watch.underlying.table.Volume' />",
+          openInterest:
+            "<fmt:message key='derivatives.market.watch.underlying.table.OpenInterest' />",
+          underlyingPrice:
+            "<fmt:message key='derivatives.market.watch.underlying.table.UnderlyingPrice' />"
+        },
+
+        calls: "<fmt:message key='labels.company.profile.options.table.calls' />",
+        puts: "<fmt:message key='labels.company.profile.options.table.puts' />",
+        sso: "<fmt:message key='derivatives.market.watch.sso' />"
+      }
+    }
+  };
+</script>
+
+<%-- ==========================================================================
+     Historical Reports Entry Module
+     ========================================================================== --%>
+
+<script
+  type="module"
+  src="${pageContext.request.contextPath}/js/pages/historical/historical.js"
+></script>
