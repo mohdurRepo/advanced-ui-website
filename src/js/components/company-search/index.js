@@ -20,10 +20,6 @@
  * - Portal window.submitSearch() owns final navigation.
  *
  * Company image fallback:
- *
- * https://www.tadawulgroup.sa/Resources/SEMOBILELOGOS/{companyCode}.jpg
- *        ↓
- * https://www.tadawulgroup.sa/Resources/SEMOBILELOGOS/default-Logo.png
  *        ↓
  * initials
  */
@@ -34,7 +30,8 @@
 
 const RESULT_LIMIT = 100;
 
-const COMPANY_IMAGE_BASE_PATH = "https://www.tadawulgroup.sa/Resources/SEMOBILELOGOS";
+const COMPANY_IMAGE_BASE_PATH =
+  "https://www.tadawulgroup.sa/Resources/SEMOBILELOGOS";
 
 const DEFAULT_COMPANY_IMAGE = `${COMPANY_IMAGE_BASE_PATH}/default-Logo.png`;
 

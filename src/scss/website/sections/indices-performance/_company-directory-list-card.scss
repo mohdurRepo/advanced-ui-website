@@ -1,0 +1,705 @@
+@use "../../../design-system/abstracts" as ds;
+
+/* ==========================================================================
+   Company Directory List Card
+   ========================================================================== */
+
+/**
+ * Horizontal listed-company row used by the default Company Directory view.
+ *
+ * Visual hierarchy:
+ *
+ * [ Logo ]  Company name
+ *           Symbol                         Sector                 ↗
+ *
+ * The complete row is the company-profile link.
+ *
+ * Shared `.card` owns:
+ *
+ * - base surface;
+ * - border and radius;
+ * - elevation;
+ * - shared financial pattern.
+ */
+
+.company-directory-list {
+  display: grid;
+  gap: #{ds.space(2)};
+
+  inline-size: 100%;
+  min-inline-size: 0;
+
+  margin: 0;
+  padding: 0;
+
+  list-style: none;
+}
+
+/* ==========================================================================
+   Item
+   ========================================================================== */
+
+.company-directory-list__item {
+  min-inline-size: 0;
+
+  margin: 0;
+  padding: 0;
+}
+
+/* ==========================================================================
+   Card
+   ========================================================================== */
+
+.company-directory-list-card {
+  /* Layout */
+
+  --company-directory-list-card-padding-block: #{ds.space(3)};
+  --company-directory-list-card-padding-inline: #{ds.space(4)};
+
+  --company-directory-list-card-logo-size: 3rem;
+
+  --company-directory-list-card-gap: #{ds.space(3)};
+
+  /* Semantic */
+
+  --company-directory-list-card-bg: var(--color-surface);
+
+  --company-directory-list-card-border: var(--color-border);
+  --company-directory-list-card-border-hover: var(--color-border-strong);
+
+  --company-directory-list-card-heading: var(--color-heading);
+  --company-directory-list-card-muted: var(--color-text-muted);
+
+  --company-directory-list-card-sector-bg: var(--color-surface-alt);
+  --company-directory-list-card-sector-color: var(--color-text-muted);
+
+  /* Shared Card mappings */
+
+  --card-bg: var(--company-directory-list-card-bg);
+  --card-color: var(--company-directory-list-card-heading);
+
+  --card-heading-color: var(--company-directory-list-card-heading);
+  --card-muted-color: var(--company-directory-list-card-muted);
+
+  --card-border-color: var(--company-directory-list-card-border);
+  --card-hover-border-color: var(--company-directory-list-card-border-hover);
+
+  /*
+   * Horizontal rows do not need a dominant decorative pattern.
+   */
+
+  --card-pattern-size: 8rem;
+  --card-pattern-opacity: 0.02;
+  --card-pattern-hover-opacity: 0.055;
+
+  position: relative;
+
+  display: grid;
+
+  grid-template-columns:
+    var(--company-directory-list-card-logo-size)
+    minmax(0, 1fr)
+    auto
+    auto;
+
+  align-items: center;
+
+  gap: var(--company-directory-list-card-gap);
+
+  inline-size: 100%;
+  min-inline-size: 0;
+
+  padding-block: var(--company-directory-list-card-padding-block);
+
+  padding-inline: var(--company-directory-list-card-padding-inline);
+
+  overflow: hidden;
+
+  color: var(--company-directory-list-card-heading);
+
+  text-decoration: none;
+
+  @include ds.transition((border-color, box-shadow, transform), "normal");
+}
+
+/* ==========================================================================
+   Content Layers
+   ========================================================================== */
+
+.company-directory-list-card__logo,
+.company-directory-list-card__identity,
+.company-directory-list-card__sector,
+.company-directory-list-card__navigate {
+  position: relative;
+  z-index: 1;
+}
+
+/* ==========================================================================
+   Card Interaction
+   ========================================================================== */
+
+.company-directory-list-card:visited {
+  color: var(--company-directory-list-card-heading);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .company-directory-list-card:hover {
+    border-color: var(--company-directory-list-card-border-hover);
+
+    box-shadow: var(--shadow-md);
+
+    transform: translateY(-0.0625rem);
+  }
+
+  .company-directory-list-card:hover::before {
+    opacity: var(--card-pattern-hover-opacity);
+
+    transform: scale(1.015);
+  }
+
+  .company-directory-list-card:hover .company-directory-list-card__navigate {
+    color: var(--color-primary);
+
+    transform: translate(0.0625rem, -0.0625rem);
+  }
+}
+
+/* ==========================================================================
+   Focus
+   ========================================================================== */
+
+.company-directory-list-card:focus {
+  outline: none;
+}
+
+.company-directory-list-card:focus-visible {
+  border-color: var(--color-primary);
+
+  @include ds.focus-ring;
+}
+
+.company-directory-list-card:focus-visible::before {
+  opacity: var(--card-pattern-hover-opacity);
+}
+
+/* ==========================================================================
+   Logo
+   ========================================================================== */
+
+.company-directory-list-card__logo {
+  display: block;
+
+  flex: 0 0 auto;
+
+  inline-size: var(--company-directory-list-card-logo-size);
+
+  block-size: var(--company-directory-list-card-logo-size);
+
+  overflow: hidden;
+
+  border: 1px solid var(--company-directory-list-card-border);
+
+  border-radius: var(--radius-md);
+
+  background: var(--color-surface-alt);
+}
+
+/* ==========================================================================
+   Logo Image
+   ========================================================================== */
+
+.company-directory-list-card__logo-image {
+  display: block;
+
+  inline-size: 100%;
+  block-size: 100%;
+
+  margin: 0;
+  padding: 0;
+
+  object-fit: cover;
+  object-position: center;
+}
+
+/* ==========================================================================
+   Identity
+   ========================================================================== */
+
+.company-directory-list-card__identity {
+  display: flex;
+  flex-direction: column;
+
+  gap: 0.125rem;
+
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Company Name
+   ========================================================================== */
+
+.company-directory-list-card__name {
+  min-inline-size: 0;
+
+  overflow: hidden;
+
+  color: var(--company-directory-list-card-heading);
+
+  font-size: var(--text-sm);
+  font-weight: ds.font-weight("bold");
+  line-height: 1.25;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  @include ds.transition(color, "fast");
+}
+
+/* ==========================================================================
+   Symbol
+   ========================================================================== */
+
+.company-directory-list-card__symbol {
+  direction: ltr;
+  unicode-bidi: isolate;
+
+  min-inline-size: 0;
+
+  overflow: hidden;
+
+  color: var(--company-directory-list-card-muted);
+
+  font-size: var(--text-xs);
+  font-variant-numeric: tabular-nums;
+  font-weight: ds.font-weight("medium");
+  line-height: 1.25;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ==========================================================================
+   Identity Interaction
+   ========================================================================== */
+
+@media (hover: hover) and (pointer: fine) {
+  .company-directory-list-card:hover .company-directory-list-card__name {
+    color: var(--color-primary);
+  }
+}
+
+/* ==========================================================================
+   Sector
+   ========================================================================== */
+
+/**
+ * Sector is deliberately compact and quiet.
+ *
+ * It remains easy to scan without competing with company identity.
+ */
+
+.company-directory-list-card__sector {
+  display: inline-flex;
+  align-items: center;
+
+  justify-self: end;
+
+  max-inline-size: 14rem;
+
+  padding-block: 0.3125rem;
+  padding-inline: 0.625rem;
+
+  overflow: hidden;
+
+  border-radius: var(--radius-sm);
+
+  background: var(--company-directory-list-card-sector-bg);
+
+  color: var(--company-directory-list-card-sector-color);
+
+  font-size: var(--text-xs);
+  font-weight: ds.font-weight("semibold");
+  line-height: 1.15;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ==========================================================================
+   Enhanced Sector Surface
+   ========================================================================== */
+
+@supports (background: color-mix(in srgb, white, black)) {
+  .company-directory-list-card {
+    --company-directory-list-card-sector-bg: color-mix(
+      in srgb,
+      var(--color-primary) 6%,
+      var(--color-surface)
+    );
+
+    --company-directory-list-card-sector-color: color-mix(
+      in srgb,
+      var(--color-heading) 72%,
+      var(--color-text-muted)
+    );
+  }
+}
+
+/* ==========================================================================
+   Navigation
+   ========================================================================== */
+
+.company-directory-list-card__navigate {
+  --icon-size: 0.8125rem;
+  --icon-gap: 0;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  justify-self: end;
+
+  inline-size: 1.25rem;
+  block-size: 1.25rem;
+
+  padding: 0;
+
+  border: 0;
+
+  background: transparent;
+
+  color: var(--company-directory-list-card-muted);
+
+  pointer-events: none;
+
+  @include ds.transition((color, transform), "fast");
+}
+
+.company-directory-list-card__navigate::before {
+  margin: 0;
+}
+
+/* ==========================================================================
+   Large Desktop
+   ========================================================================== */
+
+@media (min-width: 1400px) {
+  .company-directory-list-card {
+    --company-directory-list-card-padding-block: 0.875rem;
+    --company-directory-list-card-padding-inline: #{ds.space(4)};
+
+    --company-directory-list-card-logo-size: 3.125rem;
+  }
+
+  .company-directory-list-card__name {
+    font-size: 0.9375rem;
+  }
+}
+
+/* ==========================================================================
+   Desktop
+   ========================================================================== */
+
+@include ds.respond-down("xl") {
+  .company-directory-list-card {
+    --company-directory-list-card-logo-size: 2.875rem;
+
+    --company-directory-list-card-gap: #{ds.space(3)};
+  }
+}
+
+/* ==========================================================================
+   Large Tablet
+   ========================================================================== */
+
+@include ds.respond-down("lg") {
+  .company-directory-list-card {
+    grid-template-columns:
+      var(--company-directory-list-card-logo-size)
+      minmax(0, 1fr)
+      auto
+      auto;
+
+    --company-directory-list-card-padding-inline: #{ds.space(3)};
+
+    --company-directory-list-card-logo-size: 2.75rem;
+
+    --company-directory-list-card-gap: #{ds.space(2)};
+  }
+
+  .company-directory-list-card__sector {
+    max-inline-size: 10rem;
+  }
+}
+
+/* ==========================================================================
+   Tablet
+   ========================================================================== */
+
+@include ds.respond-down("md") {
+  .company-directory-list-card {
+    grid-template-columns:
+      var(--company-directory-list-card-logo-size)
+      minmax(0, 1fr)
+      auto;
+
+    grid-template-areas:
+      "logo identity navigate"
+      "logo sector   navigate";
+
+    align-items: center;
+
+    row-gap: 0.25rem;
+  }
+
+  .company-directory-list-card__logo {
+    grid-area: logo;
+  }
+
+  .company-directory-list-card__identity {
+    grid-area: identity;
+  }
+
+  .company-directory-list-card__sector {
+    grid-area: sector;
+
+    justify-self: start;
+
+    max-inline-size: 100%;
+  }
+
+  .company-directory-list-card__navigate {
+    grid-area: navigate;
+  }
+}
+
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+
+@include ds.respond-down("sm") {
+  .company-directory-list-card {
+    --company-directory-list-card-padding-block: #{ds.space(3)};
+
+    --company-directory-list-card-padding-inline: #{ds.space(3)};
+
+    --company-directory-list-card-logo-size: 2.75rem;
+
+    --company-directory-list-card-gap: #{ds.space(2)};
+  }
+
+  .company-directory-list-card__name {
+    font-size: var(--text-sm);
+  }
+
+  .company-directory-list-card__symbol,
+  .company-directory-list-card__sector {
+    font-size: var(--text-xs);
+  }
+}
+
+/* ==========================================================================
+   Very Small Screens
+   ========================================================================== */
+
+@media (max-width: 24rem) {
+  .company-directory-list-card {
+    grid-template-columns:
+      var(--company-directory-list-card-logo-size)
+      minmax(0, 1fr);
+
+    grid-template-areas:
+      "logo identity"
+      "logo sector";
+
+    align-items: start;
+  }
+
+  .company-directory-list-card__navigate {
+    position: absolute;
+
+    inset-block-start: var(--company-directory-list-card-padding-block);
+
+    inset-inline-end: var(--company-directory-list-card-padding-inline);
+  }
+
+  .company-directory-list-card__identity {
+    padding-inline-end: 1.5rem;
+  }
+
+  .company-directory-list-card__sector {
+    inline-size: fit-content;
+  }
+}
+
+/* ==========================================================================
+   RTL
+   ========================================================================== */
+
+/**
+ * Grid and logical properties provide RTL layout naturally.
+ *
+ * Trading symbols remain explicitly isolated as LTR values.
+ */
+
+/* ==========================================================================
+   Dark Theme
+   ========================================================================== */
+
+html[data-theme="dark"] .company-directory-list-card {
+  --card-pattern-opacity: 0.045;
+  --card-pattern-hover-opacity: 0.09;
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] .company-directory-list-card {
+  border-width: 2px;
+  border-color: currentColor;
+
+  box-shadow: none;
+}
+
+html[data-contrast="high"] .company-directory-list-card::before {
+  display: none;
+}
+
+html[data-contrast="high"] .company-directory-list-card__logo {
+  border-width: 2px;
+  border-color: currentColor;
+}
+
+html[data-contrast="high"] .company-directory-list-card__sector {
+  outline: 1px solid currentColor;
+
+  background: transparent;
+
+  color: currentColor;
+}
+
+html[data-contrast="high"] .company-directory-list-card__name,
+html[data-contrast="high"] .company-directory-list-card__symbol,
+html[data-contrast="high"] .company-directory-list-card__navigate {
+  color: currentColor;
+}
+
+/* ==========================================================================
+   Forced Colors
+   ========================================================================== */
+
+@media (forced-colors: active) {
+  .company-directory-list-card,
+  .company-directory-list-card__logo {
+    border-color: CanvasText;
+
+    background: Canvas;
+    color: CanvasText;
+
+    box-shadow: none;
+  }
+
+  .company-directory-list-card::before {
+    display: none;
+  }
+
+  .company-directory-list-card__sector {
+    outline: 1px solid CanvasText;
+
+    background: Canvas;
+    color: CanvasText;
+  }
+
+  .company-directory-list-card__name,
+  .company-directory-list-card__symbol,
+  .company-directory-list-card__navigate {
+    color: CanvasText;
+  }
+
+  .company-directory-list-card:hover .company-directory-list-card__navigate {
+    color: LinkText;
+  }
+}
+
+/* ==========================================================================
+   Reduced Motion
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .company-directory-list-card,
+  .company-directory-list-card::before,
+  .company-directory-list-card__name,
+  .company-directory-list-card__navigate {
+    transition: none;
+  }
+
+  .company-directory-list-card:hover,
+  .company-directory-list-card:hover::before,
+  .company-directory-list-card:hover .company-directory-list-card__navigate {
+    transform: none;
+  }
+}
+
+html[data-motion="reduce"] .company-directory-list-card,
+html[data-motion="reduce"] .company-directory-list-card::before,
+html[data-motion="reduce"] .company-directory-list-card__name,
+html[data-motion="reduce"] .company-directory-list-card__navigate {
+  transition: none;
+}
+
+html[data-motion="reduce"] .company-directory-list-card:hover,
+html[data-motion="reduce"] .company-directory-list-card:hover::before,
+html[data-motion="reduce"]
+  .company-directory-list-card:hover
+  .company-directory-list-card__navigate {
+  transform: none;
+}
+
+/* ==========================================================================
+   Print
+   ========================================================================== */
+
+@media print {
+  .company-directory-list {
+    gap: #{ds.space(2)};
+  }
+
+  .company-directory-list-card {
+    break-inside: avoid;
+
+    border: 1px solid #000000;
+
+    background: transparent;
+    color: #000000;
+
+    box-shadow: none;
+    transform: none;
+  }
+
+  .company-directory-list-card::before {
+    display: none;
+  }
+
+  .company-directory-list-card__logo {
+    border-color: #000000;
+
+    background: transparent;
+  }
+
+  .company-directory-list-card__sector {
+    outline: 1px solid #000000;
+
+    background: transparent;
+    color: #000000;
+  }
+
+  .company-directory-list-card__navigate {
+    display: none;
+  }
+
+  .company-directory-list-card__name,
+  .company-directory-list-card__symbol {
+    color: #000000;
+  }
+}

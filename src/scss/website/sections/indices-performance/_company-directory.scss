@@ -1,0 +1,591 @@
+@use "../../../design-system/abstracts" as ds;
+
+/* ==========================================================================
+   Company Directory
+   ========================================================================== */
+
+/**
+ * Listed-company directory composition.
+ *
+ * Shared systems own:
+ *
+ * - `.company-market-overview` surface foundation;
+ * - Table foundation and variants;
+ * - Card foundation;
+ * - generic view-switch behavior.
+ *
+ * This component owns:
+ *
+ * - page composition;
+ * - heading treatment;
+ * - local view-switch presentation;
+ * - table/card panel placement;
+ * - dense company-card grid.
+ */
+
+.company-directory {
+  --company-directory-gap: #{ds.space(5)};
+  --company-directory-header-gap: #{ds.space(4)};
+  --company-directory-grid-gap: #{ds.space(2)};
+
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Surface
+   ========================================================================== */
+
+.company-directory__surface {
+  display: grid;
+  align-content: start;
+
+  gap: var(--company-directory-gap);
+
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Header
+   ========================================================================== */
+
+.company-directory__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: var(--company-directory-header-gap);
+
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Heading
+   ========================================================================== */
+
+.company-directory__heading {
+  display: flex;
+  align-items: center;
+
+  gap: #{ds.space(2)};
+
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Heading Icon
+   ========================================================================== */
+
+.company-directory__heading-icon {
+  --icon-size: 1.625rem;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  flex: 0 0 auto;
+
+  color: var(--color-primary);
+}
+
+.company-directory__heading-icon::before {
+  margin: 0;
+}
+
+/* ==========================================================================
+   Title
+   ========================================================================== */
+
+.company-directory__title {
+  min-inline-size: 0;
+
+  margin: 0;
+
+  color: var(--color-heading);
+
+  font-size: var(--text-xl);
+  font-weight: ds.font-weight("heavy");
+  line-height: var(--line-height-tight);
+
+  overflow-wrap: anywhere;
+  text-wrap: balance;
+}
+
+/* ==========================================================================
+   View Controls
+   ========================================================================== */
+
+.company-directory__view-controls {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+
+  flex: 0 0 auto;
+
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   View Switch
+   ========================================================================== */
+
+.company-directory .directory-view-switch {
+  display: inline-flex;
+  align-items: center;
+
+  gap: 0;
+
+  padding: #{ds.space(1)};
+
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+
+  background: var(--color-surface);
+
+  box-shadow: var(--shadow-sm);
+}
+
+/* ==========================================================================
+   View Control
+   ========================================================================== */
+
+.company-directory .directory-view-switch__control {
+  --icon-size: 1rem;
+
+  appearance: none;
+
+  display: inline-grid;
+  place-items: center;
+
+  flex: 0 0 auto;
+
+  inline-size: 2.375rem;
+  block-size: 2.375rem;
+
+  padding: 0;
+
+  border: 0;
+  border-radius: var(--radius-sm);
+
+  background: transparent;
+
+  color: var(--color-text-muted);
+
+  font: inherit;
+
+  cursor: pointer;
+  touch-action: manipulation;
+
+  -webkit-tap-highlight-color: transparent;
+
+  @include ds.transition(
+    (background-color, color, box-shadow, transform),
+    "fast"
+  );
+}
+
+.company-directory .directory-view-switch__control::before {
+  margin: 0;
+}
+
+/* ==========================================================================
+   View Control Hover
+   ========================================================================== */
+
+@media (hover: hover) and (pointer: fine) {
+  .company-directory
+    .directory-view-switch__control:hover:not(.is-active):not(
+      [aria-pressed="true"]
+    ) {
+    background: var(--color-surface-alt);
+    color: var(--color-heading);
+  }
+}
+
+/* ==========================================================================
+   Active View
+   ========================================================================== */
+
+.company-directory .directory-view-switch__control.is-active,
+.company-directory .directory-view-switch__control[aria-pressed="true"] {
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+
+  box-shadow: var(--shadow-sm);
+}
+
+/* ==========================================================================
+   View Control Focus
+   ========================================================================== */
+
+.company-directory .directory-view-switch__control:focus {
+  outline: none;
+}
+
+.company-directory .directory-view-switch__control:focus-visible {
+  position: relative;
+  z-index: 1;
+
+  @include ds.focus-ring;
+}
+
+/* ==========================================================================
+   View Control Active
+   ========================================================================== */
+
+.company-directory .directory-view-switch__control:active {
+  transform: scale(0.95);
+}
+
+/* ==========================================================================
+   Live Status
+   ========================================================================== */
+
+.company-directory__live-status {
+  position: absolute;
+
+  inline-size: 1px;
+  block-size: 1px;
+
+  margin: -1px;
+  padding: 0;
+
+  overflow: hidden;
+
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+
+  border: 0;
+
+  white-space: nowrap;
+}
+
+/* ==========================================================================
+   Results
+   ========================================================================== */
+
+.company-directory__results {
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Views
+   ========================================================================== */
+
+.company-directory__view {
+  min-inline-size: 0;
+}
+
+.company-directory__view[hidden] {
+  display: none;
+}
+
+/* ==========================================================================
+   Table View
+   ========================================================================== */
+
+.company-directory__view--table {
+  inline-size: 100%;
+}
+
+/* ==========================================================================
+   Grid View
+   ========================================================================== */
+
+.company-directory__view--grid {
+  inline-size: 100%;
+}
+
+/* ==========================================================================
+   Company Card Grid
+   ========================================================================== */
+
+/**
+ * Dense company directory grid.
+ *
+ * Largest desktop:
+ *
+ *   8 cards per row.
+ *
+ * This gives longer company names enough horizontal room while preserving
+ * the compact directory presentation.
+ */
+
+.company-directory-card-grid {
+  display: grid;
+
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+
+  align-items: stretch;
+
+  gap: var(--company-directory-grid-gap);
+
+  inline-size: 100%;
+  min-inline-size: 0;
+
+  margin: 0;
+  padding: 0;
+
+  list-style: none;
+}
+
+/* ==========================================================================
+   Grid Item
+   ========================================================================== */
+
+.company-directory-card-grid__item {
+  display: flex;
+
+  min-inline-size: 0;
+
+  margin: 0;
+  padding: 0;
+}
+
+.company-directory-card-grid__item > .company-directory-card {
+  inline-size: 100%;
+  block-size: 100%;
+}
+
+/* ==========================================================================
+   Extra Large Desktop
+   ========================================================================== */
+
+/**
+ * The full eight-column layout remains available on the largest application
+ * container. Below xxl, reduce to six before text becomes compressed.
+ */
+
+@include ds.respond-down("xxl") {
+  .company-directory-card-grid {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+}
+
+/* ==========================================================================
+   Desktop
+   ========================================================================== */
+
+@include ds.respond-down("xl") {
+  .company-directory-card-grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+}
+
+/* ==========================================================================
+   Large Tablet
+   ========================================================================== */
+
+@include ds.respond-down("lg") {
+  .company-directory-card-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+/* ==========================================================================
+   Tablet
+   ========================================================================== */
+
+@include ds.respond-down("md") {
+  .company-directory {
+    --company-directory-gap: #{ds.space(4)};
+  }
+
+  .company-directory-card-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+
+@include ds.respond-down("sm") {
+  .company-directory {
+    --company-directory-gap: #{ds.space(4)};
+    --company-directory-header-gap: #{ds.space(3)};
+    --company-directory-grid-gap: #{ds.space(2)};
+  }
+
+  .company-directory__header {
+    align-items: center;
+  }
+
+  .company-directory__heading {
+    gap: #{ds.space(2)};
+  }
+
+  .company-directory__heading-icon {
+    --icon-size: 1.375rem;
+  }
+
+  .company-directory__title {
+    font-size: var(--text-lg);
+  }
+
+  .company-directory .directory-view-switch {
+    padding: 0.1875rem;
+
+    border-radius: var(--radius-sm);
+  }
+
+  .company-directory .directory-view-switch__control {
+    --icon-size: 0.9375rem;
+
+    inline-size: 2.25rem;
+    block-size: 2.25rem;
+  }
+
+  .company-directory-card-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* ==========================================================================
+   Very Small Screens
+   ========================================================================== */
+
+@media (max-width: 24rem) {
+  .company-directory__header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .company-directory__view-controls {
+    justify-content: flex-start;
+  }
+
+  .company-directory-card-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* ==========================================================================
+   RTL
+   ========================================================================== */
+
+/**
+ * Logical layout properties handle RTL naturally.
+ *
+ * View-control ordering follows document direction.
+ */
+
+/* ==========================================================================
+   Dark Theme
+   ========================================================================== */
+
+html[data-theme="dark"] .company-directory .directory-view-switch {
+  border-color: var(--color-border);
+
+  background: var(--color-surface);
+}
+
+html[data-theme="dark"]
+  .company-directory
+  .directory-view-switch__control:not(.is-active):not([aria-pressed="true"]) {
+  color: var(--color-text-muted);
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] .company-directory__heading-icon {
+  color: currentColor;
+}
+
+html[data-contrast="high"] .company-directory .directory-view-switch {
+  border-width: 2px;
+  border-color: currentColor;
+
+  background: var(--color-surface);
+
+  box-shadow: none;
+}
+
+html[data-contrast="high"] .company-directory .directory-view-switch__control {
+  color: currentColor;
+}
+
+html[data-contrast="high"]
+  .company-directory
+  .directory-view-switch__control.is-active,
+html[data-contrast="high"]
+  .company-directory
+  .directory-view-switch__control[aria-pressed="true"] {
+  outline: 2px solid currentColor;
+  outline-offset: -2px;
+
+  background: var(--color-text);
+  color: var(--color-bg);
+
+  box-shadow: none;
+}
+
+/* ==========================================================================
+   Forced Colors
+   ========================================================================== */
+
+@media (forced-colors: active) {
+  .company-directory__heading-icon {
+    color: CanvasText;
+  }
+
+  .company-directory .directory-view-switch {
+    border-color: CanvasText;
+
+    background: Canvas;
+
+    box-shadow: none;
+  }
+
+  .company-directory .directory-view-switch__control {
+    background: Canvas;
+    color: CanvasText;
+  }
+
+  .company-directory .directory-view-switch__control.is-active,
+  .company-directory .directory-view-switch__control[aria-pressed="true"] {
+    background: Highlight;
+    color: HighlightText;
+
+    forced-color-adjust: none;
+  }
+}
+
+/* ==========================================================================
+   Reduced Motion
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .company-directory .directory-view-switch__control {
+    transition: none;
+  }
+
+  .company-directory .directory-view-switch__control:active {
+    transform: none;
+  }
+}
+
+html[data-motion="reduce"] .company-directory .directory-view-switch__control {
+  transition: none;
+}
+
+html[data-motion="reduce"]
+  .company-directory
+  .directory-view-switch__control:active {
+  transform: none;
+}
+
+/* ==========================================================================
+   Print
+   ========================================================================== */
+
+@media print {
+  .company-directory__view-controls {
+    display: none;
+  }
+
+  .company-directory__view[hidden] {
+    display: none;
+  }
+}
