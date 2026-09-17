@@ -24,6 +24,9 @@
 
 .company-directory-list {
   display: grid;
+
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+
   gap: #{ds.space(2)};
 
   inline-size: 100%;
@@ -34,7 +37,6 @@
 
   list-style: none;
 }
-
 /* ==========================================================================
    Item
    ========================================================================== */
@@ -54,9 +56,9 @@
   /* Layout */
 
   --company-directory-list-card-padding-block: #{ds.space(3)};
-  --company-directory-list-card-padding-inline: #{ds.space(4)};
+  --company-directory-list-card-padding-inline: #{ds.space(3)};
 
-  --company-directory-list-card-logo-size: 3rem;
+  --company-directory-list-card-logo-size: 2.75rem;
 
   --company-directory-list-card-gap: #{ds.space(3)};
 
@@ -405,6 +407,10 @@
     --company-directory-list-card-logo-size: 2.875rem;
 
     --company-directory-list-card-gap: #{ds.space(3)};
+  }
+
+  .company-directory-list {
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 
