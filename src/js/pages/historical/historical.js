@@ -15,7 +15,7 @@
  * - apply Trade Type visibility
  * - apply Unadjusted-tab availability
  * - render trusted JSP note templates
- * - render invalid / note-only / report / underlying page states
+ * - render placeholder / note-only / report / underlying page states
  * - preserve legacy filter/tab reload behavior
  * - clean up all page-owned instances and listeners
  *
@@ -73,8 +73,8 @@ import {
 
 const SELECTORS = Object.freeze({
   /* ----------------------------------------------------------------------
-       Tabs
-       ---------------------------------------------------------------------- */
+     Tabs
+     ---------------------------------------------------------------------- */
 
   tabsRoot: "[data-historical-tabs]",
 
@@ -85,20 +85,18 @@ const SELECTORS = Object.freeze({
   unadjustedPanel: "#historical-panel-unadjusted",
 
   /* ----------------------------------------------------------------------
-       Filters
-       ---------------------------------------------------------------------- */
+     Filters
+     ---------------------------------------------------------------------- */
 
   tradeTypeFilterField: "#tradeTypeFilter",
 
   tradeTypeSelect: "[data-historical-trade-type]",
 
-  filterMessage: "[data-historical-filter-message]",
-
   resetButton: "[data-historical-reset]",
 
   /* ----------------------------------------------------------------------
-       Tables
-       ---------------------------------------------------------------------- */
+     Tables
+     ---------------------------------------------------------------------- */
 
   performanceTable: '[data-historical-table="performance"]',
 
@@ -107,14 +105,14 @@ const SELECTORS = Object.freeze({
   underlyingTable: '[data-historical-table="underlying"]',
 
   /* ----------------------------------------------------------------------
-       Underlying
-       ---------------------------------------------------------------------- */
+     Underlying
+     ---------------------------------------------------------------------- */
 
   underlyingSection: "[data-historical-underlying-section]",
 
   /* ----------------------------------------------------------------------
-       Cards
-       ---------------------------------------------------------------------- */
+     Cards
+     ---------------------------------------------------------------------- */
 
   performanceCards: '[data-historical-mobile-cards="performance"]',
 
@@ -123,8 +121,8 @@ const SELECTORS = Object.freeze({
   underlyingCards: '[data-historical-mobile-cards="underlying"]',
 
   /* ----------------------------------------------------------------------
-       Placeholder
-       ---------------------------------------------------------------------- */
+     Placeholder
+     ---------------------------------------------------------------------- */
 
   emptyState: "[data-historical-placeholder]",
 
@@ -133,8 +131,8 @@ const SELECTORS = Object.freeze({
   placeholderMessage: "[data-historical-placeholder-message]",
 
   /* ----------------------------------------------------------------------
-       Notes
-       ---------------------------------------------------------------------- */
+     Notes
+     ---------------------------------------------------------------------- */
 
   defaultNote: '[data-historical-note="default"]',
 
@@ -145,8 +143,8 @@ const SELECTORS = Object.freeze({
   noteTemplate: "[data-historical-note-template]",
 
   /* ----------------------------------------------------------------------
-       Pagination
-       ---------------------------------------------------------------------- */
+     Pagination
+     ---------------------------------------------------------------------- */
 
   pagination: "[data-historical-pagination]",
 });
@@ -271,24 +269,6 @@ function applyNote(dom, noteTemplates, note) {
 }
 
 /* ==========================================================================
-   Filter Message
-   ========================================================================== */
-
-function hideFilterMessage(dom) {
-  dom.filterMessage.textContent = "";
-
-  dom.filterMessage.hidden = true;
-}
-
-function showFilterMessage(dom, message) {
-  const normalized = String(message ?? "").trim();
-
-  dom.filterMessage.textContent = normalized;
-
-  dom.filterMessage.hidden = !normalized;
-}
-
-/* ==========================================================================
    Placeholder
    ========================================================================== */
 
@@ -319,24 +299,23 @@ function showPlaceholder(dom, message, { showImage = false } = {}) {
    ========================================================================== */
 
 /*
- * Invalid filters:
+ * Invalid / incomplete filters:
  *
- * - inline filter error is visible
  * - normal report views are hidden
- * - page placeholder explains that valid filters are required
+ * - one page-level guidance message is shown inside the connected
+ *   Historical placeholder surface
+ * - no duplicate inline validation message is rendered beneath the filters
  * - pagination is managed/cleared separately by the coordinator
  */
 
-function showInvalidState(dom, config, message) {
-  showFilterMessage(dom, message);
-
-  showPlaceholder(dom, config.labels?.placeholderSelectFilters || message, {
+function showInvalidState(dom, config) {
+  showPlaceholder(dom, config.labels?.placeholderSelectFilters, {
     showImage: false,
   });
 }
 
 /*
- * Valid report/underlying state:
+ * Valid report / underlying state.
  *
  * Pagination is NOT made visible here.
  *
@@ -346,8 +325,6 @@ function showInvalidState(dom, config, message) {
  */
 
 function showDataState(dom) {
-  hideFilterMessage(dom);
-
   hidePlaceholder(dom);
 }
 
@@ -358,13 +335,11 @@ function showDataState(dom) {
  *
  *   INDICES + entity type I
  *
- * The contextual note itself is the result; do not display the large
- * no-data illustration for this state.
+ * The contextual note itself is the result; do not display the page
+ * placeholder for this state.
  */
 
 function showNoteOnlyState(dom, noteTemplates, note) {
-  hideFilterMessage(dom);
-
   hidePlaceholder(dom);
 
   dom.tabsRoot.hidden = true;
@@ -534,12 +509,6 @@ export function initHistorical(root = document) {
       scope,
       SELECTORS.tradeTypeSelect,
       "the Trade Type select",
-    ),
-
-    filterMessage: requireElement(
-      scope,
-      SELECTORS.filterMessage,
-      "the filter validation message",
     ),
 
     resetButton: requireElement(
@@ -768,8 +737,8 @@ export function initHistorical(root = document) {
       }
 
       /*
-       * The table renders server-side skeleton rows from processing.dt.
-       * Keep the matching mobile cards in the same request state.
+       * The shared server-side table lifecycle renders skeleton rows for the
+       * request. Keep the matching mobile cards in the same loading state.
        */
       activeReportCards?.showLoading?.();
 
@@ -783,7 +752,6 @@ export function initHistorical(root = document) {
       api.page(page - 1).draw("page");
     },
   });
-
   /* ========================================================================
      Active Report Lifecycle
      ======================================================================== */
@@ -829,7 +797,9 @@ export function initHistorical(root = document) {
 
     /*
      * DataTables immediately begins its first server-side request.
-     * Put the matching cards into loading state before constructing it.
+     *
+     * Put the matching mobile cards into loading state before constructing
+     * the table so both presentations enter the same request lifecycle.
      */
     cards.showLoading();
 
@@ -972,7 +942,14 @@ export function initHistorical(root = document) {
     }
 
     /* ----------------------------------------------------------------------
-       Invalid Filters
+       Invalid / Incomplete Filters
+       ----------------------------------------------------------------------
+
+       The page-level connected placeholder is now the only validation /
+       guidance surface.
+
+       Do not render a second field-level message beneath Market, Entity, or
+       the date controls.
        ---------------------------------------------------------------------- */
 
     if (!rules.ready) {
@@ -982,7 +959,7 @@ export function initHistorical(root = document) {
 
       pagination.clear();
 
-      showInvalidState(dom, config, rules.message);
+      showInvalidState(dom, config);
 
       return;
     }
@@ -1045,13 +1022,13 @@ export function initHistorical(root = document) {
      ======================================================================== */
 
   /*
-   * historical.filters.js now publishes settled dependency states, so this
-   * no longer compensates for Market -> Sector -> Entity intermediate values.
+   * historical.filters.js publishes settled dependency states, so this does
+   * not compensate for Market -> Sector -> Entity intermediate values.
    *
-   * A microtask is still useful for two cases:
+   * A microtask remains useful for:
    *
-   * - a forced tab correction emits tabs:change synchronously
-   * - Reset can update filters and the active tab in one logical action
+   * - a forced tab correction emitting tabs:change synchronously
+   * - Reset updating filters and the active tab as one logical action
    *
    * Multiple same-turn notifications therefore collapse into one final page
    * resolution.
@@ -1107,7 +1084,10 @@ export function initHistorical(root = document) {
 
       try {
         /*
-         * resetToDefaults() is one settled Market -> Sector -> Entity
+         * resetToDefaults() is one settled:
+         *
+         * Market -> Sector -> Entity
+         *
          * transaction.
          */
         await filterView.resetToDefaults();
@@ -1119,7 +1099,7 @@ export function initHistorical(root = document) {
         /*
          * Filter Reset also restores the default Performance tab.
          *
-         * tabs.js owns panel/ARIA state.
+         * tabs.js owns panel and ARIA state.
          */
         activateTabByKey(dom, "performance");
       } finally {

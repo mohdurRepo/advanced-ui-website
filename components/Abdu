@@ -1,569 +1,10 @@
-<section class="app-container hero-banner-section historical-reports">
-	<div class="profile-banner">
-		<div class="profile-banner--pattern">
-
-
-
-			<div class="row">
-				<div class="col-12">
-					<h2>
-						<svg class="pc-icon pr-3 link-icon" width="40" height="40">
-                            <use xlink:href="#tadawul-arrow-icon"></use>
-                        </svg>
-
-						<label><fmt:message key="page.header" /> </label>
-					</h2>
-				</div>
-			</div>
-
-			<section class="banner-filters historical-filters is-active"
-				data-filters>
-				<div class="banner-filters__group is-active">
-					<div class="row g-3">
-
-						<!-- ===================== MARKET ===================== -->
-						<div class="col-12 col-md-3 col-sm-6">
-							<label class="form-label"> <fmt:message
-									key="market.title" />
-							</label>
-
-							<div class="form-control-shell is-select" data-select
-								data-field="market">
-
-								<div class="form-select-value"></div>
-
-								<input type="hidden" id="marketOrIndices"
-									name="<%=HistoricalReportConstants.SELECTED_MARKET%>"
-									data-filter="market" value="${requestScope.selectedMarket}" />
-
-								<span class="form-suffix form-select-arrow"></span>
-
-								<div class="form-popover">
-									<div class="form-select-panel">
-										<div class="form-select-list">
-
-											<div class="form-select-option" data-value="-1">
-												<fmt:message key="market.default.value" />
-											</div>
-
-											<c:forEach items="${requestScope.marketIndicesList}"
-												var="item">
-												<div class="form-select-option" data-value="${item.value}"
-													${item.value == requestScope.selectedMarket ? 'data-selected="true"' : ''}>
-													${item.text}</div>
-											</c:forEach>
-
-										</div>
-									</div>
-								</div>
-
-							</div>
-						</div>
-
-						<!-- ===================== SECTOR ===================== -->
-						<div class="col-12 col-md-3 col-sm-6">
-							<label class="form-label"> <fmt:message
-									key="sector.title" />
-							</label>
-
-							<div class="form-control-shell is-select" data-select
-								data-field="sector">
-
-								<div class="form-select-value"></div>
-
-								<input type="hidden" id="sectors"
-									name="<%=HistoricalReportConstants.SELECTED_SECTOR%>"
-									data-filter="sector" value="${requestScope.selectedSector}" />
-
-								<span class="form-suffix form-select-arrow"></span>
-
-								<div class="form-popover">
-									<div class="form-select-panel">
-										<div class="form-select-list">
-
-											<div class="form-select-option" data-value="0">
-												<fmt:message key="sector.default.value" />
-											</div>
-
-											<c:forEach items="${requestScope.sectorList}" var="item">
-												<div class="form-select-option"
-													data-value="${item.dropdownValue}"
-													${item.dropdownValue == requestScope.selectedSector ? 'data-selected="true"' : ''}>
-													${item.name}</div>
-											</c:forEach>
-
-										</div>
-									</div>
-								</div>
-
-							</div>
-						</div>
-
-						<!-- ===================== ENTITY ===================== -->
-						<div class="col-12 col-md-3 col-sm-6">
-							<label class="form-label"> <fmt:message
-									key="entity.title" />
-							</label>
-
-							<div class="form-control-shell is-select" data-select
-								data-field="entity">
-
-								<div class="form-select-value"></div>
-
-								<input type="hidden" id="entity"
-									name="<%=HistoricalReportConstants.SELECTED_ENTITY%>"
-									data-filter="entity" value="${requestScope.selectedEntity}" />
-
-								<span class="form-suffix form-select-arrow"></span>
-
-								<div class="form-popover">
-									<div class="form-select-panel">
-										<div class="form-select-list">
-
-											<div class="form-select-option" data-value="0">
-												<fmt:message key="entity.default.value" />
-											</div>
-
-											<c:forEach items="${requestScope.entityList}" var="item">
-												<div class="form-select-option"
-													data-value="${item.entitySymbol}"
-													${item.entitySymbol == requestScope.selectedEntity ? 'data-selected="true"' : ''}>
-													${item.entityName}</div>
-											</c:forEach>
-
-										</div>
-									</div>
-								</div>
-
-							</div>
-						</div>
-
-						<!-- ===================== TRADE TYPE ===================== -->
-						<div class="col-12 col-md-3 col-sm-6" id="tradeTypeFilter" hidden>
-							<label class="form-label"> <fmt:message key="trade.title" />
-							</label>
-
-							<div class="form-control-shell is-select" data-select
-								data-field="tradeType">
-
-								<div class="form-select-value"></div>
-
-								<input type="hidden" id="typeOfTrade"
-									name="<%=HistoricalReportConstants.SELECTED_TYPE_OF_TRADE%>"
-									data-filter="tradeType" value="OB" /> <span
-									class="form-suffix form-select-arrow"></span>
-
-								<div class="form-popover">
-									<div class="form-select-panel">
-										<div class="form-select-list">
-
-											<div class="form-select-option" data-value="OB"
-												data-selected="true">
-												<fmt:message key="type.of.trade.option.1" />
-											</div>
-
-											<div class="form-select-option" data-value="OTC">
-												<fmt:message key="type.of.trade.option.2" />
-											</div>
-
-											<div class="form-select-option" data-value="ND">
-												<fmt:message key="type.of.trade.option.3" />
-											</div>
-
-										</div>
-									</div>
-								</div>
-
-							</div>
-						</div>
-
-						<!-- ===================== DATE RANGE ===================== -->
-						<div class="col-12 col-md-3 col-sm-6">
-
-							<label class="form-label"> <fmt:message key="filter.date" />
-							</label>
-							<div class="form-control-shell form-date-range is-date"
-								data-date-range>
-
-								<input type="text" class="form-date-input" readonly
-									data-date-start data-filter="startDate" /> <span
-									class="form-date-range-separator" aria-hidden="true">-</span> <input
-									type="text" class="form-date-input" readonly data-date-end
-									data-filter="endDate" /> <span
-									class="form-suffix form-date-icon"></span>
-							</div>
-						</div>
-					</div>
-					<p
-            id="historicalFilterMessage"
-            class="form-error"
-            data-historical-filter-message
-            aria-live="polite"
-            hidden
-          ></p>
-				</div>
-				<div class="row">
-					<div class="col-12 col-lg-12 col-md-12 col-sm-12 mt-3">
-						<div class="d-flex justify-content-lg-end align-items-end">
-							<button id="historicalResetBtn" type="button"
-								class="se-btn se-btn--banner">
-								<span> <fmt:message key="reset.btn.title" />
-								</span> <span
-									class="se-btn__icon se-btn__icon--refresh se-icon icon-custom-refresh-cycle icon-md"></span>
-							</button>
-						</div>
-					</div>
-				</div>
-
-
-			</section>
-		</div>
-	</div>
-
-	<!-- ========================================
-         CONTENT AREA
-    ======================================== -->
-
-	<div class="intro-section">
-		<section class="app-container mt-5">
-			<section class="tabs-container" data-tabs>
-				<div class="tabs" role="tablist">
-					<button class="tabs__item is-active" role="tab"
-						data-tab="performance" aria-selected="true">
-						<fmt:message key="performance.tab.title" />
-					</button>
-					<button class="tabs__item" role="tab" data-tab="unadjusted"
-						aria-selected="false" tabindex="-1">
-						<fmt:message key="unadjust.price.tab.title" />
-					</button>
-					<span class="tabs__underline"></span>
-				</div>
-			</section>
-
-			<!-- ========================================
-  PLACEHOLDER
-  ======================================== -->
-
-			<section id="historical-empty-state" class="tab-content__panel"
-				hidden>
-				<div class="historical-placeholder">
-					<img id="historical-empty-image" src="${pageContext.request.contextPath}/images/no-data.png"
-						style="width: 300px; place-self: center;" hidden />
-
-					<div id="historical-placeholder-message"
-						class="historical-placeholder__message text-center"></div>
-				</div>
-			</section>
-
-			<!-- ========================================
-  TABLES
-  ======================================== -->
-
-			<section id="historical-content" class="tab-content">
-
-				<!-- PERFORMANCE -->
-				<section id="historical-panel-performance"
-					class="tab-content__panel is-active">
-
-					<table id="perfSummary" class="table" data-dt>
-						<thead>
-							<tr></tr>
-						</thead>
-						<tbody></tbody>
-					</table>
-
-				</section>
-
-				<!-- UNADJUSTED -->
-				<section id="historical-panel-unadjusted" class="tab-content__panel">
-
-					<table id="unadjustedPrice" class="table" data-dt>
-						<thead>
-							<tr></tr>
-						</thead>
-						<tbody></tbody>
-					</table>
-
-				</section>
-
-				<!-- DERIVATIVES -->
-				<section id="SingleStockOptionsDiv" hidden>
-					<table id="SingleStockOptionsTable" class="table" data-dt>
-						<thead>
-							<tr></tr>
-						</thead>
-						<tbody></tbody>
-					</table>
-				</section>
-			</section>
-
-			<!-- ========================================
-  PAGINATION
-  ======================================== -->
-
-			<div class="feed__pagination">
-				<div class="feed__page-range" data-feed-range>0–0 of 0</div>
-				<div class="feed__page-controls">
-
-					<span class="feed__page-label">Page</span> <select
-						class="feed__select" data-feed-page></select> <span>of <strong
-						data-feed-total-pages>1</strong></span>
-
-					<button class="feed__page-btn" data-feed-prev disabled
-						aria-label="Previous page">
-						<span class="se-icon icon-md icon-arrow" aria-hidden="true"></span>
-					</button>
-					<button class="feed__page-btn" data-feed-next disabled
-						aria-label="Next page">
-						<span class="se-icon icon-md icon-arrow" aria-hidden="true"></span>
-					</button>
-				</div>
-
-			</div>
-		</section>
-	</div>
-
-
-</section>
-
-<script>
- 
-window.HistoricalConfig = {
-    requestLocale: "${requestScope.requestLocale}",
- 
-    defaults: {
-      market: "${requestScope.selectedMarket}",
-      sector: "${requestScope.selectedSector}",
-      entity: "${requestScope.selectedEntity}",
-      tradeType: "OB"
-    },
- 
-    constants: {
-      MARKETS_WITHOUT_SECTOR: ["ETFS", "MF", "TR"]
-    }
-  };
- 
- 
-/* =========================================================
- ENDPOINTS
- ========================================================= */
- 
- window.HistoricalEndpoints = {
-    populateCompanyDetails: "<portlet:resourceURL id='populateCompanyDetails'/>",
-    populateSectors: "<portlet:resourceURL id='populateSectors'/>",
-    populateEntity: "<portlet:resourceURL id='populateEntity'/>",
-    getSingleStockOptionsTableCompanyData:
-      "<portlet:resourceURL id='getSingleStockOptionsTableCompanyData'/>"
-  };
- 
-/* =========================================================
- I18N STRINGS (SAFE FOR JS)
- Avoid injecting JSP tags inside JS logic later
- ========================================================= */
- 
-window.HistoricalI18n = {
-    sectorPlaceholder: "<fmt:message key='sector.default.value'/>",
-    entityPlaceholder: "<fmt:message key='entity.default.value'/>",
-    marketPlaceholder: "<fmt:message key='market.default.value'/>",
- 
-    validationMarket: "<fmt:message key='market.validation.message'/>",
-    validationSector: "<fmt:message key='sector.validation.message'/>",
-    validationEntity: "<fmt:message key='entity.validation.message'/>",
-    validationDateRange: "<fmt:message key='date.validation.message'/>",
-    validationDateOrder: "<fmt:message key='date.order.validation.message'/>",
-	placeholderSelectFilters:
-	    "<fmt:message key='historical.placeholder.select.filters'/>",
-	 
-	noDataMessage:
-	    "<fmt:message key='historical.placeholder.no.data'/>",
- 
-    labels: {
-      "table.header.date": "<fmt:message key='table.header.date'/>",
-      "table.header.open": "<fmt:message key='table.header.open'/>",
-      "table.header.high": "<fmt:message key='table.header.high'/>",
-      "table.header.low": "<fmt:message key='table.header.low'/>",
-      "table.header.close": "<fmt:message key='table.header.close'/>",
-      "table.header.change": "<fmt:message key='table.header.change'/>",
-      "table.header.change.points": "<fmt:message key='table.header.change.points'/>",
-      "table.header.percnt.change": "<fmt:message key='table.header.percnt.change'/>",
-      "table.header.volume.traded": "<fmt:message key='table.header.volume.traded'/>",
-      "table.header.nominal.value.traded": "<fmt:message key='table.header.nominal.value.traded'/>",
-      "table.header.turn.over": "<fmt:message key='table.header.turn.over'/>",
-      "table.header.no.of.trades": "<fmt:message key='table.header.no.of.trades'/>",
-      "table.header.nav": "<fmt:message key='table.header.nav'/>",
-      "table.header.close.yeild": "<fmt:message key='table.header.close.yeild'/>",
-      "table.header.mf.date": "<fmt:message key='table.header.mf.date'/>",
-      "table.header.mf.nav": "<fmt:message key='table.header.mf.nav'/>",
-      "table.header.daily.sett.price": "<fmt:message key='table.header.daily.sett.price'/>",
-      "table.header.open.interest": "<fmt:message key='table.header.open.interest'/>",
- 
-      "derivatives.market.watch.underlying.table.instrumenttype":
-        "<fmt:message key='derivatives.market.watch.underlying.table.instrumenttype'/>",
-      "derivatives.market.watch.underlying.table.symbol":
-        "<fmt:message key='derivatives.market.watch.underlying.table.symbol'/>",
-      "derivatives.market.watch.underlying.table.Underlying":
-        "<fmt:message key='derivatives.market.watch.underlying.table.Underlying'/>",
-      "derivatives.market.watch.underlying.table.ExpiryDate":
-        "<fmt:message key='derivatives.market.watch.underlying.table.ExpiryDate'/>",
-      "derivatives.market.watch.underlying.table.Type":
-        "<fmt:message key='derivatives.market.watch.underlying.table.Type'/>",
-      "derivatives.market.watch.underlying.table.StrikePrice":
-        "<fmt:message key='derivatives.market.watch.underlying.table.StrikePrice'/>",
-      "derivatives.market.watch.underlying.table.ReferencePrice":
-        "<fmt:message key='derivatives.market.watch.underlying.table.ReferencePrice'/>",
-      "derivatives.market.watch.underlying.table.LastTradedPrice":
-        "<fmt:message key='derivatives.market.watch.underlying.table.LastTradedPrice'/>",
-      "derivatives.market.watch.underlying.table.Volume":
-        "<fmt:message key='derivatives.market.watch.underlying.table.Volume'/>",
-      "derivatives.market.watch.underlying.table.OpenInterest":
-        "<fmt:message key='derivatives.market.watch.underlying.table.OpenInterest'/>",
-      "derivatives.market.watch.underlying.table.UnderlyingPrice":
-        "<fmt:message key='derivatives.market.watch.underlying.table.UnderlyingPrice'/>",
-        "labels.company.profile.options.table.calls":
-		  "<fmt:message key='labels.company.profile.options.table.calls'/>",
-		"labels.company.profile.options.table.puts":
-		  "<fmt:message key='labels.company.profile.options.table.puts'/>",
-		"derivatives.market.watch.sso":
-		  "<fmt:message key='derivatives.market.watch.sso'/>",
-		  "table.header.aum": "AUM",
-    }
-  };
- 
- 
-/* =========================================================
- DROPDOWN CONFIGURATION
- (Single source of truth for dependencies)
- ========================================================= */
- 
-window.DROPDOWN_CONFIG = {
-    market: {
-      init: true,
- 
-      targets: [
-        {
-          field: "sector",
-          url: window.HistoricalEndpoints.populateSectors,
-          method: "GET",
- 
-          params: function (marketValue, sourceShell) {
-            const disabled =
-              window.HistoricalConfig.constants.MARKETS_WITHOUT_SECTOR.includes(
-                marketValue
-              );
- 
-            const scope = sourceShell.closest("[data-filters]");
-            const sectorShell = scope?.querySelector('[data-field="sector"]');
- 
-            if (sectorShell) {
-              sectorShell.classList.toggle("is-disabled", disabled);
-              sectorShell.setAttribute(
-                "aria-disabled",
-                disabled ? "true" : "false"
-              );
-            }
- 
-            if (disabled) return false;
- 
-            return {
-              selectedMarket: marketValue
-            };
-          },
- 
-          map: function (item) {
-            if (!item) return null;
- 
-            return {
-              value: item.dropdownValue || "0",
-              label: item.name || "-"
-            };
-          },
- 
-          placeholder: function () {
-            return window.HistoricalI18n.sectorPlaceholder;
-          }
-        },
- 
-        {
-          field: "entity",
-          url: window.HistoricalEndpoints.populateEntity,
-          method: "GET",
- 
-          params: function (marketValue) {
-            return {
-              selectedMarket: marketValue,
-              selectedSector: "0"
-            };
-          },
- 
-          map: function (item) {
-            if (!item) return null;
- 
-            return {
-              value: item.entitySymbol || "0",
-              label: item.entityName || "-"
-            };
-          },
- 
-          placeholder: function () {
-            return window.HistoricalI18n.entityPlaceholder;
-          }
-        }
-      ]
-    },
- 
-    sector: {
-      targets: [
-        {
-          field: "entity",
-          url: window.HistoricalEndpoints.populateEntity,
-          method: "GET",
- 
-          params: function (sectorValue) {
-            const market =
-              document.querySelector('[data-filter="market"]')?.value || "0";
- 
-            return {
-              selectedMarket: market,
-              selectedSector: sectorValue || "0"
-            };
-          },
- 
-          map: function (item) {
-            if (!item) return null;
- 
-            return {
-              value: item.entitySymbol || "0",
-              label: item.entityName || "-"
-            };
-          },
- 
-          placeholder: function () {
-            return window.HistoricalI18n.entityPlaceholder;
-          }
-        }
-      ]
-    }
-  };
-</script>
-
-<script src="${pageContext.request.contextPath}/js/tabs.controller.js"></script>
-<script src="${pageContext.request.contextPath}/js/dropdown-update.js"></script>
-<script src="${pageContext.request.contextPath}/js/historical.rules.js"></script>
-<script
-	src="${pageContext.request.contextPath}/js/historical.columns.js"></script>
-<script
-	src="${pageContext.request.contextPath}/js/historical.table.profiles.js"></script>
-<script
-	src="${pageContext.request.contextPath}/js/historical.table.engine.js"></script>
-<script
-	src="${pageContext.request.contextPath}/js/historical.feature.manager.js"></script>
-
-
-
-
-  <%-- ==========================================================================
-     Historical Reports Hero
-     ========================================================================== --%>
+<%-- ==========================================================================
+Historical Reports Hero
+==========================================================================
+Page-level introduction for Historical Reports. The decorative background is
+hidden from assistive technology. The visible heading provides the accessible
+name for the section.
+========================================================================== --%>
 
 <section
   class="hero-section surface-hero"
@@ -580,7 +21,7 @@ window.DROPDOWN_CONFIG = {
             aria-hidden="true"
           ></span>
 
-          <h2 id="historical-reports-title" class="hero-intro__title">
+          <h2 class="hero-intro__title" id="historical-reports-title">
             <fmt:message key="page.header" />
           </h2>
         </div>
@@ -590,6 +31,22 @@ window.DROPDOWN_CONFIG = {
 </section>
 <%-- ==========================================================================
      Historical Reports Filters
+     ==========================================================================
+
+     Historical filter surface.
+
+     Responsibilities:
+     - Market selection
+     - Sector selection
+     - Entity selection
+     - conditional Trade Type selection
+     - date-range selection
+     - Reset action
+
+     Validation/result messaging is intentionally NOT rendered inside this
+     form. Page-level filter guidance is displayed in the Historical content
+     placeholder so users receive one clear message instead of duplicate
+     messages beneath individual controls.
      ========================================================================== --%>
 
 <section
@@ -597,6 +54,7 @@ window.DROPDOWN_CONFIG = {
   aria-labelledby="historical-filters-title"
 >
   <div class="container">
+
     <form
       class="filter-bar filter-bar--connected"
       data-historical-filters
@@ -643,6 +101,7 @@ window.DROPDOWN_CONFIG = {
               data-searchable
             >
               <div class="form-select-wrap custom-select__fallback">
+
                 <select
                   class="form-select custom-select__native"
                   id="historical-market"
@@ -678,12 +137,16 @@ window.DROPDOWN_CONFIG = {
                   class="form-select-icon has-icon icon-chevron-down"
                   aria-hidden="true"
                 ></span>
+
               </div>
             </div>
           </div>
 
           <%-- ==================================================================
                Sector
+
+               Sector remains non-blocking in Historical business validation.
+               The dependency layer still owns enable/disable and population.
                ================================================================== --%>
 
           <div class="filter-bar__field">
@@ -700,6 +163,7 @@ window.DROPDOWN_CONFIG = {
               data-searchable
             >
               <div class="form-select-wrap custom-select__fallback">
+
                 <select
                   class="form-select custom-select__native"
                   id="historical-sector"
@@ -734,6 +198,7 @@ window.DROPDOWN_CONFIG = {
                   class="form-select-icon has-icon icon-chevron-down"
                   aria-hidden="true"
                 ></span>
+
               </div>
             </div>
           </div>
@@ -763,6 +228,7 @@ window.DROPDOWN_CONFIG = {
               data-searchable
             >
               <div class="form-select-wrap custom-select__fallback">
+
                 <select
                   class="form-select custom-select__native"
                   id="historical-entity"
@@ -798,6 +264,7 @@ window.DROPDOWN_CONFIG = {
                   class="form-select-icon has-icon icon-chevron-down"
                   aria-hidden="true"
                 ></span>
+
               </div>
             </div>
           </div>
@@ -805,8 +272,11 @@ window.DROPDOWN_CONFIG = {
           <%-- ==================================================================
                Trade Type
 
-               Historical rules reveal this only for:
-               market = SUKUK and sector = G or S.
+               Historical rules reveal this field only for:
+               - Market = SUKUK
+               - Sector = G or S
+
+               When hidden, Historical JS forces the source value back to OB.
                ================================================================== --%>
 
           <div
@@ -826,6 +296,7 @@ window.DROPDOWN_CONFIG = {
               data-custom-select
             >
               <div class="form-select-wrap custom-select__fallback">
+
                 <select
                   class="form-select custom-select__native"
                   id="historical-trade-type"
@@ -852,6 +323,7 @@ window.DROPDOWN_CONFIG = {
                   class="form-select-icon has-icon icon-chevron-down"
                   aria-hidden="true"
                 ></span>
+
               </div>
             </div>
           </div>
@@ -859,13 +331,13 @@ window.DROPDOWN_CONFIG = {
           <%-- ==================================================================
                Time Period
 
-               Uses the same filter-bar field contract as Select controls.
-               The visible label is intentionally a form-label-static rather
-               than fieldset/legend so every filter control shares the same
-               vertical layout and control baseline.
+               Uses the standard filter-bar field contract rather than
+               fieldset/legend so its label and control align exactly with the
+               select controls.
                ================================================================== --%>
 
           <div class="filter-bar__field">
+
             <span
               class="form-label-static"
               id="historical-date-label"
@@ -891,6 +363,7 @@ window.DROPDOWN_CONFIG = {
                 <%-- Native progressive-enhancement fallback --%>
 
                 <div class="custom-date__native-range">
+
                   <input
                     class="form-control custom-date__native"
                     id="historical-date-start"
@@ -912,6 +385,7 @@ window.DROPDOWN_CONFIG = {
                     aria-label="<fmt:message key='filter.date' /> end"
                     required
                   />
+
                 </div>
 
                 <%-- Initial enhanced-control placeholder --%>
@@ -929,6 +403,7 @@ window.DROPDOWN_CONFIG = {
                     aria-hidden="true"
                   ></span>
                 </div>
+
               </div>
             </div>
           </div>
@@ -938,12 +413,12 @@ window.DROPDOWN_CONFIG = {
         <%-- ====================================================================
              Actions
 
-             Kept as a sibling of filter-bar__fields. This is the shared
-             filter-bar layout contract and aligns the Reset action with the
-             controls rather than with their labels.
+             Reset remains outside filter-bar__fields so the shared filter-bar
+             layout can align it with the controls instead of their labels.
              ==================================================================== --%>
 
         <div class="filter-bar__actions">
+
           <button
             type="button"
             class="btn btn-outline-primary has-icon icon-sync-refresh icon-end"
@@ -951,39 +426,33 @@ window.DROPDOWN_CONFIG = {
           >
             <fmt:message key="reset.btn.title" />
           </button>
+
         </div>
 
       </div>
-
-      <%-- ======================================================================
-           Filter Validation Message
-
-           Retained for now because the coordinator currently requires this
-           hook. Observation #6 will remove/simplify duplicate messaging in
-           the next testing/fix phase.
-           ====================================================================== --%>
-
-      <p
-        class="form-error"
-        data-historical-filter-message
-        aria-live="polite"
-        hidden
-      ></p>
     </form>
+
   </div>
 </section>
 <%-- ==========================================================================
      Historical Reports Content
      ==========================================================================
 
-     Performance / Unadjusted are presented as one connected data-view surface.
+     Historical result area.
 
-     The tabs are part of the same result surface as their table/cards so the
-     transition from the connected filter bar into the results reads as one
-     composed interface rather than separate floating components.
+     The active business profile determines which result surface is shown:
 
-     Derivatives Underlying replaces the tabbed report surface when its
-     Historical business profile is active.
+     - Performance / Unadjusted:
+       connected tabbed report surface
+
+     - Derivatives Single Stock Options:
+       connected Underlying surface
+
+     - incomplete / invalid filter state:
+       connected page-level guidance surface
+
+     Notes and pagination remain outside the report surface because their
+     visibility and lifecycle are coordinated independently.
      ========================================================================== --%>
 
 <section
@@ -994,22 +463,19 @@ window.DROPDOWN_CONFIG = {
   <div class="container">
 
     <%-- ========================================================================
-         Performance / Unadjusted Connected Results
+         Performance / Unadjusted Results
          ========================================================================
 
-         data-view + data-view--connected are intentionally applied to the tabs
-         root itself.
+         The tabs themselves own the connected result surface.
 
-         This keeps:
-         - tab navigation
-         - active tab panel
-         - table
-         - mobile cards
+         tabs--contained:
+         - visually contains navigation + active panel
+         - removes the floating-tabs appearance
+         - keeps primary underline tab behavior
 
-         inside one connected result surface.
-
-         historical.js already hides this entire element when the active
-         business profile is Derivatives Underlying or a non-table state.
+         data-view / data-view--connected:
+         - keeps the report aligned with the connected filter composition
+         - provides the shared data-view workspace contract
          ======================================================================== --%>
 
     <div
@@ -1087,6 +553,7 @@ window.DROPDOWN_CONFIG = {
                  ================================================================ --%>
 
             <div class="data-view__table">
+
               <div
                 class="table-shell"
                 data-table-shell
@@ -1108,13 +575,14 @@ window.DROPDOWN_CONFIG = {
                     </caption>
 
                     <%--
-                      Historical columns are generated dynamically from the
-                      active market/profile schema.
+                      Historical columns are generated from the active
+                      market/profile schema.
 
-                      The shared data-table layer owns:
+                      common/data-view/data-table.js owns:
                       - generated header cells
-                      - visibility
-                      - loading / empty / error rows
+                      - column visibility
+                      - skeleton loading rows
+                      - empty/error table states
                       - DataTables lifecycle
                     --%>
 
@@ -1185,6 +653,7 @@ window.DROPDOWN_CONFIG = {
                  ================================================================ --%>
 
             <div class="data-view__table">
+
               <div
                 class="table-shell"
                 data-table-shell
@@ -1206,11 +675,11 @@ window.DROPDOWN_CONFIG = {
                     </caption>
 
                     <%--
-                      Unadjusted columns are generated dynamically from the
-                      Historical schema.
+                      Unadjusted columns are generated from the Historical
+                      schema.
 
-                      Column visibility remains Historical business logic;
-                      rendering/lifecycle remains owned by common/data-view.
+                      Historical owns business-specific visibility.
+                      common/data-view owns rendering and table lifecycle.
                     --%>
 
                     <thead>
@@ -1267,14 +736,14 @@ window.DROPDOWN_CONFIG = {
          Derivatives Underlying
          ========================================================================
 
-         This is intentionally NOT a tab.
+         This is intentionally not a tab.
 
-         Historical rules replace the normal Performance / Unadjusted surface
-         with this view for:
+         Historical rules replace the Performance / Unadjusted surface with
+         this view for:
 
-         Derivatives -> Single Stock Options
+         DERIVATIVE -> Single Stock Options
 
-         It remains:
+         Underlying remains:
          - client-side
          - non-paged
          - independently loaded
@@ -1304,6 +773,7 @@ window.DROPDOWN_CONFIG = {
                ================================================================ --%>
 
           <div class="data-view__table">
+
             <div
               class="table-shell"
               data-table-shell
@@ -1379,7 +849,8 @@ window.DROPDOWN_CONFIG = {
          Shared note-panel design-system component.
 
          historical.rules.js resolves the semantic note key.
-         historical.js clones the matching trusted template content.
+         historical.js clones the matching trusted JSP template content into
+         the appropriate note-panel instance.
          ======================================================================== --%>
 
     <%-- Default Note --%>
@@ -1438,11 +909,10 @@ window.DROPDOWN_CONFIG = {
          Note Templates
          ========================================================================
 
-         Inert server-rendered translated content.
+         These templates are inert until Historical JS clones their content.
 
-         These stay outside the visible note component. historical.js selects
-         by semantic key and clones the DocumentFragment into the appropriate
-         note-panel__content element.
+         Content is trusted server-rendered application/resource-bundle
+         content. User-provided HTML must never be inserted here unsanitized.
          ======================================================================== --%>
 
     <template data-historical-note-template="indexType">
@@ -1465,40 +935,52 @@ window.DROPDOWN_CONFIG = {
          Historical Reports Page Placeholder
          ========================================================================
 
-         This represents a page/business-rule state, not an ordinary zero-row
-         table result.
+         Page-level state used when the current filter/business-rule state
+         cannot display one of the normal report views.
 
          Examples:
-         - required filters have not been selected
-         - current business profile intentionally has no normal table
+         - required filter values are incomplete
+         - the current state requires user guidance before loading a report
 
-         Ordinary zero-row responses remain owned by data-table/data-cards.
+         This is intentionally presented through the same connected data-view
+         surface as normal report content so the filter/result composition
+         remains visually complete.
+
+         Ordinary zero-row API responses remain owned by data-table/data-cards.
          ======================================================================== --%>
 
-    <section
+    <div
       id="historical-empty-state"
-      class="text-center py-8"
+      class="data-view data-view--connected"
       data-historical-placeholder
-      aria-live="polite"
-      aria-atomic="true"
       hidden
     >
-      <img
-        id="historical-empty-image"
-        src="${pageContext.request.contextPath}/images/no-data.png"
-        class="w-100"
-        style="max-width: 300px; margin-inline: auto;"
-        data-historical-placeholder-image
-        alt=""
-        hidden
-      />
+      <div class="data-view__workspace">
 
-      <p
-        id="historical-placeholder-message"
-        class="text-muted mt-4"
-        data-historical-placeholder-message
-      ></p>
-    </section>
+        <section
+          class="text-center py-8"
+          aria-live="polite"
+          aria-atomic="true"
+        >
+          <img
+            id="historical-empty-image"
+            src="${pageContext.request.contextPath}/images/no-data.png"
+            class="w-100"
+            style="max-width: 300px; margin-inline: auto;"
+            data-historical-placeholder-image
+            alt=""
+            hidden
+          />
+
+          <p
+            id="historical-placeholder-message"
+            class="text-muted"
+            data-historical-placeholder-message
+          ></p>
+        </section>
+
+      </div>
+    </div>
 
     <%-- ========================================================================
          Historical Reports Pagination
@@ -1508,14 +990,14 @@ window.DROPDOWN_CONFIG = {
          - Performance
          - Unadjusted Price & Volume
 
-         Not used by Derivatives Underlying.
+         Derivatives Underlying does not use report pagination.
 
-         common/data-view/data-pagination.js dynamically owns:
+         common/data-view/data-pagination.js owns:
          - result range
          - Previous
          - page numbers
          - ellipsis
-         - active page
+         - current page
          - Next
          ======================================================================== --%>
 
@@ -1546,6 +1028,23 @@ window.DROPDOWN_CONFIG = {
 </section>
 <%-- ==========================================================================
      Historical Reports Page Configuration
+     ==========================================================================
+
+     Server-rendered configuration consumed by:
+
+       js/pages/historical/historical.js
+
+     Responsibilities:
+     - locale
+     - backend resource endpoints
+     - initial/reset filter values
+     - Historical business constants
+     - DataTables configuration
+     - translated UI labels
+     - table-column labels
+
+     Business behavior remains implemented in the Historical JavaScript
+     modules rather than in this JSP configuration block.
      ========================================================================== --%>
 
 <script>
@@ -1555,7 +1054,8 @@ window.DROPDOWN_CONFIG = {
        Locale
        ======================================================================== */
 
-    locale: "${requestScope.requestLocale}",
+    locale:
+      "${requestScope.requestLocale}",
 
     /* ========================================================================
        Endpoints
@@ -1576,14 +1076,21 @@ window.DROPDOWN_CONFIG = {
     },
 
     /* ========================================================================
-       Defaults
+       Defaults / Reset Targets
        ======================================================================== */
 
     defaults: {
-      market: "${requestScope.selectedMarket}",
-      sector: "${requestScope.selectedSector}",
-      entity: "${requestScope.selectedEntity}",
-      tradeType: "OB"
+      market:
+        "${requestScope.selectedMarket}",
+
+      sector:
+        "${requestScope.selectedSector}",
+
+      entity:
+        "${requestScope.selectedEntity}",
+
+      tradeType:
+        "OB"
     },
 
     /* ========================================================================
@@ -1599,7 +1106,7 @@ window.DROPDOWN_CONFIG = {
     },
 
     /* ========================================================================
-       DataTable Configuration
+       DataTables Configuration
        ======================================================================== */
 
     table: {
@@ -1609,20 +1116,38 @@ window.DROPDOWN_CONFIG = {
          ---------------------------------------------------------------------- */
 
       report: {
-        serverSide: true,
-        paging: true,
-        pagingType: "simple",
-        pageLength: 100,
+        serverSide:
+          true,
 
-        searching: false,
-        ordering: false,
-        info: false,
+        paging:
+          true,
 
-        scrollX: true,
-        scrollCollapse: true,
-        autoWidth: true,
+        pagingType:
+          "simple",
 
-        fixedHeader: true
+        pageLength:
+          100,
+
+        searching:
+          false,
+
+        ordering:
+          false,
+
+        info:
+          false,
+
+        scrollX:
+          true,
+
+        scrollCollapse:
+          true,
+
+        autoWidth:
+          true,
+
+        fixedHeader:
+          true
       },
 
       /* ----------------------------------------------------------------------
@@ -1630,18 +1155,32 @@ window.DROPDOWN_CONFIG = {
          ---------------------------------------------------------------------- */
 
       underlying: {
-        serverSide: false,
-        paging: false,
+        serverSide:
+          false,
 
-        searching: false,
-        ordering: false,
-        info: false,
+        paging:
+          false,
 
-        scrollX: true,
-        scrollCollapse: true,
-        autoWidth: true,
+        searching:
+          false,
 
-        fixedHeader: true
+        ordering:
+          false,
+
+        info:
+          false,
+
+        scrollX:
+          true,
+
+        scrollCollapse:
+          true,
+
+        autoWidth:
+          true,
+
+        fixedHeader:
+          true
       }
     },
 
@@ -1655,6 +1194,14 @@ window.DROPDOWN_CONFIG = {
          General
          ---------------------------------------------------------------------- */
 
+      /*
+       * Page-level guidance shown in the connected Historical placeholder when
+       * required filter values are incomplete.
+       *
+       * Ensure this resource key exists in every supported locale bundle:
+       *
+       *   historical.placeholder.select.filters
+       */
       placeholderSelectFilters:
         "<fmt:message key='historical.placeholder.select.filters' />",
 
@@ -1663,6 +1210,14 @@ window.DROPDOWN_CONFIG = {
 
       /* ----------------------------------------------------------------------
          Validation
+         ----------------------------------------------------------------------
+
+         These remain part of the Historical configuration because the rules
+         layer owns validation semantics.
+
+         They are no longer rendered as a second inline message underneath the
+         filter controls. The coordinator will present page-level guidance
+         through the connected placeholder instead.
          ---------------------------------------------------------------------- */
 
       validation: {
@@ -1787,9 +1342,10 @@ window.DROPDOWN_CONFIG = {
           "<fmt:message key='table.header.open.interest' />",
 
         /*
-         * Preserved from the current/legacy contract.
+         * Preserved from the current/legacy Historical contract.
          */
-        aum: "AUM",
+        aum:
+          "AUM",
 
         /* --------------------------------------------------------------------
            Derivatives Underlying Columns
@@ -1849,10 +1405,14 @@ window.DROPDOWN_CONFIG = {
 
 <%-- ==========================================================================
      Historical Reports Entry Module
+     ==========================================================================
+
+     ES modules are deferred by default. historical.js owns page
+     initialization and coordinates filters, rules, tables, cards, notes,
+     placeholders, and pagination.
      ========================================================================== --%>
 
 <script
   type="module"
   src="${pageContext.request.contextPath}/js/pages/historical/historical.js"
 ></script>
-
