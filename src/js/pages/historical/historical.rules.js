@@ -3,337 +3,569 @@
    ========================================================================== */
 
 /*
- * Centralized business logic for Historical Reports.
+ * Pure business-rule resolver for Historical Reports.
  *
  * Responsibilities:
  *
- * - validate the current filter selection
- * - resolve Trade Type field visibility
- * - resolve Unadjusted tab visibility
- * - resolve Derivatives Underlying routing
- * - resolve which table profile applies (performance / unadjusted /
- *   derivativesUnderlying / none)
- * - resolve contextual footnote content
+ * - validate the current filter state
+ * - determine Trade Type visibility
+ * - determine Unadjusted tab availability
+ * - identify index entity metadata
+ * - resolve the active Historical profile
+ * - resolve the contextual note key / target
  *
  * This module intentionally has no:
  *
  * - DOM queries
- * - global state
- * - DataTables lifecycle
- * - AJAX code
- * - column definitions
- * - card markup
+ * - translated note HTML
+ * - table creation
+ * - card rendering
+ * - pagination behavior
+ * - request implementation
+ * - filter mutation
+ * - tab activation
  *
- * Legacy reference: historical.rules.js.
+ * Notes:
  *
- * Legacy reached into two globals directly: window.HistoricalManager.getFilters()
- * and window.HistoricalI18n. This module instead takes `filters` and `config`
- * as explicit parameters, matching the dependency style already used by
- * market-watch.filters.js and historical.config.js. This is a structural
- * change only -- for the same filter values and the same configured labels,
- * every function below returns exactly what legacy's resolve() returned.
+ * JSP owns the actual localized/rich note content through:
  *
- * Filters here are ISO dates (YYYY-MM-DD), not legacy's DD-MM-YYYY. The
- * custom-date-range control's native inputs always hold ISO; the DD-MM-YYYY
- * conversion legacy's backend contract requires happens once, at the request
- * boundary in historical.filters.js, not here. Validation results (pass/fail,
- * ordering) are identical for the same real dates -- only the string format
- * assumption changed, and only because the date picker itself changed.
+ *   <template data-historical-note-template="...">
+ *
+ * This rules module only returns the semantic template key.
  */
-
-import { HISTORICAL_SPECIAL_INDICES } from "./historical.columns.js";
 
 /* ==========================================================================
    Constants
    ========================================================================== */
 
-/*
- * Markets whose Performance tab is the only content tab shown -- i.e. the
- * Unadjusted Price tab never applies to them. DERIVATIVE is handled
- * separately below because its Unadjusted visibility additionally depends
- * on sector, not just market.
- */
-const ONE_TAB_MARKETS = Object.freeze(["ETFS", "SUKUK", "INDICES", "MF", "TR"]);
+const DEFAULT_TAB = "performance";
 
-const SPECIAL_INDICES_SET = new Set(HISTORICAL_SPECIAL_INDICES);
+/*
+ * These markets expose Performance only.
+ *
+ * Unadjusted Price is intentionally unavailable for all of them.
+ */
+const ONE_TAB_MARKETS = Object.freeze(
+  new Set(["ETFS", "SUKUK", "INDICES", "MF", "TR"]),
+);
+
+/*
+ * Trade Type is meaningful only for Sukuk/Bonds sectors G and S.
+ */
+const SUKUK_TRADE_TYPE_SECTORS = Object.freeze(new Set(["G", "S"]));
+
+/*
+ * Derivatives sectors where the Unadjusted tab is not available.
+ *
+ * OS has its own Derivatives Underlying profile.
+ * I remains Performance-only.
+ */
+const DERIVATIVE_ONE_TAB_SECTORS = Object.freeze(new Set(["I", "OS"]));
+
+const DERIVATIVE_UNDERLYING_SECTOR = "OS";
 
 /* ==========================================================================
-   Entity Parsing
+   Profile Types
+   ========================================================================== */
+
+export const HISTORICAL_PROFILE_TYPES = Object.freeze({
+  performance: "performance",
+
+  unadjusted: "unadjusted",
+
+  derivativesUnderlying: "derivativesUnderlying",
+
+  none: "none",
+});
+
+/* ==========================================================================
+   Note Keys
    ========================================================================== */
 
 /*
- * Entity values are colon-delimited: "<marketCode>:<symbol>:<type>",
- * e.g. "M:TASI:E". Only meaningful for market === "INDICES" in legacy, but
- * parsing is safe to run unconditionally -- an entity from any other market
- * simply will not match any of the checks below.
+ * Must stay aligned with the JSP:
+ *
+ *   data-historical-note-template="indexType"
+ *   data-historical-note-template="mainMarketTasi"
+ *   data-historical-note-template="derivativeChangePoints"
+ *   data-historical-note-template="mfNav"
  */
+export const HISTORICAL_NOTE_KEYS = Object.freeze({
+  indexType: "indexType",
 
-export function getEntityParts(entity) {
-  const parts = String(entity || "").split(":");
+  mainMarketTasi: "mainMarketTasi",
 
+  derivativeChangePoints: "derivativeChangePoints",
+
+  mfNav: "mfNav",
+});
+
+/* ==========================================================================
+   Note Targets
+   ========================================================================== */
+
+export const HISTORICAL_NOTE_TARGETS = Object.freeze({
+  default: "default",
+
+  derivatives: "derivatives",
+});
+
+/* ==========================================================================
+   Helpers
+   ========================================================================== */
+
+function normalizeString(value) {
+  return String(value ?? "").trim();
+}
+
+function normalizeMarket(value) {
+  return normalizeString(value).toUpperCase();
+}
+
+function normalizeSector(value) {
+  return normalizeString(value).toUpperCase();
+}
+
+function normalizeEntity(value) {
+  return normalizeString(value);
+}
+
+function normalizeTradeType(value) {
+  return normalizeString(value).toUpperCase() || "OB";
+}
+
+function normalizeTab(value) {
+  const tab = normalizeString(value);
+
+  return tab === "unadjusted" ? "unadjusted" : DEFAULT_TAB;
+}
+
+/* ==========================================================================
+   Date Validation
+   ========================================================================== */
+
+const ISO_DATE_PATTERN = /^(\d{4})-(\d{2})-(\d{2})$/;
+
+function parseIsoDate(value) {
+  const normalized = normalizeString(value);
+  const match = ISO_DATE_PATTERN.exec(normalized);
+
+  if (!match) {
+    return null;
+  }
+
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+
+  const date = new Date(Date.UTC(year, month - 1, day));
+
+  /*
+   * Reject values such as 2026-02-31 that Date would otherwise normalize
+   * into another calendar date.
+   */
+  if (
+    date.getUTCFullYear() !== year ||
+    date.getUTCMonth() !== month - 1 ||
+    date.getUTCDate() !== day
+  ) {
+    return null;
+  }
+
+  return date;
+}
+
+/* ==========================================================================
+   Filter Normalization
+   ========================================================================== */
+
+export function normalizeHistoricalRuleFilters(filters = {}) {
   return {
-    marketCode: parts[0] || "",
-    symbol: parts[1] || "",
-    type: parts[2] || "",
+    market: normalizeMarket(filters.market),
+
+    sector: normalizeSector(filters.sector),
+
+    entity: normalizeEntity(filters.entity),
+
+    tradeType: normalizeTradeType(filters.tradeType),
+
+    startDate: normalizeString(filters.startDate),
+
+    endDate: normalizeString(filters.endDate),
+
+    activeTab: normalizeTab(filters.activeTab),
   };
 }
 
 /* ==========================================================================
-   Entity Classification
-   ========================================================================== */
-
-export function isIndexTypeEntity(filters) {
-  if (filters.market !== "INDICES") {
-    return false;
-  }
-
-  return getEntityParts(filters.entity).type === "I";
-}
-
-export function isMainMarketTasi(filters) {
-  if (filters.market !== "INDICES") {
-    return false;
-  }
-
-  const entity = getEntityParts(filters.entity);
-
-  return entity.marketCode === "M" && entity.symbol === "TASI";
-}
-
-export function isSpecialIndex(filters) {
-  if (filters.market !== "INDICES") {
-    return false;
-  }
-
-  return SPECIAL_INDICES_SET.has(getEntityParts(filters.entity).symbol);
-}
-
-/* ==========================================================================
-   ISO Date Parsing
+   Index Entity Metadata
    ========================================================================== */
 
 /*
- * Self-contained rather than imported from components/custom-date -- that
- * component's parseISODate() is an internal implementation detail, not part
- * of its public API, so this page does not reach into it directly. The
- * validation rigor is equivalent: reject malformed strings and reject
- * impossible calendar dates (e.g. 2026-02-30) via a round-trip check.
+ * Historical index entities use the legacy colon-delimited shape:
+ *
+ *   <prefix>:<indexCode>:<indexType>
+ *
+ * Examples may omit the final type:
+ *
+ *   M:TASI
+ *
+ * Existing Historical column rules use:
+ *
+ *   parts[1] -> index code
+ *   parts[2] -> index type
  */
+export function parseHistoricalIndexEntity(entity) {
+  const parts = normalizeEntity(entity).split(":");
 
-const ISO_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
+  return Object.freeze({
+    raw: normalizeEntity(entity),
 
-function parseISODate(value) {
-  if (typeof value !== "string" || !ISO_DATE_PATTERN.test(value)) {
-    return null;
-  }
+    prefix: parts[0] || "",
 
-  const [year, month, day] = value.split("-").map(Number);
+    indexCode: parts[1] || "",
 
-  const date = new Date(year, month - 1, day);
-
-  const roundTrips =
-    date.getFullYear() === year &&
-    date.getMonth() === month - 1 &&
-    date.getDate() === day;
-
-  return roundTrips ? date : null;
+    indexType: parts[2] || "",
+  });
 }
 
 /* ==========================================================================
    Validation
    ========================================================================== */
 
-export function validateHistoricalFilters(filters, config) {
-  const labels = config?.labels?.validation ?? {};
+/*
+ * Preserve Historical's established validation contract:
+ *
+ * - Market required
+ * - Entity required
+ * - Start/end dates required and valid
+ * - Start must not be after End
+ *
+ * Sector is deliberately NOT treated as a required validation field here.
+ * Historical's legacy behavior did not reject the page merely because the
+ * sector value was the default/sentinel value.
+ */
+export function validateHistoricalFilters(filters, config = {}) {
+  const normalized = normalizeHistoricalRuleFilters(filters);
 
-  const market = filters?.market;
-  const entity = filters?.entity;
-  const startDate = filters?.startDate;
-  const endDate = filters?.endDate;
+  const labels = config.labels?.validation ?? {};
 
-  if (!market || market === "-1" || market === "0") {
-    return {
-      valid: false,
+  const errors = [];
+
+  /* ------------------------------------------------------------------------
+     Market
+     ------------------------------------------------------------------------ */
+
+  if (!normalized.market || normalized.market === "-1") {
+    errors.push({
+      field: "market",
+
       message: labels.market || "Please select a market.",
-    };
+    });
   }
 
-  if (!entity || entity === "0") {
-    return {
-      valid: false,
+  /* ------------------------------------------------------------------------
+     Entity
+     ------------------------------------------------------------------------ */
+
+  if (!normalized.entity || normalized.entity === "0") {
+    errors.push({
+      field: "entity",
+
       message: labels.entity || "Please select an entity.",
-    };
+    });
   }
+
+  /* ------------------------------------------------------------------------
+     Date Range
+     ------------------------------------------------------------------------ */
+
+  const startDate = parseIsoDate(normalized.startDate);
+
+  const endDate = parseIsoDate(normalized.endDate);
 
   if (!startDate || !endDate) {
-    return {
-      valid: false,
-      message: labels.dateRange || "Please select a date range.",
-    };
-  }
+    errors.push({
+      field: "dateRange",
 
-  const start = parseISODate(startDate);
-  const end = parseISODate(endDate);
-
-  if (!start || !end) {
-    return {
-      valid: false,
       message: labels.dateRange || "Please select a valid date range.",
-    };
-  }
+    });
+  } else if (startDate.getTime() > endDate.getTime()) {
+    errors.push({
+      field: "dateOrder",
 
-  if (start > end) {
-    return {
-      valid: false,
       message: labels.dateOrder || "Start date must be before end date.",
-    };
+    });
   }
 
-  return {
-    valid: true,
-    message: null,
-  };
+  return Object.freeze({
+    valid: errors.length === 0,
+
+    errors: Object.freeze(errors),
+
+    message: errors[0]?.message || "",
+
+    filters: Object.freeze(normalized),
+  });
+}
+
+/* ==========================================================================
+   Trade Type Visibility
+   ========================================================================== */
+
+export function shouldShowHistoricalTradeType(filters) {
+  const { market, sector } = normalizeHistoricalRuleFilters(filters);
+
+  return market === "SUKUK" && SUKUK_TRADE_TYPE_SECTORS.has(sector);
 }
 
 /* ==========================================================================
    Unadjusted Tab Visibility
    ========================================================================== */
 
-function resolveUnadjustedVisibility(filters) {
-  const market = filters.market;
-  const sector = filters.sector;
+export function shouldShowHistoricalUnadjustedTab(filters) {
+  const { market, sector } = normalizeHistoricalRuleFilters(filters);
 
-  if (market === "DERIVATIVE") {
-    return sector !== "I" && sector !== "OS";
+  /*
+   * No meaningful market selection yet.
+   */
+  if (!market || market === "-1") {
+    return false;
   }
 
-  return !ONE_TAB_MARKETS.includes(market);
+  /*
+   * Performance-only markets.
+   */
+  if (ONE_TAB_MARKETS.has(market)) {
+    return false;
+  }
+
+  /*
+   * Derivatives has additional sector-specific restrictions.
+   */
+  if (market === "DERIVATIVE" && DERIVATIVE_ONE_TAB_SECTORS.has(sector)) {
+    return false;
+  }
+
+  return true;
 }
 
 /* ==========================================================================
-   Profile Type
+   Derivatives Underlying
    ========================================================================== */
 
-function resolveProfileType(filters, rules) {
-  if (rules.isDerivativeUnderlying) {
-    return "derivativesUnderlying";
-  }
+export function isHistoricalDerivativesUnderlying(filters) {
+  const { market, sector } = normalizeHistoricalRuleFilters(filters);
 
-  if (rules.noTable) {
-    return "none";
-  }
-
-  if (filters.activeTab === "unadjusted" && rules.showUnadjustedTab) {
-    return "unadjusted";
-  }
-
-  return "performance";
+  return market === "DERIVATIVE" && sector === DERIVATIVE_UNDERLYING_SECTOR;
 }
 
 /* ==========================================================================
-   Footnote
+   No-Table Index Profile
+   ========================================================================== */
+
+export function isHistoricalIndexTypeOnly(filters) {
+  const normalized = normalizeHistoricalRuleFilters(filters);
+
+  if (normalized.market !== "INDICES") {
+    return false;
+  }
+
+  const { indexType } = parseHistoricalIndexEntity(normalized.entity);
+
+  return indexType === "I";
+}
+
+/* ==========================================================================
+   Profile Resolution
    ========================================================================== */
 
 /*
- * Requires config.labels.notes.{indexType, mainMarketTasi,
- * derivativeChangePoints, mfNav}. See the historical.config.js and JSP
- * patches accompanying this file -- these keys were not yet wired through
- * when historical.config.js was first written.
+ * Precedence is important and intentionally explicit:
+ *
+ * 1. Derivatives Underlying
+ * 2. Index type with no report table
+ * 3. Unadjusted when the selected tab is actually available
+ * 4. Performance
  */
+export function resolveHistoricalProfileType(filters) {
+  const normalized = normalizeHistoricalRuleFilters(filters);
 
-function resolveNote(filters, rules, config) {
-  if (!rules.ready) {
-    return null;
+  if (isHistoricalDerivativesUnderlying(normalized)) {
+    return HISTORICAL_PROFILE_TYPES.derivativesUnderlying;
   }
 
-  const notes = config?.labels?.notes ?? {};
+  if (isHistoricalIndexTypeOnly(normalized)) {
+    return HISTORICAL_PROFILE_TYPES.none;
+  }
 
-  if (isIndexTypeEntity(filters)) {
-    return {
+  const showUnadjustedTab = shouldShowHistoricalUnadjustedTab(normalized);
+
+  if (normalized.activeTab === "unadjusted" && showUnadjustedTab) {
+    return HISTORICAL_PROFILE_TYPES.unadjusted;
+  }
+
+  return HISTORICAL_PROFILE_TYPES.performance;
+}
+
+/* ==========================================================================
+   Note Resolution
+   ========================================================================== */
+
+/*
+ * Rules return only:
+ *
+ * {
+ *   visible,
+ *   target,
+ *   key
+ * }
+ *
+ * No localized HTML/string is returned from this module.
+ *
+ * historical.js will later locate:
+ *
+ *   [data-historical-note-template="<key>"]
+ *
+ * and clone its template content.
+ */
+export function resolveHistoricalNote(filters, profileType) {
+  const normalized = normalizeHistoricalRuleFilters(filters);
+
+  const { market, sector, activeTab } = normalized;
+
+  const { indexCode, indexType } = parseHistoricalIndexEntity(
+    normalized.entity,
+  );
+
+  /* ------------------------------------------------------------------------
+     Index Type
+
+     This is the note-only / no-table profile.
+     ------------------------------------------------------------------------ */
+
+  if (market === "INDICES" && indexType === "I") {
+    return Object.freeze({
       visible: true,
-      target: "default",
-      message: notes.indexType || "",
-    };
+
+      target: HISTORICAL_NOTE_TARGETS.default,
+
+      key: HISTORICAL_NOTE_KEYS.indexType,
+    });
   }
 
-  if (isMainMarketTasi(filters)) {
-    return {
+  /* ------------------------------------------------------------------------
+     TASI
+     ------------------------------------------------------------------------ */
+
+  if (market === "INDICES" && indexCode === "TASI") {
+    return Object.freeze({
       visible: true,
-      target: "default",
-      message: notes.mainMarketTasi || "",
-    };
+
+      target: HISTORICAL_NOTE_TARGETS.default,
+
+      key: HISTORICAL_NOTE_KEYS.mainMarketTasi,
+    });
   }
 
-  if (filters.market === "DERIVATIVE") {
-    return {
+  /* ------------------------------------------------------------------------
+     Derivatives Performance
+
+     OS is the independent Underlying profile and therefore does not receive
+     the Performance "Change Points" note.
+
+     When Unadjusted is available and selected, this Performance-specific
+     note is also suppressed.
+     ------------------------------------------------------------------------ */
+
+  if (
+    market === "DERIVATIVE" &&
+    sector !== DERIVATIVE_UNDERLYING_SECTOR &&
+    activeTab === "performance" &&
+    profileType === HISTORICAL_PROFILE_TYPES.performance
+  ) {
+    return Object.freeze({
       visible: true,
-      target: rules.isDerivativeUnderlying ? "derivatives" : "default",
-      message: notes.derivativeChangePoints || "",
-    };
+
+      target: HISTORICAL_NOTE_TARGETS.derivatives,
+
+      key: HISTORICAL_NOTE_KEYS.derivativeChangePoints,
+    });
   }
 
-  if (filters.market === "MF") {
-    return {
+  /* ------------------------------------------------------------------------
+     Mutual Funds
+
+     MF is Performance-only, so no separate tab check is necessary.
+     ------------------------------------------------------------------------ */
+
+  if (market === "MF") {
+    return Object.freeze({
       visible: true,
-      target: "default",
-      message: notes.mfNav || "",
-    };
+
+      target: HISTORICAL_NOTE_TARGETS.default,
+
+      key: HISTORICAL_NOTE_KEYS.mfNav,
+    });
   }
 
-  return {
+  return Object.freeze({
     visible: false,
-    target: "default",
-    message: "",
-  };
+
+    target: HISTORICAL_NOTE_TARGETS.default,
+
+    key: "",
+  });
 }
 
 /* ==========================================================================
-   Resolve
+   Main Rule Resolver
    ========================================================================== */
 
-/*
- * The single entry point, equivalent to legacy's HistoricalRules.resolve().
- * Takes the current filter state and the page config explicitly rather than
- * reaching into window.HistoricalManager / window.HistoricalI18n.
- */
-
-export function resolveHistoricalRules(filters, config) {
+export function resolveHistoricalRules(filters = {}, config = {}) {
   const validation = validateHistoricalFilters(filters, config);
 
-  const rules = {
-    filters,
+  const normalized = validation.filters;
 
+  const showTradeType = shouldShowHistoricalTradeType(normalized);
+
+  const showUnadjustedTab = shouldShowHistoricalUnadjustedTab(normalized);
+
+  /*
+   * Do not resolve a live data profile while required input is invalid.
+   *
+   * Performance is retained as the neutral fallback identifier so callers
+   * never receive an undefined profile value, but `ready` is authoritative.
+   */
+  const profileType = validation.valid
+    ? resolveHistoricalProfileType(normalized)
+    : HISTORICAL_PROFILE_TYPES.performance;
+
+  const note = validation.valid
+    ? resolveHistoricalNote(normalized, profileType)
+    : Object.freeze({
+        visible: false,
+
+        target: HISTORICAL_NOTE_TARGETS.default,
+
+        key: "",
+      });
+
+  return Object.freeze({
     ready: validation.valid,
+
     message: validation.message,
 
-    showTradeType:
-      filters.market === "SUKUK" &&
-      (filters.sector === "G" || filters.sector === "S"),
+    validation,
 
-    isDerivativeUnderlying:
-      filters.market === "DERIVATIVE" && filters.sector === "OS",
+    filters: normalized,
 
-    isIndexTypeEntity: isIndexTypeEntity(filters),
-    isMainMarketTasi: isMainMarketTasi(filters),
-    isSpecialIndex: isSpecialIndex(filters),
+    showTradeType,
 
-    noTable: false,
+    showUnadjustedTab,
 
-    showUnadjustedTab: false,
-    profileType: "performance",
+    profileType,
 
-    note: null,
-  };
-
-  rules.noTable = rules.ready && rules.isIndexTypeEntity;
-
-  rules.showUnadjustedTab = validation.valid
-    ? resolveUnadjustedVisibility(filters)
-    : false;
-
-  rules.profileType = resolveProfileType(filters, rules);
-
-  rules.note = resolveNote(filters, rules, config);
-
-  return rules;
+    note,
+  });
 }

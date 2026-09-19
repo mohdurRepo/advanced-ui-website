@@ -45,16 +45,8 @@ import { renderHistoricalCell, escapeHtml } from "../historical.formatters.js";
    ========================================================================== */
 
 /*
- * Columns already shown in the Report card's compact summary line, and
- * therefore excluded from the expandable details grid to avoid showing the
- * same value twice.
- */
-const REPORT_SUMMARY_KEYS = Object.freeze(
-  new Set(["date", "close", "change", "change-percent"]),
-);
-
-/*
  * Columns shown in the Underlying card's identity/metadata line.
+ *
  * instrument-type is already excluded via its own `mobile: false` flag in
  * historical.columns.js, matching how the desktop table treats it as
  * context rather than a per-row value.
@@ -64,12 +56,21 @@ const UNDERLYING_SUMMARY_KEYS = Object.freeze(
 );
 
 /* ==========================================================================
+   Shared Helpers
+   ========================================================================== */
+
+function findColumn(columns, key) {
+  return columns.find((column) => column.key === key) || null;
+}
+
+/* ==========================================================================
    Report Columns
    ========================================================================== */
 
 function getReportColumns(view, filters, config) {
   if (view === "unadjusted") {
     const columns = getHistoricalUnadjustedColumns(config);
+
     const available = new Set(getHistoricalUnadjustedAvailableGroups(filters));
 
     return columns.filter(
@@ -79,6 +80,7 @@ function getReportColumns(view, filters, config) {
   }
 
   const columns = getHistoricalPerformanceColumns(config, filters);
+
   const available = new Set(getHistoricalPerformanceAvailableGroups(filters));
 
   return columns.filter(
@@ -93,35 +95,84 @@ function getReportMobileColumns(view, filters, config) {
   );
 }
 
+/* ==========================================================================
+   Report Summary Columns
+   ========================================================================== */
+
+/*
+ * Report cards always reserve these values for the compact summary:
+ *
+ * - Date
+ * - Change
+ * - % Change, when available
+ *
+ * The primary quote value is profile-dependent:
+ *
+ * - Close for normal Performance / Unadjusted profiles
+ * - NAV when Close is not part of the active schema, notably Mutual Funds
+ *
+ * Keeping this schema-driven avoids hardcoding MF into the presentation
+ * layer and naturally supports another future profile whose primary value
+ * is NAV rather than Close.
+ */
+
+function getReportPrimaryValueColumn(columns) {
+  return findColumn(columns, "close") || findColumn(columns, "nav");
+}
+
+function getReportSummaryKeys(columns) {
+  const keys = new Set(["date", "change", "change-percent"]);
+
+  const primaryValueColumn = getReportPrimaryValueColumn(columns);
+
+  if (primaryValueColumn) {
+    keys.add(primaryValueColumn.key);
+  }
+
+  return keys;
+}
+
 function getReportDetailColumns(view, filters, config) {
-  return getReportMobileColumns(view, filters, config).filter(
-    (column) => !REPORT_SUMMARY_KEYS.has(column.key),
-  );
+  const columns = getReportMobileColumns(view, filters, config);
+
+  const summaryKeys = getReportSummaryKeys(columns);
+
+  return columns.filter((column) => !summaryKeys.has(column.key));
 }
 
 /* ==========================================================================
-   Report Card
+   Report Card Summary
    ========================================================================== */
-
-function findColumn(columns, key) {
-  return columns.find((column) => column.key === key) || null;
-}
 
 function renderReportSummary({ row, columns, config }) {
   const dateColumn = findColumn(columns, "date");
-  const closeColumn = findColumn(columns, "close");
+
+  const primaryValueColumn = getReportPrimaryValueColumn(columns);
+
   const changeColumn = findColumn(columns, "change");
+
   const changePercentColumn = findColumn(columns, "change-percent");
 
   const dateValue = dateColumn
-    ? renderHistoricalCell({ row, column: dateColumn, type: "display", config })
-    : "-";
-
-  const closeValue = closeColumn
     ? renderHistoricalCell({
         row,
-        column: closeColumn,
+
+        column: dateColumn,
+
         type: "display",
+
+        config,
+      })
+    : "-";
+
+  const primaryValue = primaryValueColumn
+    ? renderHistoricalCell({
+        row,
+
+        column: primaryValueColumn,
+
+        type: "display",
+
         config,
       })
     : "-";
@@ -129,8 +180,11 @@ function renderReportSummary({ row, columns, config }) {
   const changeMarkup = changeColumn
     ? renderHistoricalCell({
         row,
+
         column: changeColumn,
+
         type: "display",
+
         config,
       })
     : "";
@@ -138,8 +192,11 @@ function renderReportSummary({ row, columns, config }) {
   const changePercentMarkup = changePercentColumn
     ? renderHistoricalCell({
         row,
+
         column: changePercentColumn,
+
         type: "display",
+
         config,
       })
     : "";
@@ -147,12 +204,16 @@ function renderReportSummary({ row, columns, config }) {
   return `
     <div class="data-card__identity">
       <div class="data-card__identity-content">
-        <h3 class="data-card__title">${dateValue}</h3>
+        <h3 class="data-card__title">
+          ${dateValue}
+        </h3>
       </div>
     </div>
 
     <div class="data-card__quote">
-      <span class="data-card__price">${closeValue}</span>
+      <span class="data-card__price">
+        ${primaryValue}
+      </span>
 
       <span class="data-card__change">
         ${changeMarkup}
@@ -162,29 +223,55 @@ function renderReportSummary({ row, columns, config }) {
   `.trim();
 }
 
+/* ==========================================================================
+   Report Card Fields
+   ========================================================================== */
+
 function renderReportFields({ row, view, filters, config }) {
   return getReportDetailColumns(view, filters, config).map((column) => ({
     label: column.label,
 
-    value: renderHistoricalCell({ row, column, type: "display", config }),
+    value: renderHistoricalCell({
+      row,
+
+      column,
+
+      type: "display",
+
+      config,
+    }),
 
     fullWidth: false,
 
     /*
-     * Every non-summary Report column is a financial figure (Open, High,
-     * Low, Volume Traded, Turnover, No. of Trades, NAV, Last Yield, AUM) --
+     * Every non-summary Report column is a financial figure:
+     *
+     * - Open
+     * - High
+     * - Low
+     * - Volume Traded
+     * - Turnover
+     * - No. of Trades
+     * - NAV when it is not the summary value
+     * - Last Yield
+     * - AUM
+     *
      * .data-card__value--numeric applies tabular-nums and LTR isolation
-     * uniformly, matching how these values already render on the desktop
-     * table.
+     * consistently with the desktop financial presentation.
      */
     numeric: true,
   }));
 }
 
+/* ==========================================================================
+   Report Card
+   ========================================================================== */
+
 /*
- * `view` is fixed per card-view instance (see createHistoricalReportCardsView
- * below) -- Performance and Unadjusted each get their own container and
- * their own instance, never a runtime-swappable one.
+ * `view` is fixed per card-view instance.
+ *
+ * Performance and Unadjusted each have their own JSP container and their own
+ * card instance rather than one runtime-swappable card collection.
  */
 
 export function renderHistoricalReportCard({
@@ -207,9 +294,18 @@ export function renderHistoricalReportCard({
 
   const dateText = dateColumn ? row?.[dateColumn.data] : "";
 
-  const summary = renderReportSummary({ row, columns, config });
+  const summary = renderReportSummary({
+    row,
+    columns,
+    config,
+  });
 
-  const fields = renderReportFields({ row, view, filters, config });
+  const fields = renderReportFields({
+    row,
+    view,
+    filters,
+    config,
+  });
 
   const showDetailsLabel = config.labels?.mobile?.showDetails || "Show details";
 
@@ -249,19 +345,24 @@ function getUnderlyingDetailColumns(config) {
 }
 
 /* ==========================================================================
-   Underlying Card
+   Underlying Card Summary
    ========================================================================== */
 
 function renderUnderlyingSummary({ row, columns, config }) {
   const symbolColumn = findColumn(columns, "symbol");
+
   const underlyingColumn = findColumn(columns, "underlying");
+
   const typeColumn = findColumn(columns, "type");
 
   const symbolMarkup = symbolColumn
     ? renderHistoricalCell({
         row,
+
         column: symbolColumn,
+
         type: "display",
+
         config,
       })
     : "-";
@@ -269,24 +370,41 @@ function renderUnderlyingSummary({ row, columns, config }) {
   const underlyingMarkup = underlyingColumn
     ? renderHistoricalCell({
         row,
+
         column: underlyingColumn,
+
         type: "display",
+
         config,
       })
     : "-";
 
   const typeValue = typeColumn
-    ? renderHistoricalCell({ row, column: typeColumn, type: "display", config })
+    ? renderHistoricalCell({
+        row,
+
+        column: typeColumn,
+
+        type: "display",
+
+        config,
+      })
     : "-";
 
   return `
     <div class="data-card__identity">
       <div class="data-card__identity-content">
-        <h3 class="data-card__title">${symbolMarkup}</h3>
+        <h3 class="data-card__title">
+          ${symbolMarkup}
+        </h3>
 
         <span class="data-card__identity-code">
           ${underlyingMarkup}
-          <span aria-hidden="true">&middot;</span>
+
+          <span aria-hidden="true">
+            &middot;
+          </span>
+
           ${typeValue}
         </span>
       </div>
@@ -294,22 +412,45 @@ function renderUnderlyingSummary({ row, columns, config }) {
   `.trim();
 }
 
+/* ==========================================================================
+   Underlying Card Fields
+   ========================================================================== */
+
 function renderUnderlyingFields({ row, config }) {
   return getUnderlyingDetailColumns(config).map((column) => ({
     label: column.label,
 
-    value: renderHistoricalCell({ row, column, type: "display", config }),
+    value: renderHistoricalCell({
+      row,
+
+      column,
+
+      type: "display",
+
+      config,
+    }),
 
     fullWidth: false,
 
     /*
-     * Expiry Date is the one non-numeric field in this list; the rest
-     * (Strike / Reference / Last Traded / Volume / Open Interest /
-     * Underlying Price) are all financial figures.
+     * Expiry Date is the one non-numeric field in this list.
+     *
+     * The remaining values are financial/numeric:
+     *
+     * - Strike Price
+     * - Reference Price
+     * - Last Traded Price
+     * - Volume
+     * - Open Interest
+     * - Underlying Price
      */
     numeric: column.type !== "text",
   }));
 }
+
+/* ==========================================================================
+   Underlying Card
+   ========================================================================== */
 
 export function renderHistoricalUnderlyingCard({
   row,
@@ -329,9 +470,16 @@ export function renderHistoricalUnderlyingCard({
 
   const symbolText = symbolColumn ? row?.[symbolColumn.data] : "";
 
-  const summary = renderUnderlyingSummary({ row, columns, config });
+  const summary = renderUnderlyingSummary({
+    row,
+    columns,
+    config,
+  });
 
-  const fields = renderUnderlyingFields({ row, config });
+  const fields = renderUnderlyingFields({
+    row,
+    config,
+  });
 
   const showDetailsLabel = config.labels?.mobile?.showDetails || "Show details";
 
@@ -359,10 +507,13 @@ export function renderHistoricalUnderlyingCard({
    ========================================================================== */
 
 /*
- * One instance per container (Performance and Unadjusted each get their
- * own -- see the JSP's two separate [data-historical-mobile-cards]
- * elements). historical.js forwards rows here after the matching table's
- * own fetch resolves; this factory never fetches on its own.
+ * One instance per container.
+ *
+ * Performance and Unadjusted each have their own separate
+ * [data-historical-mobile-cards] element.
+ *
+ * historical.js forwards the current server page here after the matching
+ * report table request resolves. This factory never fetches data itself.
  */
 
 export function createHistoricalReportCardsView({

@@ -3,38 +3,45 @@
    ========================================================================== */
 
 /*
- * Validated configuration for the standalone Historical Reports page.
+ * Validated configuration for the Historical Reports page.
  *
  * Responsibilities:
  *
- * - read the JSP-provided HistoricalConfig object
+ * - read the JSP-provided window.HistoricalConfig object
  * - validate required endpoint configuration
  * - normalize locale
- * - normalize filter defaults (including the Reset target)
- * - normalize business-rule constants
- * - normalize labels, including contextual footnote messages
- * - normalize DataTable options for both the Performance/Unadjusted tables
- *   and the Underlying table, which are genuinely different integrations
+ * - normalize filter defaults / Reset targets
+ * - normalize Historical business-rule constants
+ * - normalize translated UI labels
+ * - normalize pagination labels
+ * - preserve page-owned table-label dictionaries
+ * - normalize DataTables options for:
+ *     - Performance / Unadjusted
+ *     - Derivatives Underlying
  * - expose an immutable configuration object
+ *
+ * Rich Historical notes are intentionally NOT part of this configuration.
+ *
+ * Note content is rendered by JSP into:
+ *
+ *   <template data-historical-note-template="...">
+ *
+ * historical.rules.js will resolve only the semantic note key/target, while
+ * historical.js will clone the matching template into the visible note
+ * container.
  *
  * This module intentionally has no:
  *
  * - DOM queries
+ * - note-template handling
  * - request implementation
  * - response normalization
  * - filter behavior
  * - table rendering
  * - card rendering
+ * - pagination rendering
  * - DataTables lifecycle
  * - page initialization
- *
- * Legacy reference: the three separate globals (HistoricalConfig,
- * HistoricalEndpoints, HistoricalI18n) plus DROPDOWN_CONFIG. Endpoints and
- * labels are consolidated into this one config's shape; DROPDOWN_CONFIG has
- * no equivalent here since DropdownManager no longer exists -- the cascading
- * Market -> Sector -> Entity population is built directly against
- * config.endpoints.sectors / config.endpoints.entities in
- * historical.filters.js.
  */
 
 /* ==========================================================================
@@ -46,73 +53,133 @@ const GLOBAL_CONFIG_KEY = "HistoricalConfig";
 const DEFAULT_LOCALE = "en";
 
 /*
- * Matches legacy's resetFilters() fallback values exactly. These are also
- * used as the Reset button's target, not just as defensive fallbacks for a
- * misconfigured page.
+ * Matches Historical Reports' legacy/default Reset target.
+ *
+ * JSP request-scope values take precedence when they are provided.
  */
 const DEFAULT_MARKET = "INDICES";
 const DEFAULT_SECTOR = "M";
 const DEFAULT_ENTITY = "M:TASI";
 const DEFAULT_TRADE_TYPE = "OB";
 
+/*
+ * Markets whose report flow does not require the normal sector selection.
+ *
+ * JSP can override this through:
+ *
+ *   HistoricalConfig.constants.marketsWithoutSector
+ */
 const DEFAULT_MARKETS_WITHOUT_SECTOR = Object.freeze(["ETFS", "MF", "TR"]);
 
+/* ==========================================================================
+   Default Table Options
+   ========================================================================== */
+
+/*
+ * Performance / Unadjusted:
+ *
+ * - server-side
+ * - paged
+ * - 100 records per page
+ * - external design-system pagination UI
+ * - DataTables search/order/info chrome disabled
+ */
 const DEFAULT_REPORT_TABLE_OPTIONS = Object.freeze({
   serverSide: true,
+
   paging: true,
   pagingType: "simple",
   pageLength: 100,
+
   searching: false,
   ordering: false,
   info: false,
+
   scrollX: true,
   scrollCollapse: true,
   autoWidth: true,
+
   fixedHeader: true,
 });
 
+/*
+ * Derivatives Underlying:
+ *
+ * - client-side
+ * - single-shot request
+ * - no pagination
+ */
 const DEFAULT_UNDERLYING_TABLE_OPTIONS = Object.freeze({
   serverSide: false,
+
   paging: false,
+
   searching: false,
   ordering: false,
   info: false,
+
   scrollX: true,
   scrollCollapse: true,
   autoWidth: true,
+
   fixedHeader: true,
 });
 
+/* ==========================================================================
+   Default Labels
+   ========================================================================== */
+
+/*
+ * Defensive English fallbacks only.
+ *
+ * Normal production values come from JSP / fmt:message.
+ */
 const DEFAULT_LABELS = Object.freeze({
   placeholderSelectFilters: "Please select filters to view historical data.",
+
   noData: "No data available.",
 
   validation: Object.freeze({
     market: "Please select a market.",
+
     sector: "Please select a sector.",
+
     entity: "Please select an entity.",
+
     dateRange: "Please select a valid date range.",
+
     dateOrder: "Start date must be before end date.",
   }),
 
   placeholders: Object.freeze({
     market: "All Markets",
+
     sector: "All Sectors",
+
     entity: "All Entities",
   }),
 
   mobile: Object.freeze({
     showDetails: "Show details",
+
     hideDetails: "Hide details",
   }),
 
-  notes: Object.freeze({
-    indexType: "",
-    mainMarketTasi: "",
-    derivativeChangePoints: "",
-    mfNav: "",
+  pagination: Object.freeze({
+    page: "Page",
+
+    of: "of",
+
+    previous: "Previous",
+
+    next: "Next",
   }),
 
+  /*
+   * Table labels intentionally remain open-ended.
+   *
+   * historical.columns.js owns the schema and its per-column fallbacks.
+   */
   table: Object.freeze({}),
 });
 
@@ -143,11 +210,21 @@ function normalizeBoolean(value, fallback = false) {
 
   const normalized = normalizeString(value).toLowerCase();
 
-  if (["true", "yes", "y", "on"].includes(normalized)) {
+  if (
+    normalized === "true" ||
+    normalized === "yes" ||
+    normalized === "y" ||
+    normalized === "on"
+  ) {
     return true;
   }
 
-  if (["false", "no", "n", "off"].includes(normalized)) {
+  if (
+    normalized === "false" ||
+    normalized === "no" ||
+    normalized === "n" ||
+    normalized === "off"
+  ) {
     return false;
   }
 
@@ -179,11 +256,13 @@ function deepFreeze(value) {
    ========================================================================== */
 
 /*
- * JSP resource URLs may be relative or absolute. We do not require URL()
- * parsing here; we only reject schemes that must never be accepted as
- * request URLs.
+ * Liferay resource URLs may be relative or absolute.
+ *
+ * Do not require URL() parsing here because a valid portal-generated URL can
+ * be relative to the current application context.
+ *
+ * We only reject URL schemes that must never be accepted as request targets.
  */
-
 function isUnsafeUrl(value) {
   return /^(?:javascript|data|vbscript):/i.test(normalizeString(value));
 }
@@ -217,20 +296,30 @@ function normalizeLocale(value) {
    ========================================================================== */
 
 /*
- * All four are required. Unlike Market Watch's single endpoint, this page
- * cannot function correctly with any of these missing: the report endpoint
- * drives both content tabs, underlying drives Derivatives Underlying, and
- * sectors/entities drive the cascading dropdown chain that
- * historical.filters.js depends on.
+ * All four endpoints are required:
+ *
+ * report
+ *   Performance + Unadjusted server-side report data.
+ *
+ * underlying
+ *   Derivatives Underlying data.
+ *
+ * sectors
+ *   Market -> Sector dependency population.
+ *
+ * entities
+ *   Market/Sector -> Entity dependency population.
  */
-
 function normalizeEndpoints(rawEndpoints = {}) {
   const endpoints = isObject(rawEndpoints) ? rawEndpoints : {};
 
   return {
     report: requireSafeUrl(endpoints.report, "report endpoint"),
+
     underlying: requireSafeUrl(endpoints.underlying, "underlying endpoint"),
+
     sectors: requireSafeUrl(endpoints.sectors, "sectors endpoint"),
+
     entities: requireSafeUrl(endpoints.entities, "entities endpoint"),
   };
 }
@@ -239,19 +328,27 @@ function normalizeEndpoints(rawEndpoints = {}) {
    Filter Defaults
    ========================================================================== */
 
+/*
+ * JSP passes the page's server-selected values.
+ *
+ * If a value is absent, fall back to Historical's established defaults.
+ */
 function normalizeDefaults(rawDefaults = {}) {
   const defaults = isObject(rawDefaults) ? rawDefaults : {};
 
   return {
     market: normalizeString(defaults.market) || DEFAULT_MARKET,
+
     sector: normalizeString(defaults.sector) || DEFAULT_SECTOR,
+
     entity: normalizeString(defaults.entity) || DEFAULT_ENTITY,
+
     tradeType: normalizeString(defaults.tradeType) || DEFAULT_TRADE_TYPE,
   };
 }
 
 /* ==========================================================================
-   Business-Rule Constants
+   Business Rule Constants
    ========================================================================== */
 
 function normalizeConstants(rawConstants = {}) {
@@ -267,7 +364,7 @@ function normalizeConstants(rawConstants = {}) {
 }
 
 /* ==========================================================================
-   Labels
+   Label Helpers
    ========================================================================== */
 
 function normalizeLabel(value, fallback = "") {
@@ -276,23 +373,35 @@ function normalizeLabel(value, fallback = "") {
   return normalized || fallback;
 }
 
+/* ==========================================================================
+   Validation Labels
+   ========================================================================== */
+
 function normalizeValidationLabels(rawValidation = {}) {
   const validation = isObject(rawValidation) ? rawValidation : {};
 
   return {
     market: normalizeLabel(validation.market, DEFAULT_LABELS.validation.market),
+
     sector: normalizeLabel(validation.sector, DEFAULT_LABELS.validation.sector),
+
     entity: normalizeLabel(validation.entity, DEFAULT_LABELS.validation.entity),
+
     dateRange: normalizeLabel(
       validation.dateRange,
       DEFAULT_LABELS.validation.dateRange,
     ),
+
     dateOrder: normalizeLabel(
       validation.dateOrder,
       DEFAULT_LABELS.validation.dateOrder,
     ),
   };
 }
+
+/* ==========================================================================
+   Filter Placeholder Labels
+   ========================================================================== */
 
 function normalizePlaceholderLabels(rawPlaceholders = {}) {
   const placeholders = isObject(rawPlaceholders) ? rawPlaceholders : {};
@@ -302,16 +411,22 @@ function normalizePlaceholderLabels(rawPlaceholders = {}) {
       placeholders.market,
       DEFAULT_LABELS.placeholders.market,
     ),
+
     sector: normalizeLabel(
       placeholders.sector,
       DEFAULT_LABELS.placeholders.sector,
     ),
+
     entity: normalizeLabel(
       placeholders.entity,
       DEFAULT_LABELS.placeholders.entity,
     ),
   };
 }
+
+/* ==========================================================================
+   Mobile Card Labels
+   ========================================================================== */
 
 function normalizeMobileLabels(rawMobile = {}) {
   const mobile = isObject(rawMobile) ? rawMobile : {};
@@ -321,6 +436,7 @@ function normalizeMobileLabels(rawMobile = {}) {
       mobile.showDetails,
       DEFAULT_LABELS.mobile.showDetails,
     ),
+
     hideDetails: normalizeLabel(
       mobile.hideDetails,
       DEFAULT_LABELS.mobile.hideDetails,
@@ -328,42 +444,44 @@ function normalizeMobileLabels(rawMobile = {}) {
   };
 }
 
-/*
- * Contextual footnote messages, keyed to match historical.rules.js's
- * resolveNote(). Legacy read these directly off window.HistoricalI18n
- * (note1, main.market.indices.tasi.note1,
- * derivative.performance.foonote.change.points, mf.performance.foonote.nav)
- * -- these four keys already exist in the message bundle, no new
- * translation entries are needed for them.
- */
+/* ==========================================================================
+   Pagination Labels
+   ========================================================================== */
 
-function normalizeNoteLabels(rawNotes = {}) {
-  const notes = isObject(rawNotes) ? rawNotes : {};
+/*
+ * Pagination markup is rendered dynamically by the shared data-pagination
+ * component, so these labels must survive HistoricalConfig normalization.
+ */
+function normalizePaginationLabels(rawPagination = {}) {
+  const pagination = isObject(rawPagination) ? rawPagination : {};
 
   return {
-    indexType: normalizeLabel(notes.indexType, DEFAULT_LABELS.notes.indexType),
+    page: normalizeLabel(pagination.page, DEFAULT_LABELS.pagination.page),
 
-    mainMarketTasi: normalizeLabel(
-      notes.mainMarketTasi,
-      DEFAULT_LABELS.notes.mainMarketTasi,
+    of: normalizeLabel(pagination.of, DEFAULT_LABELS.pagination.of),
+
+    previous: normalizeLabel(
+      pagination.previous,
+      DEFAULT_LABELS.pagination.previous,
     ),
 
-    derivativeChangePoints: normalizeLabel(
-      notes.derivativeChangePoints,
-      DEFAULT_LABELS.notes.derivativeChangePoints,
-    ),
-
-    mfNav: normalizeLabel(notes.mfNav, DEFAULT_LABELS.notes.mfNav),
+    next: normalizeLabel(pagination.next, DEFAULT_LABELS.pagination.next),
   };
 }
 
-/*
- * Table labels are page/JSP-owned and grow as columns are added. Preserve
- * the provided dictionary rather than hard-coding every key here, matching
- * market-watch.config.js's normalizeLabels() approach -- historical.columns.js
- * already supplies its own per-key fallback text for anything missing.
- */
+/* ==========================================================================
+   Table Labels
+   ========================================================================== */
 
+/*
+ * Historical table labels are JSP/page-owned and intentionally open-ended.
+ *
+ * historical.columns.js knows the actual column keys and supplies its own
+ * defensive fallback labels for anything missing.
+ *
+ * Preserve the provided dictionary instead of duplicating the complete
+ * schema here.
+ */
 function normalizeTableLabels(rawTable = {}) {
   const table = isObject(rawTable) ? rawTable : {};
 
@@ -371,11 +489,16 @@ function normalizeTableLabels(rawTable = {}) {
 
   return {
     ...table,
+
     underlying: {
       ...underlying,
     },
   };
 }
+
+/* ==========================================================================
+   Labels
+   ========================================================================== */
 
 function normalizeLabels(rawLabels = {}) {
   const labels = isObject(rawLabels) ? rawLabels : {};
@@ -394,62 +517,78 @@ function normalizeLabels(rawLabels = {}) {
 
     mobile: normalizeMobileLabels(labels.mobile),
 
-    notes: normalizeNoteLabels(labels.notes),
+    pagination: normalizePaginationLabels(labels.pagination),
 
     table: normalizeTableLabels(labels.table),
   };
 }
 
 /* ==========================================================================
-   Table Options
+   Report Table Options
    ========================================================================== */
-
-/*
- * Two dedicated normalizers rather than one parameterized function: the
- * Performance/Unadjusted ("report") and Underlying tables are genuinely
- * different DataTables integrations (server-side paged vs. client-side
- * single-shot), not variations of the same shape, so forcing them through
- * one generic normalizer would trade clarity for a false sense of reuse.
- */
 
 function normalizeReportTableOptions(rawTable = {}) {
   const table = isObject(rawTable) ? rawTable : {};
+
   const defaults = DEFAULT_REPORT_TABLE_OPTIONS;
 
   return {
     serverSide: normalizeBoolean(table.serverSide, defaults.serverSide),
+
     paging: normalizeBoolean(table.paging, defaults.paging),
+
     pagingType: normalizeString(table.pagingType) || defaults.pagingType,
+
     pageLength: normalizePositiveInteger(table.pageLength, defaults.pageLength),
+
     searching: normalizeBoolean(table.searching, defaults.searching),
+
     ordering: normalizeBoolean(table.ordering, defaults.ordering),
+
     info: normalizeBoolean(table.info, defaults.info),
+
     scrollX: normalizeBoolean(table.scrollX, defaults.scrollX),
+
     scrollCollapse: normalizeBoolean(
       table.scrollCollapse,
       defaults.scrollCollapse,
     ),
+
     autoWidth: normalizeBoolean(table.autoWidth, defaults.autoWidth),
+
     fixedHeader: normalizeBoolean(table.fixedHeader, defaults.fixedHeader),
   };
 }
 
+/* ==========================================================================
+   Underlying Table Options
+   ========================================================================== */
+
 function normalizeUnderlyingTableOptions(rawTable = {}) {
   const table = isObject(rawTable) ? rawTable : {};
+
   const defaults = DEFAULT_UNDERLYING_TABLE_OPTIONS;
 
   return {
     serverSide: normalizeBoolean(table.serverSide, defaults.serverSide),
+
     paging: normalizeBoolean(table.paging, defaults.paging),
+
     searching: normalizeBoolean(table.searching, defaults.searching),
+
     ordering: normalizeBoolean(table.ordering, defaults.ordering),
+
     info: normalizeBoolean(table.info, defaults.info),
+
     scrollX: normalizeBoolean(table.scrollX, defaults.scrollX),
+
     scrollCollapse: normalizeBoolean(
       table.scrollCollapse,
       defaults.scrollCollapse,
     ),
+
     autoWidth: normalizeBoolean(table.autoWidth, defaults.autoWidth),
+
     fixedHeader: normalizeBoolean(table.fixedHeader, defaults.fixedHeader),
   };
 }
@@ -476,6 +615,7 @@ export function createHistoricalConfig(rawConfig = {}) {
 
     table: {
       report: normalizeReportTableOptions(rawConfig.table?.report),
+
       underlying: normalizeUnderlyingTableOptions(rawConfig.table?.underlying),
     },
   };
@@ -488,11 +628,12 @@ export function createHistoricalConfig(rawConfig = {}) {
    ========================================================================== */
 
 /*
- * Do not cache the configuration globally inside this module. Reading from
- * the provided source keeps this function deterministic for tests and
- * avoids stale configuration if the page/portlet is re-created.
+ * Do not cache the normalized configuration at module scope.
+ *
+ * Reading from the supplied source keeps this function deterministic for
+ * tests and prevents stale configuration if a portal fragment/portlet is
+ * recreated.
  */
-
 export function getHistoricalConfig(source = globalThis) {
   if (!source || typeof source !== "object") {
     throw new TypeError(

@@ -5,71 +5,61 @@
 /*
  * Historical Reports page coordinator.
  *
- * No CustomSelect/CustomDate imports or main.js changes needed anywhere in
- * this page. Both components are already initialized globally by main.js
- * (module scripts execute in document order, so main.js's own top-level
- * initApp() call -- and therefore initCustomSelects()/initCustomDates() --
- * completes before this file's own top-level code runs) and this file
- * interacts with them purely through native DOM mutation + dispatched
- * "change" events, the same mechanism every other page's filters already
- * rely on. See the module comment in historical.filters.js for the
- * underlying mechanism.
+ * Responsibilities:
  *
- * Unlike Market Watch, this page does NOT use createDataViewController.
- * That controller assumes one dataset fanning to one table + one card
- * view. Historical has three independent table/card pairs (Performance,
- * Unadjusted, Underlying) plus a profile-selection layer choosing which
- * one is active -- a genuinely different shape, so this file runs its own
- * small coordinator instead, mirroring legacy's HistoricalTableEngine +
- * HistoricalManager but built on the shared common/data-view primitives.
+ * - initialize Historical configuration
+ * - initialize settled Historical filters
+ * - coordinate Performance / Unadjusted / Underlying profiles
+ * - coordinate report tables and mobile cards
+ * - coordinate shared pagination
+ * - apply Trade Type visibility
+ * - apply Unadjusted-tab availability
+ * - render trusted JSP note templates
+ * - render invalid / note-only / report / underlying page states
+ * - preserve legacy filter/tab reload behavior
+ * - clean up all page-owned instances and listeners
  *
- * Legacy behavior preserved deliberately: every filter or tab change
- * destroys whichever report table instance is currently live and creates
- * a fresh one for the resolved profile -- this always resets pagination to
- * page one, which is legacy's actual behavior today (traced through
- * rebuildTables() -> destroyAllTables() + reloadTables()), not an
- * oversight in this port.
+ * Historical intentionally does NOT use createDataViewController.
  *
- * One deliberate deviation from a literal port: legacy's own
- * HistoricalManager.activateTab() only updates the tab BUTTON's attributes
- * and bypasses tabs.controller.js entirely -- ported literally, this would
- * leave the button and panel out of sync when forced. This uses
- * tab.click() instead, which drives the real tabs component correctly.
- * Termination is safe: forcing the tab re-fires tabs:change, which
- * re-resolves rules with the corrected activeTab, and the force-condition
- * no longer holds on that second pass.
+ * This page has three independent table/card presentations:
  *
- * Filter-change notifications are coalesced via a microtask: because
- * setting a value now always dispatches a real "change" event (there is no
- * instance-level {emit:false} available without class access -- see
- * historical.filters.js), a single Reset click or a Market-driven
- * Sector/Entity reset can produce several synchronous notifications in a
- * row. scheduleResolveAndRender() below collapses any number of
- * same-tick notifications into exactly one resolveAndRender() call, always
- * reading the final settled state rather than an intermediate one.
+ * - Performance
+ * - Unadjusted
+ * - Derivatives Underlying
  *
- * Not yet wired: the .feed__pagination range/page-select/prev-next UI has
- * no equivalent module yet (data-pagination.js). getApi() is exposed on
- * both table view instances so that module has something to bind against
- * once built; this file does not attempt a partial implementation of it.
+ * plus business-profile selection deciding which presentation is active.
+ *
+ * Generic primitives remain in common/data-view while this file owns only
+ * Historical-specific coordination.
  */
+
+/* ==========================================================================
+   Shared Data-View Imports
+   ========================================================================== */
 
 import {
   createDataCards,
-  createDataTable,
   createDataFilters,
+  createDataPagination,
+  createDataTable,
   renderStandardDataCard,
 } from "../../common/data-view/index.js";
 
+/* ==========================================================================
+   Historical Imports
+   ========================================================================== */
+
 import { getHistoricalConfig } from "./historical.config.js";
+
 import { resolveHistoricalRules } from "./historical.rules.js";
 
 import {
-  createHistoricalFilters,
   applyDefaultHistoricalDateRangeIfEmpty,
+  createHistoricalFilters,
 } from "./historical.filters.js";
 
 import { createHistoricalTableView } from "./views/historical.table.js";
+
 import { createHistoricalUnderlyingTableView } from "./views/historical.underlying.js";
 
 import {
@@ -82,39 +72,83 @@ import {
    ========================================================================== */
 
 const SELECTORS = Object.freeze({
-  tabsRoot: ".tabs[data-tabs]",
+  /* ----------------------------------------------------------------------
+       Tabs
+       ---------------------------------------------------------------------- */
+
+  tabsRoot: "[data-historical-tabs]",
+
   tabButton: '[role="tab"][data-tab]',
 
   unadjustedTabButton: '[data-tab="unadjusted"]',
+
   unadjustedPanel: "#historical-panel-unadjusted",
 
+  /* ----------------------------------------------------------------------
+       Filters
+       ---------------------------------------------------------------------- */
+
   tradeTypeFilterField: "#tradeTypeFilter",
+
   tradeTypeSelect: "[data-historical-trade-type]",
 
-  performanceTable: '[data-historical-table="performance"]',
-  unadjustedTable: '[data-historical-table="unadjusted"]',
-  underlyingTable: '[data-historical-table="underlying"]',
-
-  underlyingSection: "#historical-underlying-section",
-
-  performanceCards: '[data-historical-mobile-cards="performance"]',
-  unadjustedCards: '[data-historical-mobile-cards="unadjusted"]',
-  underlyingCards: '[data-historical-mobile-cards="underlying"]',
-
-  filterMessage: "#historicalFilterMessage",
-
-  emptyState: "#historical-empty-state",
-  emptyImage: "#historical-empty-image",
-  placeholderMessage: "#historical-placeholder-message",
-
-  note: "#historical-note",
-  noteText: "#historical-note-text",
-  noteDerivatives: "#historical-note-derivatives",
-  noteDerivativesText: "#historical-note-derivatives-text",
-
-  pagination: "[data-historical-pagination]",
+  filterMessage: "[data-historical-filter-message]",
 
   resetButton: "[data-historical-reset]",
+
+  /* ----------------------------------------------------------------------
+       Tables
+       ---------------------------------------------------------------------- */
+
+  performanceTable: '[data-historical-table="performance"]',
+
+  unadjustedTable: '[data-historical-table="unadjusted"]',
+
+  underlyingTable: '[data-historical-table="underlying"]',
+
+  /* ----------------------------------------------------------------------
+       Underlying
+       ---------------------------------------------------------------------- */
+
+  underlyingSection: "[data-historical-underlying-section]",
+
+  /* ----------------------------------------------------------------------
+       Cards
+       ---------------------------------------------------------------------- */
+
+  performanceCards: '[data-historical-mobile-cards="performance"]',
+
+  unadjustedCards: '[data-historical-mobile-cards="unadjusted"]',
+
+  underlyingCards: '[data-historical-mobile-cards="underlying"]',
+
+  /* ----------------------------------------------------------------------
+       Placeholder
+       ---------------------------------------------------------------------- */
+
+  emptyState: "[data-historical-placeholder]",
+
+  emptyImage: "[data-historical-placeholder-image]",
+
+  placeholderMessage: "[data-historical-placeholder-message]",
+
+  /* ----------------------------------------------------------------------
+       Notes
+       ---------------------------------------------------------------------- */
+
+  defaultNote: '[data-historical-note="default"]',
+
+  derivativesNote: '[data-historical-note="derivatives"]',
+
+  noteContent: "[data-historical-note-content]",
+
+  noteTemplate: "[data-historical-note-template]",
+
+  /* ----------------------------------------------------------------------
+       Pagination
+       ---------------------------------------------------------------------- */
+
+  pagination: "[data-historical-pagination]",
 });
 
 /* ==========================================================================
@@ -124,66 +158,231 @@ const SELECTORS = Object.freeze({
 const instances = new WeakMap();
 
 /* ==========================================================================
+   DOM Helpers
+   ========================================================================== */
+
+function requireElement(root, selector, description) {
+  const element = root.querySelector(selector);
+
+  if (!element) {
+    throw new Error(`Historical Reports requires ${description}.`);
+  }
+
+  return element;
+}
+
+/* ==========================================================================
+   Native Events
+   ========================================================================== */
+
+function dispatchNativeChange(element) {
+  if (!element) {
+    return;
+  }
+
+  const view = element.ownerDocument?.defaultView || window;
+
+  element.dispatchEvent(
+    new view.Event("change", {
+      bubbles: true,
+    }),
+  );
+}
+
+/* ==========================================================================
    Notes
    ========================================================================== */
 
-function hideNotes(dom) {
-  dom.note.hidden = true;
-  dom.noteText.innerHTML = "";
-  dom.noteDerivatives.hidden = true;
-  dom.noteDerivativesText.innerHTML = "";
+/*
+ * JSP owns rich/localized Historical note content.
+ *
+ * Rules return only a semantic key such as:
+ *
+ *   indexType
+ *   mainMarketTasi
+ *   derivativeChangePoints
+ *   mfNav
+ *
+ * This coordinator clones the corresponding inert <template> fragment.
+ */
+
+function collectNoteTemplates(root) {
+  const templates = new Map();
+
+  root.querySelectorAll(SELECTORS.noteTemplate).forEach((template) => {
+    const key = String(template.dataset.historicalNoteTemplate ?? "").trim();
+
+    if (!key || !template.content) {
+      return;
+    }
+
+    templates.set(key, template);
+  });
+
+  return templates;
 }
 
-function applyNote(dom, note) {
+function clearNote(container, content) {
+  if (content) {
+    content.replaceChildren();
+  }
+
+  if (container) {
+    container.hidden = true;
+  }
+}
+
+function hideNotes(dom) {
+  clearNote(dom.defaultNote, dom.defaultNoteContent);
+
+  clearNote(dom.derivativesNote, dom.derivativesNoteContent);
+}
+
+function applyNote(dom, noteTemplates, note) {
   hideNotes(dom);
 
-  if (!note || !note.visible || !note.message) {
-    return;
+  if (!note?.visible || !note.key) {
+    return false;
   }
 
-  if (note.target === "derivatives") {
-    dom.noteDerivatives.hidden = false;
-    dom.noteDerivativesText.innerHTML = note.message;
+  const template = noteTemplates.get(note.key);
 
-    return;
+  if (!template) {
+    console.warn(`[Historical Reports] Missing note template "${note.key}".`);
+
+    return false;
   }
 
-  dom.note.hidden = false;
-  dom.noteText.innerHTML = note.message;
+  const useDerivativesTarget = note.target === "derivatives";
+
+  const container = useDerivativesTarget
+    ? dom.derivativesNote
+    : dom.defaultNote;
+
+  const content = useDerivativesTarget
+    ? dom.derivativesNoteContent
+    : dom.defaultNoteContent;
+
+  content.replaceChildren(template.content.cloneNode(true));
+
+  container.hidden = false;
+
+  return true;
 }
 
 /* ==========================================================================
-   Placeholder / Valid State
+   Filter Message
    ========================================================================== */
 
-function showPlaceholder(dom, message, { showImage = false } = {}) {
-  dom.filterMessage.hidden = true;
+function hideFilterMessage(dom) {
+  dom.filterMessage.textContent = "";
 
-  dom.placeholderMessage.textContent = message || "";
+  dom.filterMessage.hidden = true;
+}
+
+function showFilterMessage(dom, message) {
+  const normalized = String(message ?? "").trim();
+
+  dom.filterMessage.textContent = normalized;
+
+  dom.filterMessage.hidden = !normalized;
+}
+
+/* ==========================================================================
+   Placeholder
+   ========================================================================== */
+
+function hidePlaceholder(dom) {
+  dom.emptyState.hidden = true;
+
+  dom.emptyImage.hidden = true;
+
+  dom.placeholderMessage.textContent = "";
+}
+
+function showPlaceholder(dom, message, { showImage = false } = {}) {
+  dom.placeholderMessage.textContent = String(message ?? "");
+
   dom.emptyImage.hidden = !showImage;
+
   dom.emptyState.hidden = false;
 
   dom.tabsRoot.hidden = true;
+
   dom.underlyingSection.hidden = true;
-  dom.pagination.hidden = true;
 
   hideNotes(dom);
 }
 
-function showValidState(dom) {
-  dom.filterMessage.hidden = true;
-  dom.emptyState.hidden = true;
-  dom.pagination.hidden = false;
-}
-
 /* ==========================================================================
-   Trade Type Field Visibility
+   Page States
    ========================================================================== */
 
 /*
- * Setting .value + dispatching "change" here (rather than any class-based
- * setValue()) is consistent with everything else in this file -- see
- * historical.filters.js's module comment for why that is sufficient.
+ * Invalid filters:
+ *
+ * - inline filter error is visible
+ * - normal report views are hidden
+ * - page placeholder explains that valid filters are required
+ * - pagination is managed/cleared separately by the coordinator
+ */
+
+function showInvalidState(dom, config, message) {
+  showFilterMessage(dom, message);
+
+  showPlaceholder(dom, config.labels?.placeholderSelectFilters || message, {
+    showImage: false,
+  });
+}
+
+/*
+ * Valid report/underlying state:
+ *
+ * Pagination is NOT made visible here.
+ *
+ * data-pagination.js owns its own visibility based on actual report paging
+ * metadata. This prevents Underlying and zero-row responses from displaying
+ * report pagination.
+ */
+
+function showDataState(dom) {
+  hideFilterMessage(dom);
+
+  hidePlaceholder(dom);
+}
+
+/*
+ * Valid business state with deliberately no table.
+ *
+ * Current example:
+ *
+ *   INDICES + entity type I
+ *
+ * The contextual note itself is the result; do not display the large
+ * no-data illustration for this state.
+ */
+
+function showNoteOnlyState(dom, noteTemplates, note) {
+  hideFilterMessage(dom);
+
+  hidePlaceholder(dom);
+
+  dom.tabsRoot.hidden = true;
+
+  dom.underlyingSection.hidden = true;
+
+  applyNote(dom, noteTemplates, note);
+}
+
+/* ==========================================================================
+   Trade Type Visibility
+   ========================================================================== */
+
+/*
+ * Trade Type is visible only for the Historical business cases resolved by
+ * historical.rules.js.
+ *
+ * When hidden, the native source-of-truth value is forced back to OB.
  */
 
 function applyTradeTypeVisibility(dom, rules) {
@@ -193,14 +392,13 @@ function applyTradeTypeVisibility(dom, rules) {
     return;
   }
 
-  const tradeTypeSelect = dom.tradeTypeFilterField.querySelector(
-    SELECTORS.tradeTypeSelect,
-  );
-
-  if (tradeTypeSelect && tradeTypeSelect.value !== "OB") {
-    tradeTypeSelect.value = "OB";
-    tradeTypeSelect.dispatchEvent(new Event("change", { bubbles: true }));
+  if (dom.tradeTypeSelect.value === "OB") {
+    return;
   }
+
+  dom.tradeTypeSelect.value = "OB";
+
+  dispatchNativeChange(dom.tradeTypeSelect);
 }
 
 /* ==========================================================================
@@ -211,20 +409,59 @@ function applyUnadjustedTabVisibility(dom, rules) {
   const visible = rules.showUnadjustedTab;
 
   dom.unadjustedTabButton.hidden = !visible;
+
   dom.unadjustedTabButton.classList.toggle("is-disabled", !visible);
+
   dom.unadjustedTabButton.setAttribute("aria-disabled", String(!visible));
 
-  dom.unadjustedPanel.hidden = !visible ? true : dom.unadjustedPanel.hidden;
+  /*
+   * If the business rule removes this tab entirely, ensure its panel cannot
+   * remain visible from an earlier state.
+   *
+   * When the tab becomes available again, the design-system tabs controller
+   * remains responsible for deciding which panel is active.
+   */
+
+  if (!visible) {
+    dom.unadjustedPanel.hidden = true;
+
+    dom.unadjustedPanel.setAttribute("aria-hidden", "true");
+  }
 }
 
 /* ==========================================================================
-   Tab Forcing
+   Tab Activation
    ========================================================================== */
 
-function activateTabByKey(dom, key) {
-  const tab = dom.tabsRoot.querySelector(`[data-tab="${key}"]`);
+/*
+ * Drive the actual design-system tabs component through the real button.
+ *
+ * Do not manually toggle:
+ *
+ * - .active
+ * - aria-selected
+ * - tabindex
+ * - panel hidden state
+ *
+ * tabs.js owns those interactions and emits tabs:change.
+ */
 
-  tab?.click();
+function activateTabByKey(dom, key) {
+  const tab = dom.tabsRoot.querySelector(
+    `${SELECTORS.tabButton}[data-tab="${key}"]`,
+  );
+
+  if (!tab) {
+    return false;
+  }
+
+  if (tab.getAttribute("aria-selected") === "true") {
+    return false;
+  }
+
+  tab.click();
+
+  return true;
 }
 
 /* ==========================================================================
@@ -240,224 +477,590 @@ export function initHistorical(root = document) {
     return existing;
   }
 
-  /* ------------------------------------------------------------------------
+  /* ========================================================================
+     Lifecycle
+     ======================================================================== */
+
+  let destroyed = false;
+
+  const documentReference =
+    scope?.nodeType === 9 ? scope : scope.ownerDocument || document;
+
+  const view = documentReference.defaultView || window;
+
+  const AbortControllerCtor =
+    view.AbortController || globalThis.AbortController;
+
+  const lifecycleController = new AbortControllerCtor();
+
+  /* ========================================================================
      DOM
-     ------------------------------------------------------------------------ */
+     ======================================================================== */
 
   const dom = {
-    tabsRoot: scope.querySelector(SELECTORS.tabsRoot),
-    unadjustedTabButton: scope.querySelector(SELECTORS.unadjustedTabButton),
-    unadjustedPanel: scope.querySelector(SELECTORS.unadjustedPanel),
+    /* ----------------------------------------------------------------------
+       Tabs
+       ---------------------------------------------------------------------- */
 
-    tradeTypeFilterField: scope.querySelector(SELECTORS.tradeTypeFilterField),
+    tabsRoot: requireElement(
+      scope,
+      SELECTORS.tabsRoot,
+      "the Historical tabs root",
+    ),
 
-    underlyingSection: scope.querySelector(SELECTORS.underlyingSection),
+    unadjustedTabButton: requireElement(
+      scope,
+      SELECTORS.unadjustedTabButton,
+      "the Unadjusted tab",
+    ),
 
-    filterMessage: scope.querySelector(SELECTORS.filterMessage),
+    unadjustedPanel: requireElement(
+      scope,
+      SELECTORS.unadjustedPanel,
+      "the Unadjusted tab panel",
+    ),
 
-    emptyState: scope.querySelector(SELECTORS.emptyState),
-    emptyImage: scope.querySelector(SELECTORS.emptyImage),
-    placeholderMessage: scope.querySelector(SELECTORS.placeholderMessage),
+    /* ----------------------------------------------------------------------
+       Filters
+       ---------------------------------------------------------------------- */
 
-    note: scope.querySelector(SELECTORS.note),
-    noteText: scope.querySelector(SELECTORS.noteText),
-    noteDerivatives: scope.querySelector(SELECTORS.noteDerivatives),
-    noteDerivativesText: scope.querySelector(SELECTORS.noteDerivativesText),
+    tradeTypeFilterField: requireElement(
+      scope,
+      SELECTORS.tradeTypeFilterField,
+      "the Trade Type filter field",
+    ),
 
-    pagination: scope.querySelector(SELECTORS.pagination),
+    tradeTypeSelect: requireElement(
+      scope,
+      SELECTORS.tradeTypeSelect,
+      "the Trade Type select",
+    ),
 
-    resetButton: scope.querySelector(SELECTORS.resetButton),
+    filterMessage: requireElement(
+      scope,
+      SELECTORS.filterMessage,
+      "the filter validation message",
+    ),
+
+    resetButton: requireElement(
+      scope,
+      SELECTORS.resetButton,
+      "the Reset button",
+    ),
+
+    /* ----------------------------------------------------------------------
+       Underlying
+       ---------------------------------------------------------------------- */
+
+    underlyingSection: requireElement(
+      scope,
+      SELECTORS.underlyingSection,
+      "the Underlying section",
+    ),
+
+    /* ----------------------------------------------------------------------
+       Placeholder
+       ---------------------------------------------------------------------- */
+
+    emptyState: requireElement(
+      scope,
+      SELECTORS.emptyState,
+      "the Historical placeholder",
+    ),
+
+    emptyImage: requireElement(
+      scope,
+      SELECTORS.emptyImage,
+      "the Historical placeholder image",
+    ),
+
+    placeholderMessage: requireElement(
+      scope,
+      SELECTORS.placeholderMessage,
+      "the Historical placeholder message",
+    ),
+
+    /* ----------------------------------------------------------------------
+       Notes
+       ---------------------------------------------------------------------- */
+
+    defaultNote: requireElement(
+      scope,
+      SELECTORS.defaultNote,
+      "the default Historical note",
+    ),
+
+    derivativesNote: requireElement(
+      scope,
+      SELECTORS.derivativesNote,
+      "the derivatives Historical note",
+    ),
+
+    /* ----------------------------------------------------------------------
+       Pagination
+       ---------------------------------------------------------------------- */
+
+    pagination: requireElement(
+      scope,
+      SELECTORS.pagination,
+      "the Historical pagination container",
+    ),
   };
 
-  /* ------------------------------------------------------------------------
+  dom.defaultNoteContent = requireElement(
+    dom.defaultNote,
+    SELECTORS.noteContent,
+    "the default Historical note content",
+  );
+
+  dom.derivativesNoteContent = requireElement(
+    dom.derivativesNote,
+    SELECTORS.noteContent,
+    "the derivatives Historical note content",
+  );
+
+  /* ========================================================================
+     Note Templates
+     ======================================================================== */
+
+  const noteTemplates = collectNoteTemplates(scope);
+
+  /* ========================================================================
      Configuration
-     ------------------------------------------------------------------------ */
+     ======================================================================== */
 
   const config = getHistoricalConfig();
 
-  /* ------------------------------------------------------------------------
-     Date Range Default
-     ------------------------------------------------------------------------ */
+  /* ========================================================================
+     Initial Date Range
+     ======================================================================== */
+
+  /*
+   * Apply the one-month default before createDataFilters binds its initial
+   * state so generic filter snapshots begin with the correct values.
+   */
 
   applyDefaultHistoricalDateRangeIfEmpty(scope);
 
-  /* ------------------------------------------------------------------------
+  /* ========================================================================
      Filters
-     ------------------------------------------------------------------------ */
+     ======================================================================== */
 
   const filterView = createHistoricalFilters({
     root: scope,
+
     config,
+
     createDataFilters,
   });
 
-  /* ------------------------------------------------------------------------
+  /* ========================================================================
      Cards
-     ------------------------------------------------------------------------ */
+     ======================================================================== */
 
   const performanceCards = createHistoricalReportCardsView({
     root: scope,
+
     config,
+
     createDataCards,
+
     renderStandardDataCard,
+
     view: "performance",
+
     container: SELECTORS.performanceCards,
+
     getFilters: filterView.getFilters,
   });
 
   const unadjustedCards = createHistoricalReportCardsView({
     root: scope,
+
     config,
+
     createDataCards,
+
     renderStandardDataCard,
+
     view: "unadjusted",
+
     container: SELECTORS.unadjustedCards,
+
     getFilters: filterView.getFilters,
   });
 
   const underlyingCards = createHistoricalUnderlyingCardsView({
     root: scope,
+
     config,
+
     createDataCards,
+
     renderStandardDataCard,
+
     container: SELECTORS.underlyingCards,
   });
 
-  /* ------------------------------------------------------------------------
-     Report Table Engine
-     ------------------------------------------------------------------------ */
+  /* ========================================================================
+     Active Views
+     ======================================================================== */
 
   let activeReportTable = null;
+
+  let activeReportCards = null;
+
   let activeUnderlyingTable = null;
 
-  function destroyActiveReportTable() {
+  /* ========================================================================
+     Pagination
+     ======================================================================== */
+
+  let pagination = null;
+
+  pagination = createDataPagination({
+    root: scope,
+
+    container: dom.pagination,
+
+    locale: config.locale,
+
+    labels: config.labels?.pagination,
+
+    /*
+     * No report rows -> no report pagination.
+     */
+    hideWhenEmpty: true,
+
+    /*
+     * Preserve visible paging/status UI even when the result fits on one
+     * server-side page.
+     */
+    hideSinglePage: false,
+
+    /*
+     * Clicking a page places the component into aria-busy immediately.
+     * The next onPaginationChange() from historical.table.js clears it.
+     */
+    autoBusyOnChange: true,
+
+    onPageChange(page) {
+      if (destroyed) {
+        return;
+      }
+
+      const api = activeReportTable?.getApi?.();
+
+      if (!api) {
+        pagination.setLoading(false);
+
+        return;
+      }
+
+      const info = api.page?.info?.();
+
+      const totalPages = Number(info?.pages ?? 0);
+
+      if (totalPages <= 0 || page < 1 || page > totalPages) {
+        pagination.setLoading(false);
+
+        return;
+      }
+
+      /*
+       * The table renders server-side skeleton rows from processing.dt.
+       * Keep the matching mobile cards in the same request state.
+       */
+      activeReportCards?.showLoading?.();
+
+      /*
+       * DataPagination is one-based for UI semantics.
+       * DataTables uses zero-based page indexes.
+       *
+       * "page" requests a paging-only redraw and therefore keeps the normal
+       * DataTables server-side lifecycle intact.
+       */
+      api.page(page - 1).draw("page");
+    },
+  });
+
+  /* ========================================================================
+     Active Report Lifecycle
+     ======================================================================== */
+
+  function destroyActiveReportTable({ clearPagination = true } = {}) {
     activeReportTable?.destroy();
+
     activeReportTable = null;
+
+    activeReportCards = null;
+
+    if (clearPagination) {
+      pagination.clear();
+    }
   }
+
+  /* ========================================================================
+     Active Underlying Lifecycle
+     ======================================================================== */
 
   function destroyActiveUnderlyingTable() {
     activeUnderlyingTable?.destroy();
+
     activeUnderlyingTable = null;
   }
 
-  function activateReportTable(view) {
+  /* ========================================================================
+     Report Activation
+     ======================================================================== */
+
+  function activateReportTable(reportView) {
     destroyActiveReportTable();
 
     const tableSelector =
-      view === "unadjusted"
+      reportView === "unadjusted"
         ? SELECTORS.unadjustedTable
         : SELECTORS.performanceTable;
 
-    const cards = view === "unadjusted" ? unadjustedCards : performanceCards;
+    const cards =
+      reportView === "unadjusted" ? unadjustedCards : performanceCards;
+
+    activeReportCards = cards;
+
+    /*
+     * DataTables immediately begins its first server-side request.
+     * Put the matching cards into loading state before constructing it.
+     */
+    cards.showLoading();
 
     activeReportTable = createHistoricalTableView({
       root: scope,
+
       config,
+
       createDataTable,
+
       table: tableSelector,
-      initialView: view,
+
+      initialView: reportView,
+
       getFilters: filterView.getFilters,
 
+      /* ------------------------------------------------------------------
+           Desktop -> Cards
+           ------------------------------------------------------------------ */
+
       onServerSideData(rows) {
+        if (destroyed) {
+          return;
+        }
+
         cards.setRows(rows);
       },
 
       onServerSideError(message) {
+        if (destroyed) {
+          return;
+        }
+
         cards.showError(message);
+      },
+
+      /* ------------------------------------------------------------------
+           Table -> Shared Pagination
+           ------------------------------------------------------------------ */
+
+      onPaginationChange(state) {
+        if (destroyed) {
+          return;
+        }
+
+        pagination.setState(state);
       },
     });
   }
 
+  /* ========================================================================
+     Underlying Activation
+     ======================================================================== */
+
   function activateUnderlyingTable() {
     destroyActiveUnderlyingTable();
 
+    /*
+     * Underlying has no pagination by contract.
+     */
+    pagination.clear();
+
     activeUnderlyingTable = createHistoricalUnderlyingTableView({
       root: scope,
+
       config,
+
       createDataTable,
+
       table: SELECTORS.underlyingTable,
+
       getFilters: filterView.getFilters,
+
+      onLoading() {
+        if (destroyed) {
+          return;
+        }
+
+        underlyingCards.showLoading();
+      },
+
+      onData(rows) {
+        if (destroyed) {
+          return;
+        }
+
+        /*
+         * setRows([]) naturally resolves to the card component's configured
+         * empty state, so one callback handles both ready and empty results.
+         */
+        underlyingCards.setRows(rows);
+      },
+
+      onError(message) {
+        if (destroyed) {
+          return;
+        }
+
+        underlyingCards.showError(message);
+      },
     });
 
-    underlyingCards.showLoading();
-
-    activeUnderlyingTable.load().then(() => {
-      underlyingCards.setRows(activeUnderlyingTable.getRows());
-    });
+    /*
+     * Underlying owns a separate single-shot GET lifecycle.
+     */
+    void activeUnderlyingTable.load();
   }
 
-  /* ------------------------------------------------------------------------
+  /* ========================================================================
      Resolve and Render
-     ------------------------------------------------------------------------ */
+     ======================================================================== */
 
   function resolveAndRender() {
+    if (destroyed) {
+      return;
+    }
+
     const filters = filterView.getFilters();
+
     const rules = resolveHistoricalRules(filters, config);
 
+    /* ----------------------------------------------------------------------
+       Filter / Tab Availability
+       ---------------------------------------------------------------------- */
+
     applyTradeTypeVisibility(dom, rules);
+
     applyUnadjustedTabVisibility(dom, rules);
 
+    /*
+     * A filter change can make Unadjusted unavailable while it is active.
+     *
+     * Let tabs.js perform the actual transition, then resolve again from the
+     * tabs:change notification rather than manually editing ARIA/panel state.
+     */
     if (!rules.showUnadjustedTab && filters.activeTab === "unadjusted") {
       activateTabByKey(dom, "performance");
 
       return;
     }
 
-    if (!rules.ready) {
-      showPlaceholder(dom, rules.message, { showImage: false });
+    /* ----------------------------------------------------------------------
+       Invalid Filters
+       ---------------------------------------------------------------------- */
 
+    if (!rules.ready) {
       destroyActiveReportTable();
+
       destroyActiveUnderlyingTable();
+
+      pagination.clear();
+
+      showInvalidState(dom, config, rules.message);
 
       return;
     }
+
+    /* ----------------------------------------------------------------------
+       Note-Only Profile
+       ---------------------------------------------------------------------- */
 
     if (rules.profileType === "none") {
-      showPlaceholder(dom, rules.note?.message || rules.message, {
-        showImage: true,
-      });
-
       destroyActiveReportTable();
+
       destroyActiveUnderlyingTable();
+
+      pagination.clear();
+
+      showNoteOnlyState(dom, noteTemplates, rules.note);
 
       return;
     }
 
-    showValidState(dom);
-    applyNote(dom, rules.note);
+    /* ----------------------------------------------------------------------
+       Normal Valid State
+       ---------------------------------------------------------------------- */
+
+    showDataState(dom);
+
+    applyNote(dom, noteTemplates, rules.note);
+
+    /* ----------------------------------------------------------------------
+       Derivatives Underlying
+       ---------------------------------------------------------------------- */
 
     if (rules.profileType === "derivativesUnderlying") {
       dom.tabsRoot.hidden = true;
+
       dom.underlyingSection.hidden = false;
 
       destroyActiveReportTable();
+
       activateUnderlyingTable();
 
       return;
     }
 
+    /* ----------------------------------------------------------------------
+       Performance / Unadjusted
+       ---------------------------------------------------------------------- */
+
     dom.tabsRoot.hidden = false;
+
     dom.underlyingSection.hidden = true;
 
     destroyActiveUnderlyingTable();
+
     activateReportTable(rules.profileType);
   }
 
-  /* ------------------------------------------------------------------------
-     Coalesced Scheduling
+  /* ========================================================================
+     Render Scheduling
+     ======================================================================== */
 
-     Setting a native value now always dispatches a real "change" event, so
-     several fields changing together (Reset, or Market's Sector/Entity
-     cascade) can notify synchronously, back to back, within one tick. This
-     collapses any number of same-tick notifications into exactly one
-     resolveAndRender() call, deferred to the next microtask so it always
-     reads the final settled state rather than an intermediate one.
-     ------------------------------------------------------------------------ */
+  /*
+   * historical.filters.js now publishes settled dependency states, so this
+   * no longer compensates for Market -> Sector -> Entity intermediate values.
+   *
+   * A microtask is still useful for two cases:
+   *
+   * - a forced tab correction emits tabs:change synchronously
+   * - Reset can update filters and the active tab in one logical action
+   *
+   * Multiple same-turn notifications therefore collapse into one final page
+   * resolution.
+   */
 
   let renderScheduled = false;
 
   function scheduleResolveAndRender() {
-    if (renderScheduled) {
+    if (destroyed || renderScheduled) {
       return;
     }
 
@@ -466,53 +1069,125 @@ export function initHistorical(root = document) {
     queueMicrotask(() => {
       renderScheduled = false;
 
+      if (destroyed) {
+        return;
+      }
+
       resolveAndRender();
     });
   }
 
-  /* ------------------------------------------------------------------------
-     Events
-     ------------------------------------------------------------------------ */
+  /* ========================================================================
+     Filter Events
+     ======================================================================== */
 
-  filterView.filters.subscribe(() => {
+  let resetInProgress = false;
+
+  const unsubscribeFilters = filterView.filters.subscribe(() => {
+    if (destroyed || resetInProgress) {
+      return;
+    }
+
     scheduleResolveAndRender();
   });
 
-  dom.resetButton?.addEventListener("click", async () => {
-    await filterView.resetToDefaults();
-    activateTabByKey(dom, "performance");
+  /* ========================================================================
+     Reset
+     ======================================================================== */
 
-    /*
-     * Explicit and immediate rather than scheduled: this guarantees one
-     * final, correct render reflecting the fully-settled reset state,
-     * regardless of how many coalesced or uncoalesced renders happened
-     * along the way (async sector/entity repopulation means some of
-     * resetToDefaults()'s own notifications land in later ticks than
-     * others, so they cannot all be coalesced into a single microtask).
-     */
-    resolveAndRender();
-  });
+  dom.resetButton.addEventListener(
+    "click",
 
-  /* ------------------------------------------------------------------------
+    async () => {
+      if (destroyed || resetInProgress) {
+        return;
+      }
+
+      resetInProgress = true;
+
+      try {
+        /*
+         * resetToDefaults() is one settled Market -> Sector -> Entity
+         * transaction.
+         */
+        await filterView.resetToDefaults();
+
+        if (destroyed) {
+          return;
+        }
+
+        /*
+         * Filter Reset also restores the default Performance tab.
+         *
+         * tabs.js owns panel/ARIA state.
+         */
+        activateTabByKey(dom, "performance");
+      } finally {
+        resetInProgress = false;
+
+        if (!destroyed) {
+          /*
+           * Exactly one final render from the complete Reset state.
+           */
+          scheduleResolveAndRender();
+        }
+      }
+    },
+
+    {
+      signal: lifecycleController.signal,
+    },
+  );
+
+  /* ========================================================================
      Initialization
-     ------------------------------------------------------------------------ */
+     ======================================================================== */
+
+  /*
+   * data-pagination starts with an empty state and therefore remains hidden
+   * until the first successful report response provides pagination metadata.
+   */
+
+  pagination.clear();
 
   resolveAndRender();
 
-  /* ------------------------------------------------------------------------
+  /* ========================================================================
      Public Instance
-     ------------------------------------------------------------------------ */
+     ======================================================================== */
 
   const instance = Object.freeze({
     destroy() {
-      destroyActiveReportTable();
+      if (destroyed) {
+        return;
+      }
+
+      destroyed = true;
+
+      /*
+       * Remove page-owned DOM event listeners first.
+       */
+      lifecycleController.abort();
+
+      unsubscribeFilters?.();
+
+      destroyActiveReportTable({
+        clearPagination: false,
+      });
+
       destroyActiveUnderlyingTable();
 
+      pagination.destroy();
+
       performanceCards.destroy();
+
       unadjustedCards.destroy();
+
       underlyingCards.destroy();
 
       filterView.destroy();
+
+      hideNotes(dom);
 
       instances.delete(scope);
     },
@@ -522,11 +1197,19 @@ export function initHistorical(root = document) {
     },
 
     getReportTableApi() {
-      return activeReportTable?.getApi() ?? null;
+      return activeReportTable?.getApi?.() ?? null;
     },
 
     getUnderlyingTableApi() {
-      return activeUnderlyingTable?.getApi() ?? null;
+      return activeUnderlyingTable?.getApi?.() ?? null;
+    },
+
+    getPaginationState() {
+      return pagination.getState();
+    },
+
+    refresh() {
+      scheduleResolveAndRender();
     },
   });
 
@@ -544,7 +1227,9 @@ function start() {
 }
 
 if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", start, { once: true });
+  document.addEventListener("DOMContentLoaded", start, {
+    once: true,
+  });
 } else {
   start();
 }

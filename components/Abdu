@@ -194,9 +194,13 @@
 							</div>
 						</div>
 					</div>
-					<div id="historicalFilterMessage" class="historical-filter-message"
-						hidden></div>
-
+					<p
+            id="historicalFilterMessage"
+            class="form-error"
+            data-historical-filter-message
+            aria-live="polite"
+            hidden
+          ></p>
 				</div>
 				<div class="row">
 					<div class="col-12 col-lg-12 col-md-12 col-sm-12 mt-3">
@@ -555,7 +559,9 @@ window.DROPDOWN_CONFIG = {
 	src="${pageContext.request.contextPath}/js/historical.feature.manager.js"></script>
 
 
-	<%-- ==========================================================================
+
+
+  <%-- ==========================================================================
      Historical Reports Hero
      ========================================================================== --%>
 
@@ -592,7 +598,7 @@ window.DROPDOWN_CONFIG = {
 >
   <div class="container">
     <form
-      class="filter-bar"
+      class="filter-bar filter-bar--connected"
       data-historical-filters
       aria-labelledby="historical-filters-title"
       novalidate
@@ -603,14 +609,22 @@ window.DROPDOWN_CONFIG = {
 
       <div class="filter-bar__inner">
         <div class="filter-bar__fields grid-4">
-          <!-- ===================== MARKET ===================== -->
+
+          <%-- =================================================================
+               Market
+               ================================================================= --%>
+
           <div class="filter-bar__field">
             <label class="form-label" for="historical-market">
               <fmt:message key="market.title" />
               <span class="form-required" aria-hidden="true">*</span>
             </label>
 
-            <div class="custom-select" data-custom-select data-searchable>
+            <div
+              class="custom-select"
+              data-custom-select
+              data-searchable
+            >
               <div class="form-select-wrap custom-select__fallback">
                 <select
                   class="form-select custom-select__native"
@@ -621,15 +635,22 @@ window.DROPDOWN_CONFIG = {
                 >
                   <option
                     value="-1"
-                    <c:if test="${empty requestScope.selectedMarket or requestScope.selectedMarket eq '-1'}">selected</c:if>
+                    <c:if test="${empty requestScope.selectedMarket or requestScope.selectedMarket eq '-1'}">
+                      selected
+                    </c:if>
                   >
                     <fmt:message key="market.default.value" />
                   </option>
 
-                  <c:forEach items="${requestScope.marketIndicesList}" var="item">
+                  <c:forEach
+                    items="${requestScope.marketIndicesList}"
+                    var="item"
+                  >
                     <option
                       value="<c:out value='${item.value}' />"
-                      <c:if test="${item.value == requestScope.selectedMarket}">selected</c:if>
+                      <c:if test="${item.value == requestScope.selectedMarket}">
+                        selected
+                      </c:if>
                     >
                       <c:out value="${item.text}" />
                     </option>
@@ -644,7 +665,10 @@ window.DROPDOWN_CONFIG = {
             </div>
           </div>
 
-          <!-- ===================== SECTOR ===================== -->
+          <%-- =================================================================
+               Sector
+               ================================================================= --%>
+
           <div class="filter-bar__field">
             <label class="form-label" for="historical-sector">
               <fmt:message key="sector.title" />
@@ -654,7 +678,6 @@ window.DROPDOWN_CONFIG = {
               class="custom-select"
               data-custom-select
               data-searchable
-              data-clearable
             >
               <div class="form-select-wrap custom-select__fallback">
                 <select
@@ -665,15 +688,22 @@ window.DROPDOWN_CONFIG = {
                 >
                   <option
                     value="0"
-                    <c:if test="${empty requestScope.selectedSector or requestScope.selectedSector eq '0'}">selected</c:if>
+                    <c:if test="${empty requestScope.selectedSector or requestScope.selectedSector eq '0'}">
+                      selected
+                    </c:if>
                   >
                     <fmt:message key="sector.default.value" />
                   </option>
 
-                  <c:forEach items="${requestScope.sectorList}" var="item">
+                  <c:forEach
+                    items="${requestScope.sectorList}"
+                    var="item"
+                  >
                     <option
                       value="<c:out value='${item.dropdownValue}' />"
-                      <c:if test="${item.dropdownValue == requestScope.selectedSector}">selected</c:if>
+                      <c:if test="${item.dropdownValue == requestScope.selectedSector}">
+                        selected
+                      </c:if>
                     >
                       <c:out value="${item.name}" />
                     </option>
@@ -688,14 +718,21 @@ window.DROPDOWN_CONFIG = {
             </div>
           </div>
 
-          <!-- ===================== ENTITY ===================== -->
+          <%-- =================================================================
+               Entity
+               ================================================================= --%>
+
           <div class="filter-bar__field">
             <label class="form-label" for="historical-entity">
               <fmt:message key="entity.title" />
               <span class="form-required" aria-hidden="true">*</span>
             </label>
 
-            <div class="custom-select" data-custom-select data-searchable>
+            <div
+              class="custom-select"
+              data-custom-select
+              data-searchable
+            >
               <div class="form-select-wrap custom-select__fallback">
                 <select
                   class="form-select custom-select__native"
@@ -706,15 +743,22 @@ window.DROPDOWN_CONFIG = {
                 >
                   <option
                     value="0"
-                    <c:if test="${empty requestScope.selectedEntity or requestScope.selectedEntity eq '0'}">selected</c:if>
+                    <c:if test="${empty requestScope.selectedEntity or requestScope.selectedEntity eq '0'}">
+                      selected
+                    </c:if>
                   >
                     <fmt:message key="entity.default.value" />
                   </option>
 
-                  <c:forEach items="${requestScope.entityList}" var="item">
+                  <c:forEach
+                    items="${requestScope.entityList}"
+                    var="item"
+                  >
                     <option
                       value="<c:out value='${item.entitySymbol}' />"
-                      <c:if test="${item.entitySymbol == requestScope.selectedEntity}">selected</c:if>
+                      <c:if test="${item.entitySymbol == requestScope.selectedEntity}">
+                        selected
+                      </c:if>
                     >
                       <c:out value="${item.entityName}" />
                     </option>
@@ -729,18 +773,26 @@ window.DROPDOWN_CONFIG = {
             </div>
           </div>
 
-          <!-- ===================== TRADE TYPE ===================== -->
-          <!--
-            Hidden by default. historical.rules.js reveals this field only
-            when market is SUKUK and sector is G or S.
-          -->
+          <%-- =================================================================
+               Trade Type
 
-          <div class="filter-bar__field" id="tradeTypeFilter" hidden>
+               Historical rules reveal this only for:
+               market = SUKUK and sector = G or S.
+               ================================================================= --%>
+
+          <div
+            class="filter-bar__field"
+            id="tradeTypeFilter"
+            hidden
+          >
             <label class="form-label" for="historical-trade-type">
               <fmt:message key="trade.title" />
             </label>
 
-            <div class="custom-select" data-custom-select>
+            <div
+              class="custom-select"
+              data-custom-select
+            >
               <div class="form-select-wrap custom-select__fallback">
                 <select
                   class="form-select custom-select__native"
@@ -769,7 +821,10 @@ window.DROPDOWN_CONFIG = {
             </div>
           </div>
 
-          <!-- ===================== DATE RANGE ===================== -->
+          <%-- =================================================================
+               Date Range
+               ================================================================= --%>
+
           <fieldset class="filter-bar__field form-fieldset">
             <legend class="form-label">
               <fmt:message key="filter.date" />
@@ -806,7 +861,10 @@ window.DROPDOWN_CONFIG = {
                   />
                 </div>
 
-                <div class="custom-date__initial-trigger" aria-hidden="true">
+                <div
+                  class="custom-date__initial-trigger"
+                  aria-hidden="true"
+                >
                   <span class="custom-date__initial-value is-placeholder">
                     YYYY-MM-DD – YYYY-MM-DD
                   </span>
@@ -821,15 +879,20 @@ window.DROPDOWN_CONFIG = {
           </fieldset>
         </div>
 
-        <!-- ===================== ACTIONS ===================== -->
+        <%-- ===================================================================
+             Actions
+             =================================================================== --%>
+
         <div class="filter-bar__actions">
           <button
-            id="historicalResetBtn"
             type="button"
             class="btn btn-outline-primary"
             data-historical-reset
           >
-            <span><fmt:message key="reset.btn.title" /></span>
+            <span>
+              <fmt:message key="reset.btn.title" />
+            </span>
+
             <span
               class="has-icon icon-sync-refresh icon-md"
               aria-hidden="true"
@@ -839,8 +902,8 @@ window.DROPDOWN_CONFIG = {
       </div>
 
       <p
-        id="historicalFilterMessage"
         class="form-error"
+        data-historical-filter-message
         aria-live="polite"
         hidden
       ></p>
@@ -851,35 +914,47 @@ window.DROPDOWN_CONFIG = {
      Historical Reports Content
      ========================================================================== --%>
 
-<section class="section">
+<section
+  class="section-none historical-reports"
+  aria-label="<fmt:message key='page.header' />"
+  data-historical-content
+>
   <div class="container">
-    <!-- ======================================================================
-         Tabs
 
-         Fixed to match tabs.controller.js's selectors exactly:
-         - root needs BOTH .tabs class AND data-tabs attribute (legacy had
-           data-tabs on a different, unrelated wrapper)
-         - tabs use role="tab" + data-tab-target (not data-tab-content)
-         - panels use role="tabpanel" and live directly under .tabs-content
-         data-tab is kept alongside data-tab-target so historical.feature-
-         manager.js can read a stable semantic key ("performance") rather
-         than a DOM id.
-         ====================================================================== -->
+    <%-- ========================================================================
+         Historical Reports Tabs
+         ======================================================================== --%>
 
-    <div class="tabs" data-tabs>
-      <div class="tabs-nav" role="tablist">
+    <div
+      class="tabs tabs--full"
+      data-tabs
+      data-historical-tabs
+    >
+      <%-- ======================================================================
+           Tab Navigation
+           ====================================================================== --%>
+
+      <div
+        class="tabs-nav"
+        role="tablist"
+        aria-label="<fmt:message key='page.header' />"
+      >
+        <%-- Performance --%>
         <button
           type="button"
-          class="tab-link"
+          class="tab-link active"
           role="tab"
           id="historical-tab-performance"
           data-tab="performance"
           data-tab-target="historical-panel-performance"
+          aria-controls="historical-panel-performance"
           aria-selected="true"
+          tabindex="0"
         >
           <fmt:message key="performance.tab.title" />
         </button>
 
+        <%-- Unadjusted Price --%>
         <button
           type="button"
           class="tab-link"
@@ -887,6 +962,7 @@ window.DROPDOWN_CONFIG = {
           id="historical-tab-unadjusted"
           data-tab="unadjusted"
           data-tab-target="historical-panel-unadjusted"
+          aria-controls="historical-panel-unadjusted"
           aria-selected="false"
           tabindex="-1"
         >
@@ -894,18 +970,33 @@ window.DROPDOWN_CONFIG = {
         </button>
       </div>
 
+      <%-- ======================================================================
+           Tab Panels
+           ====================================================================== --%>
+
       <div class="tabs-content">
-        <!-- ==================================================================
-             Performance Panel
-             ================================================================== -->
+
+        <%-- ====================================================================
+             Performance
+             ==================================================================== --%>
 
         <section
-          class="tab-pane"
-          role="tabpanel"
+          class="tab-pane active"
           id="historical-panel-performance"
+          role="tabpanel"
+          aria-labelledby="historical-tab-performance"
+          aria-hidden="false"
         >
-          <div class="data-view" data-historical-view="performance">
+          <div
+            class="data-view data-view--connected"
+            data-historical-view="performance"
+          >
             <div class="data-view__workspace">
+
+              <%-- ==============================================================
+                   Desktop / Tablet Table
+                   ============================================================== --%>
+
               <div class="data-view__table">
                 <div class="table-shell" data-table-shell>
                   <section
@@ -924,6 +1015,10 @@ window.DROPDOWN_CONFIG = {
                         <fmt:message key="performance.tab.title" />
                       </caption>
 
+                      <%--
+                        Historical columns are generated from the active
+                        market/profile schema.
+                      --%>
                       <thead>
                         <tr></tr>
                       </thead>
@@ -932,6 +1027,7 @@ window.DROPDOWN_CONFIG = {
                     </table>
                   </section>
 
+                  <%-- Horizontal table jump control --%>
                   <button
                     type="button"
                     class="table-scroll-jump has-icon icon-chevron-right-bold icon-md icon-flip-rtl"
@@ -941,14 +1037,20 @@ window.DROPDOWN_CONFIG = {
                     title="Jump to last columns"
                     hidden
                   >
-                    <span class="visually-hidden">Jump to last columns</span>
+                    <span class="visually-hidden">
+                      Jump to last columns
+                    </span>
                   </button>
                 </div>
               </div>
 
+              <%-- ==============================================================
+                   Mobile Cards
+                   ============================================================== --%>
+
               <div
                 class="data-view__cards"
-                data-historical-mobile="performance"
+                aria-label="<fmt:message key='performance.tab.title' />"
               >
                 <div
                   class="data-view__cards-inner"
@@ -956,22 +1058,33 @@ window.DROPDOWN_CONFIG = {
                   aria-busy="true"
                 ></div>
               </div>
+
             </div>
           </div>
         </section>
 
-        <!-- ==================================================================
-             Unadjusted Price Panel
-             ================================================================== -->
+        <%-- ====================================================================
+             Unadjusted Price
+             ==================================================================== --%>
 
         <section
           class="tab-pane"
-          role="tabpanel"
           id="historical-panel-unadjusted"
+          role="tabpanel"
+          aria-labelledby="historical-tab-unadjusted"
+          aria-hidden="true"
           hidden
         >
-          <div class="data-view" data-historical-view="unadjusted">
+          <div
+            class="data-view data-view--connected"
+            data-historical-view="unadjusted"
+          >
             <div class="data-view__workspace">
+
+              <%-- ==============================================================
+                   Desktop / Tablet Table
+                   ============================================================== --%>
+
               <div class="data-view__table">
                 <div class="table-shell" data-table-shell>
                   <section
@@ -990,6 +1103,10 @@ window.DROPDOWN_CONFIG = {
                         <fmt:message key="unadjust.price.tab.title" />
                       </caption>
 
+                      <%--
+                        Historical columns are generated from the active
+                        market/profile schema.
+                      --%>
                       <thead>
                         <tr></tr>
                       </thead>
@@ -998,6 +1115,7 @@ window.DROPDOWN_CONFIG = {
                     </table>
                   </section>
 
+                  <%-- Horizontal table jump control --%>
                   <button
                     type="button"
                     class="table-scroll-jump has-icon icon-chevron-right-bold icon-md icon-flip-rtl"
@@ -1007,14 +1125,20 @@ window.DROPDOWN_CONFIG = {
                     title="Jump to last columns"
                     hidden
                   >
-                    <span class="visually-hidden">Jump to last columns</span>
+                    <span class="visually-hidden">
+                      Jump to last columns
+                    </span>
                   </button>
                 </div>
               </div>
 
+              <%-- ==============================================================
+                   Mobile Cards
+                   ============================================================== --%>
+
               <div
                 class="data-view__cards"
-                data-historical-mobile="unadjusted"
+                aria-label="<fmt:message key='unadjust.price.tab.title' />"
               >
                 <div
                   class="data-view__cards-inner"
@@ -1022,31 +1146,49 @@ window.DROPDOWN_CONFIG = {
                   aria-busy="true"
                 ></div>
               </div>
+
             </div>
           </div>
         </section>
+
       </div>
     </div>
 
-    <!-- ======================================================================
-         Derivatives Underlying (Single Stock Options)
+    <%-- ========================================================================
+         Derivatives Underlying
+         ========================================================================
 
-         Not a tab. historical.rules.js shows this in place of the tabs
-         entirely when the market/sector combination resolves to
-         isDerivativeUnderlying. Kept as a sibling section, matching legacy.
-         ====================================================================== -->
+         This is intentionally NOT a tab.
+
+         Historical rules display this view in place of the Performance /
+         Unadjusted tabs for the Derivatives Single Stock Options profile.
+
+         Underlying is client-side and does not use report pagination.
+         ======================================================================== --%>
 
     <section
       id="historical-underlying-section"
+      data-historical-underlying-section
       aria-labelledby="historical-underlying-title"
       hidden
     >
-      <h2 class="visually-hidden" id="historical-underlying-title">
+      <h2
+        class="visually-hidden"
+        id="historical-underlying-title"
+      >
         <fmt:message key="derivatives.market.watch.sso" />
       </h2>
 
-      <div class="data-view" data-historical-view="underlying">
+      <div
+        class="data-view data-view--connected"
+        data-historical-view="underlying"
+      >
         <div class="data-view__workspace">
+
+          <%-- ================================================================
+               Desktop / Tablet Table
+               ================================================================ --%>
+
           <div class="data-view__table">
             <div class="table-shell" data-table-shell>
               <section
@@ -1073,6 +1215,7 @@ window.DROPDOWN_CONFIG = {
                 </table>
               </section>
 
+              <%-- Horizontal table jump control --%>
               <button
                 type="button"
                 class="table-scroll-jump has-icon icon-chevron-right-bold icon-md icon-flip-rtl"
@@ -1082,53 +1225,114 @@ window.DROPDOWN_CONFIG = {
                 title="Jump to last columns"
                 hidden
               >
-                <span class="visually-hidden">Jump to last columns</span>
+                <span class="visually-hidden">
+                  Jump to last columns
+                </span>
               </button>
             </div>
           </div>
 
-          <div class="data-view__cards" data-historical-mobile="underlying">
+          <%-- ================================================================
+               Mobile Cards
+               ================================================================ --%>
+
+          <div
+            class="data-view__cards"
+            aria-label="<fmt:message key='derivatives.market.watch.sso' />"
+          >
             <div
               class="data-view__cards-inner"
               data-historical-mobile-cards="underlying"
               aria-busy="true"
             ></div>
           </div>
+
         </div>
       </div>
     </section>
 
-    <!-- ======================================================================
-         Notes
-         ====================================================================== -->
+    <%-- ========================================================================
+         Historical Reports Notes
+         ========================================================================
 
+         Rich note content is rendered server-side into inert templates.
+         Historical JS resolves a semantic note key and clones the appropriate
+         template into one of the visible note containers below.
+         ======================================================================== --%>
+
+    <%-- Default Note --%>
     <div
       class="alert alert-info mt-6"
       id="historical-note"
       data-historical-note="default"
       role="note"
+      aria-live="polite"
       hidden
     >
-      <p id="historical-note-text" data-historical-note-text></p>
+      <div
+        id="historical-note-text"
+        data-historical-note-content
+      ></div>
     </div>
 
+    <%-- Derivatives Note --%>
     <div
       class="alert alert-info mt-6"
       id="historical-note-derivatives"
       data-historical-note="derivatives"
       role="note"
+      aria-live="polite"
       hidden
     >
-      <p id="historical-note-derivatives-text" data-historical-note-text></p>
+      <div
+        id="historical-note-derivatives-text"
+        data-historical-note-content
+      ></div>
     </div>
 
-    <!-- ======================================================================
-         Empty / Invalid / No-data Placeholder
-         ====================================================================== -->
+    <%-- ========================================================================
+         Note Templates
+
+         These templates are inert until Historical JS explicitly clones them.
+
+         Rich markup here must remain trusted application/resource-bundle
+         content. User-provided content must never be inserted unsanitized.
+         ======================================================================== --%>
+
+    <template data-historical-note-template="indexType">
+      <fmt:message key="note1" />
+    </template>
+
+    <template data-historical-note-template="mainMarketTasi">
+      <fmt:message key="main.market.indices.tasi.note1" />
+    </template>
+
+    <template data-historical-note-template="derivativeChangePoints">
+      <fmt:message key="derivative.performance.foonote.change.points" />
+    </template>
+
+    <template data-historical-note-template="mfNav">
+      <fmt:message key="mf.performance.foonote.nav" />
+    </template>
+
+    <%-- ========================================================================
+         Historical Reports Page Placeholder
+         ========================================================================
+
+         This is a page-level state.
+
+         It is used when the current filter/business-rule state cannot display
+         one of the normal report views.
+
+         Normal zero-row results are handled by the table/card components.
+         ======================================================================== --%>
 
     <section
       id="historical-empty-state"
       class="text-center py-8"
+      data-historical-placeholder
+      aria-live="polite"
+      aria-atomic="true"
       hidden
     >
       <img
@@ -1136,6 +1340,7 @@ window.DROPDOWN_CONFIG = {
         src="${pageContext.request.contextPath}/images/no-data.png"
         class="w-100"
         style="max-width: 300px; margin-inline: auto;"
+        data-historical-placeholder-image
         alt=""
         hidden
       />
@@ -1147,63 +1352,44 @@ window.DROPDOWN_CONFIG = {
       ></p>
     </section>
 
-    <!-- ======================================================================
-         Pagination
-         ====================================================================== -->
+    <%-- ========================================================================
+         Historical Reports Pagination
+         ========================================================================
 
-    <div class="data-view__pagination" data-historical-pagination hidden>
-      <div class="data-view__pagination-range" data-feed-range>0–0</div>
+         Shared by Performance and Unadjusted.
 
-      <div class="data-view__pagination-controls">
-        <span class="text-muted"><fmt:message key="pagination.page" /></span>
+         Derivatives Underlying does not use pagination.
 
-        <div class="custom-select custom-select--sm" data-custom-select>
-          <div class="form-select-wrap custom-select__fallback">
-            <select
-              class="form-select form-select-sm custom-select__native"
-              data-feed-page
-              aria-label="<fmt:message key='pagination.page' />"
-            ></select>
+         common/data-view/data-pagination.js will render:
+         - range summary
+         - Previous
+         - page numbers
+         - ellipsis
+         - current page
+         - Next
+         ======================================================================== --%>
 
-            <span
-              class="form-select-icon has-icon icon-chevron-down"
-              aria-hidden="true"
-            ></span>
-          </div>
-        </div>
+    <nav
+      class="pagination"
+      data-historical-pagination
+      aria-label="<fmt:message key='pagination.page' />"
+      aria-busy="false"
+      hidden
+    >
+      <%-- Result Range --%>
+      <p
+        class="pagination__summary"
+        data-historical-pagination-summary
+        aria-live="polite"
+      ></p>
 
-        <span class="text-muted">
-          <fmt:message key="pagination.of" />
-          <strong data-feed-total-pages>1</strong>
-        </span>
+      <%-- Dynamically rendered page controls --%>
+      <ol
+        class="pagination__list"
+        data-historical-pagination-list
+      ></ol>
+    </nav>
 
-        <button
-          type="button"
-          class="btn btn-outline-primary btn-icon"
-          data-feed-prev
-          disabled
-          aria-label="<fmt:message key='pagination.previous' />"
-        >
-          <span
-            class="has-icon icon-chevron-left icon-flip-rtl"
-            aria-hidden="true"
-          ></span>
-        </button>
-
-        <button
-          type="button"
-          class="btn btn-outline-primary btn-icon"
-          data-feed-next
-          disabled
-          aria-label="<fmt:message key='pagination.next' />"
-        >
-          <span
-            class="has-icon icon-chevron-right icon-flip-rtl"
-            aria-hidden="true"
-          ></span>
-        </button>
-      </div>
-    </div>
   </div>
 </section>
 <%-- ==========================================================================
@@ -1212,41 +1398,35 @@ window.DROPDOWN_CONFIG = {
 
 <script>
   window.HistoricalConfig = {
-    /* ======================================================================
+
+    /* ========================================================================
        Locale
-       ====================================================================== */
+       ======================================================================== */
 
     locale: "${requestScope.requestLocale}",
 
-    /* ======================================================================
+    /* ========================================================================
        Endpoints
-       ====================================================================== */
+       ======================================================================== */
 
-    /*
-     * "report" is shared by both the Performance and Unadjusted tabs.
-     * historical.table.js differentiates them with the existing
-     * tableTabId request parameter ("0" / "1"), exactly as legacy did.
-     */
     endpoints: {
-      report: "<portlet:resourceURL id='populateCompanyDetails'></portlet:resourceURL>",
-      underlying: "<portlet:resourceURL id='getSingleStockOptionsTableCompanyData'></portlet:resourceURL>",
-      sectors: "<portlet:resourceURL id='populateSectors'></portlet:resourceURL>",
-      entities: "<portlet:resourceURL id='populateEntity'></portlet:resourceURL>"
+      report:
+        "<portlet:resourceURL id='populateCompanyDetails'></portlet:resourceURL>",
+
+      underlying:
+        "<portlet:resourceURL id='getSingleStockOptionsTableCompanyData'></portlet:resourceURL>",
+
+      sectors:
+        "<portlet:resourceURL id='populateSectors'></portlet:resourceURL>",
+
+      entities:
+        "<portlet:resourceURL id='populateEntity'></portlet:resourceURL>"
     },
 
-    /* ======================================================================
+    /* ========================================================================
        Defaults
-       ====================================================================== */
+       ======================================================================== */
 
-    /*
-     * Raw request-scope values only. Fallback constants (INDICES / M /
-     * M:TASI / OB) belong in historical.config.js, matching the
-     * normalizeLabel(value, fallback) pattern market-watch.config.js uses.
-     *
-     * These same values also serve as the Reset target, matching legacy's
-     * resetFilters() behavior exactly: reset returns to the page's initial
-     * state, not to a hardcoded value.
-     */
     defaults: {
       market: "${requestScope.selectedMarket}",
       sector: "${requestScope.selectedSector}",
@@ -1254,164 +1434,263 @@ window.DROPDOWN_CONFIG = {
       tradeType: "OB"
     },
 
-    /* ======================================================================
-       Constants
-       ====================================================================== */
+    /* ========================================================================
+       Business Rule Constants
+       ======================================================================== */
 
     constants: {
-      marketsWithoutSector: ["ETFS", "MF", "TR"]
+      marketsWithoutSector: [
+        "ETFS",
+        "MF",
+        "TR"
+      ]
     },
 
-    /* ======================================================================
-       Table Options
-       ====================================================================== */
+    /* ========================================================================
+       DataTable Configuration
+       ======================================================================== */
 
-    /*
-     * Two blocks because Performance/Unadjusted and Underlying are
-     * genuinely different DataTables integrations (server-side paged vs.
-     * client-side single-shot), not just column-schema variants.
-     */
     table: {
+
+      /* ----------------------------------------------------------------------
+         Performance / Unadjusted
+         ---------------------------------------------------------------------- */
+
       report: {
         serverSide: true,
         paging: true,
         pagingType: "simple",
         pageLength: 100,
+
         searching: false,
         ordering: false,
         info: false,
+
         scrollX: true,
         scrollCollapse: true,
         autoWidth: true,
+
         fixedHeader: true
       },
+
+      /* ----------------------------------------------------------------------
+         Derivatives Underlying
+         ---------------------------------------------------------------------- */
 
       underlying: {
         serverSide: false,
         paging: false,
+
         searching: false,
         ordering: false,
         info: false,
+
         scrollX: true,
         scrollCollapse: true,
         autoWidth: true,
+
         fixedHeader: true
       }
     },
 
-    /* ======================================================================
+    /* ========================================================================
        Labels
-       ====================================================================== */
+       ======================================================================== */
 
     labels: {
+
+      /* ----------------------------------------------------------------------
+         General
+         ---------------------------------------------------------------------- */
+
       placeholderSelectFilters:
         "<fmt:message key='historical.placeholder.select.filters' />",
 
-      noData: "<fmt:message key='historical.placeholder.no.data' />",
+      noData:
+        "<fmt:message key='historical.placeholder.no.data' />",
 
-      /* --------------------------------------------------------------------
+      /* ----------------------------------------------------------------------
          Validation
-         -------------------------------------------------------------------- */
+         ---------------------------------------------------------------------- */
 
       validation: {
-        market: "<fmt:message key='market.validation.message' />",
-        sector: "<fmt:message key='sector.validation.message' />",
-        entity: "<fmt:message key='entity.validation.message' />",
-        dateRange: "<fmt:message key='date.validation.message' />",
-        dateOrder: "<fmt:message key='date.order.validation.message' />"
+        market:
+          "<fmt:message key='market.validation.message' />",
+
+        sector:
+          "<fmt:message key='sector.validation.message' />",
+
+        entity:
+          "<fmt:message key='entity.validation.message' />",
+
+        dateRange:
+          "<fmt:message key='date.validation.message' />",
+
+        dateOrder:
+          "<fmt:message key='date.order.validation.message' />"
       },
 
-      /* --------------------------------------------------------------------
-         Select Placeholders
-         -------------------------------------------------------------------- */
+      /* ----------------------------------------------------------------------
+         Filter Placeholders
+         ---------------------------------------------------------------------- */
 
       placeholders: {
-        market: "<fmt:message key='market.default.value' />",
-        sector: "<fmt:message key='sector.default.value' />",
-        entity: "<fmt:message key='entity.default.value' />"
+        market:
+          "<fmt:message key='market.default.value' />",
+
+        sector:
+          "<fmt:message key='sector.default.value' />",
+
+        entity:
+          "<fmt:message key='entity.default.value' />"
       },
 
-      /* --------------------------------------------------------------------
-         Mobile
-
-         Net new: Historical Reports had no mobile card presentation before
-         this refactor, so no legacy i18n keys exist for these two labels.
-         Placeholder keys below need real translation entries.
-         -------------------------------------------------------------------- */
+      /* ----------------------------------------------------------------------
+         Mobile Cards
+         ---------------------------------------------------------------------- */
 
       mobile: {
-        showDetails: "<fmt:message key='historical.mobile.show.details' />",
-        hideDetails: "<fmt:message key='historical.mobile.hide.details' />"
+        showDetails:
+          "<fmt:message key='historical.mobile.show.details' />",
+
+        hideDetails:
+          "<fmt:message key='historical.mobile.hide.details' />"
       },
 
-      /* --------------------------------------------------------------------
-         Table Columns
-         -------------------------------------------------------------------- */
+      /* ----------------------------------------------------------------------
+         Pagination
+         ---------------------------------------------------------------------- */
+
+      pagination: {
+        page:
+          "<fmt:message key='pagination.page' />",
+
+        of:
+          "<fmt:message key='pagination.of' />",
+
+        previous:
+          "<fmt:message key='pagination.previous' />",
+
+        next:
+          "<fmt:message key='pagination.next' />"
+      },
+
+      /* ----------------------------------------------------------------------
+         Historical Table Columns
+         ---------------------------------------------------------------------- */
 
       table: {
-        date: "<fmt:message key='table.header.date' />",
-        open: "<fmt:message key='table.header.open' />",
-        high: "<fmt:message key='table.header.high' />",
-        low: "<fmt:message key='table.header.low' />",
-        close: "<fmt:message key='table.header.close' />",
-        change: "<fmt:message key='table.header.change' />",
-        changePoints: "<fmt:message key='table.header.change.points' />",
-        changePercent: "<fmt:message key='table.header.percnt.change' />",
-        volumeTraded: "<fmt:message key='table.header.volume.traded' />",
+        date:
+          "<fmt:message key='table.header.date' />",
+
+        open:
+          "<fmt:message key='table.header.open' />",
+
+        high:
+          "<fmt:message key='table.header.high' />",
+
+        low:
+          "<fmt:message key='table.header.low' />",
+
+        close:
+          "<fmt:message key='table.header.close' />",
+
+        change:
+          "<fmt:message key='table.header.change' />",
+
+        changePoints:
+          "<fmt:message key='table.header.change.points' />",
+
+        changePercent:
+          "<fmt:message key='table.header.percnt.change' />",
+
+        volumeTraded:
+          "<fmt:message key='table.header.volume.traded' />",
+
         nominalValueTraded:
           "<fmt:message key='table.header.nominal.value.traded' />",
-        turnOver: "<fmt:message key='table.header.turn.over' />",
-        noOfTrades: "<fmt:message key='table.header.no.of.trades' />",
-        nav: "<fmt:message key='table.header.nav' />",
-        closeYield: "<fmt:message key='table.header.close.yeild' />",
-        mfDate: "<fmt:message key='table.header.mf.date' />",
-        mfNav: "<fmt:message key='table.header.mf.nav' />",
-        dailySettPrice: "<fmt:message key='table.header.daily.sett.price' />",
-        openInterest: "<fmt:message key='table.header.open.interest' />",
+
+        turnOver:
+          "<fmt:message key='table.header.turn.over' />",
+
+        noOfTrades:
+          "<fmt:message key='table.header.no.of.trades' />",
+
+        nav:
+          "<fmt:message key='table.header.nav' />",
+
+        closeYield:
+          "<fmt:message key='table.header.close.yeild' />",
+
+        mfDate:
+          "<fmt:message key='table.header.mf.date' />",
+
+        mfNav:
+          "<fmt:message key='table.header.mf.nav' />",
+
+        dailySettPrice:
+          "<fmt:message key='table.header.daily.sett.price' />",
+
+        openInterest:
+          "<fmt:message key='table.header.open.interest' />",
 
         /*
-         * Preserved exactly as legacy had it: a literal English string
-         * rather than an i18n key. Flagging in case this was an oversight
-         * rather than intentional â€” happy to add a real message key instead.
+         * Preserved from the current/legacy contract.
          */
         aum: "AUM",
+
+        /* --------------------------------------------------------------------
+           Derivatives Underlying Columns
+           -------------------------------------------------------------------- */
 
         underlying: {
           instrumentType:
             "<fmt:message key='derivatives.market.watch.underlying.table.instrumenttype' />",
+
           symbol:
             "<fmt:message key='derivatives.market.watch.underlying.table.symbol' />",
+
           underlying:
             "<fmt:message key='derivatives.market.watch.underlying.table.Underlying' />",
+
           expiryDate:
             "<fmt:message key='derivatives.market.watch.underlying.table.ExpiryDate' />",
+
           type:
             "<fmt:message key='derivatives.market.watch.underlying.table.Type' />",
+
           strikePrice:
             "<fmt:message key='derivatives.market.watch.underlying.table.StrikePrice' />",
+
           referencePrice:
             "<fmt:message key='derivatives.market.watch.underlying.table.ReferencePrice' />",
+
           lastTradedPrice:
             "<fmt:message key='derivatives.market.watch.underlying.table.LastTradedPrice' />",
+
           volume:
             "<fmt:message key='derivatives.market.watch.underlying.table.Volume' />",
+
           openInterest:
             "<fmt:message key='derivatives.market.watch.underlying.table.OpenInterest' />",
+
           underlyingPrice:
             "<fmt:message key='derivatives.market.watch.underlying.table.UnderlyingPrice' />"
         },
 
-        calls: "<fmt:message key='labels.company.profile.options.table.calls' />",
-        puts: "<fmt:message key='labels.company.profile.options.table.puts' />",
-        sso: "<fmt:message key='derivatives.market.watch.sso' />"
-      },
+        /* --------------------------------------------------------------------
+           Derivatives Value Labels
+           -------------------------------------------------------------------- */
 
-	  notes: {
-		indexType: "<fmt:message key='note1' />",
-		mainMarketTasi: "<fmt:message key='main.market.indices.tasi.note1' />",
-		derivativeChangePoints: "<fmt:message key='derivative.performance.foonote.change.points' />",
-		mfNav: "<fmt:message key='mf.performance.foonote.nav' />"
-		}
+        calls:
+          "<fmt:message key='labels.company.profile.options.table.calls' />",
+
+        puts:
+          "<fmt:message key='labels.company.profile.options.table.puts' />",
+
+        sso:
+          "<fmt:message key='derivatives.market.watch.sso' />"
+      }
     }
   };
 </script>
@@ -1424,7 +1703,6 @@ window.DROPDOWN_CONFIG = {
   type="module"
   src="${pageContext.request.contextPath}/js/pages/historical/historical.js"
 ></script>
-
 
 /* ==========================================================================
    Data Table
@@ -1559,6 +1837,21 @@ function isColumnVisible(column, visibleGroups) {
   return visibleGroups.includes(column.visibilityGroup);
 }
 
+/*
+ * Returns every visibility group declared by a schema.
+ *
+ * When a caller omits `visibleGroups`, the schema itself is the default
+ * source of truth and all of its declared groups are visible.
+ *
+ * An explicitly supplied [] still means "hide all grouped columns", which is
+ * important for views that genuinely use a column-visibility controller.
+ */
+function getSchemaVisibilityGroups(columns = []) {
+  return unique(
+    columns.map((column) => column?.visibilityGroup || ""),
+  );
+}
+
 /* ==========================================================================
    Cell Rendering
    ========================================================================== */
@@ -1574,16 +1867,38 @@ function isColumnVisible(column, visibleGroups) {
  * rows came from the client-side loading path or the server-side one.
  */
 
-function renderCellValue({ row, column, type, meta, context, renderCell }) {
+function renderCellValue({
+  row,
+  column,
+  type,
+  meta,
+  context,
+  renderCell,
+}) {
   if (typeof column.render === "function") {
-    return column.render({ row, column, type, meta, context });
+    return column.render({
+      row,
+      column,
+      type,
+      meta,
+      context,
+    });
   }
 
   if (typeof renderCell === "function") {
-    return renderCell({ row, column, type, meta, context });
+    return renderCell({
+      row,
+      column,
+      type,
+      meta,
+      context,
+    });
   }
 
-  const value = getColumnData(row, column);
+  const value = getColumnData(
+    row,
+    column,
+  );
 
   return value ?? "";
 }
@@ -1605,13 +1920,20 @@ function renderCellValue({ row, column, type, meta, context, renderCell }) {
  */
 
 function buildColGroup(columns) {
-  const colgroup = document.createElement("colgroup");
+  const colgroup =
+    document.createElement(
+      "colgroup",
+    );
 
   columns.forEach((column) => {
-    const col = document.createElement("col");
+    const col =
+      document.createElement(
+        "col",
+      );
 
     if (column.width) {
-      col.style.width = column.width;
+      col.style.width =
+        column.width;
     }
 
     colgroup.append(col);
@@ -1634,68 +1956,120 @@ function createHeaderCell({
   visibilityGroup = "",
   headerGroup = "",
 }) {
-  const cell = document.createElement("th");
+  const cell =
+    document.createElement(
+      "th",
+    );
 
-  cell.scope = scope;
+  cell.scope =
+    scope;
 
   if (className) {
-    cell.className = className;
+    cell.className =
+      className;
   }
 
   if (rowSpan) {
-    cell.rowSpan = rowSpan;
+    cell.rowSpan =
+      rowSpan;
   }
 
   if (colSpan) {
-    cell.colSpan = colSpan;
+    cell.colSpan =
+      colSpan;
   }
 
   if (visibilityGroup) {
-    cell.dataset.dataColumnGroup = visibilityGroup;
+    cell.dataset.dataColumnGroup =
+      visibilityGroup;
   }
 
   if (headerGroup) {
-    cell.dataset.dataHeaderGroup = headerGroup;
+    cell.dataset.dataHeaderGroup =
+      headerGroup;
   }
 
   if (width) {
-    cell.style.width = width;
-    cell.style.minWidth = width;
-    cell.style.maxWidth = width;
+    cell.style.width =
+      width;
+
+    cell.style.minWidth =
+      width;
+
+    cell.style.maxWidth =
+      width;
   }
 
-  const labelElement = document.createElement("span");
+  const labelElement =
+    document.createElement(
+      "span",
+    );
 
-  labelElement.className = "table-column-label";
-  labelElement.textContent = label;
+  labelElement.className =
+    "table-column-label";
 
-  cell.append(labelElement);
+  labelElement.textContent =
+    label;
+
+  cell.append(
+    labelElement,
+  );
 
   return cell;
 }
 
-function replaceTableStructure(table, thead, colgroup) {
-  const caption = table.caption;
+function replaceTableStructure(
+  table,
+  thead,
+  colgroup,
+) {
+  const caption =
+    table.caption;
 
-  const tbody = document.createElement("tbody");
+  const tbody =
+    document.createElement(
+      "tbody",
+    );
 
-  table.replaceChildren(...[caption, colgroup, thead, tbody].filter(Boolean));
+  table.replaceChildren(
+    ...[
+      caption,
+      colgroup,
+      thead,
+      tbody,
+    ].filter(Boolean),
+  );
 }
 
-function normalizeGroups(groups = []) {
+function normalizeGroups(
+  groups = [],
+) {
   return groups
     .map((group) => {
-      if (typeof group === "string") {
+      if (
+        typeof group ===
+        "string"
+      ) {
         return {
-          id: group,
-          label: group,
+          id:
+            group,
+
+          label:
+            group,
         };
       }
 
-      if (isObject(group) && group.id) {
+      if (
+        isObject(group) &&
+        group.id
+      ) {
         return {
           ...group,
-          id: String(group.id),
+
+          id:
+            String(
+              group.id,
+            ),
         };
       }
 
@@ -1704,39 +2078,72 @@ function normalizeGroups(groups = []) {
     .filter(Boolean);
 }
 
-function buildSchemaHeader(table, columns, groups) {
-  const colgroup = buildColGroup(columns);
+function buildSchemaHeader(
+  table,
+  columns,
+  groups,
+) {
+  const colgroup =
+    buildColGroup(
+      columns,
+    );
 
-  const thead = document.createElement("thead");
+  const thead =
+    document.createElement(
+      "thead",
+    );
 
-  const hasGroupedHeaders = columns.some((column) =>
-    Boolean(column.headerGroup),
-  );
+  const hasGroupedHeaders =
+    columns.some(
+      (column) =>
+        Boolean(
+          column.headerGroup,
+        ),
+    );
 
   /* ------------------------------------------------------------------------
      Single Header Row
      ------------------------------------------------------------------------ */
 
   if (!hasGroupedHeaders) {
-    const row = document.createElement("tr");
-
-    columns.forEach((column) => {
-      row.append(
-        createHeaderCell({
-          label: getColumnLabel(column),
-
-          className: column.headerClassName || column.className || "",
-
-          width: column.width || "",
-
-          visibilityGroup: column.visibilityGroup || "",
-        }),
+    const row =
+      document.createElement(
+        "tr",
       );
-    });
+
+    columns.forEach(
+      (column) => {
+        row.append(
+          createHeaderCell({
+            label:
+              getColumnLabel(
+                column,
+              ),
+
+            className:
+              column.headerClassName ||
+              column.className ||
+              "",
+
+            width:
+              column.width ||
+              "",
+
+            visibilityGroup:
+              column.visibilityGroup ||
+              "",
+          }),
+        );
+      },
+    );
 
     thead.append(row);
 
-    replaceTableStructure(table, thead, colgroup);
+    replaceTableStructure(
+      table,
+      thead,
+      colgroup,
+    );
 
     return;
   }
@@ -1745,77 +2152,132 @@ function buildSchemaHeader(table, columns, groups) {
      Grouped Header
      ------------------------------------------------------------------------ */
 
-  const topRow = document.createElement("tr");
+  const topRow =
+    document.createElement(
+      "tr",
+    );
 
-  const bottomRow = document.createElement("tr");
+  const bottomRow =
+    document.createElement(
+      "tr",
+    );
 
   /*
    * Ungrouped columns span both rows.
    */
 
   columns
-    .filter((column) => !column.headerGroup)
-    .forEach((column) => {
-      topRow.append(
-        createHeaderCell({
-          label: getColumnLabel(column),
+    .filter(
+      (column) =>
+        !column.headerGroup,
+    )
+    .forEach(
+      (column) => {
+        topRow.append(
+          createHeaderCell({
+            label:
+              getColumnLabel(
+                column,
+              ),
 
-          className: column.headerClassName || column.className || "",
+            className:
+              column.headerClassName ||
+              column.className ||
+              "",
 
-          width: column.width || "",
+            width:
+              column.width ||
+              "",
 
-          visibilityGroup: column.visibilityGroup || "",
+            visibilityGroup:
+              column.visibilityGroup ||
+              "",
 
-          rowSpan: 2,
-        }),
-      );
-    });
+            rowSpan:
+              2,
+          }),
+        );
+      },
+    );
 
   /*
    * Header groups.
    */
 
-  groups.forEach((group) => {
-    const groupColumns = columns.filter(
-      (column) => column.headerGroup === group.id,
-    );
+  groups.forEach(
+    (group) => {
+      const groupColumns =
+        columns.filter(
+          (column) =>
+            column.headerGroup ===
+            group.id,
+        );
 
-    if (!groupColumns.length) {
-      return;
-    }
+      if (
+        !groupColumns.length
+      ) {
+        return;
+      }
 
-    topRow.append(
-      createHeaderCell({
-        label: group.label || group.id,
-
-        className: group.className || "table-group-heading",
-
-        scope: "colgroup",
-
-        colSpan: groupColumns.length,
-
-        headerGroup: group.id,
-      }),
-    );
-
-    groupColumns.forEach((column) => {
-      bottomRow.append(
+      topRow.append(
         createHeaderCell({
-          label: getColumnLabel(column),
+          label:
+            group.label ||
+            group.id,
 
-          className: column.headerClassName || column.className || "",
+          className:
+            group.className ||
+            "table-group-heading",
 
-          width: column.width || "",
+          scope:
+            "colgroup",
 
-          visibilityGroup: column.visibilityGroup || "",
+          colSpan:
+            groupColumns.length,
+
+          headerGroup:
+            group.id,
         }),
       );
-    });
-  });
 
-  thead.append(topRow, bottomRow);
+      groupColumns.forEach(
+        (column) => {
+          bottomRow.append(
+            createHeaderCell({
+              label:
+                getColumnLabel(
+                  column,
+                ),
 
-  replaceTableStructure(table, thead, colgroup);
+              className:
+                column.headerClassName ||
+                column.className ||
+                "",
+
+              width:
+                column.width ||
+                "",
+
+              visibilityGroup:
+                column.visibilityGroup ||
+                "",
+            }),
+          );
+        },
+      );
+    },
+  );
+
+  thead.append(
+    topRow,
+    bottomRow,
+  );
+
+  replaceTableStructure(
+    table,
+    thead,
+    colgroup,
+  );
 }
 
 /* ==========================================================================
@@ -1828,50 +2290,108 @@ function createDataTableColumns({
   renderCell,
   context,
 }) {
-  return columns.map((column) => {
-    const definition = {
-      data: null,
+  return columns.map(
+    (column) => {
+      const definition = {
+        /*
+         * Preserve the schema's DataTables data mapping.
+         *
+         * Besides normal client-side access, this is important in server-side
+         * mode because DataTables serializes it into columns[i][data]. A schema
+         * without an explicit mapping intentionally falls back to `data: null`,
+         * which gives renderers the complete row object.
+         */
+        data:
+          column.data ??
+          null,
 
-      name: column.key || "",
+        name:
+          column.name ??
+          column.key ??
+          "",
 
-      className: column.className || "",
+        className:
+          column.className ||
+          "",
 
-      orderable: column.orderable !== false,
+        orderable:
+          column.orderable !==
+          false,
 
-      searchable: column.searchable !== false,
+        searchable:
+          column.searchable !==
+          false,
 
-      visible: isColumnVisible(column, visibleGroups),
+        visible:
+          isColumnVisible(
+            column,
+            visibleGroups,
+          ),
 
-      render(_data, type, row, meta) {
-        return renderCellValue({ row, column, type, meta, context, renderCell });
-      },
-    };
+        render(
+          _data,
+          type,
+          row,
+          meta,
+        ) {
+          /*
+           * Render from the complete row rather than `_data`. Page renderers
+           * often need sibling properties such as URLs, identifiers, flags, or
+           * other supporting metadata in addition to the column's mapped value.
+           */
+          return renderCellValue({
+            row,
+            column,
+            type,
+            meta,
+            context,
+            renderCell,
+          });
+        },
+      };
 
-    if (column.width) {
-      definition.width = column.width;
-    }
+      if (column.width) {
+        definition.width =
+          column.width;
+      }
 
-    if (column.defaultContent !== undefined) {
-      definition.defaultContent = column.defaultContent;
-    }
+      /*
+       * Do not introduce a generic fallback such as "-". Empty/default display
+       * belongs to the schema or formatter because text, numeric, link, loading,
+       * and state cells can require different treatment.
+       */
+      if (
+        column.defaultContent !==
+        undefined
+      ) {
+        definition.defaultContent =
+          column.defaultContent;
+      }
 
-    return definition;
-  });
+      return definition;
+    },
+  );
 }
 
 /* ==========================================================================
    Default Loading Rows
    ========================================================================== */
 
-function createDefaultLoadingRows(count = 6) {
+function createDefaultLoadingRows(
+  count = 6,
+) {
   return Array.from(
     {
-      length: count,
+      length:
+        count,
     },
-    (_, index) => ({
-      __dataViewState: STATES.loading,
 
-      __dataViewRow: index,
+    (_, index) => ({
+      __dataViewState:
+        STATES.loading,
+
+      __dataViewRow:
+        index,
     }),
   );
 }
@@ -1899,32 +2419,62 @@ function createDefaultLoadingRows(count = 6) {
  * for a page that relies on it.
  */
 
-function extractRowsFromResponse(response, dataSrc) {
-  if (typeof dataSrc === "function") {
-    return dataSrc(response);
+function extractRowsFromResponse(
+  response,
+  dataSrc,
+) {
+  if (
+    typeof dataSrc ===
+    "function"
+  ) {
+    return dataSrc(
+      response,
+    );
   }
 
-  const key = typeof dataSrc === "string" ? dataSrc : "data";
+  const key =
+    typeof dataSrc ===
+    "string"
+      ? dataSrc
+      : "data";
 
-  const rows = response?.[key];
+  const rows =
+    response?.[key];
 
-  return Array.isArray(rows) ? rows : [];
+  return Array.isArray(rows)
+    ? rows
+    : [];
 }
 
-function createServerSideAjax(userAjax, { onServerSideData, getContext }) {
+function createServerSideAjax(
+  userAjax,
+  {
+    onServerSideData,
+    getContext,
+  },
+) {
   if (!isObject(userAjax)) {
     return userAjax;
   }
 
-  const userDataSrc = userAjax.dataSrc;
+  const userDataSrc =
+    userAjax.dataSrc;
 
   return {
     ...userAjax,
 
     dataSrc(response) {
-      const rows = extractRowsFromResponse(response, userDataSrc);
+      const rows =
+        extractRowsFromResponse(
+          response,
+          userDataSrc,
+        );
 
-      onServerSideData?.(rows, response, getContext());
+      onServerSideData?.(
+        rows,
+        response,
+        getContext(),
+      );
 
       return rows;
     },
@@ -1937,44 +2487,82 @@ function createServerSideAjax(userAjax, { onServerSideData, getContext }) {
 
 function createDefaultTableOptions() {
   return {
-    autoWidth: false,
+    autoWidth:
+      false,
 
-    paging: false,
-    searching: false,
-    ordering: false,
-    info: false,
-    lengthChange: false,
+    paging:
+      false,
 
-    serverSide: false,
-    processing: false,
+    searching:
+      false,
 
-    scrollX: true,
-    scrollCollapse: true,
+    ordering:
+      false,
 
-    fixedHeader: false,
-    fixedColumns: false,
+    info:
+      false,
 
-    rowGroup: false,
+    lengthChange:
+      false,
 
-    deferRender: true,
+    serverSide:
+      false,
+
+    processing:
+      false,
+
+    scrollX:
+      true,
+
+    scrollCollapse:
+      true,
+
+    fixedHeader:
+      false,
+
+    fixedColumns:
+      false,
+
+    rowGroup:
+      false,
+
+    deferRender:
+      true,
 
     layout: {
-      topStart: null,
-      topEnd: null,
-      bottomStart: null,
-      bottomEnd: null,
+      topStart:
+        null,
+
+      topEnd:
+        null,
+
+      bottomStart:
+        null,
+
+      bottomEnd:
+        null,
     },
   };
 }
 
-function normalizeFixedColumns(value) {
-  if (value === false || value === 0 || value == null) {
+function normalizeFixedColumns(
+  value,
+) {
+  if (
+    value === false ||
+    value === 0 ||
+    value == null
+  ) {
     return false;
   }
 
-  if (typeof value === "number") {
+  if (
+    typeof value ===
+    "number"
+  ) {
     return {
-      start: value,
+      start:
+        value,
     };
   }
 
@@ -1987,15 +2575,23 @@ function normalizeFixedColumns(value) {
   return false;
 }
 
-function normalizeFixedHeader(value) {
-  if (value === false || value == null) {
+function normalizeFixedHeader(
+  value,
+) {
+  if (
+    value === false ||
+    value == null
+  ) {
     return false;
   }
 
   if (value === true) {
     return {
-      header: true,
-      footer: false,
+      header:
+        true,
+
+      footer:
+        false,
     };
   }
 
@@ -2012,96 +2608,193 @@ function normalizeFixedHeader(value) {
    Public API
    ========================================================================== */
 
-export function createDataTable(options = {}) {
+export function createDataTable(
+  options = {},
+) {
   if (!isObject(options)) {
-    throw new TypeError("createDataTable requires an options object.");
+    throw new TypeError(
+      "createDataTable requires an options object.",
+    );
   }
 
-  const root = options.root || document;
+  const root =
+    options.root ||
+    document;
 
-  const table = resolveTable(root, options.table);
+  const table =
+    resolveTable(
+      root,
+      options.table,
+    );
 
   if (!table) {
-    throw new Error("Data table requires a valid table element or selector.");
+    throw new Error(
+      "Data table requires a valid table element or selector.",
+    );
   }
 
-  const DataTable = getDataTableConstructor();
+  const DataTable =
+    getDataTableConstructor();
 
-  if (typeof options.getColumns !== "function") {
-    throw new TypeError("Data table requires getColumns().");
+  if (
+    typeof options.getColumns !==
+    "function"
+  ) {
+    throw new TypeError(
+      "Data table requires getColumns().",
+    );
   }
 
-  const getColumns = options.getColumns;
+  const getColumns =
+    options.getColumns;
 
   const getGroups =
-    typeof options.getColumnGroups === "function"
+    typeof options.getColumnGroups ===
+    "function"
       ? options.getColumnGroups
       : () => [];
 
   const renderCell =
-    typeof options.renderCell === "function" ? options.renderCell : null;
+    typeof options.renderCell ===
+    "function"
+      ? options.renderCell
+      : null;
 
   const renderHeader =
-    typeof options.renderHeader === "function" ? options.renderHeader : null;
+    typeof options.renderHeader ===
+    "function"
+      ? options.renderHeader
+      : null;
 
   const createLoadingRows =
-    typeof options.createLoadingRows === "function"
+    typeof options.createLoadingRows ===
+    "function"
       ? options.createLoadingRows
       : createDefaultLoadingRows;
 
   const tableOptions = {
     ...createDefaultTableOptions(),
-    ...(options.tableOptions || {}),
+
+    ...(options.tableOptions ||
+      {}),
   };
 
-  tableOptions.fixedHeader = normalizeFixedHeader(tableOptions.fixedHeader);
+  tableOptions.fixedHeader =
+    normalizeFixedHeader(
+      tableOptions.fixedHeader,
+    );
 
-  tableOptions.fixedColumns = normalizeFixedColumns(tableOptions.fixedColumns);
+  tableOptions.fixedColumns =
+    normalizeFixedColumns(
+      tableOptions.fixedColumns,
+    );
 
-  const headerMode = options.headerMode === "existing" ? "existing" : "schema";
+  const headerMode =
+    options.headerMode ===
+    "existing"
+      ? "existing"
+      : "schema";
 
-  let api = null;
+  let api =
+    null;
 
-  let currentView = normalizeView(options.initialView);
+  let currentView =
+    normalizeView(
+      options.initialView,
+    );
 
-  let visibleGroups = unique(options.visibleGroups || []);
+  /*
+   * Omitted visibleGroups:
+   *   all groups declared by the current schema are visible.
+   *
+   * Explicit visibleGroups (including []):
+   *   the caller owns visibility.
+   *
+   * Remember that distinction so a schema-driven table can resolve the next
+   * schema's groups automatically when its view changes.
+   */
+  let usesSchemaVisibility =
+    !Array.isArray(
+      options.visibleGroups,
+    );
 
-  let rows = [];
+  let visibleGroups =
+    usesSchemaVisibility
+      ? getSchemaVisibilityGroups(
+          getCurrentColumnsForView(
+            currentView,
+          ),
+        )
+      : unique(
+          options.visibleGroups,
+        );
+
+  let rows =
+    [];
 
   let renderState = {
-    type: STATES.loading,
-    message: "",
+    type:
+      STATES.loading,
+
+    message:
+      "",
   };
 
-  let layoutFrame = null;
+  let layoutFrame =
+    null;
 
-  let destroyed = false;
+  let destroyed =
+    false;
 
   /* ========================================================================
      Current Schema
      ======================================================================== */
 
-  function getCurrentColumns() {
-    const result = getColumns(currentView);
+  function getCurrentColumnsForView(
+    view,
+  ) {
+    const result =
+      getColumns(view);
 
-    return Array.isArray(result) ? result : [];
+    return Array.isArray(
+      result,
+    )
+      ? result
+      : [];
+  }
+
+  function getCurrentColumns() {
+    return getCurrentColumnsForView(
+      currentView,
+    );
   }
 
   function getVisibleCurrentColumns() {
-    return getCurrentColumns().filter((column) =>
-      isColumnVisible(column, visibleGroups),
+    return getCurrentColumns().filter(
+      (column) =>
+        isColumnVisible(
+          column,
+          visibleGroups,
+        ),
     );
   }
 
   function getCurrentGroups() {
-    return normalizeGroups(getGroups(currentView));
+    return normalizeGroups(
+      getGroups(
+        currentView,
+      ),
+    );
   }
 
   function getContext() {
     return {
-      view: currentView,
+      view:
+        currentView,
 
-      visibleGroups: [...visibleGroups],
+      visibleGroups: [
+        ...visibleGroups,
+      ],
 
       table,
 
@@ -2114,32 +2807,45 @@ export function createDataTable(options = {}) {
      ======================================================================== */
 
   function scheduleLayoutRefresh() {
-    if (destroyed || layoutFrame !== null) {
+    if (
+      destroyed ||
+      layoutFrame !== null
+    ) {
       return;
     }
 
-    layoutFrame = window.requestAnimationFrame(() => {
-      layoutFrame = null;
+    layoutFrame =
+      window.requestAnimationFrame(
+        () => {
+          layoutFrame =
+            null;
 
-      if (destroyed || !api) {
-        return;
-      }
+          if (
+            destroyed ||
+            !api
+          ) {
+            return;
+          }
 
-      /*
-       * Do not dispatch a synthetic global resize event here.
-       *
-       * DataTables already owns its column-sizing lifecycle.
-       *
-       * Repeatedly firing resize after every draw can cause scrollX /
-       * FixedColumns layouts to recalculate from an already-adjusted table.
-       * This can make fixed-column widths drift after repeated data reloads.
-       *
-       * A caller that needs page-specific post-layout work can use
-       * onLayoutRefresh.
-       */
+          /*
+           * Do not dispatch a synthetic global resize event here.
+           *
+           * DataTables already owns its column-sizing lifecycle.
+           *
+           * Repeatedly firing resize after every draw can cause scrollX /
+           * FixedColumns layouts to recalculate from an already-adjusted table.
+           * This can make fixed-column widths drift after repeated data reloads.
+           *
+           * A caller that needs page-specific post-layout work can use
+           * onLayoutRefresh.
+           */
 
-      options.onLayoutRefresh?.(api, getContext());
-    });
+          options.onLayoutRefresh?.(
+            api,
+            getContext(),
+          );
+        },
+      );
   }
 
   /* ========================================================================
@@ -2147,46 +2853,80 @@ export function createDataTable(options = {}) {
      ======================================================================== */
 
   function updateHeaderVisibility() {
-    if (!api || !table.tHead || headerMode !== "schema") {
+    if (
+      !api ||
+      !table.tHead ||
+      headerMode !== "schema"
+    ) {
       return;
     }
 
-    const columns = getCurrentColumns();
+    const columns =
+      getCurrentColumns();
 
     /* ----------------------------------------------------------------------
        Group headings
        ---------------------------------------------------------------------- */
 
     table.tHead
-      .querySelectorAll("[data-data-header-group]")
-      .forEach((heading) => {
-        const groupId = heading.dataset.dataHeaderGroup;
+      .querySelectorAll(
+        "[data-data-header-group]",
+      )
+      .forEach(
+        (heading) => {
+          const groupId =
+            heading.dataset
+              .dataHeaderGroup;
 
-        const visibleCount = columns.filter(
-          (column, index) =>
-            column.headerGroup === groupId && api.column(index).visible(),
-        ).length;
+          const visibleCount =
+            columns.filter(
+              (
+                column,
+                index,
+              ) =>
+                column.headerGroup ===
+                  groupId &&
+                api
+                  .column(index)
+                  .visible(),
+            ).length;
 
-        heading.hidden = visibleCount === 0;
+          heading.hidden =
+            visibleCount === 0;
 
-        if (visibleCount > 0) {
-          heading.colSpan = visibleCount;
-        }
-      });
+          if (
+            visibleCount > 0
+          ) {
+            heading.colSpan =
+              visibleCount;
+          }
+        },
+      );
 
     /* ----------------------------------------------------------------------
        Ungrouped visibility-group cells
        ---------------------------------------------------------------------- */
 
-    table.tHead.querySelectorAll("[data-data-column-group]").forEach((cell) => {
-      const groupId = cell.dataset.dataColumnGroup;
+    table.tHead
+      .querySelectorAll(
+        "[data-data-column-group]",
+      )
+      .forEach(
+        (cell) => {
+          const groupId =
+            cell.dataset
+              .dataColumnGroup;
 
-      if (!groupId) {
-        return;
-      }
+          if (!groupId) {
+            return;
+          }
 
-      cell.hidden = !visibleGroups.includes(groupId);
-    });
+          cell.hidden =
+            !visibleGroups.includes(
+              groupId,
+            );
+        },
+      );
   }
 
   /* ========================================================================
@@ -2194,17 +2934,25 @@ export function createDataTable(options = {}) {
      ======================================================================== */
 
   function updateEmptyState() {
-    const emptyCell = table.tBodies[0]?.querySelector("td.dt-empty");
+    const emptyCell =
+      table.tBodies[0]
+        ?.querySelector(
+          "td.dt-empty",
+        );
 
     if (!emptyCell) {
       return;
     }
 
-    emptyCell.classList.add(options.emptyClass || "table-empty");
+    emptyCell.classList.add(
+      options.emptyClass ||
+        "table-empty",
+    );
 
     emptyCell.textContent =
       renderState?.message ||
-      tableOptions.language?.emptyTable ||
+      tableOptions.language
+        ?.emptyTable ||
       options.emptyMessage ||
       "No data available";
   }
@@ -2230,93 +2978,160 @@ export function createDataTable(options = {}) {
    */
 
   function renderServerSideLoadingRows() {
-    const tbody = table.tBodies[0];
+    const tbody =
+      table.tBodies[0];
 
     if (!tbody) {
       return;
     }
 
-    const columns = getVisibleCurrentColumns();
+    const columns =
+      getVisibleCurrentColumns();
 
-    const context = getContext();
+    const context =
+      getContext();
 
-    const loadingRows = createLoadingRows(options.loadingRowCount || 6, context);
+    const loadingRows =
+      createLoadingRows(
+        options.loadingRowCount ||
+          6,
 
-    tbody.innerHTML = loadingRows
-      .map((row, rowIndex) => {
-        const cells = columns
-          .map((column) => {
-            const value = renderCellValue({
-              row,
-              column,
-              type: "display",
-              meta: { row: rowIndex, col: 0 },
-              context,
-              renderCell,
-            });
+        context,
+      );
 
-            const classAttribute = column.className
-              ? ` class="${column.className}"`
-              : "";
+    tbody.innerHTML =
+      loadingRows
+        .map(
+          (
+            row,
+            rowIndex,
+          ) => {
+            const cells =
+              columns
+                .map(
+                  (column) => {
+                    const value =
+                      renderCellValue({
+                        row,
+                        column,
 
-            return `<td${classAttribute}>${value ?? ""}</td>`;
-          })
-          .join("");
+                        type:
+                          "display",
 
-        return `<tr class="table-loading" aria-hidden="true">${cells}</tr>`;
-      })
-      .join("");
+                        meta: {
+                          row:
+                            rowIndex,
+
+                          col:
+                            0,
+                        },
+
+                        context,
+
+                        renderCell,
+                      });
+
+                    const classAttribute =
+                      column.className
+                        ? ` class="${column.className}"`
+                        : "";
+
+                    return `<td${classAttribute}>${value ?? ""}</td>`;
+                  },
+                )
+                .join("");
+
+            return `<tr class="table-loading" aria-hidden="true">${cells}</tr>`;
+          },
+        )
+        .join("");
   }
-
-  /* ========================================================================
+    /* ==========================================================================
      Server-Side Lifecycle
-     ======================================================================== */
+     ========================================================================== */
 
   /*
    * Binds directly to DataTables' own ajax lifecycle events, since in
    * server-side mode DataTables issues the request itself rather than a
-   * page-level data source calling load(). This is the server-side
-   * counterpart to showLoading()/setRows()/showError() below, which remain
-   * no-ops here by design — see the comments on those methods.
+   * page-level data source calling load().
    *
-   * This fires regardless of whether `ajax` is object-shaped or
-   * function-shaped: processing.dt and error.dt are DataTables' own
-   * internal lifecycle events, independent of how `ajax` itself is
-   * implemented.
+   * This is the server-side counterpart to:
+   *
+   * - showLoading()
+   * - setRows()
+   * - showEmpty()
+   * - showError()
+   *
+   * processing.dt works regardless of whether `ajax` is object-shaped or
+   * function-shaped.
    */
 
   function bindServerSideLifecycle() {
-    if (!api || !tableOptions.serverSide) {
+    if (
+      !api ||
+      !tableOptions.serverSide
+    ) {
       return;
     }
 
-    api.on("processing.dt", (_event, _settings, processing) => {
-      if (destroyed) {
-        return;
-      }
+    api.on(
+      "processing.dt",
+      (
+        _event,
+        _settings,
+        processing,
+      ) => {
+        if (destroyed) {
+          return;
+        }
 
-      table.setAttribute("aria-busy", String(Boolean(processing)));
+        table.setAttribute(
+          "aria-busy",
+          String(
+            Boolean(
+              processing,
+            ),
+          ),
+        );
 
-      if (processing) {
-        renderServerSideLoadingRows();
-      }
-    });
+        if (processing) {
+          renderServerSideLoadingRows();
+        }
+      },
+    );
 
-    api.on("error.dt", (_event, _settings, _techNote, message) => {
-      if (destroyed) {
-        return;
-      }
+    api.on(
+      "error.dt",
+      (
+        _event,
+        _settings,
+        _techNote,
+        message,
+      ) => {
+        if (destroyed) {
+          return;
+        }
 
-      options.onServerSideError?.(message, getContext());
-    });
+        table.setAttribute(
+          "aria-busy",
+          "false",
+        );
+
+        options.onServerSideError?.(
+          message,
+          getContext(),
+        );
+      },
+    );
   }
 
-  /* ========================================================================
+  /* ==========================================================================
      RowGroup
-     ======================================================================== */
+     ========================================================================== */
 
   function createRowGroupOptions() {
-    const rowGroup = tableOptions.rowGroup;
+    const rowGroup =
+      tableOptions.rowGroup;
 
     if (!rowGroup) {
       return false;
@@ -2338,55 +3153,103 @@ export function createDataTable(options = {}) {
      * Optional common callbacks.
      */
 
-    if (typeof options.getRowGroup === "function") {
-      result.dataSrc = (row) => options.getRowGroup(row, getContext());
+    if (
+      typeof options.getRowGroup ===
+      "function"
+    ) {
+      result.dataSrc =
+        (row) =>
+          options.getRowGroup(
+            row,
+            getContext(),
+          );
     }
 
-    if (typeof options.renderRowGroupStart === "function") {
-      result.startRender = (groupRows, groupName, level) =>
-        options.renderRowGroupStart({
+    if (
+      typeof options.renderRowGroupStart ===
+      "function"
+    ) {
+      result.startRender =
+        (
           groupRows,
-
           groupName,
-
           level,
+        ) =>
+          options.renderRowGroupStart({
+            groupRows,
 
-          visibleColumnCount: api?.columns(":visible").count() || 0,
+            groupName,
 
-          context: getContext(),
-        });
+            level,
+
+            visibleColumnCount:
+              api
+                ?.columns(
+                  ":visible",
+                )
+                .count() ||
+              0,
+
+            context:
+              getContext(),
+          });
     }
 
-    if (typeof options.renderRowGroupEnd === "function") {
-      result.endRender = (groupRows, groupName, level) =>
-        options.renderRowGroupEnd({
+    if (
+      typeof options.renderRowGroupEnd ===
+      "function"
+    ) {
+      result.endRender =
+        (
           groupRows,
-
           groupName,
-
           level,
+        ) =>
+          options.renderRowGroupEnd({
+            groupRows,
 
-          visibleColumnCount: api?.columns(":visible").count() || 0,
+            groupName,
 
-          context: getContext(),
-        });
+            level,
+
+            visibleColumnCount:
+              api
+                ?.columns(
+                  ":visible",
+                )
+                .count() ||
+              0,
+
+            context:
+              getContext(),
+          });
     }
 
     return result;
   }
 
-  /* ========================================================================
+  /* ==========================================================================
      Display Rows
-     ======================================================================== */
+     ========================================================================== */
 
   function getDisplayRows() {
-    if (renderState?.type === STATES.loading) {
-      return createLoadingRows(options.loadingRowCount || 6, getContext());
+    if (
+      renderState?.type ===
+      STATES.loading
+    ) {
+      return createLoadingRows(
+        options.loadingRowCount ||
+          6,
+
+        getContext(),
+      );
     }
 
     if (
-      renderState?.type === STATES.empty ||
-      renderState?.type === STATES.error
+      renderState?.type ===
+        STATES.empty ||
+      renderState?.type ===
+        STATES.error
     ) {
       return [];
     }
@@ -2394,151 +3257,224 @@ export function createDataTable(options = {}) {
     return rows;
   }
 
-  /* ========================================================================
+  /* ==========================================================================
      DataTable Options
-     ======================================================================== */
+     ========================================================================== */
 
   function buildDataTableOptions() {
-    const columns = getCurrentColumns();
+    const columns =
+      getCurrentColumns();
 
-    const context = getContext();
+    const context =
+      getContext();
 
     const generated = {
       ...tableOptions,
 
-      columns: createDataTableColumns({
-        columns,
+      columns:
+        createDataTableColumns({
+          columns,
 
-        visibleGroups,
+          visibleGroups,
 
-        renderCell,
+          renderCell,
 
-        context,
-      }),
+          context,
+        }),
 
-      rowGroup: createRowGroupOptions(),
+      rowGroup:
+        createRowGroupOptions(),
     };
 
-    /* ----------------------------------------------------------------------
+    /* ------------------------------------------------------------------------
        Row Data Source
-       ---------------------------------------------------------------------- */
+       ------------------------------------------------------------------------ */
 
     /*
-     * Server-side mode: DataTables fetches rows itself through `ajax`.
-     * Setting a local `data` array alongside serverSide: true is not a
-     * supported DataTables configuration and is intentionally avoided here.
-     * `ajax` is passed through untouched if the caller already supplied a
-     * function (see the note on createServerSideAjax above) -- wrapping
-     * only applies to object-shaped ajax.
+     * Server-side mode:
      *
-     * Client-side mode: `data` remains the loading/empty/real row array this
-     * module already manages through setRows()/showLoading()/etc.
+     * DataTables fetches rows itself through `ajax`.
+     *
+     * A local `data` array must not be supplied together with serverSide:true.
+     *
+     * Client-side mode:
+     *
+     * `data` is owned by this module and reflects loading / empty / error /
+     * ready state.
      */
 
-    if (tableOptions.serverSide) {
-      generated.ajax = createServerSideAjax(tableOptions.ajax, {
-        onServerSideData: options.onServerSideData,
-        getContext,
-      });
+    if (
+      tableOptions.serverSide
+    ) {
+      generated.ajax =
+        createServerSideAjax(
+          tableOptions.ajax,
+          {
+            onServerSideData:
+              options.onServerSideData,
+
+            getContext,
+          },
+        );
     } else {
-      generated.data = getDisplayRows();
+      generated.data =
+        getDisplayRows();
     }
 
-    /* ----------------------------------------------------------------------
+    /* ------------------------------------------------------------------------
        Draw Callback
-       ---------------------------------------------------------------------- */
+       ------------------------------------------------------------------------ */
 
-    const userDrawCallback = tableOptions.drawCallback;
+    const userDrawCallback =
+      tableOptions.drawCallback;
 
-    generated.drawCallback = function drawCallback(settings) {
-      updateEmptyState();
+    generated.drawCallback =
+      function drawCallback(
+        settings,
+      ) {
+        /*
+         * A completed server-side draw is authoritative: DataTables received
+         * the current response and completed the rendering cycle.
+         *
+         * processing.dt remains the request-start / in-flight signal, while
+         * draw guarantees the busy state is cleared even if the first
+         * processing event occurred before our lifecycle listener was bound.
+         */
 
-      updateHeaderVisibility();
+        if (
+          tableOptions.serverSide
+        ) {
+          table.setAttribute(
+            "aria-busy",
+            "false",
+          );
+        }
 
-      /*
-       * One post-draw layout hook.
-       *
-       * setRows(), showLoading(), showEmpty(), showError(), redraw(), and
-       * visibility changes all ultimately draw the table, so they do not
-       * schedule another layout refresh themselves.
-       */
+        updateEmptyState();
 
-      scheduleLayoutRefresh();
+        updateHeaderVisibility();
 
-      userDrawCallback?.call(this, settings);
+        /*
+         * One post-draw layout hook.
+         *
+         * setRows(), showLoading(), showEmpty(), showError(), redraw(), and
+         * visibility changes all ultimately draw the table, so they do not
+         * schedule another layout refresh themselves.
+         */
 
-      options.onDraw?.(api, getContext());
-    };
+        scheduleLayoutRefresh();
 
-    /* ----------------------------------------------------------------------
+        userDrawCallback?.call(
+          this,
+          settings,
+        );
+
+        options.onDraw?.(
+          api,
+          getContext(),
+        );
+      };
+
+    /* ------------------------------------------------------------------------
        Init Complete
-       ---------------------------------------------------------------------- */
+       ------------------------------------------------------------------------ */
 
-    const userInitComplete = tableOptions.initComplete;
+    const userInitComplete =
+      tableOptions.initComplete;
 
-    generated.initComplete = function initComplete(settings, json) {
-      updateHeaderVisibility();
+    generated.initComplete =
+      function initComplete(
+        settings,
+        json,
+      ) {
+        updateHeaderVisibility();
 
-      /*
-       * Initialization is not guaranteed to produce another draw after the
-       * DataTables instance is fully ready, so keep the explicit init refresh.
-       */
+        /*
+         * Initialization is not guaranteed to produce another draw after the
+         * DataTables instance is fully ready, so keep the explicit init
+         * refresh.
+         */
 
-      scheduleLayoutRefresh();
+        scheduleLayoutRefresh();
 
-      userInitComplete?.call(this, settings, json);
+        userInitComplete?.call(
+          this,
+          settings,
+          json,
+        );
 
-      options.onInit?.(api, getContext());
-    };
+        options.onInit?.(
+          api,
+          getContext(),
+        );
+      };
 
     return generated;
   }
 
-  /* ========================================================================
+  /* ==========================================================================
      Header
-     ======================================================================== */
+     ========================================================================== */
 
   function buildHeader() {
-    if (headerMode === "existing") {
+    if (
+      headerMode ===
+      "existing"
+    ) {
       return;
     }
 
-    const columns = getCurrentColumns();
+    const columns =
+      getCurrentColumns();
 
-    const groups = getCurrentGroups();
+    const groups =
+      getCurrentGroups();
 
-    /* ----------------------------------------------------------------------
+    /* ------------------------------------------------------------------------
        Caller-Provided Complex Header
-       ---------------------------------------------------------------------- */
+       ------------------------------------------------------------------------ */
 
     if (renderHeader) {
-      const result = renderHeader({
-        table,
+      const result =
+        renderHeader({
+          table,
 
-        view: currentView,
+          view:
+            currentView,
 
-        columns: [...columns],
+          columns: [
+            ...columns,
+          ],
 
-        groups: [...groups],
+          groups: [
+            ...groups,
+          ],
 
-        context: getContext(),
-      });
+          context:
+            getContext(),
+        });
 
-      if (result && typeof result.then === "function") {
-        throw new TypeError("Data table renderHeader() must be synchronous.");
+      if (
+        result &&
+        typeof result.then ===
+          "function"
+      ) {
+        throw new TypeError(
+          "Data table renderHeader() must be synchronous.",
+        );
       }
 
       /*
        * Returning false requests the standard schema-generated header.
        *
-       * This lets one table use:
-       *
-       * - the standard header for Negotiated Deals
-       * - a custom three-row header for Minimum Size
+       * This lets one table use a custom header for only selected views.
        */
 
       if (result !== false) {
-        if (!table.tHead || !table.tHead.rows.length) {
+        if (
+          !table.tHead ||
+          !table.tHead.rows.length
+        ) {
           throw new Error(
             "Data table renderHeader() must attach a non-empty thead.",
           );
@@ -2548,45 +3484,58 @@ export function createDataTable(options = {}) {
       }
     }
 
-    /* ----------------------------------------------------------------------
+    /* ------------------------------------------------------------------------
        Standard Schema Header
-       ---------------------------------------------------------------------- */
+       ------------------------------------------------------------------------ */
 
-    buildSchemaHeader(table, columns, groups);
+    buildSchemaHeader(
+      table,
+      columns,
+      groups,
+    );
   }
 
-  /* ========================================================================
+  /* ==========================================================================
      Creation
-     ======================================================================== */
+     ========================================================================== */
 
   function createInstance() {
     if (destroyed) {
       return;
     }
 
-    table.dataset.dataView = currentView;
+    table.dataset.dataView =
+      currentView;
 
     buildHeader();
 
-    api = new DataTable(table, buildDataTableOptions());
+    api =
+      new DataTable(
+        table,
+        buildDataTableOptions(),
+      );
 
     bindServerSideLifecycle();
   }
 
-  /* ========================================================================
+  /* ==========================================================================
      Destruction
-     ======================================================================== */
+     ========================================================================== */
 
   function destroyInstance() {
     if (!api) {
       return;
     }
 
-    options.beforeDestroy?.(api, getContext());
+    options.beforeDestroy?.(
+      api,
+      getContext(),
+    );
 
     api.destroy();
 
-    api = null;
+    api =
+      null;
   }
 
   function recreate() {
@@ -2599,20 +3548,31 @@ export function createDataTable(options = {}) {
     createInstance();
   }
 
-  /* ========================================================================
+  /* ==========================================================================
      Rows
-     ======================================================================== */
+     ========================================================================== */
 
-  function setRows(nextRows = []) {
+  function setRows(
+    nextRows = [],
+  ) {
     if (destroyed) {
       return;
     }
 
-    rows = Array.isArray(nextRows) ? nextRows : [];
+    rows =
+      Array.isArray(
+        nextRows,
+      )
+        ? nextRows
+        : [];
 
-    renderState = null;
+    renderState =
+      null;
 
-    table.setAttribute("aria-busy", "false");
+    table.setAttribute(
+      "aria-busy",
+      "false",
+    );
 
     if (!api) {
       createInstance();
@@ -2621,13 +3581,21 @@ export function createDataTable(options = {}) {
     }
 
     /*
-     * Server-side tables fetch their own rows through `ajax` and forward
-     * them via onServerSideData. Calling setRows() on one is almost always
-     * a sign the caller meant reload() instead.
+     * Server-side tables fetch their own rows through `ajax`.
+     *
+     * Calling setRows() on one is usually a sign that the caller meant
+     * reload(), but expose the rows through the optional callback for
+     * integrations that deliberately observe them.
      */
 
-    if (tableOptions.serverSide) {
-      options.onServerSideRows?.(rows, api, getContext());
+    if (
+      tableOptions.serverSide
+    ) {
+      options.onServerSideRows?.(
+        rows,
+        api,
+        getContext(),
+      );
 
       return;
     }
@@ -2635,21 +3603,29 @@ export function createDataTable(options = {}) {
     api.clear();
 
     if (rows.length) {
-      api.rows.add(rows);
+      api.rows.add(
+        rows,
+      );
     }
 
     /*
      * drawCallback owns the post-draw layout hook.
      */
 
-    api.draw(false);
+    api.draw(
+      false,
+    );
 
-    options.onRowsChange?.(rows, api, getContext());
+    options.onRowsChange?.(
+      rows,
+      api,
+      getContext(),
+    );
   }
 
-  /* ========================================================================
+  /* ==========================================================================
      Loading
-     ======================================================================== */
+     ========================================================================== */
 
   function showLoading() {
     if (destroyed) {
@@ -2657,12 +3633,17 @@ export function createDataTable(options = {}) {
     }
 
     renderState = {
-      type: STATES.loading,
+      type:
+        STATES.loading,
 
-      message: "",
+      message:
+        "",
     };
 
-    table.setAttribute("aria-busy", "true");
+    table.setAttribute(
+      "aria-busy",
+      "true",
+    );
 
     if (!api) {
       createInstance();
@@ -2671,45 +3652,64 @@ export function createDataTable(options = {}) {
     }
 
     /*
-     * Server-side loading state is driven by DataTables' own "processing.dt"
-     * event (see bindServerSideLifecycle/renderServerSideLoadingRows above),
-     * since DataTables — not this module — decides when a request is
-     * in flight.
+     * Server-side loading state is driven by DataTables' processing.dt
+     * lifecycle because DataTables itself decides when a request begins.
      */
 
-    if (tableOptions.serverSide) {
+    if (
+      tableOptions.serverSide
+    ) {
       return;
     }
 
     api.clear();
 
-    api.rows.add(createLoadingRows(options.loadingRowCount || 6, getContext()));
+    api.rows.add(
+      createLoadingRows(
+        options.loadingRowCount ||
+          6,
+
+        getContext(),
+      ),
+    );
 
     /*
      * drawCallback owns the post-draw layout hook.
      */
 
-    api.draw(false);
+    api.draw(
+      false,
+    );
   }
 
-  /* ========================================================================
+  /* ==========================================================================
      Empty
-     ======================================================================== */
+     ========================================================================== */
 
-  function showEmpty(message) {
+  function showEmpty(
+    message,
+  ) {
     if (destroyed) {
       return;
     }
 
-    rows = [];
+    rows =
+      [];
 
     renderState = {
-      type: STATES.empty,
+      type:
+        STATES.empty,
 
-      message: message || options.emptyMessage || "No data available",
+      message:
+        message ||
+        options.emptyMessage ||
+        "No data available",
     };
 
-    table.setAttribute("aria-busy", "false");
+    table.setAttribute(
+      "aria-busy",
+      "false",
+    );
 
     if (!api) {
       createInstance();
@@ -2718,38 +3718,45 @@ export function createDataTable(options = {}) {
     }
 
     /*
-     * Server-side tables already render DataTables' own empty marker
-     * (td.dt-empty) whenever a response has no rows — updateEmptyState()
-     * picks that up from drawCallback regardless of client/server-side mode.
-     * There is no local row array to clear here.
+     * Server-side DataTables renders its own td.dt-empty marker when the
+     * response contains no rows. updateEmptyState() customizes that marker
+     * from drawCallback.
      */
 
-    if (tableOptions.serverSide) {
+    if (
+      tableOptions.serverSide
+    ) {
       return;
     }
 
     api.clear();
 
     /*
-     * drawCallback owns empty-state rendering and post-draw layout work.
+     * drawCallback owns empty-state rendering and layout refresh.
      */
 
-    api.draw(false);
+    api.draw(
+      false,
+    );
   }
 
-  /* ========================================================================
+  /* ==========================================================================
      Error
-     ======================================================================== */
+     ========================================================================== */
 
-  function showError(message) {
+  function showError(
+    message,
+  ) {
     if (destroyed) {
       return;
     }
 
-    rows = [];
+    rows =
+      [];
 
     renderState = {
-      type: STATES.error,
+      type:
+        STATES.error,
 
       message:
         message ||
@@ -2758,7 +3765,10 @@ export function createDataTable(options = {}) {
         "Unable to load data.",
     };
 
-    table.setAttribute("aria-busy", "false");
+    table.setAttribute(
+      "aria-busy",
+      "false",
+    );
 
     if (!api) {
       createInstance();
@@ -2767,113 +3777,220 @@ export function createDataTable(options = {}) {
     }
 
     /*
-     * Server-side ajax failures are reported through the "error.dt" event
-     * (see bindServerSideLifecycle above) via onServerSideError, since a
-     * failed request never reaches this module's own load path.
+     * Server-side ajax failures are surfaced through error.dt and/or the
+     * page's function-form ajax callback. There is no local DataTables row
+     * array to replace in this mode.
      */
 
-    if (tableOptions.serverSide) {
+    if (
+      tableOptions.serverSide
+    ) {
       return;
     }
 
     api.clear();
 
     /*
-     * drawCallback owns error-state rendering and post-draw layout work.
+     * drawCallback owns error-state rendering and layout refresh.
      */
 
-    api.draw(false);
+    api.draw(
+      false,
+    );
   }
 
-  /* ========================================================================
+  /* ==========================================================================
      Column Visibility
-     ======================================================================== */
+     ========================================================================== */
 
-  function setVisibleGroups(nextGroups = []) {
+  function setVisibleGroups(
+    nextGroups = [],
+  ) {
     if (destroyed) {
       return false;
     }
 
-    const groups = unique(nextGroups);
+    const groups =
+      unique(
+        nextGroups,
+      );
 
-    if (arraysEqual(groups, visibleGroups)) {
+    /*
+     * Once the caller explicitly supplies visibility groups, visibility is
+     * caller-owned rather than inferred automatically from the schema.
+     */
+
+    usesSchemaVisibility =
+      false;
+
+    if (
+      arraysEqual(
+        groups,
+        visibleGroups,
+      )
+    ) {
       return false;
     }
 
-    visibleGroups = groups;
+    visibleGroups =
+      groups;
 
     if (!api) {
       return true;
     }
 
-    let changed = false;
+    let changed =
+      false;
 
-    getCurrentColumns().forEach((column, index) => {
-      if (!column.visibilityGroup) {
-        return;
-      }
+    getCurrentColumns().forEach(
+      (
+        column,
+        index,
+      ) => {
+        if (
+          !column.visibilityGroup
+        ) {
+          return;
+        }
 
-      const shouldBeVisible = isColumnVisible(column, visibleGroups);
+        const shouldBeVisible =
+          isColumnVisible(
+            column,
+            visibleGroups,
+          );
 
-      const dataTableColumn = api.column(index);
+        const dataTableColumn =
+          api.column(
+            index,
+          );
 
-      if (dataTableColumn.visible() === shouldBeVisible) {
-        return;
-      }
+        if (
+          dataTableColumn.visible() ===
+          shouldBeVisible
+        ) {
+          return;
+        }
 
-      /*
-       * Defer redraw until all visibility changes have been applied.
-       */
+        /*
+         * Defer redraw until every visibility change has been applied.
+         */
 
-      dataTableColumn.visible(shouldBeVisible, false);
+        dataTableColumn.visible(
+          shouldBeVisible,
+          false,
+        );
 
-      changed = true;
-    });
+        changed =
+          true;
+      },
+    );
 
     updateHeaderVisibility();
 
     if (changed) {
       /*
-       * Visibility changes alter the available table width, so explicitly ask
-       * DataTables to remeasure columns before the single redraw.
+       * Visibility changes alter the available table width, so ask DataTables
+       * to remeasure before performing one redraw.
        */
 
       api.columns.adjust();
 
-      api.draw(false);
+      api.draw(
+        false,
+      );
     }
 
-    options.onVisibilityChange?.(visibleGroups, api, getContext());
+    options.onVisibilityChange?.(
+      visibleGroups,
+      api,
+      getContext(),
+    );
 
     return changed;
   }
 
-  /* ========================================================================
+  /* ==========================================================================
      View / Schema
-     ======================================================================== */
+     ========================================================================== */
 
-  function setView(nextView, nextVisibleGroups = null) {
+  function setView(
+    nextView,
+    nextVisibleGroups = null,
+  ) {
     if (destroyed) {
       return false;
     }
 
-    const view = normalizeView(nextView);
+    const view =
+      normalizeView(
+        nextView,
+      );
 
-    const viewChanged = view !== currentView;
+    const viewChanged =
+      view !==
+      currentView;
 
-    const groupsChanged = Array.isArray(nextVisibleGroups)
-      ? !arraysEqual(unique(nextVisibleGroups), visibleGroups)
-      : false;
+    let nextGroups =
+      visibleGroups;
 
-    if (!viewChanged && !groupsChanged) {
+    let nextUsesSchemaVisibility =
+      usesSchemaVisibility;
+
+    /*
+     * An explicit array always wins, including [].
+     */
+
+    if (
+      Array.isArray(
+        nextVisibleGroups,
+      )
+    ) {
+      nextGroups =
+        unique(
+          nextVisibleGroups,
+        );
+
+      nextUsesSchemaVisibility =
+        false;
+    } else if (
+      usesSchemaVisibility
+    ) {
+      /*
+       * No explicit visibility controller owns this table.
+       *
+       * A new schema therefore begins with all groups declared by that schema
+       * visible.
+       */
+
+      nextGroups =
+        getSchemaVisibilityGroups(
+          getCurrentColumnsForView(
+            view,
+          ),
+        );
+    }
+
+    const groupsChanged =
+      !arraysEqual(
+        nextGroups,
+        visibleGroups,
+      );
+
+    if (
+      !viewChanged &&
+      !groupsChanged
+    ) {
       return false;
     }
 
-    currentView = view;
+    currentView =
+      view;
 
-    if (Array.isArray(nextVisibleGroups)) {
-      visibleGroups = unique(nextVisibleGroups);
-    }
+    visibleGroups =
+      nextGroups;
+
+    usesSchemaVisibility =
+      nextUsesSchemaVisibility;
 
     /*
      * Different schemas require one clean DataTables recreation.
@@ -2881,14 +3998,18 @@ export function createDataTable(options = {}) {
 
     recreate();
 
-    options.onViewChange?.(currentView, api, getContext());
+    options.onViewChange?.(
+      currentView,
+      api,
+      getContext(),
+    );
 
     return true;
   }
 
-  /* ========================================================================
+  /* ==========================================================================
      DataTables Operations
-     ======================================================================== */
+     ========================================================================== */
 
   function adjust() {
     if (!api) {
@@ -2905,7 +4026,9 @@ export function createDataTable(options = {}) {
     scheduleLayoutRefresh();
   }
 
-  function redraw(resetPaging = false) {
+  function redraw(
+    resetPaging = false,
+  ) {
     if (!api) {
       return;
     }
@@ -2914,55 +4037,93 @@ export function createDataTable(options = {}) {
      * drawCallback owns the post-draw layout hook.
      */
 
-    api.draw(Boolean(resetPaging));
+    api.draw(
+      Boolean(
+        resetPaging,
+      ),
+    );
   }
 
   function reload() {
-    if (!api || !api.ajax) {
+    if (
+      !api ||
+      !api.ajax
+    ) {
       return;
     }
 
     /*
-     * Primary reload path for server-side tables: re-issues the ajax
-     * request using the current data callback and reuses the current page
-     * rather than resetting to page one. Not currently used by Historical
-     * Reports (which always calls recreate() instead, matching legacy's
-     * own destroy-and-recreate-on-every-change behavior), but kept here as
-     * the standard entry point for any future server-side table that wants
-     * a lighter-weight refresh.
+     * Primary refresh path for an already-created server-side table.
+     *
+     * Keep the current page here. A page that needs to reset paging because
+     * filters changed can explicitly recreate the table or use the DataTables
+     * API to move to page zero before reloading.
      */
 
-    api.ajax.reload(null, false);
+    api.ajax.reload(
+      null,
+      false,
+    );
   }
 
-  function search(value) {
-    if (!api || typeof api.search !== "function") {
+  function search(
+    value,
+  ) {
+    if (
+      !api ||
+      typeof api.search !==
+        "function"
+    ) {
       return;
     }
 
-    api.search(value ?? "").draw();
+    api
+      .search(
+        value ??
+          "",
+      )
+      .draw();
   }
 
-  function setPageLength(length) {
+  function setPageLength(
+    length,
+  ) {
     if (!api) {
       return;
     }
 
-    const normalized = Number(length);
+    const normalized =
+      Number(
+        length,
+      );
 
-    if (!Number.isFinite(normalized) || normalized <= 0) {
+    if (
+      !Number.isFinite(
+        normalized,
+      ) ||
+      normalized <= 0
+    ) {
       return;
     }
 
-    api.page.len(normalized).draw(false);
+    api
+      .page
+      .len(
+        normalized,
+      )
+      .draw(
+        false,
+      );
   }
 
-  /* ========================================================================
+  /* ==========================================================================
      Queries
-     ======================================================================== */
+     ========================================================================== */
 
   function getRows() {
-    return [...rows];
+    return [
+      ...rows,
+    ];
   }
 
   function getView() {
@@ -2970,7 +4131,9 @@ export function createDataTable(options = {}) {
   }
 
   function getVisibleGroups() {
-    return [...visibleGroups];
+    return [
+      ...visibleGroups,
+    ];
   }
 
   function getApi() {
@@ -2979,60 +4142,77 @@ export function createDataTable(options = {}) {
 
   function getState() {
     return Object.freeze({
-      view: currentView,
+      view:
+        currentView,
 
-      visibleGroups: [...visibleGroups],
+      visibleGroups: [
+        ...visibleGroups,
+      ],
 
-      rowCount: rows.length,
+      rowCount:
+        rows.length,
 
       /*
-       * renderState is not meaningful for a server-side table: loading,
-       * empty, and error are driven by DataTables' own ajax lifecycle
-       * (onServerSideData / onServerSideError) rather than by this module's
-       * own showLoading()/showEmpty()/showError(), which no-op in that mode.
+       * For server-side integrations, request/loading state is primarily
+       * represented by DataTables' own lifecycle and aria-busy. renderState
+       * remains useful for the client-side table path.
        */
 
-      renderState: renderState
-        ? {
-            ...renderState,
-          }
-        : null,
+      renderState:
+        renderState
+          ? {
+              ...renderState,
+            }
+          : null,
 
-      initialized: Boolean(api),
+      initialized:
+        Boolean(
+          api,
+        ),
     });
   }
 
-  /* ========================================================================
+  /* ==========================================================================
      Lifecycle
-     ======================================================================== */
+     ========================================================================== */
 
   function destroy() {
     if (destroyed) {
       return;
     }
 
-    destroyed = true;
+    destroyed =
+      true;
 
-    if (layoutFrame !== null) {
-      window.cancelAnimationFrame(layoutFrame);
+    if (
+      layoutFrame !==
+      null
+    ) {
+      window.cancelAnimationFrame(
+        layoutFrame,
+      );
 
-      layoutFrame = null;
+      layoutFrame =
+        null;
     }
 
     destroyInstance();
   }
 
-  /* ========================================================================
+  /* ==========================================================================
      Initialization
-     ======================================================================== */
+     ========================================================================== */
 
-  if (options.autoInit !== false) {
+  if (
+    options.autoInit !==
+    false
+  ) {
     createInstance();
   }
 
-  /* ========================================================================
+  /* ==========================================================================
      Public Instance
-     ======================================================================== */
+     ========================================================================== */
 
   return Object.freeze({
     adjust,
@@ -3060,3 +4240,1814 @@ export function createDataTable(options = {}) {
     showLoading,
   });
 }
+
+/* ==========================================================================
+   Data Pagination
+   ========================================================================== */
+
+/*
+ * Generic pagination renderer/controller for data-view modules.
+ *
+ * Responsibilities:
+ *
+ * - render design-system pagination controls
+ * - render result-range summary
+ * - render Previous / Next controls
+ * - render page-number buttons
+ * - render ellipsis for large page counts
+ * - expose current pagination state
+ * - expose loading / busy state
+ * - delegate page changes through a callback
+ * - support RTL through the design-system icon classes
+ * - support keyboard/accessibility semantics through native buttons
+ *
+ * This module intentionally has no:
+ *
+ * - DataTables dependency
+ * - request logic
+ * - endpoint knowledge
+ * - Historical Reports knowledge
+ * - filter logic
+ * - result fetching
+ * - URL/history behavior
+ *
+ * The owning page decides what "go to page N" means through:
+ *
+ *   onPageChange(page, state)
+ *
+ * For DataTables-backed pagination, that callback can simply call:
+ *
+ *   api.page(page - 1).draw("page")
+ */
+
+/* ==========================================================================
+   Constants
+   ========================================================================== */
+
+const DEFAULT_SELECTORS =
+  Object.freeze({
+    summary:
+      ".pagination__summary",
+
+    list:
+      ".pagination__list",
+  });
+
+const DEFAULT_LABELS =
+  Object.freeze({
+    page:
+      "Page",
+
+    of:
+      "of",
+
+    previous:
+      "Previous",
+
+    next:
+      "Next",
+  });
+
+const DEFAULT_MAX_VISIBLE_PAGES =
+  7;
+
+const ELLIPSIS =
+  "ellipsis";
+
+/* ==========================================================================
+   Generic Helpers
+   ========================================================================== */
+
+function isObject(
+  value,
+) {
+  return (
+    value !== null &&
+    typeof value ===
+      "object" &&
+    !Array.isArray(
+      value,
+    )
+  );
+}
+
+function normalizeString(
+  value,
+) {
+  return String(
+    value ?? "",
+  ).trim();
+}
+
+function clamp(
+  value,
+  minimum,
+  maximum,
+) {
+  return Math.min(
+    Math.max(
+      value,
+      minimum,
+    ),
+    maximum,
+  );
+}
+
+function toNonNegativeInteger(
+  value,
+  fallback = 0,
+) {
+  const numeric =
+    Number(
+      value,
+    );
+
+  if (
+    !Number.isFinite(
+      numeric,
+    ) ||
+    numeric < 0
+  ) {
+    return fallback;
+  }
+
+  return Math.floor(
+    numeric,
+  );
+}
+
+function toPositiveInteger(
+  value,
+  fallback = 1,
+) {
+  const numeric =
+    Number(
+      value,
+    );
+
+  if (
+    !Number.isFinite(
+      numeric,
+    ) ||
+    numeric <= 0
+  ) {
+    return fallback;
+  }
+
+  return Math.floor(
+    numeric,
+  );
+}
+
+/* ==========================================================================
+   Element Resolution
+   ========================================================================== */
+
+function resolveElement(
+  root,
+  value,
+) {
+  if (
+    value instanceof
+      Element
+  ) {
+    return value;
+  }
+
+  if (
+    typeof value ===
+    "string"
+  ) {
+    return root.querySelector(
+      value,
+    );
+  }
+
+  return null;
+}
+
+/* ==========================================================================
+   Labels
+   ========================================================================== */
+
+function normalizeLabels(
+  labels = {},
+) {
+  const source =
+    isObject(
+      labels,
+    )
+      ? labels
+      : {};
+
+  return {
+    page:
+      normalizeString(
+        source.page,
+      ) ||
+      DEFAULT_LABELS.page,
+
+    of:
+      normalizeString(
+        source.of,
+      ) ||
+      DEFAULT_LABELS.of,
+
+    previous:
+      normalizeString(
+        source.previous,
+      ) ||
+      DEFAULT_LABELS.previous,
+
+    next:
+      normalizeString(
+        source.next,
+      ) ||
+      DEFAULT_LABELS.next,
+  };
+}
+
+/* ==========================================================================
+   Number Formatter
+   ========================================================================== */
+
+function createNumberFormatter(
+  locale,
+) {
+  try {
+    return new Intl.NumberFormat(
+      locale ||
+        undefined,
+    );
+  } catch {
+    return new Intl.NumberFormat();
+  }
+}
+
+/* ==========================================================================
+   Pagination State
+   ========================================================================== */
+
+function createDefaultState() {
+  return {
+    page:
+      1,
+
+    pageSize:
+      1,
+
+    totalPages:
+      0,
+
+    total:
+      0,
+
+    start:
+      0,
+
+    end:
+      0,
+
+    rowCount:
+      0,
+
+    hasPrevious:
+      false,
+
+    hasNext:
+      false,
+
+    loading:
+      false,
+  };
+}
+
+function normalizePaginationState(
+  value = {},
+  previousState =
+    createDefaultState(),
+) {
+  const source =
+    isObject(
+      value,
+    )
+      ? value
+      : {};
+
+  const pageSize =
+    toPositiveInteger(
+      source.pageSize,
+      previousState.pageSize ||
+        1,
+    );
+
+  const total =
+    toNonNegativeInteger(
+      source.total,
+      previousState.total ||
+        0,
+    );
+
+  let totalPages =
+    toNonNegativeInteger(
+      source.totalPages,
+      0,
+    );
+
+  /*
+   * Derive totalPages when the caller provides only total + pageSize.
+   */
+  if (
+    !totalPages &&
+    total > 0
+  ) {
+    totalPages =
+      Math.ceil(
+        total /
+          pageSize,
+      );
+  }
+
+  let page =
+    toPositiveInteger(
+      source.page,
+      previousState.page ||
+        1,
+    );
+
+  if (
+    totalPages > 0
+  ) {
+    page =
+      clamp(
+        page,
+        1,
+        totalPages,
+      );
+  } else {
+    page =
+      1;
+  }
+
+  const rowCount =
+    toNonNegativeInteger(
+      source.rowCount,
+      0,
+    );
+
+  let start =
+    toNonNegativeInteger(
+      source.start,
+      0,
+    );
+
+  let end =
+    toNonNegativeInteger(
+      source.end,
+      0,
+    );
+
+  if (
+    total === 0
+  ) {
+    start =
+      0;
+
+    end =
+      0;
+  } else {
+    /*
+     * Derive a sane range if the caller omitted one.
+     */
+    if (!start) {
+      start =
+        (page - 1) *
+          pageSize +
+        1;
+    }
+
+    if (!end) {
+      end =
+        Math.min(
+          start +
+            Math.max(
+              rowCount,
+              pageSize,
+            ) -
+            1,
+
+          total,
+        );
+    }
+
+    start =
+      clamp(
+        start,
+        1,
+        total,
+      );
+
+    end =
+      clamp(
+        end,
+        start,
+        total,
+      );
+  }
+
+  const hasPrevious =
+    typeof source.hasPrevious ===
+    "boolean"
+      ? source.hasPrevious
+      : totalPages > 0 &&
+        page > 1;
+
+  const hasNext =
+    typeof source.hasNext ===
+    "boolean"
+      ? source.hasNext
+      : totalPages > 0 &&
+        page <
+          totalPages;
+
+  const loading =
+    typeof source.loading ===
+    "boolean"
+      ? source.loading
+      : Boolean(
+          previousState.loading,
+        );
+
+  return {
+    page,
+
+    pageSize,
+
+    totalPages,
+
+    total,
+
+    start,
+
+    end,
+
+    rowCount,
+
+    hasPrevious,
+
+    hasNext,
+
+    loading,
+  };
+}
+
+/* ==========================================================================
+   Page Window
+   ========================================================================== */
+
+/*
+ * Produces a compact page model.
+ *
+ * Examples:
+ *
+ * 4 pages:
+ *
+ *   1 2 3 4
+ *
+ * 20 pages, current 1:
+ *
+ *   1 2 3 4 5 … 20
+ *
+ * 20 pages, current 10:
+ *
+ *   1 … 9 10 11 … 20
+ *
+ * 20 pages, current 20:
+ *
+ *   1 … 16 17 18 19 20
+ *
+ * The current page is always present, which also guarantees the design
+ * system's mobile CSS can keep Previous / current / Next visible.
+ */
+
+export function createPaginationItems(
+  currentPage,
+  totalPages,
+  maxVisiblePages =
+    DEFAULT_MAX_VISIBLE_PAGES,
+) {
+  const total =
+    toNonNegativeInteger(
+      totalPages,
+      0,
+    );
+
+  if (!total) {
+    return [];
+  }
+
+  const current =
+    clamp(
+      toPositiveInteger(
+        currentPage,
+        1,
+      ),
+      1,
+      total,
+    );
+
+  const maximum =
+    Math.max(
+      5,
+      toPositiveInteger(
+        maxVisiblePages,
+        DEFAULT_MAX_VISIBLE_PAGES,
+      ),
+    );
+
+  /*
+   * Small result sets require no ellipsis.
+   */
+  if (
+    total <=
+    maximum
+  ) {
+    return Array.from(
+      {
+        length:
+          total,
+      },
+
+      (
+        _unused,
+        index,
+      ) =>
+        index + 1,
+    );
+  }
+
+  const edgeWindow =
+    2;
+
+  const siblingWindow =
+    1;
+
+  const pages =
+    new Set([
+      1,
+      total,
+    ]);
+
+  /*
+   * Keep a slightly wider window at either edge.
+   */
+  if (
+    current <=
+    edgeWindow + 2
+  ) {
+    for (
+      let page = 1;
+      page <=
+      Math.min(
+        maximum - 2,
+        total,
+      );
+      page += 1
+    ) {
+      pages.add(
+        page,
+      );
+    }
+  } else if (
+    current >=
+    total -
+      edgeWindow -
+      1
+  ) {
+    for (
+      let page =
+        Math.max(
+          1,
+          total -
+            maximum +
+            3,
+        );
+      page <=
+      total;
+      page += 1
+    ) {
+      pages.add(
+        page,
+      );
+    }
+  } else {
+    for (
+      let page =
+        current -
+        siblingWindow;
+      page <=
+      current +
+        siblingWindow;
+      page += 1
+    ) {
+      pages.add(
+        page,
+      );
+    }
+  }
+
+  const ordered =
+    [...pages]
+      .filter(
+        (page) =>
+          page >= 1 &&
+          page <= total,
+      )
+      .sort(
+        (
+          first,
+          second,
+        ) =>
+          first -
+          second,
+      );
+
+  const items =
+    [];
+
+  ordered.forEach(
+    (
+      page,
+      index,
+    ) => {
+      const previous =
+        ordered[
+          index - 1
+        ];
+
+      if (
+        previous &&
+        page -
+          previous >
+          1
+      ) {
+        items.push(
+          ELLIPSIS,
+        );
+      }
+
+      items.push(
+        page,
+      );
+    },
+  );
+
+  return items;
+}
+
+/* ==========================================================================
+   DOM Creation Helpers
+   ========================================================================== */
+
+function createListItem(
+  documentReference,
+  modifier = "",
+) {
+  const item =
+    documentReference.createElement(
+      "li",
+    );
+
+  item.className =
+    [
+      "pagination__item",
+      modifier,
+    ]
+      .filter(
+        Boolean,
+      )
+      .join(
+        " ",
+      );
+
+  return item;
+}
+
+function createControlButton({
+  documentReference,
+
+  label,
+
+  ariaLabel,
+
+  action,
+
+  page,
+
+  current = false,
+
+  disabled = false,
+
+  className = "",
+}) {
+  const button =
+    documentReference.createElement(
+      "button",
+    );
+
+  button.type =
+    "button";
+
+  button.className =
+    [
+      "pagination__link",
+      className,
+      current
+        ? "is-current"
+        : "",
+    ]
+      .filter(
+        Boolean,
+      )
+      .join(
+        " ",
+      );
+
+  if (action) {
+    button.dataset.paginationAction =
+      action;
+  }
+
+  if (
+    Number.isInteger(
+      page,
+    )
+  ) {
+    button.dataset.paginationPage =
+      String(page);
+  }
+
+  button.setAttribute(
+    "aria-label",
+    ariaLabel ||
+      label,
+  );
+
+  if (current) {
+    button.setAttribute(
+      "aria-current",
+      "page",
+    );
+  }
+
+  button.disabled =
+    Boolean(
+      disabled,
+    );
+
+  if (disabled) {
+    button.setAttribute(
+      "aria-disabled",
+      "true",
+    );
+  }
+
+  const text =
+    documentReference.createElement(
+      "span",
+    );
+
+  text.className =
+    "pagination__link-text";
+
+  text.textContent =
+    label;
+
+  button.append(
+    text,
+  );
+
+  return button;
+}
+
+function createEllipsisItem(
+  documentReference,
+) {
+  const item =
+    createListItem(
+      documentReference,
+      "pagination__item--ellipsis",
+    );
+
+  const ellipsis =
+    documentReference.createElement(
+      "span",
+    );
+
+  ellipsis.className =
+    "pagination__ellipsis";
+
+  ellipsis.textContent =
+    "…";
+
+  ellipsis.setAttribute(
+    "aria-hidden",
+    "true",
+  );
+
+  item.append(
+    ellipsis,
+  );
+
+  return item;
+}
+
+/* ==========================================================================
+   Public Factory
+   ========================================================================== */
+
+export function createDataPagination(
+  options = {},
+) {
+  if (
+    !isObject(
+      options,
+    )
+  ) {
+    throw new TypeError(
+      "createDataPagination requires an options object.",
+    );
+  }
+
+  /* ========================================================================
+     DOM
+     ======================================================================== */
+
+  const root =
+    options.root ||
+    document;
+
+  const container =
+    resolveElement(
+      root,
+      options.container,
+    );
+
+  if (!container) {
+    throw new Error(
+      "Data pagination requires a valid container element or selector.",
+    );
+  }
+
+  const summary =
+    resolveElement(
+      container,
+      options.summary ||
+        DEFAULT_SELECTORS.summary,
+    );
+
+  const list =
+    resolveElement(
+      container,
+      options.list ||
+        DEFAULT_SELECTORS.list,
+    );
+
+  if (!list) {
+    throw new Error(
+      "Data pagination requires a pagination list.",
+    );
+  }
+
+  const documentReference =
+    container.ownerDocument ||
+    document;
+
+  /* ========================================================================
+     Configuration
+     ======================================================================== */
+
+  const labels =
+    normalizeLabels(
+      options.labels,
+    );
+
+  const numberFormatter =
+    createNumberFormatter(
+      options.locale,
+    );
+
+  const maxVisiblePages =
+    Math.max(
+      5,
+      toPositiveInteger(
+        options.maxVisiblePages,
+        DEFAULT_MAX_VISIBLE_PAGES,
+      ),
+    );
+
+  const hideWhenEmpty =
+    options.hideWhenEmpty !==
+    false;
+
+  const hideSinglePage =
+    options.hideSinglePage ===
+    true;
+
+  const autoBusyOnChange =
+    options.autoBusyOnChange !==
+    false;
+
+  const renderSummary =
+    typeof options.renderSummary ===
+    "function"
+      ? options.renderSummary
+      : null;
+
+  /* ========================================================================
+     Internal State
+     ======================================================================== */
+
+  let state =
+    normalizePaginationState(
+      options.initialState,
+    );
+
+  let destroyed =
+    false;
+
+  let pendingPage =
+    null;
+
+  const abortController =
+    new AbortController();
+
+  /* ========================================================================
+     Queries
+     ======================================================================== */
+
+  function getState() {
+    return Object.freeze({
+      ...state,
+    });
+  }
+
+  function shouldBeVisible() {
+    if (
+      hideWhenEmpty &&
+      state.total <= 0
+    ) {
+      return false;
+    }
+
+    if (
+      hideSinglePage &&
+      state.totalPages <=
+        1
+    ) {
+      return false;
+    }
+
+    return true;
+  }
+
+  /* ========================================================================
+     Summary
+     ======================================================================== */
+
+  function renderDefaultSummary() {
+    if (!summary) {
+      return;
+    }
+
+    summary.replaceChildren();
+
+    if (
+      state.total <= 0
+    ) {
+      summary.textContent =
+        "";
+
+      return;
+    }
+
+    const range =
+      documentReference.createElement(
+        "strong",
+      );
+
+    range.className =
+      "pagination__summary-value";
+
+    range.textContent =
+      `${numberFormatter.format(
+        state.start,
+      )}–${numberFormatter.format(
+        state.end,
+      )}`;
+
+    const total =
+      documentReference.createElement(
+        "strong",
+      );
+
+    total.className =
+      "pagination__summary-value";
+
+    total.textContent =
+      numberFormatter.format(
+        state.total,
+      );
+
+    summary.append(
+      range,
+
+      documentReference.createTextNode(
+        ` ${labels.of} `,
+      ),
+
+      total,
+    );
+  }
+
+  function renderSummaryContent() {
+    if (!summary) {
+      return;
+    }
+
+    if (!renderSummary) {
+      renderDefaultSummary();
+
+      return;
+    }
+
+    const result =
+      renderSummary(
+        getState(),
+        {
+          labels: {
+            ...labels,
+          },
+
+          numberFormatter,
+        },
+      );
+
+    /*
+     * String output is treated as text, not HTML.
+     *
+     * Consumers that need rich markup can return a Node / DocumentFragment.
+     */
+    if (
+      result instanceof
+      Node
+    ) {
+      summary.replaceChildren(
+        result,
+      );
+
+      return;
+    }
+
+    summary.textContent =
+      result == null
+        ? ""
+        : String(
+            result,
+          );
+  }
+
+  /* ========================================================================
+     Previous
+     ======================================================================== */
+
+  function renderPrevious() {
+    const item =
+      createListItem(
+        documentReference,
+      );
+
+    const button =
+      createControlButton({
+        documentReference,
+
+        label:
+          labels.previous,
+
+        ariaLabel:
+          labels.previous,
+
+        action:
+          "previous",
+
+        page:
+          Math.max(
+            1,
+            state.page - 1,
+          ),
+
+        disabled:
+          state.loading ||
+          !state.hasPrevious,
+
+        className:
+          [
+            "pagination__link--previous",
+            "has-icon",
+            "icon-chevron-left",
+            "icon-flip-rtl",
+          ].join(
+            " ",
+          ),
+      });
+
+    item.append(
+      button,
+    );
+
+    return item;
+  }
+
+  /* ========================================================================
+     Numbered Pages
+     ======================================================================== */
+
+  function renderPage(
+    page,
+  ) {
+    const item =
+      createListItem(
+        documentReference,
+      );
+
+    const current =
+      page ===
+      state.page;
+
+    const formattedPage =
+      numberFormatter.format(
+        page,
+      );
+
+    const button =
+      createControlButton({
+        documentReference,
+
+        label:
+          formattedPage,
+
+        ariaLabel:
+          `${labels.page} ${formattedPage}`,
+
+        action:
+          "page",
+
+        page,
+
+        current,
+
+        /*
+         * Current page is intentionally disabled as an action but retains
+         * aria-current for authoritative current-page semantics.
+         */
+        disabled:
+          state.loading ||
+          current,
+      });
+
+    item.append(
+      button,
+    );
+
+    return item;
+  }
+
+  /* ========================================================================
+     Next
+     ======================================================================== */
+
+  function renderNext() {
+    const item =
+      createListItem(
+        documentReference,
+      );
+
+    const button =
+      createControlButton({
+        documentReference,
+
+        label:
+          labels.next,
+
+        ariaLabel:
+          labels.next,
+
+        action:
+          "next",
+
+        page:
+          Math.min(
+            Math.max(
+              1,
+              state.totalPages,
+            ),
+
+            state.page + 1,
+          ),
+
+        disabled:
+          state.loading ||
+          !state.hasNext,
+
+        className:
+          [
+            "pagination__link--next",
+            "has-icon",
+            "icon-chevron-right",
+            "icon-flip-rtl",
+            "icon-end",
+          ].join(
+            " ",
+          ),
+      });
+
+    item.append(
+      button,
+    );
+
+    return item;
+  }
+
+  /* ========================================================================
+     List
+     ======================================================================== */
+
+  function renderList() {
+    list.replaceChildren();
+
+    if (
+      state.totalPages <=
+      0
+    ) {
+      return;
+    }
+
+    const fragment =
+      documentReference
+        .createDocumentFragment();
+
+    fragment.append(
+      renderPrevious(),
+    );
+
+    createPaginationItems(
+      state.page,
+      state.totalPages,
+      maxVisiblePages,
+    ).forEach(
+      (item) => {
+        if (
+          item ===
+          ELLIPSIS
+        ) {
+          fragment.append(
+            createEllipsisItem(
+              documentReference,
+            ),
+          );
+
+          return;
+        }
+
+        fragment.append(
+          renderPage(
+            item,
+          ),
+        );
+      },
+    );
+
+    fragment.append(
+      renderNext(),
+    );
+
+    list.append(
+      fragment,
+    );
+  }
+
+  /* ========================================================================
+     Visibility / Busy State
+     ======================================================================== */
+
+  function syncContainerState() {
+    container.hidden =
+      !shouldBeVisible();
+
+    container.setAttribute(
+      "aria-busy",
+      String(
+        Boolean(
+          state.loading,
+        ),
+      ),
+    );
+  }
+
+  /* ========================================================================
+     Render
+     ======================================================================== */
+
+  function render() {
+    if (destroyed) {
+      return;
+    }
+
+    syncContainerState();
+
+    renderSummaryContent();
+
+    renderList();
+
+    options.afterRender?.(
+      getState(),
+      {
+        container,
+        summary,
+        list,
+      },
+    );
+  }
+
+  /* ========================================================================
+     State Mutation
+     ======================================================================== */
+
+  function setState(
+    nextState = {},
+    settings = {},
+  ) {
+    if (destroyed) {
+      return getState();
+    }
+
+    state =
+      normalizePaginationState(
+        {
+          ...state,
+
+          ...nextState,
+
+          /*
+           * A completed external state update clears the temporary busy state
+           * unless the caller explicitly keeps loading:true.
+           */
+          loading:
+            typeof nextState.loading ===
+            "boolean"
+              ? nextState.loading
+              : false,
+        },
+
+        state,
+      );
+
+    pendingPage =
+      null;
+
+    if (
+      settings.render !==
+      false
+    ) {
+      render();
+    }
+
+    return getState();
+  }
+
+  function setLoading(
+    loading = true,
+    settings = {},
+  ) {
+    if (destroyed) {
+      return getState();
+    }
+
+    state =
+      normalizePaginationState(
+        {
+          ...state,
+
+          loading:
+            Boolean(
+              loading,
+            ),
+        },
+
+        state,
+      );
+
+    if (
+      !state.loading
+    ) {
+      pendingPage =
+        null;
+    }
+
+    if (
+      settings.render !==
+      false
+    ) {
+      render();
+    }
+
+    return getState();
+  }
+
+  function clear(
+    settings = {},
+  ) {
+    if (destroyed) {
+      return getState();
+    }
+
+    state =
+      normalizePaginationState(
+        {
+          page:
+            1,
+
+          pageSize:
+            state.pageSize,
+
+          totalPages:
+            0,
+
+          total:
+            0,
+
+          start:
+            0,
+
+          end:
+            0,
+
+          rowCount:
+            0,
+
+          hasPrevious:
+            false,
+
+          hasNext:
+            false,
+
+          loading:
+            false,
+        },
+
+        state,
+      );
+
+    pendingPage =
+      null;
+
+    if (
+      settings.render !==
+      false
+    ) {
+      render();
+    }
+
+    return getState();
+  }
+
+  /* ========================================================================
+     Visibility API
+     ======================================================================== */
+
+  function show() {
+    if (destroyed) {
+      return;
+    }
+
+    container.hidden =
+      false;
+  }
+
+  function hide() {
+    if (destroyed) {
+      return;
+    }
+
+    container.hidden =
+      true;
+  }
+
+  /* ========================================================================
+     Navigation
+     ======================================================================== */
+
+  function resolveTargetPage(
+    button,
+  ) {
+    const action =
+      button.dataset
+        .paginationAction;
+
+    switch (action) {
+      case "previous":
+        return state.page -
+          1;
+
+      case "next":
+        return state.page +
+          1;
+
+      case "page":
+      default:
+        return Number(
+          button.dataset
+            .paginationPage,
+        );
+    }
+  }
+
+  function requestPage(
+    targetPage,
+  ) {
+    if (
+      destroyed ||
+      state.loading ||
+      state.totalPages <=
+        0
+    ) {
+      return false;
+    }
+
+    const page =
+      clamp(
+        toPositiveInteger(
+          targetPage,
+          state.page,
+        ),
+
+        1,
+
+        state.totalPages,
+      );
+
+    if (
+      page ===
+        state.page ||
+      page ===
+        pendingPage
+    ) {
+      return false;
+    }
+
+    pendingPage =
+      page;
+
+    if (
+      autoBusyOnChange
+    ) {
+      setLoading(
+        true,
+      );
+    }
+
+    options.onPageChange?.(
+      page,
+      getState(),
+    );
+
+    return true;
+  }
+
+  /* ========================================================================
+     Events
+     ======================================================================== */
+
+  function handleClick(
+    event,
+  ) {
+    if (destroyed) {
+      return;
+    }
+
+    const button =
+      event.target.closest(
+        "[data-pagination-page]",
+      );
+
+    if (
+      !button ||
+      !list.contains(
+        button,
+      )
+    ) {
+      return;
+    }
+
+    if (
+      button.disabled ||
+      button.getAttribute(
+        "aria-disabled",
+      ) ===
+        "true"
+    ) {
+      return;
+    }
+
+    const targetPage =
+      resolveTargetPage(
+        button,
+      );
+
+    requestPage(
+      targetPage,
+    );
+  }
+
+  list.addEventListener(
+    "click",
+    handleClick,
+    {
+      signal:
+        abortController.signal,
+    },
+  );
+
+  /* ========================================================================
+     Lifecycle
+     ======================================================================== */
+
+  function destroy() {
+    if (destroyed) {
+      return;
+    }
+
+    destroyed =
+      true;
+
+    abortController.abort();
+
+    list.replaceChildren();
+
+    if (summary) {
+      summary.replaceChildren();
+    }
+
+    container.removeAttribute(
+      "aria-busy",
+    );
+  }
+
+  /* ========================================================================
+     Initialization
+     ======================================================================== */
+
+  if (
+    options.autoRender !==
+    false
+  ) {
+    render();
+  }
+
+  /* ========================================================================
+     Public Instance
+     ======================================================================== */
+
+  return Object.freeze({
+    clear,
+
+    destroy,
+
+    getState,
+
+    hide,
+
+    render,
+
+    requestPage,
+
+    setLoading,
+
+    setState,
+
+    show,
+  });
+}
+
+/* ==========================================================================
+   Data View Common API
+   ========================================================================== */
+
+/*
+ * Public entry point for reusable data-view application utilities.
+ *
+ * Page modules should import reusable functionality from this file rather
+ * than depending directly on implementation files.
+ */
+
+/* ==========================================================================
+   State
+   ========================================================================== */
+
+export { createDataState } from "./data-state.js";
+
+/* ==========================================================================
+   Data Source
+   ========================================================================== */
+
+export { createDataSource } from "./data-source.js";
+
+/* ==========================================================================
+   Watchlist
+   ========================================================================== */
+
+export {
+  applyWatchlistFilter,
+  filterWatchlisted,
+  getWatchlistValue,
+  isWatchlisted,
+  isWatchlistedValue,
+} from "./data-watchlist.js";
+
+/* ==========================================================================
+   Column Visibility
+   ========================================================================== */
+
+export { createDataColumnVisibility } from "./data-column-visibility.js";
+
+/* ==========================================================================
+   Column Picker
+   ========================================================================== */
+
+export { createDataColumnPicker } from "./data-column-picker.js";
+
+/* ==========================================================================
+   Table
+   ========================================================================== */
+
+export { createDataTable } from "./data-table.js";
+
+/* ==========================================================================
+   Pagination
+   ========================================================================== */
+
+export {
+  createDataPagination,
+  createPaginationItems,
+} from "./data-pagination.js";
+
+/* ==========================================================================
+   Cards
+   ========================================================================== */
+
+export { createDataCards } from "./data-cards.js";
+
+/* ==========================================================================
+   Standard Data Card
+   ========================================================================== */
+
+export {
+  renderStandardDataCard,
+  renderStandardDataCardField,
+  renderStandardDataCardFields,
+} from "./standard-data-card.js";
+
+/* ==========================================================================
+   Standard Company Identity
+   ========================================================================== */
+
+export {
+  bindStandardCompanyLogoFallback,
+  getStandardCompanyCode,
+  getStandardCompanyLogoFallbackUrl,
+  getStandardCompanyLogoUrl,
+  getStandardCompanyName,
+  getStandardCompanyUrl,
+  handleStandardCompanyLogoError,
+  renderStandardCompanyCardIdentity,
+  renderStandardCompanyCell,
+  renderStandardCompanyLogo,
+} from "./standard-company-identity.js";
+
+/* ==========================================================================
+   Filters
+   ========================================================================== */
+
+export { createDataFilters } from "./data-filters.js";
+
+/* ==========================================================================
+   Results
+   ========================================================================== */
+
+export { createDataResults } from "./data-results.js";
+
+/* ==========================================================================
+   Controller
+   ========================================================================== */
+
+export { createDataViewController } from "./data-view-controller.js";

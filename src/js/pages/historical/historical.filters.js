@@ -3,32 +3,32 @@
    ========================================================================== */
 
 /*
- * Filter coordination for Historical Reports.
+ * Historical Reports filter adapter and dependency coordinator.
  *
- * No CustomSelect/CustomDate class access anywhere in this file. Both
- * components are already initialized globally by main.js before this
- * module runs, and both already provide a way for external code to change
- * a value and keep the enhanced UI in sync WITHOUT touching their class
- * instances:
+ * Responsibilities:
  *
- * - CustomSelect runs its own internal MutationObserver on the native
- *   <select>, watching childList/subtree changes -- rebuilding the
- *   <option> list with plain DOM APIs is enough for it to notice and
- *   re-render its own listbox/value automatically.
+ * - expose Historical's filter definitions to common/data-view/data-filters
+ * - normalize native filter values
+ * - adapt generic filter state into Historical's flat filter contract
+ * - convert ISO dates to the legacy backend DD-MM-YYYY contract
+ * - populate Market -> Sector -> Entity dependencies
+ * - cancel stale dependency requests
+ * - prevent stale responses from replacing newer selections
+ * - preserve Reset dependency ordering
+ * - expose only SETTLED filter notifications to historical.js
  *
- * - Both CustomSelect and CustomDate bind a plain native "change" listener
- *   on their underlying input(s) specifically so external code can signal
- *   a programmatic value change -- dispatching a real "change" event after
- *   setting .value triggers their internal resync exactly as user
- *   interaction would.
+ * Native controls remain the source of truth.
  *
- * createDataFilters ALSO binds its own "change" listener directly on the
- * native element (independent of CustomSelect/CustomDate), so one
- * dispatched "change" event satisfies both systems at once: the enhanced
- * UI resyncs, and the filter-change notification fires.
+ * CustomSelect and CustomDate are enhanced globally by main.js. This module
+ * does not own those component instances. Option-list mutations are observed
+ * by CustomSelect, while native "change" events are used when an existing
+ * control value must be changed programmatically.
  *
- * Legacy reference: DROPDOWN_CONFIG (JSP script block) + DropdownManager
- * (removed) + HistoricalManager.resetFilters()/setDefaultDatesIfEmpty().
+ * Important:
+ *
+ * common/data-view/data-filters still owns raw DOM observation. Historical
+ * adds a small settled-state facade on top because Market/Sector changes are
+ * asynchronous transactions, not independent single-field changes.
  */
 
 /* ==========================================================================
@@ -37,15 +37,21 @@
 
 export const HISTORICAL_FILTER_SELECTORS = Object.freeze({
   market: "[data-historical-market]",
+
   sector: "[data-historical-sector]",
+
   entity: "[data-historical-entity]",
+
   tradeType: "[data-historical-trade-type]",
 
   dateRangeComponent: "[data-custom-date-range]",
-  dateStart: "[data-date-start]",
-  dateEnd: "[data-date-end]",
 
-  tabsRoot: ".tabs[data-tabs]",
+  dateStart: "[data-historical-date-start]",
+
+  dateEnd: "[data-historical-date-end]",
+
+  tabsRoot: "[data-historical-tabs]",
+
   activeTab: '[role="tab"][aria-selected="true"]',
 });
 
@@ -69,9 +75,23 @@ function normalizeString(value) {
   return String(value ?? "").trim();
 }
 
+function getDocument(root) {
+  if (root?.nodeType === 9) {
+    return root;
+  }
+
+  return root?.ownerDocument || document;
+}
+
+function getView(root) {
+  return getDocument(root)?.defaultView || window;
+}
+
 function formatIsoDate(date) {
   const year = date.getFullYear();
+
   const month = String(date.getMonth() + 1).padStart(2, "0");
+
   const day = String(date.getDate()).padStart(2, "0");
 
   return `${year}-${month}-${day}`;
@@ -79,14 +99,37 @@ function formatIsoDate(date) {
 
 function getOneMonthRange() {
   const today = new Date();
+
   const oneMonthAgo = new Date(today);
 
+  /*
+   * Intentionally preserves the existing Historical behavior.
+   */
   oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
 
   return {
     start: formatIsoDate(oneMonthAgo),
+
     end: formatIsoDate(today),
   };
+}
+
+/* ==========================================================================
+   Native Events
+   ========================================================================== */
+
+function dispatchNativeChange(element) {
+  if (!element) {
+    return;
+  }
+
+  const view = element.ownerDocument?.defaultView || window;
+
+  element.dispatchEvent(
+    new view.Event("change", {
+      bubbles: true,
+    }),
+  );
 }
 
 /* ==========================================================================
@@ -94,32 +137,35 @@ function getOneMonthRange() {
    ========================================================================== */
 
 /*
- * The one mechanism this entire file relies on for "change a value
- * programmatically and keep everything in sync": set .value normally, then
- * dispatch a real "change" event -- both CustomSelect/CustomDate's own
- * internal resync and createDataFilters' own change detection listen for
- * exactly this. Skips the dispatch when the value is already correct, so a
- * no-op reset does not manufacture a spurious notification.
+ * Existing-value changes need a native event so already-enhanced
+ * CustomSelect/CustomDate instances resynchronize their generated UI.
+ *
+ * Dependency option rebuilds do not need this helper because CustomSelect's
+ * MutationObserver sees the option child-list changes directly.
  */
-
 function setNativeValueAndNotify(element, value) {
-  if (!element || element.value === value) {
-    return;
+  if (!element) {
+    return false;
   }
 
-  element.value = value;
+  const normalizedValue = String(value ?? "");
 
-  element.dispatchEvent(new Event("change", { bubbles: true }));
+  if (element.value === normalizedValue) {
+    return false;
+  }
+
+  element.value = normalizedValue;
+
+  dispatchNativeChange(element);
+
+  return true;
 }
 
 /*
- * The date-range pair needs both native inputs set before any event
- * fires, since CustomDate's handleNativeChange() reads both inputs'
- * current values together regardless of which one changed. Dispatching
- * once (on the end input) after both are set produces exactly one
- * "form:date-change" notification for the pair.
+ * Both inputs are written before dispatching the event.
+ *
+ * CustomDate reads the entire range when its native change handler runs.
  */
-
 function setNativeDateRangeAndNotify(
   startInput,
   endInput,
@@ -127,18 +173,21 @@ function setNativeDateRangeAndNotify(
   endValue,
 ) {
   if (!startInput || !endInput) {
-    return;
+    return false;
   }
 
   const changed =
     startInput.value !== startValue || endInput.value !== endValue;
 
   startInput.value = startValue;
+
   endInput.value = endValue;
 
   if (changed) {
-    endInput.dispatchEvent(new Event("change", { bubbles: true }));
+    dispatchNativeChange(endInput);
   }
+
+  return changed;
 }
 
 /* ==========================================================================
@@ -166,12 +215,10 @@ export function normalizeHistoricalTradeType(value) {
    ========================================================================== */
 
 /*
- * The only place this conversion happens. custom-date-range's native
- * inputs always hold ISO (YYYY-MM-DD); the backend's existing contract
- * expects DD-MM-YYYY. Everywhere else in this module's filter state, dates
- * stay ISO.
+ * CustomDate uses ISO YYYY-MM-DD internally.
+ *
+ * Historical's existing backend request contract expects DD-MM-YYYY.
  */
-
 export function toLegacyDateFormat(isoValue) {
   const value = normalizeString(isoValue);
 
@@ -188,17 +235,9 @@ export function toLegacyDateFormat(isoValue) {
    Initial Date Defaulting
    ========================================================================== */
 
-/*
- * Must run AFTER main.js's global initCustomDates() has already enhanced
- * this component (guaranteed by module execution order -- see the module
- * comment in historical.js). Setting .value alone would leave the already-
- * built CustomDate UI showing its placeholder text even though the native
- * input now silently holds a real date underneath, so this dispatches a
- * real "change" event the same way every other reset in this file does.
- */
-
 export function applyDefaultHistoricalDateRangeIfEmpty(root) {
   const startInput = root.querySelector(HISTORICAL_FILTER_SELECTORS.dateStart);
+
   const endInput = root.querySelector(HISTORICAL_FILTER_SELECTORS.dateEnd);
 
   if (!startInput || !endInput) {
@@ -223,16 +262,11 @@ export function applyDefaultHistoricalDateRangeIfEmpty(root) {
    Active Tab
    ========================================================================== */
 
-/*
- * Pull-based read rather than reading the triggering event's detail:
- * tabs.controller.js updates aria-selected before dispatching tabs:change,
- * so querying current DOM state here is reliable independent of any
- * particular event.
- */
-
 export function getActiveHistoricalTab(root = document) {
-  const activeTab = root.querySelector(
-    `${HISTORICAL_FILTER_SELECTORS.tabsRoot} ${HISTORICAL_FILTER_SELECTORS.activeTab}`,
+  const tabsRoot = root.querySelector(HISTORICAL_FILTER_SELECTORS.tabsRoot);
+
+  const activeTab = tabsRoot?.querySelector(
+    HISTORICAL_FILTER_SELECTORS.activeTab,
   );
 
   return normalizeString(activeTab?.dataset?.tab) || DEFAULT_TAB;
@@ -243,21 +277,22 @@ export function getActiveHistoricalTab(root = document) {
    ========================================================================== */
 
 /*
- * createDataFilters' getState() returns one nested `dateRange:
- * {startDate, endDate}` object (see the dateRange field below -- registered
- * as a single field so a complete range pick produces one change
- * notification, not two). This adapter bridges to the flat shape
- * historical.rules.js and the request builders expect.
+ * common/data-view/data-filters keeps dateRange as one compound field.
+ *
+ * Historical rules/request builders use the established flat representation.
  */
-
 export function getHistoricalFilters(filterState = {}) {
   return {
     market: normalizeHistoricalMarket(filterState.market),
+
     sector: normalizeHistoricalSector(filterState.sector),
+
     entity: normalizeHistoricalEntity(filterState.entity),
+
     tradeType: normalizeHistoricalTradeType(filterState.tradeType),
 
     startDate: normalizeString(filterState.dateRange?.startDate),
+
     endDate: normalizeString(filterState.dateRange?.endDate),
 
     activeTab: normalizeString(filterState.activeTab) || DEFAULT_TAB,
@@ -272,32 +307,43 @@ export function createHistoricalFilterFields() {
   return {
     market: {
       selector: HISTORICAL_FILTER_SELECTORS.market,
+
       effect: "reload",
+
       normalize: normalizeHistoricalMarket,
     },
 
     sector: {
       selector: HISTORICAL_FILTER_SELECTORS.sector,
+
       effect: "reload",
+
       normalize: normalizeHistoricalSector,
     },
 
     entity: {
       selector: HISTORICAL_FILTER_SELECTORS.entity,
+
       effect: "reload",
+
       normalize: normalizeHistoricalEntity,
     },
 
     tradeType: {
       selector: HISTORICAL_FILTER_SELECTORS.tradeType,
+
       effect: "reload",
+
       normalize: normalizeHistoricalTradeType,
     },
 
     dateRange: {
       selector: HISTORICAL_FILTER_SELECTORS.dateRangeComponent,
+
       events: ["form:date-change"],
+
       effect: "reload",
+
       read({ elements }) {
         const component = elements[0];
 
@@ -311,6 +357,7 @@ export function createHistoricalFilterFields() {
 
         return {
           startDate: startInput?.value || "",
+
           endDate: endInput?.value || "",
         };
       },
@@ -318,9 +365,14 @@ export function createHistoricalFilterFields() {
 
     activeTab: {
       selector: HISTORICAL_FILTER_SELECTORS.tabsRoot,
+
       events: ["tabs:change"],
+
       effect: "reload",
-      read: () => getActiveHistoricalTab(),
+
+      read({ root }) {
+        return getActiveHistoricalTab(root);
+      },
     },
   };
 }
@@ -328,12 +380,6 @@ export function createHistoricalFilterFields() {
 /* ==========================================================================
    Request Payload Builders
    ========================================================================== */
-
-/*
- * Mutates and returns DataTables' own request object -- called from inside
- * views/historical.table.js's function-form `ajax`, matching legacy's
- * buildHistoricalAjax(tabId) structure exactly.
- */
 
 export function buildHistoricalReportRequestData(
   config,
@@ -344,14 +390,21 @@ export function buildHistoricalReportRequestData(
   const requestParams = dataTablesParams;
 
   requestParams.selectedMarket = filters.market;
+
   requestParams.selectedSector = filters.sector;
+
   requestParams.selectedEntity = filters.entity;
+
   requestParams.selectedTypeOfTrade = filters.tradeType;
+
   requestParams.startDate = toLegacyDateFormat(filters.startDate);
+
   requestParams.endDate = toLegacyDateFormat(filters.endDate);
+
   requestParams.tableTabId = tabId;
 
   requestParams.startIndex = Number(requestParams.start || 0);
+
   requestParams.endIndex =
     Number(requestParams.start || 0) + Number(requestParams.length || 100);
 
@@ -361,164 +414,291 @@ export function buildHistoricalReportRequestData(
 export function buildHistoricalUnderlyingRequestData(config, filters) {
   return {
     selectedMarket: filters.market,
+
     selectedSector: filters.sector,
+
     selectedEntity: filters.entity,
+
     requestLocale: config.locale,
+
     startDate: toLegacyDateFormat(filters.startDate),
+
     endDate: toLegacyDateFormat(filters.endDate),
   };
 }
 
 /* ==========================================================================
-   Cascading Dropdown Population
+   Dependency Response Normalization
    ========================================================================== */
 
-const pendingRequests = new WeakMap();
+function normalizeResponseItems(payload) {
+  if (Array.isArray(payload)) {
+    return payload;
+  }
 
-async function fetchDropdownOptions(endpoint, params, abortKey) {
-  pendingRequests.get(abortKey)?.abort();
+  if (payload && Array.isArray(payload.data)) {
+    return payload.data;
+  }
 
-  const controller = new AbortController();
+  return [];
+}
 
-  pendingRequests.set(abortKey, controller);
+/* ==========================================================================
+   Dependency Request Manager
+   ========================================================================== */
 
-  const url = new URL(endpoint, window.location.origin);
+/*
+ * Instance-scoped Map, not WeakMap.
+ *
+ * Request names are strings ("sector" / "entity"), and string keys are not
+ * valid WeakMap keys.
+ */
+function createDependencyRequestManager(root) {
+  const documentReference = getDocument(root);
 
-  Object.entries(params).forEach(([key, value]) => {
-    url.searchParams.set(key, value);
-  });
+  const view = getView(root);
 
-  try {
-    const response = await fetch(url, { signal: controller.signal });
+  const AbortControllerCtor =
+    view.AbortController || globalThis.AbortController;
 
-    if (!response.ok) {
-      throw new Error(`Request failed with status ${response.status}.`);
+  const URLCtor = view.URL || globalThis.URL;
+
+  const fetchRequest =
+    typeof view.fetch === "function"
+      ? view.fetch.bind(view)
+      : globalThis.fetch?.bind(globalThis);
+
+  const controllers = new Map();
+
+  let destroyed = false;
+
+  function abort(key) {
+    const controller = controllers.get(key);
+
+    if (!controller) {
+      return;
     }
 
-    const payload = await response.json();
+    controller.abort();
 
-    return Array.isArray(payload) ? payload : [];
-  } catch (error) {
-    if (error?.name === "AbortError") {
-      return null;
+    controllers.delete(key);
+  }
+
+  function abortAll() {
+    controllers.forEach((controller) => {
+      controller.abort();
+    });
+
+    controllers.clear();
+  }
+
+  async function request(key, endpoint, params = {}) {
+    if (destroyed) {
+      return {
+        status: "aborted",
+
+        items: [],
+      };
     }
 
-    throw error;
-  } finally {
-    if (pendingRequests.get(abortKey) === controller) {
-      pendingRequests.delete(abortKey);
+    if (typeof fetchRequest !== "function") {
+      return {
+        status: "error",
+
+        items: [],
+
+        error: new Error("Fetch API is unavailable."),
+      };
+    }
+
+    abort(key);
+
+    const controller = new AbortControllerCtor();
+
+    controllers.set(key, controller);
+
+    try {
+      const url = new URLCtor(endpoint, documentReference.baseURI);
+
+      Object.entries(params).forEach(([paramKey, value]) => {
+        if (value === null || value === undefined) {
+          return;
+        }
+
+        url.searchParams.set(paramKey, String(value));
+      });
+
+      const response = await fetchRequest(url.toString(), {
+        signal: controller.signal,
+      });
+
+      if (!response.ok) {
+        throw new Error(`Request failed with status ${response.status}.`);
+      }
+
+      const payload = await response.json();
+
+      return {
+        status: "ok",
+
+        items: normalizeResponseItems(payload),
+      };
+    } catch (error) {
+      if (error?.name === "AbortError") {
+        return {
+          status: "aborted",
+
+          items: [],
+        };
+      }
+
+      return {
+        status: "error",
+
+        items: [],
+
+        error,
+      };
+    } finally {
+      if (controllers.get(key) === controller) {
+        controllers.delete(key);
+      }
     }
   }
+
+  function destroy() {
+    if (destroyed) {
+      return;
+    }
+
+    destroyed = true;
+
+    abortAll();
+  }
+
+  return Object.freeze({
+    abort,
+    abortAll,
+    destroy,
+    request,
+  });
+}
+
+/* ==========================================================================
+   Native Select Helpers
+   ========================================================================== */
+
+function hasOptionValue(select, value) {
+  if (!select) {
+    return false;
+  }
+
+  const target = String(value ?? "");
+
+  return Array.from(select.options).some((option) => option.value === target);
+}
+
+function setSelectDisabled(select, disabled) {
+  if (!select) {
+    return;
+  }
+
+  select.disabled = Boolean(disabled);
 }
 
 /*
- * Rebuilds a native <select>'s options from scratch, with the placeholder
- * marked `selected` in the freshly-created markup itself -- unambiguous,
- * since a just-created <option> element's initial selectedness is governed
- * directly by the presence of the "selected" attribute at creation time.
- * No event dispatch needed for CustomSelect's own visual resync (its
- * MutationObserver picks up the childList change automatically); dispatch
- * here is purely to inform createDataFilters that the field's value
- * changed.
+ * Replaces the native options in one operation.
+ *
+ * CustomSelect observes this child-list mutation and refreshes its generated
+ * interface automatically.
  */
-
 function applyDropdownOptions({
   select,
   placeholderLabel,
-  items,
+  items = [],
   getValue,
   getLabel,
+  selectedValue = DEFAULT_SECTOR,
 }) {
   if (!select) {
-    return;
+    return DEFAULT_SECTOR;
   }
 
-  const placeholderOption = document.createElement("option");
+  const documentReference = select.ownerDocument;
+
+  const fragment = documentReference.createDocumentFragment();
+
+  const placeholderOption = documentReference.createElement("option");
 
   placeholderOption.value = "0";
-  placeholderOption.selected = true;
-  placeholderOption.textContent = placeholderLabel;
 
-  select.replaceChildren(placeholderOption);
+  placeholderOption.textContent = placeholderLabel || "";
+
+  fragment.append(placeholderOption);
+
+  const seenValues = new Set(["0"]);
 
   items.forEach((item) => {
-    const option = document.createElement("option");
+    if (!item) {
+      return;
+    }
 
-    option.value = getValue(item);
-    option.textContent = getLabel(item);
+    const value = normalizeString(getValue(item));
 
-    select.append(option);
+    if (!value || seenValues.has(value)) {
+      return;
+    }
+
+    seenValues.add(value);
+
+    const option = documentReference.createElement("option");
+
+    option.value = value;
+
+    option.textContent = normalizeString(getLabel(item)) || "-";
+
+    fragment.append(option);
   });
 
-  select.dispatchEvent(new Event("change", { bubbles: true }));
+  select.replaceChildren(fragment);
+
+  const requestedValue = normalizeString(selectedValue) || "0";
+
+  const resolvedValue = hasOptionValue(select, requestedValue)
+    ? requestedValue
+    : "0";
+
+  select.value = resolvedValue;
+
+  return resolvedValue;
 }
 
-async function populateSectorOptions({ root, config, market }) {
-  const select = root.querySelector(HISTORICAL_FILTER_SELECTORS.sector);
-
-  if (!select) {
-    return;
-  }
-
-  const disabled = config.constants.marketsWithoutSector.includes(market);
-
-  select.disabled = disabled;
-
-  if (disabled) {
-    applyDropdownOptions({
-      select,
-      placeholderLabel: config.labels.placeholders.sector,
-      items: [],
-      getValue: () => "",
-      getLabel: () => "",
-    });
-
-    return;
-  }
-
-  const items = await fetchDropdownOptions(
-    config.endpoints.sectors,
-    { selectedMarket: market },
-    "sector",
-  );
-
-  if (items === null) {
-    return;
-  }
-
-  applyDropdownOptions({
+function clearDropdown({ select, placeholderLabel }) {
+  return applyDropdownOptions({
     select,
-    placeholderLabel: config.labels.placeholders.sector,
-    items,
-    getValue: (item) => item.dropdownValue ?? "0",
-    getLabel: (item) => item.name ?? "-",
+    placeholderLabel,
+    items: [],
+    getValue: () => "",
+
+    getLabel: () => "",
+
+    selectedValue: "0",
   });
 }
 
-async function populateEntityOptions({ root, config, market, sector }) {
-  const select = root.querySelector(HISTORICAL_FILTER_SELECTORS.entity);
+/* ==========================================================================
+   Dependency Logging
+   ========================================================================== */
 
-  if (!select) {
+function logDependencyError(dependency, result) {
+  if (result?.status !== "error") {
     return;
   }
 
-  const items = await fetchDropdownOptions(
-    config.endpoints.entities,
-    { selectedMarket: market, selectedSector: sector },
-    "entity",
+  console.error(
+    `[Historical Reports] Unable to load ${dependency} options.`,
+    result.error,
   );
-
-  if (items === null) {
-    return;
-  }
-
-  applyDropdownOptions({
-    select,
-    placeholderLabel: config.labels.placeholders.entity,
-    items,
-    getValue: (item) => item.entitySymbol ?? "0",
-    getLabel: (item) => item.entityName ?? "-",
-  });
 }
 
 /* ==========================================================================
@@ -542,89 +722,669 @@ export function createHistoricalFilters({
     throw new TypeError("createHistoricalFilters requires createDataFilters.");
   }
 
-  const filters = createDataFilters({
+  /* ========================================================================
+     Raw Generic Filter Instance
+     ======================================================================== */
+
+  const rawFilters = createDataFilters({
     root,
+
     fields: createHistoricalFilterFields(),
   });
 
-  /*
-   * Subscribed before this factory returns, so this listener always runs
-   * ahead of any listener historical.js adds afterwards -- Set iteration
-   * follows subscription order.
-   */
-  filters.subscribe((event) => {
-    if (event.key === "market") {
-      const market = normalizeHistoricalMarket(event.value);
+  /* ========================================================================
+     DOM
+     ======================================================================== */
 
-      populateSectorOptions({ root, config, market });
-      populateEntityOptions({ root, config, market, sector: DEFAULT_SECTOR });
+  const marketSelect = root.querySelector(HISTORICAL_FILTER_SELECTORS.market);
+
+  const sectorSelect = root.querySelector(HISTORICAL_FILTER_SELECTORS.sector);
+
+  const entitySelect = root.querySelector(HISTORICAL_FILTER_SELECTORS.entity);
+
+  const tradeTypeSelect = root.querySelector(
+    HISTORICAL_FILTER_SELECTORS.tradeType,
+  );
+
+  const dateStartInput = root.querySelector(
+    HISTORICAL_FILTER_SELECTORS.dateStart,
+  );
+
+  const dateEndInput = root.querySelector(HISTORICAL_FILTER_SELECTORS.dateEnd);
+
+  /* ========================================================================
+     Internal State
+     ======================================================================== */
+
+  const requestManager = createDependencyRequestManager(root);
+
+  const listeners = new Set();
+
+  let destroyed = false;
+
+  let cascadeVersion = 0;
+
+  let suppressRawNotifications = 0;
+
+  let settling = false;
+
+  /* ========================================================================
+     Settled-State Notifications
+     ======================================================================== */
+
+  function getRawState() {
+    return rawFilters.getState();
+  }
+
+  function getFilters() {
+    return getHistoricalFilters(getRawState());
+  }
+
+  function publish(change) {
+    if (destroyed) {
+      return;
+    }
+
+    const event = Object.freeze({
+      ...change,
+
+      state: getRawState(),
+    });
+
+    listeners.forEach((listener) => {
+      listener(event);
+    });
+  }
+
+  function subscribe(listener) {
+    if (typeof listener !== "function") {
+      throw new TypeError("Historical filter listener must be a function.");
+    }
+
+    if (destroyed) {
+      return () => {};
+    }
+
+    listeners.add(listener);
+
+    return function unsubscribe() {
+      listeners.delete(listener);
+    };
+  }
+
+  /*
+   * historical.js currently consumes filterView.filters.subscribe().
+   *
+   * Expose a settled-state facade rather than the raw createDataFilters
+   * subscription. That prevents the page coordinator from rendering between
+   * Market -> Sector -> Entity dependency steps.
+   */
+  const settledFilters = Object.freeze({
+    getState: getRawState,
+
+    getValue(key) {
+      return rawFilters.getValue(key);
+    },
+
+    subscribe,
+  });
+
+  /* ========================================================================
+     Cascade Lifecycle
+     ======================================================================== */
+
+  function beginCascade() {
+    cascadeVersion += 1;
+
+    settling = true;
+
+    requestManager.abortAll();
+
+    return cascadeVersion;
+  }
+
+  function isCurrentCascade(version) {
+    return !destroyed && version === cascadeVersion;
+  }
+
+  function finishCascade(version) {
+    if (isCurrentCascade(version)) {
+      settling = false;
+    }
+  }
+
+  /* ========================================================================
+     Initial Native State
+     ======================================================================== */
+
+  function syncInitialDependencyState() {
+    const market = normalizeHistoricalMarket(marketSelect?.value);
+
+    const invalidMarket = !market || market === DEFAULT_MARKET;
+
+    const sectorNotApplicable =
+      config.constants.marketsWithoutSector.includes(market);
+
+    setSelectDisabled(sectorSelect, invalidMarket || sectorNotApplicable);
+
+    if (invalidMarket) {
+      setSelectDisabled(entitySelect, true);
+    }
+  }
+
+  syncInitialDependencyState();
+
+  /* ========================================================================
+     Market Cascade
+     ======================================================================== */
+
+  async function settleMarketChange(sourceEvent) {
+    const version = beginCascade();
+
+    const market = normalizeHistoricalMarket(sourceEvent.value);
+
+    /*
+     * Never allow the page to keep an Entity/Sector from the previous Market
+     * while new dependency data is in flight.
+     */
+    clearDropdown({
+      select: sectorSelect,
+
+      placeholderLabel: config.labels.placeholders.sector,
+    });
+
+    clearDropdown({
+      select: entitySelect,
+
+      placeholderLabel: config.labels.placeholders.entity,
+    });
+
+    rawFilters.sync();
+
+    const invalidMarket = !market || market === DEFAULT_MARKET;
+
+    if (invalidMarket) {
+      setSelectDisabled(sectorSelect, true);
+
+      setSelectDisabled(entitySelect, true);
+
+      rawFilters.sync();
+
+      if (isCurrentCascade(version)) {
+        publish({
+          ...sourceEvent,
+
+          value: market,
+        });
+      }
+
+      finishCascade(version);
+
+      return;
+    }
+
+    const sectorNotApplicable =
+      config.constants.marketsWithoutSector.includes(market);
+
+    /*
+     * Lock dependent controls while their option sets are changing.
+     */
+    setSelectDisabled(sectorSelect, true);
+
+    setSelectDisabled(entitySelect, true);
+
+    /*
+     * Legacy Market dependency populated Sector and Entity from Market in the
+     * same dependency step. Preserve that behavior:
+     *
+     * - Sector options use selectedMarket
+     * - Entity options use selectedMarket + selectedSector=0
+     */
+    const sectorPromise = sectorNotApplicable
+      ? Promise.resolve({
+          status: "ok",
+
+          items: [],
+        })
+      : requestManager.request(
+          "sector",
+
+          config.endpoints.sectors,
+
+          {
+            selectedMarket: market,
+          },
+        );
+
+    const entityPromise = requestManager.request(
+      "entity",
+
+      config.endpoints.entities,
+
+      {
+        selectedMarket: market,
+
+        selectedSector: DEFAULT_SECTOR,
+      },
+    );
+
+    const [sectorResult, entityResult] = await Promise.all([
+      sectorPromise,
+      entityPromise,
+    ]);
+
+    if (!isCurrentCascade(version)) {
+      return;
+    }
+
+    if (sectorResult.status === "ok") {
+      applyDropdownOptions({
+        select: sectorSelect,
+
+        placeholderLabel: config.labels.placeholders.sector,
+
+        items: sectorResult.items,
+
+        getValue: (item) => item.dropdownValue,
+
+        getLabel: (item) => item.name,
+
+        selectedValue: DEFAULT_SECTOR,
+      });
+    } else {
+      logDependencyError("sector", sectorResult);
+    }
+
+    if (entityResult.status === "ok") {
+      applyDropdownOptions({
+        select: entitySelect,
+
+        placeholderLabel: config.labels.placeholders.entity,
+
+        items: entityResult.items,
+
+        getValue: (item) => item.entitySymbol,
+
+        getLabel: (item) => item.entityName,
+
+        selectedValue: DEFAULT_ENTITY,
+      });
+    } else {
+      logDependencyError("entity", entityResult);
+    }
+
+    /*
+     * Sector remains unavailable for markets such as ETF / MF / TR.
+     */
+    setSelectDisabled(sectorSelect, sectorNotApplicable);
+
+    setSelectDisabled(entitySelect, false);
+
+    rawFilters.sync();
+
+    publish({
+      ...sourceEvent,
+
+      value: market,
+    });
+
+    finishCascade(version);
+  }
+
+  /* ========================================================================
+     Sector Cascade
+     ======================================================================== */
+
+  async function settleSectorChange(sourceEvent) {
+    const version = beginCascade();
+
+    const market = normalizeHistoricalMarket(marketSelect?.value);
+
+    const sector = normalizeHistoricalSector(sourceEvent.value);
+
+    clearDropdown({
+      select: entitySelect,
+
+      placeholderLabel: config.labels.placeholders.entity,
+    });
+
+    rawFilters.sync();
+
+    if (!market || market === DEFAULT_MARKET) {
+      setSelectDisabled(entitySelect, true);
+
+      if (isCurrentCascade(version)) {
+        publish({
+          ...sourceEvent,
+
+          value: sector,
+        });
+      }
+
+      finishCascade(version);
+
+      return;
+    }
+
+    setSelectDisabled(entitySelect, true);
+
+    const entityResult = await requestManager.request(
+      "entity",
+
+      config.endpoints.entities,
+
+      {
+        selectedMarket: market,
+
+        selectedSector: sector,
+      },
+    );
+
+    if (!isCurrentCascade(version)) {
+      return;
+    }
+
+    if (entityResult.status === "ok") {
+      applyDropdownOptions({
+        select: entitySelect,
+
+        placeholderLabel: config.labels.placeholders.entity,
+
+        items: entityResult.items,
+
+        getValue: (item) => item.entitySymbol,
+
+        getLabel: (item) => item.entityName,
+
+        selectedValue: DEFAULT_ENTITY,
+      });
+    } else {
+      logDependencyError("entity", entityResult);
+    }
+
+    setSelectDisabled(entitySelect, false);
+
+    rawFilters.sync();
+
+    publish({
+      ...sourceEvent,
+
+      value: sector,
+    });
+
+    finishCascade(version);
+  }
+
+  /* ========================================================================
+     Raw Filter Changes
+     ======================================================================== */
+
+  function handleRawFilterChange(event) {
+    if (destroyed || suppressRawNotifications > 0) {
+      return;
+    }
+
+    if (event.key === "market") {
+      void settleMarketChange(event);
 
       return;
     }
 
     if (event.key === "sector") {
-      const marketSelect = root.querySelector(
-        HISTORICAL_FILTER_SELECTORS.market,
-      );
+      void settleSectorChange(event);
 
-      const market = normalizeHistoricalMarket(marketSelect?.value);
-      const sector = normalizeHistoricalSector(event.value);
-
-      populateEntityOptions({ root, config, market, sector });
+      return;
     }
-  });
 
-  /* ------------------------------------------------------------------------
+    /*
+     * Entity / Trade Type / Date / Tab have no async child dependency.
+     */
+    publish(event);
+  }
+
+  const unsubscribeRawFilters = rawFilters.subscribe(handleRawFilterChange);
+
+  /* ========================================================================
      Reset
-     ------------------------------------------------------------------------ */
+     ======================================================================== */
 
+  /*
+   * Reset preserves Historical's dependency ordering:
+   *
+   * 1. Market
+   * 2. populate/select Sector
+   * 3. Sector
+   * 4. populate/select Entity
+   * 5. Entity
+   * 6. Trade Type
+   * 7. Date range
+   *
+   * Unlike the previous implementation, this is one transaction. Intermediate
+   * native events may update CustomSelect/CustomDate UI, but they are not
+   * forwarded to historical.js until the complete Reset has settled.
+   */
   async function resetToDefaults() {
-    const marketSelect = root.querySelector(HISTORICAL_FILTER_SELECTORS.market);
-    const tradeTypeSelect = root.querySelector(
-      HISTORICAL_FILTER_SELECTORS.tradeType,
-    );
-    const dateStartInput = root.querySelector(
-      HISTORICAL_FILTER_SELECTORS.dateStart,
-    );
-    const dateEndInput = root.querySelector(
-      HISTORICAL_FILTER_SELECTORS.dateEnd,
-    );
+    if (destroyed) {
+      return null;
+    }
+
+    const previousState = getRawState();
+
+    const version = beginCascade();
 
     const { market, sector, entity, tradeType } = config.defaults;
 
-    setNativeValueAndNotify(marketSelect, market);
+    suppressRawNotifications += 1;
 
-    /*
-     * Wait for the real option lists before selecting the target
-     * sector/entity values -- selecting a value that does not exist yet
-     * in a freshly-emptied <select> would silently no-op.
-     */
-    await populateSectorOptions({ root, config, market });
-    await populateEntityOptions({ root, config, market, sector });
+    try {
+      /* --------------------------------------------------------------------
+         1. Market
+         -------------------------------------------------------------------- */
 
-    const sectorSelect = root.querySelector(HISTORICAL_FILTER_SELECTORS.sector);
-    const entitySelect = root.querySelector(HISTORICAL_FILTER_SELECTORS.entity);
+      setNativeValueAndNotify(marketSelect, market);
 
-    setNativeValueAndNotify(sectorSelect, sector);
-    setNativeValueAndNotify(entitySelect, entity);
-    setNativeValueAndNotify(tradeTypeSelect, tradeType);
+      rawFilters.sync();
 
-    const { start, end } = getOneMonthRange();
+      const sectorNotApplicable =
+        config.constants.marketsWithoutSector.includes(market);
 
-    setNativeDateRangeAndNotify(dateStartInput, dateEndInput, start, end);
+      /* --------------------------------------------------------------------
+         2. Populate / select Sector
+         -------------------------------------------------------------------- */
+
+      clearDropdown({
+        select: sectorSelect,
+
+        placeholderLabel: config.labels.placeholders.sector,
+      });
+
+      setSelectDisabled(sectorSelect, true);
+
+      let resolvedSector = DEFAULT_SECTOR;
+
+      if (!sectorNotApplicable) {
+        const sectorResult = await requestManager.request(
+          "sector",
+
+          config.endpoints.sectors,
+
+          {
+            selectedMarket: market,
+          },
+        );
+
+        if (!isCurrentCascade(version)) {
+          return null;
+        }
+
+        if (sectorResult.status === "ok") {
+          resolvedSector = applyDropdownOptions({
+            select: sectorSelect,
+
+            placeholderLabel: config.labels.placeholders.sector,
+
+            items: sectorResult.items,
+
+            getValue: (item) => item.dropdownValue,
+
+            getLabel: (item) => item.name,
+
+            selectedValue: sector,
+          });
+        } else {
+          logDependencyError("sector", sectorResult);
+        }
+
+        setSelectDisabled(sectorSelect, false);
+      } else {
+        resolvedSector = DEFAULT_SECTOR;
+
+        setSelectDisabled(sectorSelect, true);
+      }
+
+      rawFilters.sync();
+
+      /* --------------------------------------------------------------------
+         3 / 4. Sector -> populate/select Entity
+         -------------------------------------------------------------------- */
+
+      clearDropdown({
+        select: entitySelect,
+
+        placeholderLabel: config.labels.placeholders.entity,
+      });
+
+      setSelectDisabled(entitySelect, true);
+
+      const entityResult = await requestManager.request(
+        "entity",
+
+        config.endpoints.entities,
+
+        {
+          selectedMarket: market,
+
+          selectedSector: resolvedSector,
+        },
+      );
+
+      if (!isCurrentCascade(version)) {
+        return null;
+      }
+
+      if (entityResult.status === "ok") {
+        applyDropdownOptions({
+          select: entitySelect,
+
+          placeholderLabel: config.labels.placeholders.entity,
+
+          items: entityResult.items,
+
+          getValue: (item) => item.entitySymbol,
+
+          getLabel: (item) => item.entityName,
+
+          selectedValue: entity,
+        });
+      } else {
+        logDependencyError("entity", entityResult);
+      }
+
+      setSelectDisabled(entitySelect, false);
+
+      rawFilters.sync();
+
+      /* --------------------------------------------------------------------
+         5 / 6. Entity is selected by the option rebuild above.
+                Restore Trade Type.
+         -------------------------------------------------------------------- */
+
+      setNativeValueAndNotify(tradeTypeSelect, tradeType);
+
+      /* --------------------------------------------------------------------
+         7. Date range
+         -------------------------------------------------------------------- */
+
+      const { start, end } = getOneMonthRange();
+
+      setNativeDateRangeAndNotify(dateStartInput, dateEndInput, start, end);
+
+      /*
+       * Sync createDataFilters' internal previous-value snapshots after every
+       * transactional DOM mutation before publishing one final Reset event.
+       */
+      rawFilters.sync();
+    } finally {
+      suppressRawNotifications = Math.max(0, suppressRawNotifications - 1);
+    }
+
+    if (!isCurrentCascade(version)) {
+      return null;
+    }
+
+    finishCascade(version);
+
+    publish({
+      type: "reset",
+
+      key: null,
+
+      value: null,
+
+      previousValue: previousState,
+
+      effect: "reload",
+
+      source: "reset",
+    });
+
+    return getFilters();
   }
 
-  return {
-    filters,
+  /* ========================================================================
+     Lifecycle
+     ======================================================================== */
 
-    getFilters() {
-      return getHistoricalFilters(filters.getState());
+  function destroy() {
+    if (destroyed) {
+      return;
+    }
+
+    destroyed = true;
+
+    cascadeVersion += 1;
+
+    settling = false;
+
+    requestManager.destroy();
+
+    unsubscribeRawFilters?.();
+
+    listeners.clear();
+
+    rawFilters.destroy();
+  }
+
+  /* ========================================================================
+     Public Instance
+     ======================================================================== */
+
+  return Object.freeze({
+    /*
+     * Settled facade consumed by historical.js.
+     *
+     * Do not expose the raw dependency notifications to the page coordinator.
+     */
+    filters: settledFilters,
+
+    getFilters,
+
+    isSettling() {
+      return settling;
     },
 
     resetToDefaults,
 
-    destroy() {
-      filters.destroy?.();
-    },
-  };
+    destroy,
+  });
 }

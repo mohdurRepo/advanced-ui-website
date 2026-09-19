@@ -12,7 +12,7 @@
  *   its zero-as-missing behavior -- see the note below)
  * - directional change rendering (icon + semantic color)
  * - exercise-type (Call/Put) label rendering
- * - link rendering for the Underlying table
+ * - safe link rendering for the Underlying table/cards
  * - static-label rendering (Instrument Type)
  * - the shared cell-rendering dispatcher consumed by both the desktop table
  *   and mobile card views
@@ -32,10 +32,15 @@
  *
  * This is a standalone project -- unlike Market Watch, there is no
  * pages/shared/ folder to draw generic formatting primitives from, and
- * legacy's own historical.columns.js was already fully self-contained
- * (it did not share code with Market Watch's formatters either). This file
- * follows the same shape: it owns its own toNumber/formatNumber/escapeHtml
- * rather than importing them from elsewhere.
+ * legacy's own historical.columns.js was already fully self-contained.
+ *
+ * This file therefore owns its own:
+ *
+ * - value-presence rules
+ * - number conversion / formatting
+ * - HTML escaping
+ * - URL-safety check
+ * - Historical cell dispatcher
  */
 
 /* ==========================================================================
@@ -44,16 +49,19 @@
 
 const DEFAULT_EMPTY_VALUE = "-";
 
+const UNSAFE_URL_PROTOCOL_PATTERN = /^(?:javascript|data|vbscript):/i;
+
 /* ==========================================================================
    HTML Escaping
    ========================================================================== */
 
 /*
- * Legacy built every rendered cell through raw string concatenation with no
- * escaping at all. Escaping untrusted values before interpolating them into
- * markup does not change what a normal value displays as -- it only
- * prevents a malicious value from being interpreted as markup. Added here
- * as a genuine improvement, not a behavior change for real data.
+ * Legacy built rendered cells through raw string concatenation without
+ * escaping.
+ *
+ * Escaping values before interpolating them into HTML does not change normal
+ * visible values; it prevents backend/user-controlled data from becoming
+ * executable markup.
  */
 
 export function escapeHtml(value) {
@@ -78,18 +86,24 @@ function hasValue(value) {
 }
 
 /*
- * common/data-view's createDataTableColumns() always sets `data: null` and
- * performs its own row lookup inside render(), which means DataTables' own
- * `defaultContent` mechanism never actually fires in this architecture (it
- * only substitutes for a column's own `data` accessor returning undefined,
- * which never happens here since `data` is always null). The "-" fallback
- * legacy got for free from `defaultContent: "-"` therefore has to be
- * applied explicitly here instead.
+ * Historical applies its missing-value fallback explicitly here instead of
+ * depending on DataTables defaultContent.
  *
- * To match legacy precisely: only a genuinely missing (null/undefined)
- * value becomes "-". A present-but-empty string is left as an empty cell,
- * exactly as legacy's DataTables defaultContent would have left it (that
- * option only ever substitutes for missing data, not for empty strings).
+ * The same formatter is consumed by:
+ *
+ * - desktop DataTables
+ * - mobile cards
+ *
+ * Keeping the fallback here guarantees both presentations treat missing
+ * values identically.
+ *
+ * To match legacy precisely:
+ *
+ * - null / undefined become "-"
+ * - an existing empty string remains an empty string
+ *
+ * DataTables defaultContent historically substituted only genuinely missing
+ * values, not present-but-empty string values.
  */
 
 export function getDisplayValue(value, fallback = DEFAULT_EMPTY_VALUE) {
@@ -115,17 +129,21 @@ export function toNumber(value) {
    ========================================================================== */
 
 /*
- * Preserved exactly from legacy, including two behaviors worth being
- * deliberate about rather than silently "improving":
+ * Preserved from legacy, including two behaviors that are intentionally not
+ * changed in this refactor:
  *
- * - a genuine zero renders identically to a missing value ("-"). This
- *   looks like an unintended bug rather than a business rule -- a zero
- *   strike price or zero open interest is real, distinguishable data --
- *   but it is legacy's actual behavior today, so it is preserved here.
+ * 1. A genuine numeric zero renders as "-".
  *
- * - the locale is hardcoded to "en-US" regardless of the page's actual
- *   locale/direction. Numbers always render with Latin digits and US-style
- *   grouping even on an Arabic page. Also preserved as-is.
+ *    That behavior may be questionable for values such as Open Interest,
+ *    Strike Price, etc., but changing it would alter Historical's established
+ *    presentation semantics.
+ *
+ * 2. Numeric formatting uses "en-US".
+ *
+ *    This means formatted decimal/integer values continue using Latin digits
+ *    and US-style grouping even if the page itself is Arabic.
+ *
+ * These can be revisited independently after the migration is stable.
  */
 
 export function formatNumber(value, decimals) {
@@ -137,6 +155,7 @@ export function formatNumber(value, decimals) {
 
   return number.toLocaleString("en-US", {
     minimumFractionDigits: decimals,
+
     maximumFractionDigits: decimals,
   });
 }
@@ -154,29 +173,18 @@ export function formatInteger(value) {
    ========================================================================== */
 
 /*
- * Legacy (renderDirectionalNumber) used raw inline <svg><use> sprite
- * references for the up/down arrows. Converted here to the mask-based
- * has-icon system already used everywhere else in the design system, using
- * icon-triangle-up / icon-triangle-down -- both already registered in the
- * icon set, no new asset needed.
+ * Legacy renderDirectionalNumber() used inline SVG sprite references for
+ * positive/negative arrows.
  *
- * Legacy uses parseFloat() here specifically (not the comma-stripping
- * toNumber() used elsewhere in this file) -- preserved exactly, since that
- * is legacy's own actual per-function behavior, not an oversight on my
- * part. In practice change/change% values are small decimals unlikely to
- * carry thousands separators, so this rarely matters, but it means a
- * comma-containing value would behave differently here than it would
- * through toNumber().
+ * The migrated implementation uses the design-system mask/icon classes:
  *
- * Zero: legacy shows the plain value with no icon and no color class at
- * all. Here it's wrapped in .price-neutral instead of being left
- * unstyled -- functionally identical (still no icon, same value shown),
- * but now consistently uses one of the three semantic price-state classes
- * (price-up / price-down / price-neutral) for every outcome, matching how
- * that convention is used elsewhere in this design system. This is a
- * small, deliberate visual delta from pixel-exact legacy (zero previously
- * had no distinct color at all) -- confirm this is wanted, or say so and
- * it reverts to plain unstyled text for zero.
+ * - icon-triangle-up
+ * - icon-triangle-down
+ *
+ * Legacy also used parseFloat() specifically for these values rather than
+ * the comma-stripping toNumber() helper. That behavior remains preserved.
+ *
+ * Zero is represented with the design-system .price-neutral class.
  */
 
 export function renderDirectionalNumber(value) {
@@ -191,7 +199,11 @@ export function renderDirectionalNumber(value) {
   }
 
   if (numericValue === 0) {
-    return `<span class="price-neutral">${escapeHtml(value)}</span>`;
+    return `
+      <span class="price-neutral">
+        ${escapeHtml(value)}
+      </span>
+    `.trim();
   }
 
   const isPositive = numericValue > 0;
@@ -201,7 +213,9 @@ export function renderDirectionalNumber(value) {
   const iconClass = isPositive ? "icon-triangle-up" : "icon-triangle-down";
 
   return `
-    <span class="${colorClass} has-icon ${iconClass} icon-sm">
+    <span
+      class="${colorClass} has-icon ${iconClass} icon-sm"
+    >
       ${escapeHtml(value)}
     </span>
   `.trim();
@@ -212,10 +226,12 @@ export function renderDirectionalNumber(value) {
    ========================================================================== */
 
 /*
- * Preserved exactly, including the specific fallback behavior: an empty
- * value becomes "-", but a value that is neither "CALL" nor "PUT" is shown
- * as-is rather than falling back to "-". That asymmetry is legacy's own
- * literal behavior.
+ * Preserved from legacy:
+ *
+ * - CALL -> localized Calls label
+ * - PUT  -> localized Puts label
+ * - empty value -> "-"
+ * - any other populated value -> render the value as supplied
  */
 
 export function renderExerciseType(value, config = {}) {
@@ -237,9 +253,11 @@ export function renderExerciseType(value, config = {}) {
    ========================================================================== */
 
 /*
- * Legacy's instrumentType column ignores the row's actual data entirely
- * and always renders a fixed "SSO" label. Preserved exactly -- the column
- * is not currently a real per-row field despite looking like one.
+ * Legacy's instrumentType column ignores the row's instrumentType value and
+ * always displays the localized SSO label.
+ *
+ * Keep that contract rather than turning the column into a backend-driven
+ * value during the migration.
  */
 
 export function renderStaticLabel(config = {}) {
@@ -249,14 +267,48 @@ export function renderStaticLabel(config = {}) {
 }
 
 /* ==========================================================================
+   Link Safety
+   ========================================================================== */
+
+/*
+ * HTML escaping protects the href attribute's markup context, but it does not
+ * make an unsafe URL scheme safe.
+ *
+ * Example:
+ *
+ *   javascript:...
+ *
+ * is still a valid attribute value after HTML escaping.
+ *
+ * Underlying URLs come from backend row data, so reject explicitly unsafe
+ * executable/content schemes before producing an anchor.
+ *
+ * Relative portal URLs, normal http(s) URLs, and other non-blocked values are
+ * preserved.
+ */
+
+export function isSafeLinkUrl(value) {
+  const url = String(value ?? "").trim();
+
+  if (!url) {
+    return false;
+  }
+
+  return !UNSAFE_URL_PROTOCOL_PATTERN.test(url);
+}
+
+/* ==========================================================================
    Link
    ========================================================================== */
 
 /*
- * Legacy used class="ellipsis", a class not present anywhere in this
- * design system. Swapped for .table-cell-truncate, the design system's
- * equivalent truncation utility -- same functional truncation behavior,
- * new class name.
+ * Legacy used class="ellipsis", which is not part of the current design
+ * system.
+ *
+ * .table-cell-truncate is the design-system equivalent used here.
+ *
+ * If the supplied backend URL is missing or unsafe, preserve the visible
+ * value but render it as plain text rather than as a link.
  */
 
 export function renderLink(value, url) {
@@ -266,11 +318,20 @@ export function renderLink(value, url) {
 
   const safeValue = escapeHtml(value);
 
-  if (!url) {
+  if (!isSafeLinkUrl(url)) {
     return safeValue;
   }
 
-  return `<a class="table-cell-truncate" href="${escapeHtml(url)}">${safeValue}</a>`;
+  const safeUrl = escapeHtml(String(url).trim());
+
+  return `
+    <a
+      class="table-cell-truncate"
+      href="${safeUrl}"
+    >
+      ${safeValue}
+    </a>
+  `.trim();
 }
 
 /* ==========================================================================
@@ -278,16 +339,42 @@ export function renderLink(value, url) {
    ========================================================================== */
 
 function renderLoadingCell() {
-  return `<span class="table-skeleton table-skeleton-md" aria-hidden="true"></span>`;
+  return `
+    <span
+      class="table-skeleton table-skeleton-md"
+      aria-hidden="true"
+    ></span>
+  `.trim();
 }
 
 /* ==========================================================================
    Cell Value Resolution
    ========================================================================== */
 
+/*
+ * Historical columns currently use string field mappings such as:
+ *
+ *   data: "transactionDateStr"
+ *   data: "previousClosePrice"
+ *   data: "strikePrice"
+ *
+ * Keep the value resolver small and page-specific.
+ *
+ * common/data-view/data-table.js now also preserves these mappings in its
+ * actual DataTables column definitions.
+ */
+
 function getCellValue(row, column) {
   if (!column?.data) {
     return undefined;
+  }
+
+  /*
+   * Supporting a function accessor here costs almost nothing and keeps this
+   * renderer aligned with the generic data-table schema contract.
+   */
+  if (typeof column.data === "function") {
+    return column.data(row);
   }
 
   return row?.[column.data];
@@ -298,24 +385,38 @@ function getCellValue(row, column) {
    ========================================================================== */
 
 /*
- * Shared dispatcher consumed by both the desktop table (views/
- * historical.table.js, views/historical.underlying.js) and the mobile card
- * view (views/historical.cards.js), so both presentations render a given
- * column identically.
+ * Shared dispatcher consumed by:
+ *
+ * - views/historical.table.js
+ * - views/historical.underlying.js
+ * - views/historical.cards.js
+ *
+ * One dispatcher means the same Historical column has the same presentation
+ * semantics in desktop and mobile views.
  */
 
 export function renderHistoricalCell({ row, column, type, config = {} }) {
   /*
-   * Non-display types (sort/type/filter): legacy's own render functions
-   * each individually short-circuit with `if (type !== "display") return
-   * data;`, returning the raw underlying value untouched. Preserved
-   * exactly rather than substituting a computed display-safe value.
+   * DataTables requests non-display values for:
+   *
+   * - sorting
+   * - filtering
+   * - type detection
+   *
+   * Legacy render callbacks returned the raw underlying value for those
+   * requests, so preserve that behavior.
    */
 
   if (type !== "display") {
     return getCellValue(row, column);
   }
 
+  /*
+   * Shared data-table loading rows carry this marker.
+   *
+   * Resolve it before normal column access so every Historical column gets
+   * the same skeleton treatment.
+   */
   if (row?.__dataViewState === "loading") {
     return renderLoadingCell();
   }
@@ -342,6 +443,7 @@ export function renderHistoricalCell({ row, column, type, config = {} }) {
       return formatInteger(value);
 
     case "text":
+
     default:
       return escapeHtml(getDisplayValue(value));
   }
