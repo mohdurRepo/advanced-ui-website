@@ -1,1847 +1,900 @@
 /* ==========================================================================
-   Data Table
+   Historical Reports Columns
    ========================================================================== */
 
 /*
- * Generic DataTables lifecycle for reusable data-view modules.
+ * Column and visibility definitions for Historical Reports.
  *
  * Responsibilities:
  *
- * - create / destroy DataTables instances
- * - support different column schemas / views
- * - render schema-driven headers
- * - support grouped headers
- * - manage row data
- * - manage loading / empty / error states
- * - manage column-group visibility
- * - expose configurable DataTables capabilities
- * - coordinate layout refreshes
- * - surface server-side loading, data, and error lifecycle through
- *   DataTables' own ajax events, for tables where DataTables itself owns
- *   the request rather than a page-level data source
- *
- * Supported capabilities include:
- *
- * - paging
- * - searching
- * - ordering
- * - info
- * - length selector
- * - horizontal scrolling
- * - FixedHeader
- * - FixedColumns
- * - RowGroup
- * - server-side configuration
+ * - define column order for Performance, Unadjusted, and Underlying tables
+ * - define per-market/sector visible-column sets, matching legacy exactly
+ * - define market/sector-dependent header label overrides
+ * - define backend-field mappings
+ * - define rendering-type metadata
+ * - expose column lookup helpers
  *
  * This module intentionally has no:
  *
- * - AJAX code
- * - filter UI code
- * - mobile card rendering
- * - page-specific business logic
- * - responsive breakpoint logic
+ * - DOM queries
+ * - DataTables lifecycle
+ * - request logic
+ * - response normalization
+ * - cell rendering
+ * - card markup
+ *
+ * Legacy reference: historical.columns.js + historical.table.profiles.js
+ * (getPerformanceHeaders / getUnadjustedHeaders / resolve*VisibleIndexes).
+ *
+ * Legacy drove visibility with positional index arrays into a fixed column
+ * array (e.g. MF -> [0, 5, 10, 12]). That is fragile: reordering or adding a
+ * column silently breaks every market's array. This module instead assigns
+ * each column a stable, named `visibilityGroup` key and resolves visibility
+ * by name, matching the pattern already established in
+ * market-watch.columns.js. The mapping below was verified column-for-column
+ * against legacy's index arrays for every market/sector/entity branch before
+ * being written.
  */
 
 /* ==========================================================================
-   Constants
+   Special Indices
    ========================================================================== */
 
-const STATES = Object.freeze({
-  loading: "loading",
-  empty: "empty",
-  error: "error",
-});
+/*
+ * Exported so historical.rules.js can import this rather than redefining
+ * its own copy, as legacy did (the same list was duplicated verbatim in
+ * both historical.rules.js and historical.columns.js).
+ */
+
+export const HISTORICAL_SPECIAL_INDICES = Object.freeze([
+  "TLCIC",
+  "TMCIC",
+  "TSCIC",
+  "TIPOC",
+  "TT50CI",
+]);
+
+const SPECIAL_INDICES_SET = new Set(HISTORICAL_SPECIAL_INDICES);
 
 /* ==========================================================================
-   Generic Helpers
+   Column Order
    ========================================================================== */
 
-function isObject(value) {
-  return value !== null && typeof value === "object" && !Array.isArray(value);
+/*
+ * Fixed base order.
+ *
+ * Visibility only turns columns on/off by name; it never reorders them,
+ * matching legacy's behavior exactly.
+ */
+
+export const HISTORICAL_PERFORMANCE_COLUMN_ORDER = Object.freeze([
+  "date",
+  "open",
+  "high",
+  "low",
+  "close",
+  "change",
+  "changePercent",
+  "volumeTraded",
+  "turnOver",
+  "noOfTrades",
+  "nav",
+  "lastYield",
+  "aum",
+]);
+
+export const HISTORICAL_UNADJUSTED_COLUMN_ORDER = Object.freeze([
+  "date",
+  "open",
+  "high",
+  "low",
+  "close",
+  "change",
+  "changePercent",
+  "volumeTraded",
+  "turnOver",
+  "noOfTrades",
+]);
+
+/* ==========================================================================
+   Helpers
+   ========================================================================== */
+
+function getLabels(config = {}) {
+  return config?.labels?.table ?? {};
 }
 
-function unique(values = []) {
+function column(definition = {}) {
+  return {
+    mobile: true,
+
+    ...definition,
+  };
+}
+
+/* ==========================================================================
+   Header Label Overrides
+   ========================================================================== */
+
+/*
+ * Performance headers are market/sector-dependent in legacy
+ * (getPerformanceHeaders(filters)).
+ *
+ * Unadjusted headers are always static
+ * (getUnadjustedHeaders() takes no filters parameter at all).
+ *
+ * That asymmetry is intentional and preserved.
+ */
+
+function resolveDateLabel(labels, filters) {
+  if (filters.market === "MF") {
+    return labels.mfDate || labels.date || "Date";
+  }
+
+  return labels.date || "Date";
+}
+
+function resolveChangeLabel(labels, filters) {
+  if (filters.market === "DERIVATIVE") {
+    return labels.changePoints || "Change Points";
+  }
+
+  return labels.change || "Change";
+}
+
+function resolveVolumeTradedLabel(labels, filters) {
+  if (filters.market === "SUKUK") {
+    return labels.nominalValueTraded || "Nominal Value Traded";
+  }
+
+  return labels.volumeTraded || "Volume Traded";
+}
+
+function resolveNoOfTradesLabel(labels, filters) {
+  if (filters.market === "DERIVATIVE") {
+    /*
+     * Preserved exactly from legacy.
+     *
+     * For Derivatives this column's label becomes "Daily Settlement Price"
+     * while the backend mapping remains `noOfTrades`.
+     *
+     * The legacy API reuses the same backend field with different semantic
+     * meaning depending on the selected market/profile.
+     */
+    return labels.dailySettPrice || "Daily Settlement Price";
+  }
+
+  return labels.noOfTrades || "No. of Trades";
+}
+
+function resolveNavLabel(labels, filters) {
+  if (filters.market === "MF") {
+    return labels.mfNav || "NAV";
+  }
+
+  if (
+    filters.market === "DERIVATIVE" &&
+    (filters.sector === "S" || filters.sector === "I")
+  ) {
+    return labels.openInterest || "Open Interest";
+  }
+
+  return labels.nav || "NAV";
+}
+
+function resolveAumLabel(labels, filters) {
+  if (filters.market === "MF") {
+    /*
+     * Preserved from legacy.
+     *
+     * MF historically uses the generic NAV label fallback for the AUM
+     * position rather than a dedicated AUM message fallback.
+     */
+    return labels.nav || "AUM";
+  }
+
+  return labels.aum || "AUM";
+}
+
+/* ==========================================================================
+   Performance Columns
+   ========================================================================== */
+
+/*
+ * Legacy Performance values are largely server-rendered/pass-through values.
+ *
+ * Only Change and Change % use directional presentation.
+ *
+ * `type: "text"` therefore means:
+ *
+ * - use the backend value as supplied;
+ * - escape it for display;
+ * - use Historical's normal empty-value fallback.
+ */
+
+export function getHistoricalPerformanceColumns(config = {}, filters = {}) {
+  const labels = getLabels(config);
+
   return [
-    ...new Set(
-      values.filter((value) => typeof value === "string" && value.trim()),
-    ),
+    column({
+      key: "date",
+
+      visibilityGroup: "date",
+
+      label: resolveDateLabel(labels, filters),
+
+      data: "transactionDateStr",
+
+      type: "text",
+
+      className: "",
+    }),
+
+    column({
+      key: "open",
+
+      visibilityGroup: "open",
+
+      label: labels.open || "Open",
+
+      data: "todaysOpen",
+
+      type: "text",
+
+      className: "text-center",
+    }),
+
+    column({
+      key: "high",
+
+      visibilityGroup: "high",
+
+      label: labels.high || "High",
+
+      data: "highPrice",
+
+      type: "text",
+
+      className: "text-center",
+    }),
+
+    column({
+      key: "low",
+
+      visibilityGroup: "low",
+
+      label: labels.low || "Low",
+
+      data: "lowPrice",
+
+      type: "text",
+
+      className: "text-center",
+    }),
+
+    column({
+      key: "close",
+
+      visibilityGroup: "close",
+
+      label: labels.close || "Close",
+
+      data: "previousClosePrice",
+
+      type: "text",
+
+      className: "text-center",
+    }),
+
+    column({
+      key: "change",
+
+      visibilityGroup: "change",
+
+      label: resolveChangeLabel(labels, filters),
+
+      data: "change",
+
+      type: "directional-number",
+
+      className: "text-center",
+    }),
+
+    column({
+      key: "change-percent",
+
+      visibilityGroup: "changePercent",
+
+      label: labels.changePercent || "% Change",
+
+      data: "changePercent",
+
+      type: "directional-number",
+
+      className: "text-center",
+    }),
+
+    column({
+      key: "volume-traded",
+
+      visibilityGroup: "volumeTraded",
+
+      label: resolveVolumeTradedLabel(labels, filters),
+
+      data: "volumeTraded",
+
+      type: "text",
+
+      className: "text-center",
+    }),
+
+    column({
+      key: "turn-over",
+
+      visibilityGroup: "turnOver",
+
+      label: labels.turnOver || "Turnover",
+
+      data: "turnOver",
+
+      type: "text",
+
+      className: "text-center",
+    }),
+
+    column({
+      key: "number-of-trades",
+
+      visibilityGroup: "noOfTrades",
+
+      label: resolveNoOfTradesLabel(labels, filters),
+
+      data: "noOfTrades",
+
+      type: "text",
+
+      className: "text-center",
+    }),
+
+    column({
+      key: "nav",
+
+      visibilityGroup: "nav",
+
+      label: resolveNavLabel(labels, filters),
+
+      data: "nav",
+
+      type: "text",
+
+      className: "text-center",
+    }),
+
+    column({
+      key: "last-yield",
+
+      visibilityGroup: "lastYield",
+
+      label: labels.closeYield || "Last Yield",
+
+      data: "lastYield",
+
+      type: "text",
+
+      className: "text-center",
+    }),
+
+    column({
+      key: "aum",
+
+      visibilityGroup: "aum",
+
+      label: resolveAumLabel(labels, filters),
+
+      data: "aum",
+
+      type: "text",
+
+      className: "text-center",
+    }),
   ];
 }
 
-function arraysEqual(first = [], second = []) {
-  return (
-    first.length === second.length &&
-    first.every((value, index) => value === second[index])
-  );
-}
-
-function normalizeView(value) {
-  return String(value ?? "default");
-}
-
-function getDataTableConstructor() {
-  if (typeof window.DataTable !== "function") {
-    throw new Error("Data table requires DataTables.");
-  }
-
-  return window.DataTable;
-}
-
 /* ==========================================================================
-   Table Resolution
-   ========================================================================== */
-
-function resolveTable(root, table) {
-  if (table instanceof HTMLTableElement) {
-    return table;
-  }
-
-  if (typeof table === "string") {
-    return root.querySelector(table);
-  }
-
-  return null;
-}
-
-/* ==========================================================================
-   Column Helpers
-   ========================================================================== */
-
-function getColumnData(row, column) {
-  if (typeof column.data === "function") {
-    return column.data(row);
-  }
-
-  if (typeof column.data === "string") {
-    return row?.[column.data];
-  }
-
-  return row;
-}
-
-function getColumnLabel(column) {
-  return String(column.label ?? column.title ?? column.key ?? "");
-}
-
-function isColumnVisible(column, visibleGroups) {
-  if (!column.visibilityGroup) {
-    return true;
-  }
-
-  return visibleGroups.includes(column.visibilityGroup);
-}
-
-/*
- * Returns every visibility group declared by a schema.
- *
- * When a caller omits `visibleGroups`, the schema itself is the default
- * source of truth and all of its declared groups are visible.
- *
- * An explicitly supplied [] still means "hide all grouped columns", which is
- * important for views that genuinely use a column-visibility controller.
- */
-function getSchemaVisibilityGroups(columns = []) {
-  return unique(columns.map((column) => column?.visibilityGroup || ""));
-}
-
-/* ==========================================================================
-   Cell Rendering
+   Performance Visible Groups
    ========================================================================== */
 
 /*
- * Shared rendering priority used by both:
+ * Verified against legacy's resolvePerformanceVisibleIndexes(filters) for:
  *
- * - real DataTables column render() callbacks
- * - manually-rendered server-side loading rows
- *
- * Keeping one function means a page's renderCell() sees identical row shapes
- * (including the __dataViewState loading marker) whether the placeholder
- * rows came from the client-side loading path or the server-side one.
+ * - Mutual Funds
+ * - ETFs
+ * - Sukuk
+ * - normal Indices
+ * - special Indices
+ * - index entity type I
+ * - Derivatives base
+ * - Derivatives S / I
+ * - Derivatives OS
+ * - Main / NomuC / REITs / CEFs / TR / default
  */
 
-function renderCellValue({ row, column, type, meta, context, renderCell }) {
-  if (typeof column.render === "function") {
-    return column.render({
-      row,
-      column,
-      type,
-      meta,
-      context,
-    });
-  }
+export function getHistoricalPerformanceAvailableGroups(filters = {}) {
+  const market = filters.market;
 
-  if (typeof renderCell === "function") {
-    return renderCell({
-      row,
-      column,
-      type,
-      meta,
-      context,
-    });
-  }
+  const sector = filters.sector;
 
-  const value = getColumnData(row, column);
+  const entity = filters.entity || "";
 
-  return value ?? "";
-}
+  switch (market) {
+    case "MF":
+      return ["date", "change", "nav", "aum"];
 
-/* ==========================================================================
-   Column Group Widths
-   ========================================================================== */
+    case "ETFS":
+      return [
+        "date",
+        "open",
+        "high",
+        "low",
+        "close",
+        "change",
+        "changePercent",
+        "volumeTraded",
+        "turnOver",
+        "noOfTrades",
+        "nav",
+      ];
 
-/*
- * Produces one <col> per column, carrying the schema's declared width when
- * present.
- *
- * table-layout: fixed only reads widths from a table's first row (or a
- * <colgroup>). Grouped headers put most per-column widths on the second
- * header row, which fixed layout would otherwise ignore. A <colgroup> is
- * the one width source every browser applies consistently regardless of
- * header row structure, so it remains the authoritative width source even
- * as real row content replaces loading placeholders.
- */
+    case "SUKUK":
+      return [
+        "date",
+        "open",
+        "high",
+        "low",
+        "close",
+        "change",
+        "changePercent",
+        "volumeTraded",
+        "turnOver",
+        "noOfTrades",
+        "lastYield",
+      ];
 
-function buildColGroup(columns) {
-  const colgroup = document.createElement("colgroup");
+    case "INDICES": {
+      const entityParts = entity.split(":");
 
-  columns.forEach((column) => {
-    const col = document.createElement("col");
+      const indexCode = entityParts[1] || "";
 
-    if (column.width) {
-      col.style.width = column.width;
-    }
+      const indexType = entityParts[2] || "";
 
-    colgroup.append(col);
-  });
-
-  return colgroup;
-}
-
-/* ==========================================================================
-   Header Creation
-   ========================================================================== */
-
-function createHeaderCell({
-  label,
-  className = "",
-  scope = "col",
-  rowSpan = 0,
-  colSpan = 0,
-  width = "",
-  visibilityGroup = "",
-  headerGroup = "",
-}) {
-  const cell = document.createElement("th");
-
-  cell.scope = scope;
-
-  if (className) {
-    cell.className = className;
-  }
-
-  if (rowSpan) {
-    cell.rowSpan = rowSpan;
-  }
-
-  if (colSpan) {
-    cell.colSpan = colSpan;
-  }
-
-  if (visibilityGroup) {
-    cell.dataset.dataColumnGroup = visibilityGroup;
-  }
-
-  if (headerGroup) {
-    cell.dataset.dataHeaderGroup = headerGroup;
-  }
-
-  if (width) {
-    cell.style.width = width;
-
-    cell.style.minWidth = width;
-
-    cell.style.maxWidth = width;
-  }
-
-  const labelElement = document.createElement("span");
-
-  labelElement.className = "table-column-label";
-
-  labelElement.textContent = label;
-
-  cell.append(labelElement);
-
-  return cell;
-}
-
-function replaceTableStructure(table, thead, colgroup) {
-  const caption = table.caption;
-
-  const tbody = document.createElement("tbody");
-
-  table.replaceChildren(...[caption, colgroup, thead, tbody].filter(Boolean));
-}
-
-function normalizeGroups(groups = []) {
-  return groups
-    .map((group) => {
-      if (typeof group === "string") {
-        return {
-          id: group,
-
-          label: group,
-        };
+      if (indexType === "I") {
+        return [];
       }
 
-      if (isObject(group) && group.id) {
-        return {
-          ...group,
-
-          id: String(group.id),
-        };
+      if (SPECIAL_INDICES_SET.has(indexCode)) {
+        return [
+          "date",
+          "open",
+          "high",
+          "low",
+          "close",
+          "turnOver",
+          "noOfTrades",
+        ];
       }
 
-      return null;
-    })
-    .filter(Boolean);
-}
+      return [
+        "date",
+        "open",
+        "high",
+        "low",
+        "close",
+        "volumeTraded",
+        "turnOver",
+        "noOfTrades",
+      ];
+    }
 
-function buildSchemaHeader(table, columns, groups) {
-  const colgroup = buildColGroup(columns);
+    case "DERIVATIVE": {
+      const groups = [
+        "date",
+        "open",
+        "high",
+        "low",
+        "close",
+        "change",
+        "changePercent",
+        "volumeTraded",
+        "noOfTrades",
+      ];
 
-  const thead = document.createElement("thead");
+      if (sector === "S" || sector === "I") {
+        groups.push("turnOver", "nav");
+      }
 
-  const hasGroupedHeaders = columns.some((column) =>
-    Boolean(column.headerGroup),
-  );
+      return groups;
+    }
 
-  /* ------------------------------------------------------------------------
-     Single Header Row
-     ------------------------------------------------------------------------ */
-
-  if (!hasGroupedHeaders) {
-    const row = document.createElement("tr");
-
-    columns.forEach((column) => {
-      row.append(
-        createHeaderCell({
-          label: getColumnLabel(column),
-
-          className: column.headerClassName || column.className || "",
-
-          width: column.width || "",
-
-          visibilityGroup: column.visibilityGroup || "",
-        }),
-      );
-    });
-
-    thead.append(row);
-
-    replaceTableStructure(table, thead, colgroup);
-
-    return;
+    case "MAIN":
+    case "NOMUC":
+    case "REITS":
+    case "CEFS":
+    case "TR":
+    default:
+      return [
+        "date",
+        "open",
+        "high",
+        "low",
+        "close",
+        "change",
+        "changePercent",
+        "volumeTraded",
+        "turnOver",
+        "noOfTrades",
+      ];
   }
-
-  /* ------------------------------------------------------------------------
-     Grouped Header
-     ------------------------------------------------------------------------ */
-
-  const topRow = document.createElement("tr");
-
-  const bottomRow = document.createElement("tr");
-
-  /*
-   * Ungrouped columns span both rows.
-   */
-
-  columns
-    .filter((column) => !column.headerGroup)
-    .forEach((column) => {
-      topRow.append(
-        createHeaderCell({
-          label: getColumnLabel(column),
-
-          className: column.headerClassName || column.className || "",
-
-          width: column.width || "",
-
-          visibilityGroup: column.visibilityGroup || "",
-
-          rowSpan: 2,
-        }),
-      );
-    });
-
-  /*
-   * Header groups.
-   */
-
-  groups.forEach((group) => {
-    const groupColumns = columns.filter(
-      (column) => column.headerGroup === group.id,
-    );
-
-    if (!groupColumns.length) {
-      return;
-    }
-
-    topRow.append(
-      createHeaderCell({
-        label: group.label || group.id,
-
-        className: group.className || "table-group-heading",
-
-        scope: "colgroup",
-
-        colSpan: groupColumns.length,
-
-        headerGroup: group.id,
-      }),
-    );
-
-    groupColumns.forEach((column) => {
-      bottomRow.append(
-        createHeaderCell({
-          label: getColumnLabel(column),
-
-          className: column.headerClassName || column.className || "",
-
-          width: column.width || "",
-
-          visibilityGroup: column.visibilityGroup || "",
-        }),
-      );
-    });
-  });
-
-  thead.append(topRow, bottomRow);
-
-  replaceTableStructure(table, thead, colgroup);
 }
-
 /* ==========================================================================
-   DataTables Column Builder
+   Unadjusted Columns
    ========================================================================== */
 
-function createDataTableColumns({
-  columns,
-  visibleGroups,
-  renderCell,
-  context,
-}) {
-  return columns.map((column) => {
-    const definition = {
-      /*
-       * Preserve the schema's DataTables data mapping.
-       *
-       * Besides normal client-side access, this is important in server-side
-       * mode because DataTables serializes it into columns[i][data].
-       *
-       * A schema without an explicit mapping intentionally falls back to
-       * `data: null`, which gives renderers the complete row object.
-       */
-      data: column.data ?? null,
+/*
+ * No market/sector-dependent label overrides.
+ *
+ * This mirrors legacy's getUnadjustedHeaders(), which takes no filters
+ * parameter at all.
+ */
 
-      name: column.name ?? column.key ?? "",
+export function getHistoricalUnadjustedColumns(config = {}) {
+  const labels = getLabels(config);
 
-      className: column.className || "",
+  return [
+    column({
+      key: "date",
 
-      orderable: column.orderable !== false,
+      visibilityGroup: "date",
 
-      searchable: column.searchable !== false,
+      label: labels.date || "Date",
 
-      visible: isColumnVisible(column, visibleGroups),
+      data: "transactionDateStr",
 
-      render(_data, type, row, meta) {
-        /*
-         * Render from the complete row rather than `_data`.
-         *
-         * Page renderers often need sibling properties such as URLs,
-         * identifiers, flags, or supporting metadata in addition to the
-         * mapped column value.
-         */
-        return renderCellValue({
-          row,
-          column,
-          type,
-          meta,
-          context,
-          renderCell,
-        });
-      },
-    };
+      type: "text",
 
-    if (column.width) {
-      definition.width = column.width;
-    }
-
-    /*
-     * DataTables resolves columns.data before the page's render callback.
-     *
-     * For object-backed rows, a legitimate sparse payload can therefore
-     * trigger:
-     *
-     *   Requested unknown parameter "..."
-     *
-     * before renderCell() has a chance to apply the page's normal display
-     * fallback.
-     *
-     * Empty string is deliberately neutral:
-     *
-     * - it suppresses DataTables' missing-property warning;
-     * - it does not invent a page-level display value;
-     * - renderCell() still receives the complete original row;
-     * - schema-specific defaultContent can still override it.
-     */
-    definition.defaultContent =
-      column.defaultContent !== undefined ? column.defaultContent : "";
-
-    return definition;
-  });
-}
-
-/* ==========================================================================
-   Default Loading Rows
-   ========================================================================== */
-
-function createDefaultLoadingRows(count = 6) {
-  return Array.from(
-    {
-      length: count,
-    },
-
-    (_, index) => ({
-      __dataViewState: STATES.loading,
-
-      __dataViewRow: index,
+      className: "",
     }),
-  );
+
+    column({
+      key: "open",
+
+      visibilityGroup: "open",
+
+      label: labels.open || "Open",
+
+      data: "todaysOpen",
+
+      type: "text",
+
+      className: "text-center",
+    }),
+
+    column({
+      key: "high",
+
+      visibilityGroup: "high",
+
+      label: labels.high || "High",
+
+      data: "highPrice",
+
+      type: "text",
+
+      className: "text-center",
+    }),
+
+    column({
+      key: "low",
+
+      visibilityGroup: "low",
+
+      label: labels.low || "Low",
+
+      data: "lowPrice",
+
+      type: "text",
+
+      className: "text-center",
+    }),
+
+    column({
+      key: "close",
+
+      visibilityGroup: "close",
+
+      label: labels.close || "Close",
+
+      data: "previousClosePrice",
+
+      type: "text",
+
+      className: "text-center",
+    }),
+
+    column({
+      key: "change",
+
+      visibilityGroup: "change",
+
+      label: labels.change || "Change",
+
+      data: "change",
+
+      type: "directional-number",
+
+      className: "text-center",
+    }),
+
+    column({
+      key: "change-percent",
+
+      visibilityGroup: "changePercent",
+
+      label: labels.changePercent || "% Change",
+
+      data: "changePercent",
+
+      type: "directional-number",
+
+      className: "text-center",
+    }),
+
+    column({
+      key: "volume-traded",
+
+      visibilityGroup: "volumeTraded",
+
+      label: labels.volumeTraded || "Volume Traded",
+
+      data: "volumeTraded",
+
+      type: "text",
+
+      className: "text-center",
+    }),
+
+    column({
+      key: "turn-over",
+
+      visibilityGroup: "turnOver",
+
+      label: labels.turnOver || "Turnover",
+
+      data: "turnOver",
+
+      type: "text",
+
+      className: "text-center",
+    }),
+
+    column({
+      key: "number-of-trades",
+
+      visibilityGroup: "noOfTrades",
+
+      label: labels.noOfTrades || "No. of Trades",
+
+      data: "noOfTrades",
+
+      type: "text",
+
+      className: "text-center",
+    }),
+  ];
 }
 
 /* ==========================================================================
-   Server-Side Ajax
+   Unadjusted Visible Groups
    ========================================================================== */
 
 /*
- * Wraps a caller-supplied `ajax` object so this module can observe the raw
- * response, without changing what DataTables itself receives as row data.
+ * Verified against legacy's resolveUnadjustedVisibleIndexes(filters):
  *
- * Only object-shaped `ajax` configurations are wrapped.
- *
- * A string URL or function-form ajax configuration is intentionally passed
- * through untouched. Function-form ajax is used by integrations such as
- * Historical Reports where the page must normalize the response envelope
- * before DataTables receives it.
- *
- * DataTables' own default dataSrc is "data" when no explicit dataSrc is
- * supplied, so that behavior is preserved here.
+ * - INDICES excludes Volume Traded
+ * - every other market shows all ten columns
  */
 
-function extractRowsFromResponse(response, dataSrc) {
-  if (typeof dataSrc === "function") {
-    return dataSrc(response);
+export function getHistoricalUnadjustedAvailableGroups(filters = {}) {
+  if (filters.market === "INDICES") {
+    return [
+      "date",
+      "open",
+      "high",
+      "low",
+      "close",
+      "change",
+      "changePercent",
+      "turnOver",
+      "noOfTrades",
+    ];
   }
 
-  const key = typeof dataSrc === "string" ? dataSrc : "data";
-
-  const rows = response?.[key];
-
-  return Array.isArray(rows) ? rows : [];
-}
-
-function createServerSideAjax(userAjax, { onServerSideData, getContext }) {
-  if (!isObject(userAjax)) {
-    return userAjax;
-  }
-
-  const userDataSrc = userAjax.dataSrc;
-
-  return {
-    ...userAjax,
-
-    dataSrc(response) {
-      const rows = extractRowsFromResponse(response, userDataSrc);
-
-      onServerSideData?.(rows, response, getContext());
-
-      return rows;
-    },
-  };
+  return [...HISTORICAL_UNADJUSTED_COLUMN_ORDER];
 }
 
 /* ==========================================================================
-   Options
+   Underlying (Single Stock Options) Columns
    ========================================================================== */
 
-function createDefaultTableOptions() {
-  return {
-    autoWidth: false,
+/*
+ * Legacy applies no visibility resolver to this table.
+ *
+ * All eleven columns are always shown.
+ *
+ * No visibilityGroup is therefore assigned to these columns. The shared
+ * data-table layer treats a column without a visibilityGroup as permanently
+ * visible.
+ *
+ * Numeric behavior also follows legacy:
+ *
+ * - strikePrice:        2 decimals
+ * - referencePrice:     2 decimals
+ * - lastTraddedPrice:   2 decimals
+ * - volume:             integer
+ * - openInterest:       2 decimals
+ * - underlyingPrice:    2 decimals
+ *
+ * `lastTraddedPrice` is intentionally preserved exactly as supplied by the
+ * legacy backend contract.
+ */
 
-    paging: false,
+export function getHistoricalUnderlyingColumns(config = {}) {
+  const labels = getLabels(config)?.underlying ?? {};
 
-    searching: false,
+  return [
+    column({
+      key: "instrument-type",
 
-    ordering: false,
+      label: labels.instrumentType || "Instrument Type",
 
-    info: false,
+      data: "instrumentType",
 
-    lengthChange: false,
+      type: "static-label",
 
-    serverSide: false,
+      className: "text-center",
 
-    processing: false,
+      mobile: false,
+    }),
 
-    scrollX: true,
+    column({
+      key: "symbol",
 
-    scrollCollapse: true,
+      label: labels.symbol || "Symbol",
 
-    fixedHeader: false,
+      data: "contractSymbol",
 
-    fixedColumns: false,
+      urlData: "contractUrl",
 
-    rowGroup: false,
+      type: "link",
 
-    deferRender: true,
+      className: "text-center",
+    }),
 
-    layout: {
-      topStart: null,
+    column({
+      key: "underlying",
 
-      topEnd: null,
+      label: labels.underlying || "Underlying",
 
-      bottomStart: null,
+      data: "underlying",
 
-      bottomEnd: null,
-    },
-  };
+      urlData: "companyUrl",
+
+      type: "link",
+
+      className: "text-center",
+    }),
+
+    column({
+      key: "expiry-date",
+
+      label: labels.expiryDate || "Expiry Date",
+
+      data: "expiryDate",
+
+      type: "text",
+
+      className: "text-center",
+    }),
+
+    column({
+      key: "type",
+
+      label: labels.type || "Type",
+
+      data: "exerciseType",
+
+      type: "exercise-type",
+
+      className: "text-center",
+    }),
+
+    column({
+      key: "strike-price",
+
+      label: labels.strikePrice || "Strike Price",
+
+      data: "strikePrice",
+
+      type: "decimal",
+
+      className: "table-cell-numeric",
+    }),
+
+    column({
+      key: "reference-price",
+
+      label: labels.referencePrice || "Reference Price",
+
+      data: "referencePrice",
+
+      type: "decimal",
+
+      className: "table-cell-numeric",
+    }),
+
+    column({
+      key: "last-traded-price",
+
+      label: labels.lastTradedPrice || "Last Traded Price",
+
+      data: "lastTraddedPrice",
+
+      type: "decimal",
+
+      className: "table-cell-numeric",
+    }),
+
+    column({
+      key: "volume",
+
+      label: labels.volume || "Volume",
+
+      data: "volume",
+
+      type: "integer",
+
+      className: "table-cell-numeric",
+    }),
+
+    column({
+      key: "open-interest",
+
+      label: labels.openInterest || "Open Interest",
+
+      data: "openInterest",
+
+      type: "decimal",
+
+      className: "table-cell-numeric",
+    }),
+
+    column({
+      key: "underlying-price",
+
+      label: labels.underlyingPrice || "Underlying Price",
+
+      data: "underlyingPrice",
+
+      type: "decimal",
+
+      className: "table-cell-numeric",
+    }),
+  ];
 }
 
-function normalizeFixedColumns(value) {
-  if (value === false || value === 0 || value == null) {
-    return false;
-  }
-
-  if (typeof value === "number") {
-    return {
-      start: value,
-    };
-  }
-
-  if (isObject(value)) {
-    return {
-      ...value,
-    };
-  }
-
-  return false;
-}
-
-function normalizeFixedHeader(value) {
-  if (value === false || value == null) {
-    return false;
-  }
-
-  if (value === true) {
-    return {
-      header: true,
-
-      footer: false,
-    };
-  }
-
-  if (isObject(value)) {
-    return {
-      ...value,
-    };
-  }
-
-  return false;
-}
 /* ==========================================================================
-   Public API
+   Column Lookup
    ========================================================================== */
 
-export function createDataTable(options = {}) {
-  if (!isObject(options)) {
-    throw new TypeError("createDataTable requires an options object.");
-  }
-
-  const root = options.root || document;
-
-  const table = resolveTable(root, options.table);
-
-  if (!table) {
-    throw new Error("Data table requires a valid table element or selector.");
-  }
-
-  const DataTable = getDataTableConstructor();
-
-  if (typeof options.getColumns !== "function") {
-    throw new TypeError("Data table requires getColumns().");
-  }
-
-  const getColumns = options.getColumns;
-
-  const getGroups =
-    typeof options.getColumnGroups === "function"
-      ? options.getColumnGroups
-      : () => [];
-
-  const renderCell =
-    typeof options.renderCell === "function" ? options.renderCell : null;
-
-  const renderHeader =
-    typeof options.renderHeader === "function" ? options.renderHeader : null;
-
-  const createLoadingRows =
-    typeof options.createLoadingRows === "function"
-      ? options.createLoadingRows
-      : createDefaultLoadingRows;
-
-  const tableOptions = {
-    ...createDefaultTableOptions(),
-
-    ...(options.tableOptions || {}),
-  };
-
-  tableOptions.fixedHeader = normalizeFixedHeader(tableOptions.fixedHeader);
-
-  tableOptions.fixedColumns = normalizeFixedColumns(tableOptions.fixedColumns);
-
-  const headerMode = options.headerMode === "existing" ? "existing" : "schema";
-
-  let api = null;
-
-  let currentView = normalizeView(options.initialView);
-
-  /*
-   * Omitted visibleGroups:
-   *   all groups declared by the current schema are visible.
-   *
-   * Explicit visibleGroups (including []):
-   *   the caller owns visibility.
-   *
-   * Remember that distinction so a schema-driven table can resolve the next
-   * schema's groups automatically when its view changes.
-   */
-  let usesSchemaVisibility = !Array.isArray(options.visibleGroups);
-
-  let visibleGroups = usesSchemaVisibility
-    ? getSchemaVisibilityGroups(getCurrentColumnsForView(currentView))
-    : unique(options.visibleGroups);
-
-  let rows = [];
-
-  let renderState = {
-    type: STATES.loading,
-
-    message: "",
-  };
-
-  let layoutFrame = null;
-
-  let destroyed = false;
-
-  /* ========================================================================
-     Current Schema
-     ======================================================================== */
-
-  function getCurrentColumnsForView(view) {
-    const result = getColumns(view);
-
-    return Array.isArray(result) ? result : [];
-  }
-
-  function getCurrentColumns() {
-    return getCurrentColumnsForView(currentView);
-  }
-
-  function getVisibleCurrentColumns() {
-    return getCurrentColumns().filter((column) =>
-      isColumnVisible(column, visibleGroups),
-    );
-  }
-
-  function getCurrentGroups() {
-    return normalizeGroups(getGroups(currentView));
-  }
-
-  function getContext() {
-    return {
-      view: currentView,
-
-      visibleGroups: [...visibleGroups],
-
-      table,
-
-      api,
-    };
-  }
-
-  /* ========================================================================
-     Layout Refresh
-     ======================================================================== */
-
-  function scheduleLayoutRefresh() {
-    if (destroyed || layoutFrame !== null) {
-      return;
-    }
-
-    layoutFrame = window.requestAnimationFrame(() => {
-      layoutFrame = null;
-
-      if (destroyed || !api) {
-        return;
-      }
-
-      /*
-       * Do not dispatch a synthetic global resize event here.
-       *
-       * DataTables already owns its column-sizing lifecycle.
-       *
-       * Repeatedly firing resize after every draw can cause scrollX /
-       * FixedColumns layouts to recalculate from an already-adjusted table.
-       * This can make fixed-column widths drift after repeated data reloads.
-       *
-       * A caller that needs page-specific post-layout work can use
-       * onLayoutRefresh.
-       */
-
-      options.onLayoutRefresh?.(api, getContext());
-    });
-  }
-
-  /* ========================================================================
-     Header Visibility
-     ======================================================================== */
-
-  function updateHeaderVisibility() {
-    if (!api || !table.tHead || headerMode !== "schema") {
-      return;
-    }
-
-    const columns = getCurrentColumns();
-
-    /* ----------------------------------------------------------------------
-       Group headings
-       ---------------------------------------------------------------------- */
-
-    table.tHead
-      .querySelectorAll("[data-data-header-group]")
-      .forEach((heading) => {
-        const groupId = heading.dataset.dataHeaderGroup;
-
-        const visibleCount = columns.filter(
-          (column, index) =>
-            column.headerGroup === groupId && api.column(index).visible(),
-        ).length;
-
-        heading.hidden = visibleCount === 0;
-
-        if (visibleCount > 0) {
-          heading.colSpan = visibleCount;
-        }
-      });
-
-    /* ----------------------------------------------------------------------
-       Ungrouped visibility-group cells
-       ---------------------------------------------------------------------- */
-
-    table.tHead.querySelectorAll("[data-data-column-group]").forEach((cell) => {
-      const groupId = cell.dataset.dataColumnGroup;
-
-      if (!groupId) {
-        return;
-      }
-
-      cell.hidden = !visibleGroups.includes(groupId);
-    });
-  }
-
-  /* ========================================================================
-     Empty State
-     ======================================================================== */
-
-  function updateEmptyState() {
-    const emptyCell = table.tBodies[0]?.querySelector("td.dt-empty");
-
-    if (!emptyCell) {
-      return;
-    }
-
-    emptyCell.classList.add(options.emptyClass || "table-empty");
-
-    emptyCell.textContent =
-      renderState?.message ||
-      tableOptions.language?.emptyTable ||
-      options.emptyMessage ||
-      "No data available";
-  }
-
-  /* ========================================================================
-     Server-Side Loading Rows
-     ======================================================================== */
-
-  /*
-   * Server-side DataTables owns the row model — there is no local `data`
-   * array to swap loading placeholders into the way the client-side path
-   * does in showLoading()/setRows(). Instead, this renders skeleton markup
-   * directly into the live <tbody> while a request is in flight.
-   *
-   * DataTables' next successful server-side draw replaces the complete tbody,
-   * so the placeholder rows never become part of the real DataTables row
-   * model.
-   *
-   * Cells are produced through the same renderCellValue() path used for real
-   * rows. Page renderers therefore receive:
-   *
-   *   { __dataViewState: "loading" }
-   *
-   * consistently for both client-side and server-side skeleton rows.
-   */
-
-  function renderServerSideLoadingRows() {
-    const tbody = table.tBodies[0];
-
-    if (!tbody) {
-      return;
-    }
-
-    const columns = getVisibleCurrentColumns();
-
-    const context = getContext();
-
-    const loadingRows = createLoadingRows(
-      options.loadingRowCount || 6,
-
-      context,
-    );
-
-    tbody.innerHTML = loadingRows
-      .map((row, rowIndex) => {
-        const cells = columns
-          .map((column, columnIndex) => {
-            const value = renderCellValue({
-              row,
-              column,
-
-              type: "display",
-
-              meta: {
-                row: rowIndex,
-
-                col: columnIndex,
-              },
-
-              context,
-
-              renderCell,
-            });
-
-            const classAttribute = column.className
-              ? ` class="${column.className}"`
-              : "";
-
-            return `<td${classAttribute}>${value ?? ""}</td>`;
-          })
-          .join("");
-
-        return `<tr class="table-loading" aria-hidden="true">${cells}</tr>`;
-      })
-      .join("");
-  }
-
-  function showServerSideLoading() {
-    if (destroyed || !tableOptions.serverSide) {
-      return;
-    }
-
-    table.setAttribute("aria-busy", "true");
-
-    renderServerSideLoadingRows();
-  }
-
-  /* ========================================================================
-     Server-Side Lifecycle
-     ======================================================================== */
-
-  /*
-   * There are two server-side loading boundaries:
-   *
-   * 1. Initial DataTables construction
-   *
-   *    The first Ajax request can start before an API event listener can be
-   *    attached. createInstance() therefore applies the skeleton immediately
-   *    after construction.
-   *
-   * 2. Every later server request
-   *
-   *    preXhr.dt is the authoritative request-start event for pagination,
-   *    reloads, searching, page-length changes, and other server-side draws.
-   *
-   * processing.dt remains useful for accessibility/busy synchronization, but
-   * skeleton rendering does not depend exclusively on it.
-   */
-
-  function bindServerSideLifecycle() {
-    if (!api || !tableOptions.serverSide) {
-      return;
-    }
-
-    /*
-     * Subsequent DataTables Ajax requests.
-     */
-    api.on("preXhr.dt", () => {
-      if (destroyed) {
-        return;
-      }
-
-      showServerSideLoading();
-    });
-
-    /*
-     * Preserve DataTables' processing lifecycle as the generic busy signal.
-     *
-     * Some integrations may trigger processing state around work that is not
-     * represented by preXhr, so do not remove this listener.
-     */
-    api.on("processing.dt", (_event, _settings, processing) => {
-      if (destroyed) {
-        return;
-      }
-
-      table.setAttribute("aria-busy", String(Boolean(processing)));
-
-      if (processing) {
-        renderServerSideLoadingRows();
-      }
-    });
-
-    api.on("error.dt", (_event, _settings, _techNote, message) => {
-      if (destroyed) {
-        return;
-      }
-
-      table.setAttribute("aria-busy", "false");
-
-      options.onServerSideError?.(message, getContext());
-    });
-  }
-
-  /* ==========================================================================
-     RowGroup
-     ========================================================================== */
-
-  function createRowGroupOptions() {
-    const rowGroup = tableOptions.rowGroup;
-
-    if (!rowGroup) {
-      return false;
-    }
-
-    if (rowGroup === true) {
-      return {};
-    }
-
-    if (!isObject(rowGroup)) {
-      return false;
-    }
-
-    const result = {
-      ...rowGroup,
-    };
-
-    /*
-     * Optional common callbacks.
-     */
-
-    if (typeof options.getRowGroup === "function") {
-      result.dataSrc = (row) => options.getRowGroup(row, getContext());
-    }
-
-    if (typeof options.renderRowGroupStart === "function") {
-      result.startRender = (groupRows, groupName, level) =>
-        options.renderRowGroupStart({
-          groupRows,
-
-          groupName,
-
-          level,
-
-          visibleColumnCount: api?.columns(":visible").count() || 0,
-
-          context: getContext(),
-        });
-    }
-
-    if (typeof options.renderRowGroupEnd === "function") {
-      result.endRender = (groupRows, groupName, level) =>
-        options.renderRowGroupEnd({
-          groupRows,
-
-          groupName,
-
-          level,
-
-          visibleColumnCount: api?.columns(":visible").count() || 0,
-
-          context: getContext(),
-        });
-    }
-
-    return result;
-  }
-
-  /* ==========================================================================
-     Display Rows
-     ========================================================================== */
-
-  function getDisplayRows() {
-    if (renderState?.type === STATES.loading) {
-      return createLoadingRows(
-        options.loadingRowCount || 6,
-
-        getContext(),
-      );
-    }
-
-    if (
-      renderState?.type === STATES.empty ||
-      renderState?.type === STATES.error
-    ) {
-      return [];
-    }
-
-    return rows;
-  }
-
-  /* ==========================================================================
-     DataTable Options
-     ========================================================================== */
-
-  function buildDataTableOptions() {
-    const columns = getCurrentColumns();
-
-    const context = getContext();
-
-    const generated = {
-      ...tableOptions,
-
-      columns: createDataTableColumns({
-        columns,
-
-        visibleGroups,
-
-        renderCell,
-
-        context,
-      }),
-
-      rowGroup: createRowGroupOptions(),
-    };
-
-    /* ------------------------------------------------------------------------
-       Row Data Source
-       ------------------------------------------------------------------------ */
-
-    /*
-     * Server-side mode:
-     *
-     * DataTables fetches rows itself through `ajax`.
-     *
-     * A local `data` array must not be supplied together with serverSide:true.
-     *
-     * Client-side mode:
-     *
-     * `data` is owned by this module and reflects loading / empty / error /
-     * ready state.
-     */
-
-    if (tableOptions.serverSide) {
-      generated.ajax = createServerSideAjax(tableOptions.ajax, {
-        onServerSideData: options.onServerSideData,
-
-        getContext,
-      });
-    } else {
-      generated.data = getDisplayRows();
-    }
-
-    /* ------------------------------------------------------------------------
-       Draw Callback
-       ------------------------------------------------------------------------ */
-
-    const userDrawCallback = tableOptions.drawCallback;
-
-    generated.drawCallback = function drawCallback(settings) {
-      /*
-       * A completed server-side draw is authoritative.
-       *
-       * Regardless of which request-start path displayed the skeleton, a
-       * completed DataTables draw means the current tbody now represents the
-       * resolved response.
-       */
-
-      if (tableOptions.serverSide) {
-        table.setAttribute("aria-busy", "false");
-      }
-
-      updateEmptyState();
-
-      updateHeaderVisibility();
-
-      /*
-       * One post-draw layout hook.
-       *
-       * setRows(), showLoading(), showEmpty(), showError(), redraw(), and
-       * visibility changes all ultimately draw the table, so they do not
-       * schedule another layout refresh themselves.
-       */
-
-      scheduleLayoutRefresh();
-
-      userDrawCallback?.call(this, settings);
-
-      options.onDraw?.(api, getContext());
-    };
-
-    /* ------------------------------------------------------------------------
-       Init Complete
-       ------------------------------------------------------------------------ */
-
-    const userInitComplete = tableOptions.initComplete;
-
-    generated.initComplete = function initComplete(settings, json) {
-      updateHeaderVisibility();
-
-      /*
-       * Initialization is not guaranteed to produce another draw after the
-       * DataTables instance is fully ready, so keep the explicit init
-       * refresh.
-       */
-
-      scheduleLayoutRefresh();
-
-      userInitComplete?.call(this, settings, json);
-
-      options.onInit?.(api, getContext());
-    };
-
-    return generated;
-  }
-
-  /* ==========================================================================
-     Header
-     ========================================================================== */
-
-  function buildHeader() {
-    if (headerMode === "existing") {
-      return;
-    }
-
-    const columns = getCurrentColumns();
-
-    const groups = getCurrentGroups();
-
-    /* ------------------------------------------------------------------------
-       Caller-Provided Complex Header
-       ------------------------------------------------------------------------ */
-
-    if (renderHeader) {
-      const result = renderHeader({
-        table,
-
-        view: currentView,
-
-        columns: [...columns],
-
-        groups: [...groups],
-
-        context: getContext(),
-      });
-
-      if (result && typeof result.then === "function") {
-        throw new TypeError("Data table renderHeader() must be synchronous.");
-      }
-
-      /*
-       * Returning false requests the standard schema-generated header.
-       *
-       * This lets one table use a custom header for only selected views.
-       */
-
-      if (result !== false) {
-        if (!table.tHead || !table.tHead.rows.length) {
-          throw new Error(
-            "Data table renderHeader() must attach a non-empty thead.",
-          );
-        }
-
-        return;
-      }
-    }
-
-    /* ------------------------------------------------------------------------
-       Standard Schema Header
-       ------------------------------------------------------------------------ */
-
-    buildSchemaHeader(table, columns, groups);
-  }
-
-  /* ==========================================================================
-     Creation
-     ========================================================================== */
-
-  function createInstance() {
-    if (destroyed) {
-      return;
-    }
-
-    table.dataset.dataView = currentView;
-
-    buildHeader();
-
-    api = new DataTable(table, buildDataTableOptions());
-
-    /*
-     * DataTables can begin the first server-side request synchronously during
-     * construction, before bindServerSideLifecycle() can subscribe to preXhr
-     * or processing.
-     *
-     * By the time the constructor returns, DataTables has already established
-     * its wrapper/table structure and may have inserted its native
-     * "Loading..." row. Replace that temporary row immediately with our
-     * standard skeleton rows.
-     */
-    if (tableOptions.serverSide) {
-      showServerSideLoading();
-    }
-
-    /*
-     * From this point forward preXhr.dt owns every later request-start
-     * transition.
-     */
-    bindServerSideLifecycle();
-  }
-
-  /* ==========================================================================
-     Destruction
-     ========================================================================== */
-
-  function destroyInstance() {
-    if (!api) {
-      return;
-    }
-
-    options.beforeDestroy?.(api, getContext());
-
-    api.destroy();
-
-    api = null;
-  }
-
-  function recreate() {
-    if (destroyed) {
-      return;
-    }
-
-    destroyInstance();
-
-    createInstance();
-  }
-
-  /* ==========================================================================
-     Rows
-     ========================================================================== */
-
-  function setRows(nextRows = []) {
-    if (destroyed) {
-      return;
-    }
-
-    rows = Array.isArray(nextRows) ? nextRows : [];
-
-    renderState = null;
-
-    table.setAttribute("aria-busy", "false");
-
-    if (!api) {
-      createInstance();
-
-      return;
-    }
-
-    /*
-     * Server-side tables fetch their own rows through `ajax`.
-     *
-     * Calling setRows() on one is usually a sign that the caller meant
-     * reload(), but expose the rows through the optional callback for
-     * integrations that deliberately observe them.
-     */
-
-    if (tableOptions.serverSide) {
-      options.onServerSideRows?.(rows, api, getContext());
-
-      return;
-    }
-
-    api.clear();
-
-    if (rows.length) {
-      api.rows.add(rows);
-    }
-
-    /*
-     * drawCallback owns the post-draw layout hook.
-     */
-
-    api.draw(false);
-
-    options.onRowsChange?.(rows, api, getContext());
-  }
-
-  /* ==========================================================================
-     Loading
-     ========================================================================== */
-
-  function showLoading() {
-    if (destroyed) {
-      return;
-    }
-
-    renderState = {
-      type: STATES.loading,
-
-      message: "",
-    };
-
-    table.setAttribute("aria-busy", "true");
-
-    if (!api) {
-      createInstance();
-
-      return;
-    }
-
-    /*
-     * Server-side tables do not own a local DataTables row collection.
-     *
-     * Their loading placeholder is therefore rendered directly into tbody.
-     * The next successful DataTables draw replaces it with the actual server
-     * response.
-     */
-    if (tableOptions.serverSide) {
-      renderServerSideLoadingRows();
-
-      return;
-    }
-
-    api.clear();
-
-    api.rows.add(
-      createLoadingRows(
-        options.loadingRowCount || 6,
-
-        getContext(),
-      ),
-    );
-
-    /*
-     * drawCallback owns the post-draw layout hook.
-     */
-
-    api.draw(false);
-  }
-
-  /* ==========================================================================
-     Empty
-     ========================================================================== */
-
-  function showEmpty(message) {
-    if (destroyed) {
-      return;
-    }
-
-    rows = [];
-
-    renderState = {
-      type: STATES.empty,
-
-      message: message || options.emptyMessage || "No data available",
-    };
-
-    table.setAttribute("aria-busy", "false");
-
-    if (!api) {
-      createInstance();
-
-      return;
-    }
-
-    /*
-     * Server-side DataTables renders its own td.dt-empty marker when the
-     * response contains no rows. updateEmptyState() customizes that marker
-     * from drawCallback.
-     */
-
-    if (tableOptions.serverSide) {
-      return;
-    }
-
-    api.clear();
-
-    /*
-     * drawCallback owns empty-state rendering and layout refresh.
-     */
-
-    api.draw(false);
-  }
-
-  /* ==========================================================================
-     Error
-     ========================================================================== */
-
-  function showError(message) {
-    if (destroyed) {
-      return;
-    }
-
-    rows = [];
-
-    renderState = {
-      type: STATES.error,
-
-      message:
-        message ||
-        options.errorMessage ||
-        options.emptyMessage ||
-        "Unable to load data.",
-    };
-
-    table.setAttribute("aria-busy", "false");
-
-    if (!api) {
-      createInstance();
-
-      return;
-    }
-
-    /*
-     * Server-side ajax failures are surfaced through error.dt and/or the
-     * page's function-form ajax callback. There is no local DataTables row
-     * array to replace in this mode.
-     */
-
-    if (tableOptions.serverSide) {
-      return;
-    }
-
-    api.clear();
-
-    /*
-     * drawCallback owns error-state rendering and layout refresh.
-     */
-
-    api.draw(false);
-  }
-
-  /* ==========================================================================
-     Column Visibility
-     ========================================================================== */
-
-  function setVisibleGroups(nextGroups = []) {
-    if (destroyed) {
-      return false;
-    }
-
-    const groups = unique(nextGroups);
-
-    /*
-     * Once the caller explicitly supplies visibility groups, visibility is
-     * caller-owned rather than inferred automatically from the schema.
-     */
-
-    usesSchemaVisibility = false;
-
-    if (arraysEqual(groups, visibleGroups)) {
-      return false;
-    }
-
-    visibleGroups = groups;
-
-    if (!api) {
-      return true;
-    }
-
-    let changed = false;
-
-    getCurrentColumns().forEach((column, index) => {
-      if (!column.visibilityGroup) {
-        return;
-      }
-
-      const shouldBeVisible = isColumnVisible(column, visibleGroups);
-
-      const dataTableColumn = api.column(index);
-
-      if (dataTableColumn.visible() === shouldBeVisible) {
-        return;
-      }
-
-      /*
-       * Defer redraw until every visibility change has been applied.
-       */
-
-      dataTableColumn.visible(shouldBeVisible, false);
-
-      changed = true;
-    });
-
-    updateHeaderVisibility();
-
-    if (changed) {
-      /*
-       * Visibility changes alter the available table width, so ask DataTables
-       * to remeasure before performing one redraw.
-       */
-
-      api.columns.adjust();
-
-      api.draw(false);
-    }
-
-    options.onVisibilityChange?.(visibleGroups, api, getContext());
-
-    return changed;
-  }
-
-  /* ==========================================================================
-     View / Schema
-     ========================================================================== */
-
-  function setView(nextView, nextVisibleGroups = null) {
-    if (destroyed) {
-      return false;
-    }
-
-    const view = normalizeView(nextView);
-
-    const viewChanged = view !== currentView;
-
-    let nextGroups = visibleGroups;
-
-    let nextUsesSchemaVisibility = usesSchemaVisibility;
-
-    /*
-     * An explicit array always wins, including [].
-     */
-
-    if (Array.isArray(nextVisibleGroups)) {
-      nextGroups = unique(nextVisibleGroups);
-
-      nextUsesSchemaVisibility = false;
-    } else if (usesSchemaVisibility) {
-      /*
-       * No explicit visibility controller owns this table.
-       *
-       * A new schema therefore begins with all groups declared by that schema
-       * visible.
-       */
-
-      nextGroups = getSchemaVisibilityGroups(getCurrentColumnsForView(view));
-    }
-
-    const groupsChanged = !arraysEqual(nextGroups, visibleGroups);
-
-    if (!viewChanged && !groupsChanged) {
-      return false;
-    }
-
-    currentView = view;
-
-    visibleGroups = nextGroups;
-
-    usesSchemaVisibility = nextUsesSchemaVisibility;
-
-    /*
-     * Different schemas require one clean DataTables recreation.
-     */
-
-    recreate();
-
-    options.onViewChange?.(currentView, api, getContext());
-
-    return true;
-  }
-
-  /* ==========================================================================
-     DataTables Operations
-     ========================================================================== */
-
-  function adjust() {
-    if (!api) {
-      return;
-    }
-
-    /*
-     * adjust() does not necessarily trigger a draw, so preserve the explicit
-     * post-layout callback here.
-     */
-
-    api.columns.adjust();
-
-    scheduleLayoutRefresh();
-  }
-
-  function redraw(resetPaging = false) {
-    if (!api) {
-      return;
-    }
-
-    /*
-     * drawCallback owns the post-draw layout hook.
-     */
-
-    api.draw(Boolean(resetPaging));
-  }
-
-  function reload() {
-    if (!api || !api.ajax) {
-      return;
-    }
-
-    /*
-     * Primary refresh path for an already-created server-side table.
-     *
-     * Keep the current page here. A page that needs to reset paging because
-     * filters changed can explicitly recreate the table or use the DataTables
-     * API to move to page zero before reloading.
-     */
-
-    api.ajax.reload(null, false);
-  }
-
-  function search(value) {
-    if (!api || typeof api.search !== "function") {
-      return;
-    }
-
-    api.search(value ?? "").draw();
-  }
-
-  function setPageLength(length) {
-    if (!api) {
-      return;
-    }
-
-    const normalized = Number(length);
-
-    if (!Number.isFinite(normalized) || normalized <= 0) {
-      return;
-    }
-
-    api.page.len(normalized).draw(false);
-  }
-
-  /* ==========================================================================
-     Queries
-     ========================================================================== */
-
-  function getRows() {
-    return [...rows];
-  }
-
-  function getView() {
-    return currentView;
-  }
-
-  function getVisibleGroups() {
-    return [...visibleGroups];
-  }
-
-  function getApi() {
-    return api;
-  }
-
-  function getState() {
-    return Object.freeze({
-      view: currentView,
-
-      visibleGroups: [...visibleGroups],
-
-      rowCount: rows.length,
-
-      /*
-       * For server-side integrations, request/loading state is primarily
-       * represented by DataTables' own lifecycle and aria-busy. renderState
-       * remains useful for the client-side table path.
-       */
-
-      renderState: renderState
-        ? {
-            ...renderState,
-          }
-        : null,
-
-      initialized: Boolean(api),
-    });
-  }
-
-  /* ==========================================================================
-     Lifecycle
-     ========================================================================== */
-
-  function destroy() {
-    if (destroyed) {
-      return;
-    }
-
-    destroyed = true;
-
-    if (layoutFrame !== null) {
-      window.cancelAnimationFrame(layoutFrame);
-
-      layoutFrame = null;
-    }
-
-    destroyInstance();
-  }
-
-  /* ==========================================================================
-     Initialization
-     ========================================================================== */
-
-  if (options.autoInit !== false) {
-    createInstance();
-  }
-
-  /* ==========================================================================
-     Public Instance
-     ========================================================================== */
-
-  return Object.freeze({
-    adjust,
-    destroy,
-
-    getApi,
-    getRows,
-    getState,
-    getView,
-    getVisibleGroups,
-
-    recreate,
-    redraw,
-    reload,
-
-    search,
-    setPageLength,
-
-    setRows,
-    setView,
-    setVisibleGroups,
-
-    showEmpty,
-    showError,
-    showLoading,
-  });
+export function getHistoricalColumnByKey(columns = [], key) {
+  return columns.find((column) => column.key === key) || null;
 }
