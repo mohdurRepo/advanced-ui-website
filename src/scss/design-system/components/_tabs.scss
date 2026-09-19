@@ -244,6 +244,138 @@
 }
 
 /* ==========================================================================
+   Contained Tabs
+   ========================================================================== */
+
+/**
+ * Presents primary tabs and their content as one continuous surface.
+ *
+ * Intended for:
+ *
+ * - result/data views;
+ * - tables controlled by tabs;
+ * - filter -> result compositions;
+ * - dashboards where navigation belongs directly to the panel below it.
+ *
+ * Unlike tabs--secondary:
+ *
+ * - the normal primary underline indicator is retained;
+ * - navigation is not pill-shaped;
+ * - the active panel is not presented as a separate inset card;
+ * - tabs and content share one outer border/radius.
+ */
+
+.tabs--contained {
+  --tabs-content-space: 0;
+
+  --contained-tabs-bg: var(--color-surface);
+  --contained-tabs-border: var(--color-border);
+  --contained-tabs-radius: var(--radius-lg);
+
+  --contained-tabs-nav-padding-inline: #{ds.space(4)};
+  --contained-tabs-nav-min-height: 3rem;
+
+  min-inline-size: 0;
+
+  overflow: hidden;
+
+  border: 1px solid var(--contained-tabs-border);
+  border-radius: var(--contained-tabs-radius);
+
+  background: var(--contained-tabs-bg);
+}
+
+/* ==========================================================================
+   Contained Navigation
+   ========================================================================== */
+
+.tabs--contained > .tabs-nav {
+  min-inline-size: 0;
+
+  padding-inline: var(--contained-tabs-nav-padding-inline);
+
+  border-block-end: 1px solid var(--contained-tabs-border);
+
+  background: var(--contained-tabs-bg);
+}
+
+.tabs--contained > .tabs-nav > .tab-link {
+  min-block-size: var(--contained-tabs-nav-min-height);
+}
+
+/* ==========================================================================
+   Contained Content
+   ========================================================================== */
+
+.tabs--contained > .tabs-content {
+  min-inline-size: 0;
+
+  padding-block-start: 0;
+
+  background: var(--contained-tabs-bg);
+}
+
+.tabs--contained > .tabs-content > .tab-pane {
+  min-inline-size: 0;
+}
+
+.tabs--contained > .tabs-content > .tab-pane.active,
+.tabs--contained > .tabs-content > .tab-pane.is-active,
+.tabs--contained > .tabs-content > .tab-pane[data-active="true"] {
+  background: var(--contained-tabs-bg);
+}
+
+/* ==========================================================================
+   Contained Data View
+   ========================================================================== */
+
+/*
+ * The outer tabs element owns the visual surface.
+ *
+ * Any data-view workspace nested inside therefore joins this same surface
+ * rather than looking like another independent card.
+ */
+
+.tabs--contained .data-view__workspace {
+  min-inline-size: 0;
+}
+
+.tabs--contained .data-view__table,
+.tabs--contained .table-shell,
+.tabs--contained .table-responsive {
+  min-inline-size: 0;
+}
+
+/*
+ * Remove nested rounding from the table surface.
+ *
+ * The outer .tabs--contained component now supplies the visible radius.
+ */
+
+.tabs--contained .table-shell,
+.tabs--contained .table-responsive {
+  border-radius: 0;
+}
+
+/*
+ * The tab-navigation separator becomes the seam between navigation and data.
+ * Avoid rendering another top border directly beneath it.
+ */
+
+.tabs--contained .table-responsive {
+  border-block-start: 0;
+}
+
+/* ==========================================================================
+   Contained Cards
+   ========================================================================== */
+
+.tabs--contained .data-view__cards,
+.tabs--contained .data-view__cards-inner {
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
    Secondary Tabs
    ========================================================================== */
 
@@ -459,6 +591,18 @@
    ========================================================================== */
 
 @include ds.respond-down("md") {
+  /* ------------------------------------------------------------------------
+     Contained Tabs
+     ------------------------------------------------------------------------ */
+
+  .tabs--contained {
+    --contained-tabs-nav-padding-inline: #{ds.space(3)};
+  }
+
+  /* ------------------------------------------------------------------------
+     Secondary Tabs
+     ------------------------------------------------------------------------ */
+
   .tabs--secondary > .tabs-nav {
     flex-wrap: nowrap;
 
@@ -477,9 +621,28 @@
    ========================================================================== */
 
 @include ds.respond-down("sm") {
+  /*
+   * Full-width tabs become horizontally scrollable controls on compact
+   * screens rather than forcing every label into an excessively narrow
+   * equal-width column.
+   */
+
   .tabs--full > .tabs-nav > .tab-link {
     flex: 0 0 auto;
   }
+
+  /* ------------------------------------------------------------------------
+     Contained Tabs
+     ------------------------------------------------------------------------ */
+
+  .tabs--contained {
+    --contained-tabs-radius: var(--radius-md);
+    --contained-tabs-nav-padding-inline: #{ds.space(2)};
+  }
+
+  /* ------------------------------------------------------------------------
+     Secondary Tabs
+     ------------------------------------------------------------------------ */
 
   .tabs--secondary {
     --secondary-tabs-panel-padding: 1rem;
@@ -510,6 +673,23 @@ html[data-contrast="high"] {
   .tab-link[aria-selected="true"] {
     border-color: currentColor;
   }
+
+  /* ------------------------------------------------------------------------
+     Contained Tabs
+     ------------------------------------------------------------------------ */
+
+  .tabs--contained {
+    border-width: 2px;
+    border-color: var(--color-border-strong);
+  }
+
+  .tabs--contained > .tabs-nav {
+    border-color: var(--color-border-strong);
+  }
+
+  /* ------------------------------------------------------------------------
+     Secondary Tabs
+     ------------------------------------------------------------------------ */
 
   .tabs--secondary > .tabs-nav,
   .tabs--secondary > .tabs-content > .tab-pane.active,
@@ -551,6 +731,32 @@ html[data-contrast="high"] {
     border-color: Highlight;
     color: Highlight;
   }
+
+  /* ------------------------------------------------------------------------
+     Contained Tabs
+     ------------------------------------------------------------------------ */
+
+  .tabs--contained {
+    border-color: CanvasText;
+
+    background: Canvas;
+    color: CanvasText;
+  }
+
+  .tabs--contained > .tabs-nav,
+  .tabs--contained > .tabs-content,
+  .tabs--contained > .tabs-content > .tab-pane.active,
+  .tabs--contained > .tabs-content > .tab-pane.is-active,
+  .tabs--contained > .tabs-content > .tab-pane[data-active="true"] {
+    border-color: CanvasText;
+
+    background: Canvas;
+    color: CanvasText;
+  }
+
+  /* ------------------------------------------------------------------------
+     Secondary Tabs
+     ------------------------------------------------------------------------ */
 
   .tabs--secondary > .tabs-nav,
   .tabs--secondary > .tabs-content > .tab-pane.active,
