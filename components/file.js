@@ -436,9 +436,10 @@ function createDataTableColumns({
        * Preserve the schema's DataTables data mapping.
        *
        * Besides normal client-side access, this is important in server-side
-       * mode because DataTables serializes it into columns[i][data]. A schema
-       * without an explicit mapping intentionally falls back to `data: null`,
-       * which gives renderers the complete row object.
+       * mode because DataTables serializes it into columns[i][data].
+       *
+       * A schema without an explicit mapping intentionally falls back to
+       * `data: null`, which gives renderers the complete row object.
        */
       data: column.data ?? null,
 
@@ -454,9 +455,11 @@ function createDataTableColumns({
 
       render(_data, type, row, meta) {
         /*
-         * Render from the complete row rather than `_data`. Page renderers
-         * often need sibling properties such as URLs, identifiers, flags, or
-         * other supporting metadata in addition to the column's mapped value.
+         * Render from the complete row rather than `_data`.
+         *
+         * Page renderers often need sibling properties such as URLs,
+         * identifiers, flags, or supporting metadata in addition to the
+         * mapped column value.
          */
         return renderCellValue({
           row,
@@ -474,13 +477,25 @@ function createDataTableColumns({
     }
 
     /*
-     * Do not introduce a generic fallback such as "-". Empty/default display
-     * belongs to the schema or formatter because text, numeric, link, loading,
-     * and state cells can require different treatment.
+     * DataTables resolves columns.data before the page's render callback.
+     *
+     * For object-backed rows, a legitimate sparse payload can therefore
+     * trigger:
+     *
+     *   Requested unknown parameter "..."
+     *
+     * before renderCell() has a chance to apply the page's normal display
+     * fallback.
+     *
+     * Empty string is deliberately neutral:
+     *
+     * - it suppresses DataTables' missing-property warning;
+     * - it does not invent a page-level display value;
+     * - renderCell() still receives the complete original row;
+     * - schema-specific defaultContent can still override it.
      */
-    if (column.defaultContent !== undefined) {
-      definition.defaultContent = column.defaultContent;
-    }
+    definition.defaultContent =
+      column.defaultContent !== undefined ? column.defaultContent : "";
 
     return definition;
   });
@@ -509,25 +524,18 @@ function createDefaultLoadingRows(count = 6) {
    ========================================================================== */
 
 /*
- * Wraps caller-supplied server-side Ajax so the generic data-view layer can:
+ * Wraps a caller-supplied `ajax` object so this module can observe the raw
+ * response, without changing what DataTables itself receives as row data.
  *
- * - enter loading state before the request begins;
- * - expose object-response rows through onServerSideData;
- * - preserve the caller's own Ajax implementation and response contract.
+ * Only object-shaped `ajax` configurations are wrapped.
  *
- * Function-form Ajax is important here.
+ * A string URL or function-form ajax configuration is intentionally passed
+ * through untouched. Function-form ajax is used by integrations such as
+ * Historical Reports where the page must normalize the response envelope
+ * before DataTables receives it.
  *
- * DataTables can invoke the first Ajax request synchronously while its
- * constructor is still running. In that case an event listener attached only
- * after construction can miss the initial processing=true event.
- *
- * Wrapping the Ajax function itself gives the data-view lifecycle a reliable
- * request-start hook for:
- *
- * - initial load;
- * - pagination;
- * - reload;
- * - schema recreation.
+ * DataTables' own default dataSrc is "data" when no explicit dataSrc is
+ * supplied, so that behavior is preserved here.
  */
 
 function extractRowsFromResponse(response, dataSrc) {
@@ -542,55 +550,15 @@ function extractRowsFromResponse(response, dataSrc) {
   return Array.isArray(rows) ? rows : [];
 }
 
-function createServerSideAjax(
-  userAjax,
-  { onRequestStart, onServerSideData, getContext },
-) {
-  function notifyRequestStart() {
-    onRequestStart?.(getContext());
-  }
-
-  /* ------------------------------------------------------------------------
-     Function-form Ajax
-     ------------------------------------------------------------------------ */
-
-  if (typeof userAjax === "function") {
-    return function dataViewServerSideAjax(request, callback, settings) {
-      notifyRequestStart();
-
-      return userAjax.call(this, request, callback, settings);
-    };
-  }
-
-  /* ------------------------------------------------------------------------
-     Non-object Ajax
-     ------------------------------------------------------------------------ */
-
-  /*
-   * A plain URL remains untouched.
-   *
-   * processing.dt continues to provide the lifecycle fallback for that form.
-   */
+function createServerSideAjax(userAjax, { onServerSideData, getContext }) {
   if (!isObject(userAjax)) {
     return userAjax;
   }
 
-  /* ------------------------------------------------------------------------
-     Object-form Ajax
-     ------------------------------------------------------------------------ */
-
   const userDataSrc = userAjax.dataSrc;
-
-  const userBeforeSend = userAjax.beforeSend;
 
   return {
     ...userAjax,
-
-    beforeSend(xhr, settings) {
-      notifyRequestStart();
-
-      return userBeforeSend?.call(this, xhr, settings);
-    },
 
     dataSrc(response) {
       const rows = extractRowsFromResponse(response, userDataSrc);
@@ -689,7 +657,6 @@ function normalizeFixedHeader(value) {
 
   return false;
 }
-
 /* ==========================================================================
    Public API
    ========================================================================== */
@@ -921,14 +888,16 @@ export function createDataTable(options = {}) {
    * does in showLoading()/setRows(). Instead, this renders skeleton markup
    * directly into the live <tbody> while a request is in flight.
    *
-   * This is safe: DataTables' next draw() (triggered by the same request's
-   * response) fully replaces <tbody> content regardless of what was there
-   * before, so the skeleton is always cleanly overwritten by real rows.
+   * DataTables' next successful server-side draw replaces the complete tbody,
+   * so the placeholder rows never become part of the real DataTables row
+   * model.
    *
-   * Cells are produced through the exact same renderCellValue() priority
-   * used for real rows, so a page's renderCell()/column.render() sees an
-   * identical `{ __dataViewState: "loading" }` row shape whether the
-   * placeholder came from this path or the client-side one.
+   * Cells are produced through the same renderCellValue() path used for real
+   * rows. Page renderers therefore receive:
+   *
+   *   { __dataViewState: "loading" }
+   *
+   * consistently for both client-side and server-side skeleton rows.
    */
 
   function renderServerSideLoadingRows() {
@@ -947,10 +916,11 @@ export function createDataTable(options = {}) {
 
       context,
     );
+
     tbody.innerHTML = loadingRows
       .map((row, rowIndex) => {
         const cells = columns
-          .map((column) => {
+          .map((column, columnIndex) => {
             const value = renderCellValue({
               row,
               column,
@@ -960,7 +930,7 @@ export function createDataTable(options = {}) {
               meta: {
                 row: rowIndex,
 
-                col: 0,
+                col: columnIndex,
               },
 
               context,
@@ -981,24 +951,36 @@ export function createDataTable(options = {}) {
       .join("");
   }
 
-  /* ==========================================================================
+  function showServerSideLoading() {
+    if (destroyed || !tableOptions.serverSide) {
+      return;
+    }
+
+    table.setAttribute("aria-busy", "true");
+
+    renderServerSideLoadingRows();
+  }
+
+  /* ========================================================================
      Server-Side Lifecycle
-     ========================================================================== */
+     ======================================================================== */
 
   /*
-   * Binds directly to DataTables' own ajax lifecycle events, since in
-   * server-side mode DataTables issues the request itself rather than a
-   * page-level data source calling load().
+   * There are two server-side loading boundaries:
    *
-   * This is the server-side counterpart to:
+   * 1. Initial DataTables construction
    *
-   * - showLoading()
-   * - setRows()
-   * - showEmpty()
-   * - showError()
+   *    The first Ajax request can start before an API event listener can be
+   *    attached. createInstance() therefore applies the skeleton immediately
+   *    after construction.
    *
-   * processing.dt works regardless of whether `ajax` is object-shaped or
-   * function-shaped.
+   * 2. Every later server request
+   *
+   *    preXhr.dt is the authoritative request-start event for pagination,
+   *    reloads, searching, page-length changes, and other server-side draws.
+   *
+   * processing.dt remains useful for accessibility/busy synchronization, but
+   * skeleton rendering does not depend exclusively on it.
    */
 
   function bindServerSideLifecycle() {
@@ -1006,6 +988,23 @@ export function createDataTable(options = {}) {
       return;
     }
 
+    /*
+     * Subsequent DataTables Ajax requests.
+     */
+    api.on("preXhr.dt", () => {
+      if (destroyed) {
+        return;
+      }
+
+      showServerSideLoading();
+    });
+
+    /*
+     * Preserve DataTables' processing lifecycle as the generic busy signal.
+     *
+     * Some integrations may trigger processing state around work that is not
+     * represented by preXhr, so do not remove this listener.
+     */
     api.on("processing.dt", (_event, _settings, processing) => {
       if (destroyed) {
         return;
@@ -1160,23 +1159,6 @@ export function createDataTable(options = {}) {
 
     if (tableOptions.serverSide) {
       generated.ajax = createServerSideAjax(tableOptions.ajax, {
-        /*
-         * Ajax itself is the earliest reliable request-start boundary.
-         *
-         * This is especially important for the first server-side request,
-         * which DataTables may start synchronously during construction before
-         * bindServerSideLifecycle() can attach processing.dt.
-         */
-        onRequestStart() {
-          if (destroyed) {
-            return;
-          }
-
-          table.setAttribute("aria-busy", "true");
-
-          renderServerSideLoadingRows();
-        },
-
         onServerSideData: options.onServerSideData,
 
         getContext,
@@ -1193,12 +1175,11 @@ export function createDataTable(options = {}) {
 
     generated.drawCallback = function drawCallback(settings) {
       /*
-       * A completed server-side draw is authoritative: DataTables received
-       * the current response and completed the rendering cycle.
+       * A completed server-side draw is authoritative.
        *
-       * processing.dt remains the request-start / in-flight signal, while
-       * draw guarantees the busy state is cleared even if the first
-       * processing event occurred before our lifecycle listener was bound.
+       * Regardless of which request-start path displayed the skeleton, a
+       * completed DataTables draw means the current tbody now represents the
+       * resolved response.
        */
 
       if (tableOptions.serverSide) {
@@ -1322,6 +1303,24 @@ export function createDataTable(options = {}) {
 
     api = new DataTable(table, buildDataTableOptions());
 
+    /*
+     * DataTables can begin the first server-side request synchronously during
+     * construction, before bindServerSideLifecycle() can subscribe to preXhr
+     * or processing.
+     *
+     * By the time the constructor returns, DataTables has already established
+     * its wrapper/table structure and may have inserted its native
+     * "Loading..." row. Replace that temporary row immediately with our
+     * standard skeleton rows.
+     */
+    if (tableOptions.serverSide) {
+      showServerSideLoading();
+    }
+
+    /*
+     * From this point forward preXhr.dt owns every later request-start
+     * transition.
+     */
     bindServerSideLifecycle();
   }
 
@@ -1425,11 +1424,15 @@ export function createDataTable(options = {}) {
     }
 
     /*
-     * Server-side loading state is driven by DataTables' processing.dt
-     * lifecycle because DataTables itself decides when a request begins.
+     * Server-side tables do not own a local DataTables row collection.
+     *
+     * Their loading placeholder is therefore rendered directly into tbody.
+     * The next successful DataTables draw replaces it with the actual server
+     * response.
      */
-
     if (tableOptions.serverSide) {
+      renderServerSideLoadingRows();
+
       return;
     }
 
@@ -1841,479 +1844,4 @@ export function createDataTable(options = {}) {
     showError,
     showLoading,
   });
-}
-
-/* ==========================================================================
-   Historical Reports Columns
-   ========================================================================== */
-
-/*
- * Column and visibility definitions for Historical Reports.
- *
- * Responsibilities:
- *
- * - define column order for Performance, Unadjusted, and Underlying tables
- * - define per-market/sector visible-column sets, matching legacy exactly
- * - define market/sector-dependent header label overrides
- * - define backend-field mappings
- * - define rendering-type metadata
- * - expose column lookup helpers
- *
- * This module intentionally has no:
- *
- * - DOM queries
- * - DataTables lifecycle
- * - request logic
- * - response normalization
- * - cell rendering
- * - card markup
- *
- * Legacy reference: historical.columns.js + historical.table.profiles.js
- * (getPerformanceHeaders / getUnadjustedHeaders / resolve*VisibleIndexes).
- *
- * Legacy drove visibility with positional index arrays into a fixed column
- * array (e.g. MF -> [0, 5, 10, 12]). That is fragile: reordering or adding a
- * column silently breaks every market's array. This module instead assigns
- * each column a stable, named `visibilityGroup` key and resolves visibility
- * by name, matching the pattern already established in
- * market-watch.columns.js. The mapping below was verified column-for-column
- * against legacy's index arrays for every market/sector/entity branch before
- * being written.
- */
-
-/* ==========================================================================
-   Special Indices
-   ========================================================================== */
-
-/*
- * Exported so historical.rules.js can import this rather than redefining
- * its own copy, as legacy did (the same list was duplicated verbatim in
- * both historical.rules.js and historical.columns.js).
- */
-
-export const HISTORICAL_SPECIAL_INDICES = Object.freeze([
-  "TLCIC",
-  "TMCIC",
-  "TSCIC",
-  "TIPOC",
-  "TT50CI",
-]);
-
-const SPECIAL_INDICES_SET = new Set(HISTORICAL_SPECIAL_INDICES);
-
-/* ==========================================================================
-   Column Order
-   ========================================================================== */
-
-/*
- * Fixed base order. Visibility only turns columns on/off by name; it never
- * reorders them, matching legacy's behavior exactly (applyVisibility() only
- * ever toggled a `visible` flag on a fixed-order array).
- */
-
-export const HISTORICAL_PERFORMANCE_COLUMN_ORDER = Object.freeze([
-  "date",
-  "open",
-  "high",
-  "low",
-  "close",
-  "change",
-  "changePercent",
-  "volumeTraded",
-  "turnOver",
-  "noOfTrades",
-  "nav",
-  "lastYield",
-  "aum",
-]);
-
-export const HISTORICAL_UNADJUSTED_COLUMN_ORDER = Object.freeze([
-  "date",
-  "open",
-  "high",
-  "low",
-  "close",
-  "change",
-  "changePercent",
-  "volumeTraded",
-  "turnOver",
-  "noOfTrades",
-]);
-
-/* ==========================================================================
-   Helpers
-   ========================================================================== */
-
-function getLabels(config = {}) {
-  return config?.labels?.table ?? {};
-}
-
-function column(definition = {}) {
-  return {
-    /*
-     * Historical report payloads are profile-dependent.
-     *
-     * The complete DataTables schema intentionally contains columns that may
-     * be hidden for the active market/profile, and the backend does not always
-     * include those properties in every row. DataTables can still resolve a
-     * mapped field for a hidden column, so provide an empty defaultContent to
-     * prevent legitimate sparse payloads from producing unknown-parameter
-     * warnings.
-     *
-     * This is not the user-facing empty-value presentation.
-     * historical.formatters.js continues to own the visible "-" fallback.
-     */
-    defaultContent: "",
-
-    mobile: true,
-
-    ...definition,
-  };
-}
-
-/* ==========================================================================
-   Header Label Overrides
-   ========================================================================== */
-
-/*
- * Performance headers are market/sector-dependent in legacy
- * (getPerformanceHeaders(filters)). Unadjusted headers are always static
- * (getUnadjustedHeaders() takes no filters at all) -- that asymmetry is
- * intentional and preserved below.
- */
-
-function resolveDateLabel(labels, filters) {
-  if (filters.market === "MF") {
-    return labels.mfDate || labels.date || "Date";
-  }
-
-  return labels.date || "Date";
-}
-
-function resolveChangeLabel(labels, filters) {
-  if (filters.market === "DERIVATIVE") {
-    return labels.changePoints || "Change Points";
-  }
-
-  return labels.change || "Change";
-}
-
-function resolveVolumeTradedLabel(labels, filters) {
-  if (filters.market === "SUKUK") {
-    return labels.nominalValueTraded || "Nominal Value Traded";
-  }
-
-  return labels.volumeTraded || "Volume Traded";
-}
-
-function resolveNoOfTradesLabel(labels, filters) {
-  if (filters.market === "DERIVATIVE") {
-    /*
-     * Preserved exactly from legacy (historical.table.profiles.js,
-     * getPerformanceHeaders): for Derivatives this column's header reads
-     * "Daily Settlement Price" while the data binding underneath remains
-     * `noOfTrades`. The same backend field carries a different real-world
-     * meaning depending on market context in the legacy API. This looks
-     * unusual on its face -- confirm it's intentional rather than a
-     * historical mislabeling before relying on it further.
-     */
-    return labels.dailySettPrice || "Daily Settlement Price";
-  }
-
-  return labels.noOfTrades || "No. of Trades";
-}
-
-function resolveNavLabel(labels, filters) {
-  if (filters.market === "MF") {
-    return labels.mfNav || "NAV";
-  }
-
-  if (
-    filters.market === "DERIVATIVE" &&
-    (filters.sector === "S" || filters.sector === "I")
-  ) {
-    return labels.openInterest || "Open Interest";
-  }
-
-  return labels.nav || "NAV";
-}
-
-function resolveAumLabel(labels, filters) {
-  if (filters.market === "MF") {
-    /*
-     * Preserved exactly from legacy: for MF, the AUM column's header
-     * fallback reuses the generic "nav" message key/text
-     * (getMessage("table.header.nav", "AUM")), not a dedicated AUM key.
-     * This reads as a legacy content bug rather than an intentional
-     * business rule -- flagging rather than silently changing it, since
-     * the instruction is to match legacy 100%.
-     */
-    return labels.nav || "AUM";
-  }
-
-  return labels.aum || "AUM";
-}
-
-/* ==========================================================================
-   Performance Columns
-   ========================================================================== */
-
-/*
- * Legacy base columns (basePerformanceColumns()) render every field as a
- * plain, unformatted pass-through with a "-" fallback for empty values --
- * no client-side number formatting is applied anywhere in the base
- * Performance/Unadjusted columns. Only Change and Change % receive special
- * treatment (renderDirectionalNumber: an up/down icon plus a semantic
- * class). "type: 'text'" below reflects that pass-through behavior
- * precisely; it does not mean "format as text", it means "render exactly
- * what the backend sent, with an empty-value fallback".
- */
-
-export function getHistoricalPerformanceColumns(config = {}, filters = {}) {
-  const labels = getLabels(config);
-
-  return [
-    column({
-      key: "date",
-      visibilityGroup: "date",
-      label: resolveDateLabel(labels, filters),
-      data: "transactionDateStr",
-      type: "text",
-      className: "",
-    }),
-
-    column({
-      key: "open",
-      visibilityGroup: "open",
-      label: labels.open || "Open",
-      data: "todaysOpen",
-      type: "text",
-      className: "text-center",
-    }),
-
-    column({
-      key: "high",
-      visibilityGroup: "high",
-      label: labels.high || "High",
-      data: "highPrice",
-      type: "text",
-      className: "text-center",
-    }),
-
-    column({
-      key: "low",
-      visibilityGroup: "low",
-      label: labels.low || "Low",
-      data: "lowPrice",
-      type: "text",
-      className: "text-center",
-    }),
-
-    column({
-      key: "close",
-      visibilityGroup: "close",
-      label: labels.close || "Close",
-      data: "previousClosePrice",
-      type: "text",
-      className: "text-center",
-    }),
-
-    column({
-      key: "change",
-      visibilityGroup: "change",
-      label: resolveChangeLabel(labels, filters),
-      data: "change",
-      type: "directional-number",
-      className: "text-center",
-    }),
-
-    column({
-      key: "change-percent",
-      visibilityGroup: "changePercent",
-      label: labels.changePercent || "% Change",
-      data: "changePercent",
-      type: "directional-number",
-      className: "text-center",
-    }),
-
-    column({
-      key: "volume-traded",
-      visibilityGroup: "volumeTraded",
-      label: resolveVolumeTradedLabel(labels, filters),
-      data: "volumeTraded",
-      type: "text",
-      className: "text-center",
-    }),
-
-    column({
-      key: "turn-over",
-      visibilityGroup: "turnOver",
-      label: labels.turnOver || "Turnover",
-      data: "turnOver",
-      type: "text",
-      className: "text-center",
-    }),
-
-    column({
-      key: "number-of-trades",
-      visibilityGroup: "noOfTrades",
-      label: resolveNoOfTradesLabel(labels, filters),
-      data: "noOfTrades",
-      type: "text",
-      className: "text-center",
-    }),
-
-    column({
-      key: "nav",
-      visibilityGroup: "nav",
-      label: resolveNavLabel(labels, filters),
-      data: "nav",
-      type: "text",
-      className: "text-center",
-    }),
-
-    column({
-      key: "last-yield",
-      visibilityGroup: "lastYield",
-      label: labels.closeYield || "Last Yield",
-      data: "lastYield",
-      type: "text",
-      className: "text-center",
-    }),
-
-    column({
-      key: "aum",
-      visibilityGroup: "aum",
-      label: resolveAumLabel(labels, filters),
-      data: "aum",
-      type: "text",
-      className: "text-center",
-    }),
-  ];
-}
-
-/* ==========================================================================
-   Performance Visible Groups
-   ========================================================================== */
-
-/*
- * Verified against legacy's resolvePerformanceVisibleIndexes(filters) for
- * every branch (MF, ETFS, SUKUK, INDICES non-special, INDICES special,
- * INDICES index-type "I", DERIVATIVE base, DERIVATIVE sector S/I,
- * DERIVATIVE sector OS, and the MAIN/NOMUC/REITS/CEFS/TR/default branch)
- * before being written here. Set membership matches exactly in every case;
- * only the representation changed, from position to name.
- */
-
-export function getHistoricalPerformanceAvailableGroups(filters = {}) {
-  const market = filters.market;
-  const sector = filters.sector;
-  const entity = filters.entity || "";
-
-  switch (market) {
-    case "MF":
-      return ["date", "change", "nav", "aum"];
-
-    case "ETFS":
-      return [
-        "date",
-        "open",
-        "high",
-        "low",
-        "close",
-        "change",
-        "changePercent",
-        "volumeTraded",
-        "turnOver",
-        "noOfTrades",
-        "nav",
-      ];
-
-    case "SUKUK":
-      return [
-        "date",
-        "open",
-        "high",
-        "low",
-        "close",
-        "change",
-        "changePercent",
-        "volumeTraded",
-        "turnOver",
-        "noOfTrades",
-        "lastYield",
-      ];
-
-    case "INDICES": {
-      const entityParts = entity.split(":");
-      const indexCode = entityParts[1] || "";
-      const indexType = entityParts[2] || "";
-
-      if (indexType === "I") {
-        return [];
-      }
-
-      if (SPECIAL_INDICES_SET.has(indexCode)) {
-        return [
-          "date",
-          "open",
-          "high",
-          "low",
-          "close",
-          "turnOver",
-          "noOfTrades",
-        ];
-      }
-
-      return [
-        "date",
-        "open",
-        "high",
-        "low",
-        "close",
-        "volumeTraded",
-        "turnOver",
-        "noOfTrades",
-      ];
-    }
-
-    case "DERIVATIVE": {
-      const groups = [
-        "date",
-        "open",
-        "high",
-        "low",
-        "close",
-        "change",
-        "changePercent",
-        "volumeTraded",
-        "noOfTrades",
-      ];
-
-      if (sector === "S" || sector === "I") {
-        groups.push("turnOver", "nav");
-      }
-
-      return groups;
-    }
-
-    case "MAIN":
-    case "NOMUC":
-    case "REITS":
-    case "CEFS":
-    case "TR":
-    default:
-      return [
-        "date",
-        "open",
-        "high",
-        "low",
-        "close",
-        "change",
-        "changePercent",
-        "volumeTraded",
-        "turnOver",
-        "noOfTrades",
-      ];
-  }
 }
