@@ -1,0 +1,319 @@
+@use "../../abstracts" as ds;
+
+/* ==========================================================================
+   Notes
+   ========================================================================== */
+
+/**
+ * Reusable informational note container.
+ *
+ * Intended for:
+ *
+ * - market-data disclaimers
+ * - delayed-price notices
+ * - historical-data notes
+ * - methodology notes
+ * - contextual report information
+ *
+ * The component is deliberately content-agnostic.
+ *
+ * Individual rows may contain:
+ *
+ * - an optional status/icon marker
+ * - arbitrary rich text
+ * - an optional trailing action/info control
+ */
+
+.note-panel {
+  --note-panel-bg: var(--color-surface-alt);
+  --note-panel-border: var(--color-border);
+  --note-panel-color: var(--color-text-muted);
+
+  --note-panel-marker-color: var(--color-primary);
+  --note-panel-marker-bg: transparent;
+  --note-panel-marker-border: var(--color-primary);
+
+  --note-panel-radius: var(--radius-lg);
+
+  --note-panel-padding-block: #{ds.space(3)};
+  --note-panel-padding-inline: #{ds.space(4)};
+
+  --note-panel-row-gap: #{ds.space(3)};
+  --note-panel-item-gap: #{ds.space(3)};
+
+  inline-size: 100%;
+  min-inline-size: 0;
+
+  padding-block: var(--note-panel-padding-block);
+  padding-inline: var(--note-panel-padding-inline);
+
+  border: 1px solid var(--note-panel-border);
+  border-radius: var(--note-panel-radius);
+
+  background: var(--note-panel-bg);
+  color: var(--note-panel-color);
+}
+
+/*
+ * Give the panel the very subtle tinted treatment from the supplied design
+ * while retaining a safe design-token fallback above.
+ */
+@supports (
+  background: color-mix(in srgb, var(--color-primary) 5%, var(--color-surface))
+) {
+  .note-panel {
+    background: color-mix(
+      in srgb,
+      var(--color-primary) 5%,
+      var(--color-surface)
+    );
+  }
+}
+
+/* ==========================================================================
+   Note List
+   ========================================================================== */
+
+.note-panel__list {
+  display: grid;
+  gap: var(--note-panel-row-gap);
+
+  margin: 0;
+  padding: 0;
+
+  list-style: none;
+}
+
+/* ==========================================================================
+   Note Item
+   ========================================================================== */
+
+/*
+ * Three-column layout:
+ *
+ * marker | content | optional action
+ *
+ * The last column is only created when an action exists.
+ */
+.note-panel__item {
+  display: grid;
+  grid-template-columns:
+    auto
+    minmax(0, 1fr)
+    auto;
+
+  align-items: start;
+  column-gap: var(--note-panel-item-gap);
+
+  min-inline-size: 0;
+}
+
+/*
+ * A standalone Historical note uses the same item structure even though the
+ * panel contains only one row.
+ */
+.note-panel > .note-panel__item {
+  margin: 0;
+}
+
+/* ==========================================================================
+   Marker
+   ========================================================================== */
+
+.note-panel__marker {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  inline-size: 1.5rem;
+  block-size: 1.5rem;
+
+  flex: 0 0 1.5rem;
+
+  border: 1px solid var(--note-panel-marker-border);
+  border-radius: 50%;
+
+  background: var(--note-panel-marker-bg);
+  color: var(--note-panel-marker-color);
+
+  font-size: 0.625rem;
+  line-height: 1;
+
+  margin-block-start: 0.0625rem;
+}
+
+/*
+ * The site's existing icon system supplies the actual glyph through
+ * classes such as:
+ *
+ *   has-icon icon-check
+ *
+ * The component only owns its presentation.
+ */
+.note-panel__marker::before {
+  margin: 0;
+}
+
+/* ==========================================================================
+   Content
+   ========================================================================== */
+
+.note-panel__content {
+  min-inline-size: 0;
+
+  color: inherit;
+
+  font-size: var(--text-sm);
+  line-height: var(--line-height-normal);
+
+  overflow-wrap: anywhere;
+}
+
+/*
+ * Translation/template content may contain:
+ *
+ * - plain text
+ * - p
+ * - strong
+ * - a
+ * - other trusted inline markup
+ *
+ * Do not let nested block margins distort the row alignment.
+ */
+.note-panel__content > :first-child {
+  margin-block-start: 0;
+}
+
+.note-panel__content > :last-child {
+  margin-block-end: 0;
+}
+
+.note-panel__content p {
+  margin-block: 0 #{ds.space(2)};
+}
+
+.note-panel__content a {
+  color: var(--color-primary);
+
+  font-weight: ds.font-weight("medium");
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+
+.note-panel__content a:hover {
+  text-decoration-thickness: 2px;
+}
+
+.note-panel__content a:focus-visible {
+  border-radius: var(--radius-sm);
+
+  @include ds.focus-ring;
+}
+
+/* ==========================================================================
+   Optional Trailing Action
+   ========================================================================== */
+
+/*
+ * Useful for the small information affordance shown in the supplied
+ * reference design.
+ *
+ * Example:
+ *
+ * <button
+ *   class="note-panel__action has-icon icon-info"
+ *   type="button"
+ *   aria-label="More information"
+ * ></button>
+ */
+.note-panel__action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  inline-size: 1.5rem;
+  block-size: 1.5rem;
+
+  padding: 0;
+
+  border: 1px solid var(--note-panel-marker-border);
+  border-radius: 50%;
+
+  background: transparent;
+  color: var(--note-panel-marker-color);
+
+  font-size: 0.625rem;
+  line-height: 1;
+
+  cursor: pointer;
+
+  @include ds.transition((background-color, border-color, color), "fast");
+}
+
+.note-panel__action:hover {
+  background: var(--color-surface);
+}
+
+.note-panel__action:focus {
+  outline: none;
+}
+
+.note-panel__action:focus-visible {
+  @include ds.focus-ring;
+}
+
+/* ==========================================================================
+   Dense Variant
+   ========================================================================== */
+
+/*
+ * For areas where notes sit directly beneath a compact table/filter region.
+ */
+.note-panel--compact {
+  --note-panel-padding-block: #{ds.space(2)};
+  --note-panel-padding-inline: #{ds.space(3)};
+  --note-panel-row-gap: #{ds.space(2)};
+  --note-panel-item-gap: #{ds.space(2)};
+}
+
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+
+@include ds.respond-down("sm") {
+  .note-panel {
+    --note-panel-padding-block: #{ds.space(3)};
+    --note-panel-padding-inline: #{ds.space(3)};
+  }
+
+  .note-panel__item {
+    column-gap: #{ds.space(2)};
+  }
+
+  .note-panel__content {
+    font-size: var(--text-xs);
+  }
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] {
+  .note-panel {
+    border-color: var(--color-border-strong);
+  }
+
+  .note-panel__marker,
+  .note-panel__action {
+    border-color: currentColor;
+  }
+}
+
+/* ==========================================================================
+   Hidden State
+   ========================================================================== */
+
+.note-panel[hidden] {
+  display: none !important;
+}

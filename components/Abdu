@@ -603,21 +603,38 @@ window.DROPDOWN_CONFIG = {
       aria-labelledby="historical-filters-title"
       novalidate
     >
-      <h2 class="visually-hidden" id="historical-filters-title">
+      <h2
+        class="visually-hidden"
+        id="historical-filters-title"
+      >
         <fmt:message key="page.header" />
       </h2>
 
       <div class="filter-bar__inner">
+
+        <%-- ====================================================================
+             Filter Fields
+             ==================================================================== --%>
+
         <div class="filter-bar__fields grid-4">
 
-          <%-- =================================================================
+          <%-- ==================================================================
                Market
-               ================================================================= --%>
+               ================================================================== --%>
 
           <div class="filter-bar__field">
-            <label class="form-label" for="historical-market">
+            <label
+              class="form-label"
+              for="historical-market"
+            >
               <fmt:message key="market.title" />
-              <span class="form-required" aria-hidden="true">*</span>
+
+              <span
+                class="form-required"
+                aria-hidden="true"
+              >
+                *
+              </span>
             </label>
 
             <div
@@ -665,12 +682,15 @@ window.DROPDOWN_CONFIG = {
             </div>
           </div>
 
-          <%-- =================================================================
+          <%-- ==================================================================
                Sector
-               ================================================================= --%>
+               ================================================================== --%>
 
           <div class="filter-bar__field">
-            <label class="form-label" for="historical-sector">
+            <label
+              class="form-label"
+              for="historical-sector"
+            >
               <fmt:message key="sector.title" />
             </label>
 
@@ -718,14 +738,23 @@ window.DROPDOWN_CONFIG = {
             </div>
           </div>
 
-          <%-- =================================================================
+          <%-- ==================================================================
                Entity
-               ================================================================= --%>
+               ================================================================== --%>
 
           <div class="filter-bar__field">
-            <label class="form-label" for="historical-entity">
+            <label
+              class="form-label"
+              for="historical-entity"
+            >
               <fmt:message key="entity.title" />
-              <span class="form-required" aria-hidden="true">*</span>
+
+              <span
+                class="form-required"
+                aria-hidden="true"
+              >
+                *
+              </span>
             </label>
 
             <div
@@ -773,19 +802,22 @@ window.DROPDOWN_CONFIG = {
             </div>
           </div>
 
-          <%-- =================================================================
+          <%-- ==================================================================
                Trade Type
 
                Historical rules reveal this only for:
                market = SUKUK and sector = G or S.
-               ================================================================= --%>
+               ================================================================== --%>
 
           <div
             class="filter-bar__field"
             id="tradeTypeFilter"
             hidden
           >
-            <label class="form-label" for="historical-trade-type">
+            <label
+              class="form-label"
+              for="historical-trade-type"
+            >
               <fmt:message key="trade.title" />
             </label>
 
@@ -800,7 +832,10 @@ window.DROPDOWN_CONFIG = {
                   name="tradeType"
                   data-historical-trade-type
                 >
-                  <option value="OB" selected>
+                  <option
+                    value="OB"
+                    selected
+                  >
                     <fmt:message key="type.of.trade.option.1" />
                   </option>
 
@@ -821,22 +856,40 @@ window.DROPDOWN_CONFIG = {
             </div>
           </div>
 
-          <%-- =================================================================
-               Date Range
-               ================================================================= --%>
+          <%-- ==================================================================
+               Time Period
 
-          <fieldset class="filter-bar__field form-fieldset">
-            <legend class="form-label">
+               Uses the same filter-bar field contract as Select controls.
+               The visible label is intentionally a form-label-static rather
+               than fieldset/legend so every filter control shares the same
+               vertical layout and control baseline.
+               ================================================================== --%>
+
+          <div class="filter-bar__field">
+            <span
+              class="form-label-static"
+              id="historical-date-label"
+            >
               <fmt:message key="filter.date" />
-              <span class="form-required" aria-hidden="true">*</span>
-            </legend>
+
+              <span
+                class="form-required"
+                aria-hidden="true"
+              >
+                *
+              </span>
+            </span>
 
             <div
               class="custom-date custom-date--range"
               data-custom-date-range
               data-placeholder="YYYY-MM-DD – YYYY-MM-DD"
+              aria-labelledby="historical-date-label"
             >
               <div class="custom-date__fallback">
+
+                <%-- Native progressive-enhancement fallback --%>
+
                 <div class="custom-date__native-range">
                   <input
                     class="form-control custom-date__native"
@@ -861,6 +914,8 @@ window.DROPDOWN_CONFIG = {
                   />
                 </div>
 
+                <%-- Initial enhanced-control placeholder --%>
+
                 <div
                   class="custom-date__initial-trigger"
                   aria-hidden="true"
@@ -876,30 +931,37 @@ window.DROPDOWN_CONFIG = {
                 </div>
               </div>
             </div>
-          </fieldset>
+          </div>
+
         </div>
 
-        <%-- ===================================================================
+        <%-- ====================================================================
              Actions
-             =================================================================== --%>
+
+             Kept as a sibling of filter-bar__fields. This is the shared
+             filter-bar layout contract and aligns the Reset action with the
+             controls rather than with their labels.
+             ==================================================================== --%>
 
         <div class="filter-bar__actions">
           <button
             type="button"
-            class="btn btn-outline-primary"
+            class="btn btn-outline-primary has-icon icon-sync-refresh icon-end"
             data-historical-reset
           >
-            <span>
-              <fmt:message key="reset.btn.title" />
-            </span>
-
-            <span
-              class="has-icon icon-sync-refresh icon-md"
-              aria-hidden="true"
-            ></span>
+            <fmt:message key="reset.btn.title" />
           </button>
         </div>
+
       </div>
+
+      <%-- ======================================================================
+           Filter Validation Message
+
+           Retained for now because the coordinator currently requires this
+           hook. Observation #6 will remove/simplify duplicate messaging in
+           the next testing/fix phase.
+           ====================================================================== --%>
 
       <p
         class="form-error"
@@ -912,6 +974,16 @@ window.DROPDOWN_CONFIG = {
 </section>
 <%-- ==========================================================================
      Historical Reports Content
+     ==========================================================================
+
+     Performance / Unadjusted are presented as one connected data-view surface.
+
+     The tabs are part of the same result surface as their table/cards so the
+     transition from the connected filter bar into the results reads as one
+     composed interface rather than separate floating components.
+
+     Derivatives Underlying replaces the tabbed report surface when its
+     Historical business profile is active.
      ========================================================================== --%>
 
 <section
@@ -922,14 +994,30 @@ window.DROPDOWN_CONFIG = {
   <div class="container">
 
     <%-- ========================================================================
-         Historical Reports Tabs
+         Performance / Unadjusted Connected Results
+         ========================================================================
+
+         data-view + data-view--connected are intentionally applied to the tabs
+         root itself.
+
+         This keeps:
+         - tab navigation
+         - active tab panel
+         - table
+         - mobile cards
+
+         inside one connected result surface.
+
+         historical.js already hides this entire element when the active
+         business profile is Derivatives Underlying or a non-table state.
          ======================================================================== --%>
 
     <div
-      class="tabs tabs--full"
+      class="tabs tabs--full data-view data-view--connected"
       data-tabs
       data-historical-tabs
     >
+
       <%-- ======================================================================
            Tab Navigation
            ====================================================================== --%>
@@ -939,7 +1027,9 @@ window.DROPDOWN_CONFIG = {
         role="tablist"
         aria-label="<fmt:message key='page.header' />"
       >
+
         <%-- Performance --%>
+
         <button
           type="button"
           class="tab-link active"
@@ -954,7 +1044,8 @@ window.DROPDOWN_CONFIG = {
           <fmt:message key="performance.tab.title" />
         </button>
 
-        <%-- Unadjusted Price --%>
+        <%-- Unadjusted Price & Volume --%>
+
         <button
           type="button"
           class="tab-link"
@@ -968,10 +1059,11 @@ window.DROPDOWN_CONFIG = {
         >
           <fmt:message key="unadjust.price.tab.title" />
         </button>
+
       </div>
 
       <%-- ======================================================================
-           Tab Panels
+           Tab Content
            ====================================================================== --%>
 
       <div class="tabs-content">
@@ -986,85 +1078,95 @@ window.DROPDOWN_CONFIG = {
           role="tabpanel"
           aria-labelledby="historical-tab-performance"
           aria-hidden="false"
+          data-historical-view="performance"
         >
-          <div
-            class="data-view data-view--connected"
-            data-historical-view="performance"
-          >
-            <div class="data-view__workspace">
+          <div class="data-view__workspace">
 
-              <%-- ==============================================================
-                   Desktop / Tablet Table
-                   ============================================================== --%>
+            <%-- ================================================================
+                 Desktop / Tablet Table
+                 ================================================================ --%>
 
-              <div class="data-view__table">
-                <div class="table-shell" data-table-shell>
-                  <section
-                    class="table-responsive custom-scrollbar"
-                    tabindex="0"
-                    role="region"
-                    aria-label="<fmt:message key='performance.tab.title' />"
-                  >
-                    <table
-                      id="historical-performance-table"
-                      class="table table-hover table-nowrap"
-                      data-historical-table="performance"
-                      aria-busy="true"
-                    >
-                      <caption class="visually-hidden">
-                        <fmt:message key="performance.tab.title" />
-                      </caption>
-
-                      <%--
-                        Historical columns are generated from the active
-                        market/profile schema.
-                      --%>
-                      <thead>
-                        <tr></tr>
-                      </thead>
-
-                      <tbody></tbody>
-                    </table>
-                  </section>
-
-                  <%-- Horizontal table jump control --%>
-                  <button
-                    type="button"
-                    class="table-scroll-jump has-icon icon-chevron-right-bold icon-md icon-flip-rtl"
-                    data-table-scroll-jump
-                    data-table-scroll-direction="end"
-                    aria-label="Jump to last columns"
-                    title="Jump to last columns"
-                    hidden
-                  >
-                    <span class="visually-hidden">
-                      Jump to last columns
-                    </span>
-                  </button>
-                </div>
-              </div>
-
-              <%-- ==============================================================
-                   Mobile Cards
-                   ============================================================== --%>
-
+            <div class="data-view__table">
               <div
-                class="data-view__cards"
-                aria-label="<fmt:message key='performance.tab.title' />"
+                class="table-shell"
+                data-table-shell
               >
-                <div
-                  class="data-view__cards-inner"
-                  data-historical-mobile-cards="performance"
-                  aria-busy="true"
-                ></div>
-              </div>
+                <section
+                  class="table-responsive custom-scrollbar"
+                  tabindex="0"
+                  role="region"
+                  aria-label="<fmt:message key='performance.tab.title' />"
+                >
+                  <table
+                    id="historical-performance-table"
+                    class="table table-hover table-nowrap"
+                    data-historical-table="performance"
+                    aria-busy="true"
+                  >
+                    <caption class="visually-hidden">
+                      <fmt:message key="performance.tab.title" />
+                    </caption>
 
+                    <%--
+                      Historical columns are generated dynamically from the
+                      active market/profile schema.
+
+                      The shared data-table layer owns:
+                      - generated header cells
+                      - visibility
+                      - loading / empty / error rows
+                      - DataTables lifecycle
+                    --%>
+
+                    <thead>
+                      <tr></tr>
+                    </thead>
+
+                    <tbody></tbody>
+                  </table>
+                </section>
+
+                <%-- ============================================================
+                     Horizontal Table Navigation
+                     ============================================================ --%>
+
+                <button
+                  type="button"
+                  class="table-scroll-jump has-icon icon-chevron-right-bold icon-md icon-flip-rtl"
+                  data-table-scroll-jump
+                  data-table-scroll-direction="end"
+                  aria-label="Jump to last columns"
+                  title="Jump to last columns"
+                  hidden
+                >
+                  <span class="visually-hidden">
+                    Jump to last columns
+                  </span>
+                </button>
+
+              </div>
             </div>
+
+            <%-- ================================================================
+                 Mobile Cards
+                 ================================================================ --%>
+
+            <div
+              class="data-view__cards"
+              aria-label="<fmt:message key='performance.tab.title' />"
+            >
+              <div
+                class="data-view__cards-inner"
+                data-historical-mobile-cards="performance"
+                aria-busy="true"
+              ></div>
+            </div>
+
           </div>
         </section>
 
         <%-- ====================================================================
-             Unadjusted Price
+             Unadjusted Price & Volume
              ==================================================================== --%>
 
         <section
@@ -1073,81 +1175,88 @@ window.DROPDOWN_CONFIG = {
           role="tabpanel"
           aria-labelledby="historical-tab-unadjusted"
           aria-hidden="true"
+          data-historical-view="unadjusted"
           hidden
         >
-          <div
-            class="data-view data-view--connected"
-            data-historical-view="unadjusted"
-          >
-            <div class="data-view__workspace">
+          <div class="data-view__workspace">
 
-              <%-- ==============================================================
-                   Desktop / Tablet Table
-                   ============================================================== --%>
+            <%-- ================================================================
+                 Desktop / Tablet Table
+                 ================================================================ --%>
 
-              <div class="data-view__table">
-                <div class="table-shell" data-table-shell>
-                  <section
-                    class="table-responsive custom-scrollbar"
-                    tabindex="0"
-                    role="region"
-                    aria-label="<fmt:message key='unadjust.price.tab.title' />"
-                  >
-                    <table
-                      id="historical-unadjusted-table"
-                      class="table table-hover table-nowrap"
-                      data-historical-table="unadjusted"
-                      aria-busy="true"
-                    >
-                      <caption class="visually-hidden">
-                        <fmt:message key="unadjust.price.tab.title" />
-                      </caption>
-
-                      <%--
-                        Historical columns are generated from the active
-                        market/profile schema.
-                      --%>
-                      <thead>
-                        <tr></tr>
-                      </thead>
-
-                      <tbody></tbody>
-                    </table>
-                  </section>
-
-                  <%-- Horizontal table jump control --%>
-                  <button
-                    type="button"
-                    class="table-scroll-jump has-icon icon-chevron-right-bold icon-md icon-flip-rtl"
-                    data-table-scroll-jump
-                    data-table-scroll-direction="end"
-                    aria-label="Jump to last columns"
-                    title="Jump to last columns"
-                    hidden
-                  >
-                    <span class="visually-hidden">
-                      Jump to last columns
-                    </span>
-                  </button>
-                </div>
-              </div>
-
-              <%-- ==============================================================
-                   Mobile Cards
-                   ============================================================== --%>
-
+            <div class="data-view__table">
               <div
-                class="data-view__cards"
-                aria-label="<fmt:message key='unadjust.price.tab.title' />"
+                class="table-shell"
+                data-table-shell
               >
-                <div
-                  class="data-view__cards-inner"
-                  data-historical-mobile-cards="unadjusted"
-                  aria-busy="true"
-                ></div>
-              </div>
+                <section
+                  class="table-responsive custom-scrollbar"
+                  tabindex="0"
+                  role="region"
+                  aria-label="<fmt:message key='unadjust.price.tab.title' />"
+                >
+                  <table
+                    id="historical-unadjusted-table"
+                    class="table table-hover table-nowrap"
+                    data-historical-table="unadjusted"
+                    aria-busy="true"
+                  >
+                    <caption class="visually-hidden">
+                      <fmt:message key="unadjust.price.tab.title" />
+                    </caption>
 
+                    <%--
+                      Unadjusted columns are generated dynamically from the
+                      Historical schema.
+
+                      Column visibility remains Historical business logic;
+                      rendering/lifecycle remains owned by common/data-view.
+                    --%>
+
+                    <thead>
+                      <tr></tr>
+                    </thead>
+
+                    <tbody></tbody>
+                  </table>
+                </section>
+
+                <%-- ============================================================
+                     Horizontal Table Navigation
+                     ============================================================ --%>
+
+                <button
+                  type="button"
+                  class="table-scroll-jump has-icon icon-chevron-right-bold icon-md icon-flip-rtl"
+                  data-table-scroll-jump
+                  data-table-scroll-direction="end"
+                  aria-label="Jump to last columns"
+                  title="Jump to last columns"
+                  hidden
+                >
+                  <span class="visually-hidden">
+                    Jump to last columns
+                  </span>
+                </button>
+
+              </div>
             </div>
+
+            <%-- ================================================================
+                 Mobile Cards
+                 ================================================================ --%>
+
+            <div
+              class="data-view__cards"
+              aria-label="<fmt:message key='unadjust.price.tab.title' />"
+            >
+              <div
+                class="data-view__cards-inner"
+                data-historical-mobile-cards="unadjusted"
+                aria-busy="true"
+              ></div>
+            </div>
+
           </div>
         </section>
 
@@ -1160,10 +1269,15 @@ window.DROPDOWN_CONFIG = {
 
          This is intentionally NOT a tab.
 
-         Historical rules display this view in place of the Performance /
-         Unadjusted tabs for the Derivatives Single Stock Options profile.
+         Historical rules replace the normal Performance / Unadjusted surface
+         with this view for:
 
-         Underlying is client-side and does not use report pagination.
+         Derivatives -> Single Stock Options
+
+         It remains:
+         - client-side
+         - non-paged
+         - independently loaded
          ======================================================================== --%>
 
     <section
@@ -1190,7 +1304,10 @@ window.DROPDOWN_CONFIG = {
                ================================================================ --%>
 
           <div class="data-view__table">
-            <div class="table-shell" data-table-shell>
+            <div
+              class="table-shell"
+              data-table-shell
+            >
               <section
                 class="table-responsive custom-scrollbar"
                 tabindex="0"
@@ -1215,7 +1332,10 @@ window.DROPDOWN_CONFIG = {
                 </table>
               </section>
 
-              <%-- Horizontal table jump control --%>
+              <%-- ==============================================================
+                   Horizontal Table Navigation
+                   ============================================================== --%>
+
               <button
                 type="button"
                 class="table-scroll-jump has-icon icon-chevron-right-bold icon-md icon-flip-rtl"
@@ -1229,6 +1349,7 @@ window.DROPDOWN_CONFIG = {
                   Jump to last columns
                 </span>
               </button>
+
             </div>
           </div>
 
@@ -1255,48 +1376,73 @@ window.DROPDOWN_CONFIG = {
          Historical Reports Notes
          ========================================================================
 
-         Rich note content is rendered server-side into inert templates.
-         Historical JS resolves a semantic note key and clones the appropriate
-         template into one of the visible note containers below.
+         Shared note-panel design-system component.
+
+         historical.rules.js resolves the semantic note key.
+         historical.js clones the matching trusted template content.
          ======================================================================== --%>
 
     <%-- Default Note --%>
+
     <div
-      class="alert alert-info mt-6"
+      class="note-panel mt-6"
       id="historical-note"
       data-historical-note="default"
       role="note"
       aria-live="polite"
       hidden
     >
-      <div
-        id="historical-note-text"
-        data-historical-note-content
-      ></div>
+      <div class="note-panel__item">
+
+        <span
+          class="note-panel__marker has-icon icon-check"
+          aria-hidden="true"
+        ></span>
+
+        <div
+          class="note-panel__content"
+          id="historical-note-text"
+          data-historical-note-content
+        ></div>
+
+      </div>
     </div>
 
     <%-- Derivatives Note --%>
+
     <div
-      class="alert alert-info mt-6"
+      class="note-panel mt-6"
       id="historical-note-derivatives"
       data-historical-note="derivatives"
       role="note"
       aria-live="polite"
       hidden
     >
-      <div
-        id="historical-note-derivatives-text"
-        data-historical-note-content
-      ></div>
+      <div class="note-panel__item">
+
+        <span
+          class="note-panel__marker has-icon icon-check"
+          aria-hidden="true"
+        ></span>
+
+        <div
+          class="note-panel__content"
+          id="historical-note-derivatives-text"
+          data-historical-note-content
+        ></div>
+
+      </div>
     </div>
 
     <%-- ========================================================================
          Note Templates
+         ========================================================================
 
-         These templates are inert until Historical JS explicitly clones them.
+         Inert server-rendered translated content.
 
-         Rich markup here must remain trusted application/resource-bundle
-         content. User-provided content must never be inserted unsanitized.
+         These stay outside the visible note component. historical.js selects
+         by semantic key and clones the DocumentFragment into the appropriate
+         note-panel__content element.
          ======================================================================== --%>
 
     <template data-historical-note-template="indexType">
@@ -1319,12 +1465,14 @@ window.DROPDOWN_CONFIG = {
          Historical Reports Page Placeholder
          ========================================================================
 
-         This is a page-level state.
+         This represents a page/business-rule state, not an ordinary zero-row
+         table result.
 
-         It is used when the current filter/business-rule state cannot display
-         one of the normal report views.
+         Examples:
+         - required filters have not been selected
+         - current business profile intentionally has no normal table
 
-         Normal zero-row results are handled by the table/card components.
+         Ordinary zero-row responses remain owned by data-table/data-cards.
          ======================================================================== --%>
 
     <section
@@ -1356,34 +1504,38 @@ window.DROPDOWN_CONFIG = {
          Historical Reports Pagination
          ========================================================================
 
-         Shared by Performance and Unadjusted.
+         Shared only by:
+         - Performance
+         - Unadjusted Price & Volume
 
-         Derivatives Underlying does not use pagination.
+         Not used by Derivatives Underlying.
 
-         common/data-view/data-pagination.js will render:
-         - range summary
+         common/data-view/data-pagination.js dynamically owns:
+         - result range
          - Previous
          - page numbers
          - ellipsis
-         - current page
+         - active page
          - Next
          ======================================================================== --%>
 
     <nav
-      class="pagination"
+      class="pagination mt-6"
       data-historical-pagination
       aria-label="<fmt:message key='pagination.page' />"
       aria-busy="false"
       hidden
     >
       <%-- Result Range --%>
+
       <p
         class="pagination__summary"
         data-historical-pagination-summary
         aria-live="polite"
       ></p>
 
-      <%-- Dynamically rendered page controls --%>
+      <%-- Dynamic Page Controls --%>
+
       <ol
         class="pagination__list"
         data-historical-pagination-list
