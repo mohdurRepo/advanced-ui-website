@@ -208,13 +208,15 @@
    Shared Market Change
    ========================================================================== */
 
+/*
+ * Market movement is a semantic presentation primitive used in several host
+ * elements: spans, divs, description values, and native table cells.
+ *
+ * Keep the root host-neutral. Native table cells must retain `table-cell`
+ * display so row geometry, borders, and column alignment remain intact.
+ */
+
 .market-change {
-  display: inline-flex;
-  align-items: center;
-  justify-content: flex-end;
-
-  gap: 0.375rem;
-
   min-inline-size: 0;
   max-inline-size: 100%;
 
@@ -228,6 +230,38 @@
 
   direction: ltr;
   unicode-bidi: isolate;
+}
+
+/* ==========================================================================
+   Inline Composition
+   ========================================================================== */
+
+/*
+ * Ordinary market-change hosts use an inline flex composition.
+ *
+ * Table cells are excluded intentionally. Changing a `<td>` / `<th>` to
+ * `inline-flex` breaks native table sizing and interrupts row borders.
+ */
+
+.market-change:not(td):not(th) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+
+  gap: 0.375rem;
+}
+
+/* ==========================================================================
+   Native Table Cell Host
+   ========================================================================== */
+
+:is(td, th).market-change {
+  display: table-cell;
+
+  max-inline-size: none;
+
+  text-align: end;
+  vertical-align: middle;
 }
 
 /* ==========================================================================
@@ -434,6 +468,30 @@
   border-radius: var(--radius-pill);
 
   clip-path: none;
+}
+
+/* ==========================================================================
+   Native Table Cell Spacing
+   ========================================================================== */
+
+/*
+ * Native table cells cannot use `gap`. Give the directional icon equivalent
+ * inline spacing while preserving the table-cell formatting context.
+ */
+
+:is(td, th).market-change.price-up .market-change__icon,
+:is(td, th).market-change.price-down .market-change__icon,
+:is(td, th).market-change.price-neutral .market-change__icon,
+:is(td, th).market-change--up .market-change__icon,
+:is(td, th).market-change--down .market-change__icon,
+:is(td, th).market-change--neutral .market-change__icon {
+  margin-inline-end: 0.375rem !important;
+}
+
+:is(td, th).market-change > :is(data, output, .market-change__value) {
+  display: inline-block;
+
+  vertical-align: middle;
 }
 
 /* ==========================================================================

@@ -5708,30 +5708,12 @@
                           <div
                             class="chart-toolbar__meta"
                             aria-label="Market status"
+                            data-chart-live-meta
                           >
-                            <!-- Live Status -->
-
-                            <span class="chart-toolbar__live">
-                              <span
-                                class="market-status market-status--open"
-                                aria-hidden="true"
-                              ></span>
-
-                              <span data-chart-live-status> Live </span>
-                            </span>
-
                             <span
                               class="chart-toolbar__meta-separator"
                               aria-hidden="true"
                             ></span>
-
-                            <!-- Last Updated -->
-
-                            <span class="chart-toolbar__updated">
-                              <span>Updated</span>
-
-                              <time data-chart-updated-time> — </time>
-                            </span>
                           </div>
                         </div>
                       </div>
@@ -11662,22 +11644,17 @@
       /* ==========================================================================
    Live Status UI — unchanged from production.
    ========================================================================== */
-
       function updateLiveStatusUI(stateValue) {
-        const mapping =
-          LIVE_STATUS_LABELS[stateValue] || LIVE_STATUS_LABELS.idle;
-
+        // "Live"/"Paused" badge removed — only the chart's own "Updated"
+        // indicator remains user-facing now.
         if (liveStatusText) {
-          liveStatusText.textContent = isArabic() ? mapping.ar : mapping.en;
+          liveStatusText.hidden = true;
         }
-
-        liveStatusIcon?.classList.toggle("market-status--open", mapping.open);
-        liveStatusIcon?.classList.toggle(
+        liveStatusIcon?.classList.remove(
+          "market-status--open",
           "market-status--closed",
-          !mapping.open,
         );
       }
-
       function bindLiveStatus() {
         chartElement.addEventListener(
           "marketchartlivestatechange",

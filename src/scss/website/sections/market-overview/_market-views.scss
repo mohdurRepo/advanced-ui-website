@@ -7,21 +7,35 @@
 /*
  * Nested market-view shell.
  *
- * Owns:
- * - the category tab navigation
- * - the corresponding market-view panels
+ * Responsibilities:
  *
- * The shell is intentionally vertical so the navigation remains above the
- * active panel.
+ * - Own category/view tab navigation.
+ * - Own active/inactive market-view panel presentation.
+ * - Allow the active view to fill the remaining fixed Details canvas.
+ * - Release fixed-height behavior when the surrounding Details layout becomes
+ *   content-sized on tablet/mobile.
+ *
+ * The parent Market Details panel remains responsible for the overall canvas
+ * height. This component only distributes that available height between the
+ * tab navigation and the active view.
  */
+
+/* ==========================================================================
+   Root
+   ========================================================================== */
 
 .market-views {
   display: flex;
   flex-direction: column;
 
+  flex: 1 1 auto;
+
   inline-size: 100%;
+
   min-inline-size: 0;
   min-block-size: 0;
+
+  overflow: hidden;
 
   background: var(--market-details-bg);
   color: var(--market-details-fg);
@@ -35,6 +49,9 @@
   display: inline-flex;
   align-items: center;
   align-self: center;
+
+  flex: 0 0 auto;
+
   gap: 0.375rem;
 
   max-inline-size: calc(100% - (var(--market-panel-space) * 2));
@@ -51,8 +68,8 @@
   background: rgb(255 255 255 / 0.08);
 
   overscroll-behavior-inline: contain;
-  scroll-snap-type: inline proximity;
 
+  scroll-snap-type: inline proximity;
   scrollbar-width: none;
 
   touch-action: pan-x pan-y;
@@ -95,13 +112,14 @@
   white-space: nowrap;
 
   cursor: pointer;
+
   touch-action: manipulation;
 
   scroll-snap-align: start;
 
   @include ds.transition(
     (background-color, border-color, color, box-shadow),
-    fast
+    "fast"
   );
 
   &:hover:not(:disabled):not(.is-disabled) {
@@ -142,10 +160,28 @@
    View Panels
    ========================================================================== */
 
+/*
+ * Desktop fixed-canvas behavior:
+ *
+ * tab list
+ * ─────────────────────────
+ * active view -> fills every remaining pixel
+ *
+ * The active panel is a flex container so its Details grid can inherit the
+ * available height. Hidden panels never participate in layout.
+ */
+
 .market-view-panel {
+  display: none;
+
+  flex: 1 1 auto;
+
   inline-size: 100%;
+
   min-inline-size: 0;
   min-block-size: 0;
+
+  overflow: hidden;
 
   &[hidden] {
     display: none !important;
@@ -153,26 +189,63 @@
 
   &.is-active,
   &[aria-hidden="false"] {
-    display: block;
+    display: flex;
+    flex-direction: column;
   }
 }
 
-/* ==========================================================================
-   Overview View
+/* ========================================================================== 
+   Details Grid Integration
    ========================================================================== */
 
-.market-view-panel.market-details-panel--overview {
+/*
+ * The grid must consume the active view's remaining height rather than using
+ * its content height. This is what keeps REITs / ETFs / CEFs visually equal
+ * when their content volume differs.
+ */
+
+.market-view-panel > .market-details-panel__grid {
   flex: 1 1 auto;
+
+  block-size: auto;
+
+  min-inline-size: 0;
   min-block-size: 0;
 }
 
 /* ==========================================================================
-   Analytics View
+   Tablet / Content-sized Details
    ========================================================================== */
 
-.market-view-panel.market-details-panel--analytics {
-  flex: 1 1 auto;
-  min-block-size: 0;
+/*
+ * Below desktop the surrounding Market Details component stops using the
+ * fixed canvas. Release panel clipping and let each active view follow normal
+ * document flow.
+ */
+
+@include ds.respond-down(lg) {
+  .market-views {
+    flex: 0 0 auto;
+
+    overflow: visible;
+  }
+
+  .market-view-panel {
+    flex: 0 0 auto;
+
+    overflow: visible;
+
+    &.is-active,
+    &[aria-hidden="false"] {
+      display: block;
+    }
+  }
+
+  .market-view-panel > .market-details-panel__grid {
+    flex: 0 0 auto;
+
+    block-size: auto;
+  }
 }
 
 /* ==========================================================================
@@ -276,6 +349,8 @@ html[data-motion="reduce"] {
   .market-views {
     display: block;
 
+    overflow: visible;
+
     background: transparent;
     color: inherit;
   }
@@ -284,7 +359,16 @@ html[data-motion="reduce"] {
     display: none;
   }
 
+  .market-view-panel {
+    overflow: visible;
+  }
+
   .market-view-panel[hidden] {
     display: none !important;
+  }
+
+  .market-view-panel.is-active,
+  .market-view-panel[aria-hidden="false"] {
+    display: block;
   }
 }

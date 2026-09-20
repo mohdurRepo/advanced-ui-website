@@ -5,6 +5,7 @@
    ========================================================================== */
 
 .market-details-panel {
+  --market-details-canvas-height: 22rem;
   --market-details-height: auto;
 
   position: relative;
@@ -37,13 +38,27 @@
 }
 
 /*
- * Only the primary market overview needs a fixed desktop canvas so its
- * chart, movers, and statistics remain aligned. Nested category views and
- * analytics/dashboard panels stay content-sized.
+ * Standard market panels share one stable desktop canvas.
+ *
+ * Main Market, Parallel Market, Sukuk & Bonds, and Funds always use the
+ * common canvas. Derivatives uses the same canvas only while its analytical
+ * MT30 view is active; the Derivatives dashboard remains content-sized.
  */
 
-.market-details-panel[data-market-detail-panel].market-details-panel--overview {
-  --market-details-height: 22rem;
+.market-details-panel[data-market-detail-panel]:not([data-market="D"]) {
+  --market-details-height: var(--market-details-canvas-height);
+
+  overflow: hidden;
+}
+
+.market-details-panel[data-market="D"]:has(
+    > .market-views
+      > .market-view-panel.market-details-panel--analytics:is(
+        .is-active,
+        [aria-hidden="false"]
+      )
+  ) {
+  --market-details-height: var(--market-details-canvas-height);
 
   overflow: hidden;
 }
@@ -200,9 +215,17 @@
 .market-details-panel__main {
   grid-area: main;
 
+  min-block-size: 0;
+
   padding: 0.75rem;
 
+  overflow: hidden;
+
   background: var(--market-details-bg);
+}
+
+.market-details-panel__main > .market-panel {
+  block-size: 100%;
 }
 
 .market-details-panel__insights {
@@ -257,15 +280,15 @@
 
   inline-size: 100%;
   block-size: 100%;
+
   min-inline-size: 0;
   min-block-size: 0;
 
-  overflow-x: auto;
-  overflow-y: visible;
+  overflow: auto;
 
-  overscroll-behavior-inline: contain;
-  overscroll-behavior-block: auto;
+  overscroll-behavior: contain;
 
+  scrollbar-gutter: stable;
   scrollbar-width: thin;
   scrollbar-color: rgb(255 255 255 / 0.32) transparent;
 
@@ -274,6 +297,7 @@
   -webkit-overflow-scrolling: touch;
 
   &::-webkit-scrollbar {
+    inline-size: 0.375rem;
     block-size: 0.375rem;
   }
 
@@ -306,6 +330,20 @@
   min-inline-size: 34rem;
 
   margin: 0;
+}
+
+/*
+ * Keep column labels visible while a larger data set scrolls vertically
+ * inside the fixed desktop Details canvas.
+ */
+
+.market-details-panel__table > .table > thead > tr > :is(th, td) {
+  position: sticky;
+  inset-block-start: 0;
+
+  z-index: 2;
+
+  background: var(--table-head-bg);
 }
 
 /* ==========================================================================
@@ -445,33 +483,71 @@
 }
 
 /* ==========================================================================
-   View Panels
+   Nested View Integration
    ========================================================================== */
 
-.market-view-panel {
+/*
+ * Market Views owns the generic tab/panel component.
+ *
+ * This file owns only its integration with the fixed Details canvas: the
+ * navigation consumes intrinsic space and the active view fills everything
+ * that remains.
+ */
+
+.market-details-panel > .market-views {
   flex: 1 1 auto;
 
-  block-size: auto;
+  min-inline-size: 0;
+  min-block-size: 0;
+}
+
+/*
+ * Derivatives remains content-sized for its dashboard view. When MT30 is the
+ * active analytical view, the nested view shell fills the same fixed canvas
+ * used by the other market detail panels.
+ */
+
+.market-details-panel[data-market="D"] > .market-views {
+  flex: 0 0 auto;
+}
+
+.market-details-panel[data-market="D"]:has(
+    > .market-views
+      > .market-view-panel.market-details-panel--analytics:is(
+        .is-active,
+        [aria-hidden="false"]
+      )
+  )
+  > .market-views {
+  flex: 1 1 auto;
+
+  min-block-size: 0;
+}
+
+.market-details-panel > .market-views > .market-view-panel {
+  flex: 1 1 auto;
+
   min-inline-size: 0;
   min-block-size: 0;
 
   overflow: hidden;
-
-  &[hidden] {
-    display: none !important;
-  }
-
-  &.is-active {
-    display: block;
-  }
 }
 
-.market-details-panel > .market-views {
-  flex: 0 0 auto;
+.market-details-panel > .market-views > .market-view-panel.is-active,
+.market-details-panel
+  > .market-views
+  > .market-view-panel[aria-hidden="false"] {
+  display: flex;
+  flex-direction: column;
 }
 
 .market-view-panel > .market-details-panel__grid {
-  block-size: 100%;
+  flex: 1 1 auto;
+
+  block-size: auto;
+
+  min-inline-size: 0;
+  min-block-size: 0;
 }
 
 /* ==========================================================================
@@ -496,7 +572,7 @@
    * The top-level Overview can no longer use the fixed 22rem TOTAL height
    * once Statistics occupy a second row.
    */
-  .market-details-panel[data-market-detail-panel].market-details-panel--overview {
+  .market-details-panel[data-market-detail-panel]:not([data-market="D"]) {
     --market-details-height: auto;
 
     block-size: auto;
@@ -591,16 +667,13 @@
     }
   }
 
-  .market-details-panel[data-market-detail-panel].market-details-panel--overview {
-    --market-details-height: auto;
-  }
-
-  .market-details-panel__grid,
-  .market-view-panel {
+  .market-details-panel__grid {
     block-size: auto;
   }
 
-  .market-view-panel {
+  .market-details-panel > .market-views > .market-view-panel {
+    block-size: auto;
+
     overflow: visible;
   }
 

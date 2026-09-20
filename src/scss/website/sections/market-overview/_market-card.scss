@@ -99,11 +99,15 @@
 
   --market-card-radius: var(--radius-lg);
 
-  --market-card-space: var(--space-3, #{ds.space(3)});
+  --market-card-space: var(--space-4, #{ds.space(4)});
 
   --market-card-gap: var(--space-2, #{ds.space(2)});
 
   --market-card-body-gap: var(--space-3, #{ds.space(3)});
+
+  --market-card-divider-inset: var(--space-1, #{ds.space(1)});
+
+  --market-card-footer-space: var(--space-2, #{ds.space(2)});
 
   --market-card-metrics-min: 6rem;
 
@@ -388,6 +392,8 @@
 
   min-inline-size: 0;
   min-block-size: 0;
+
+  padding-block: var(--space-1, #{ds.space(1)});
 }
 
 /* ==========================================================================
@@ -464,7 +470,9 @@
 
   inline-size: 1px;
 
-  min-block-size: 3rem;
+  min-block-size: 0;
+
+  margin-block: var(--market-card-divider-inset);
 
   background: var(--market-card-divider);
 
@@ -567,7 +575,11 @@
 
   min-inline-size: 0;
 
+  padding-block-start: var(--market-card-footer-space);
+
   overflow: hidden;
+
+  border-block-start: 1px solid var(--market-card-divider);
 
   color: var(--market-card-muted);
 
@@ -584,6 +596,13 @@
   white-space: nowrap;
 
   font-variant-numeric: tabular-nums;
+
+  @include ds.transition(border-color, "fast");
+}
+
+.market-card.is-active .market-card__timer,
+.market-card[aria-selected="true"] .market-card__timer {
+  border-block-start-color: var(--market-card-active-divider);
 }
 
 /* ==========================================================================
@@ -786,6 +805,10 @@ html[data-contrast="high"] {
     inline-size: 2px;
   }
 
+  .market-card__timer {
+    border-block-start-width: 2px;
+  }
+
   .market-card__title,
   .market-card__value {
     color: var(--color-text);
@@ -869,7 +892,8 @@ html[data-contrast="high"] {
 
 @media (prefers-reduced-motion: reduce) {
   .market-card,
-  .market-card__divider {
+  .market-card__divider,
+  .market-card__timer {
     transition: none;
   }
 
@@ -880,7 +904,8 @@ html[data-contrast="high"] {
 
 html[data-motion="reduce"] {
   .market-card,
-  .market-card__divider {
+  .market-card__divider,
+  .market-card__timer {
     transition: none;
   }
 
