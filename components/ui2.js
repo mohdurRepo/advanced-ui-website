@@ -2847,7 +2847,7 @@ window.marketConfig = {
    Market Overview — Refresh Controller
    ========================================================================== */
 
-(function (window, document) {
+(function (window, document, $) {
   "use strict";
 
   const config = window.marketConfig || {};
@@ -2857,10 +2857,14 @@ window.marketConfig = {
     return;
   }
 
-  const root = document.querySelector("[data-market-overview]");
+  let root = null;
 
-  if (!root) {
-    return;
+  function getRoot() {
+    if (!root || !root.isConnected) {
+      root = document.querySelector("[data-market-overview]");
+    }
+
+    return root;
   }
 
   /* ==========================================================================
@@ -2918,12 +2922,13 @@ window.marketConfig = {
 
   function getCard(marketKey) {
     const marketCode = getMarketConfig(marketKey)?.code;
+    const currentRoot = getRoot();
 
-    if (!marketCode) {
+    if (!marketCode || !currentRoot) {
       return null;
     }
 
-    return root.querySelector(
+    return currentRoot.querySelector(
       `[data-market-card][data-market="${CSS.escape(String(marketCode))}"]`,
     );
   }
@@ -2948,7 +2953,13 @@ window.marketConfig = {
      ========================================================================== */
 
   function emit(name, detail = {}) {
-    root.dispatchEvent(
+    const currentRoot = getRoot();
+
+    if (!currentRoot) {
+      return;
+    }
+
+    currentRoot.dispatchEvent(
       new CustomEvent(name, {
         detail,
       }),
@@ -3269,7 +3280,8 @@ window.marketConfig = {
       }
     }
   }
-    /* ==========================================================================
+
+  /* ==========================================================================
      Countdown Labels
      ========================================================================== */
 
@@ -3325,8 +3337,7 @@ window.marketConfig = {
       ? "بانتظار التحديث"
       : "Awaiting update";
   }
-
-  /* ==========================================================================
+    /* ==========================================================================
      Countdown Rendering
      ========================================================================== */
 
@@ -3641,7 +3652,8 @@ window.marketConfig = {
       );
     }
   }
-    /* ==========================================================================
+
+  /* ==========================================================================
      Market Data Request
      ========================================================================== */
 
@@ -3676,13 +3688,6 @@ window.marketConfig = {
           data,
         );
       }
-
-      /*
-       * Decoupled integration point for chart/live-data modules.
-       *
-       * A chart module can listen for this event without the refresh
-       * controller needing to know how that chart is implemented.
-       */
 
       emit("marketoverview:data", {
         data,
@@ -3753,34 +3758,20 @@ window.marketConfig = {
      ========================================================================== */
 
   function refreshNow() {
-    /*
-     * Never start a second refresh while the current one is still running.
-     *
-     * Callers receive the same Promise and can safely await it.
-     */
-
     if (state.refreshPromise) {
       return state.refreshPromise;
     }
 
+    const currentRoot = getRoot();
+
+    if (!currentRoot) {
+      return Promise.resolve([]);
+    }
+
     const generation = state.generation;
 
-    /*
-     * This is intentionally only a state hook.
-     *
-     * It does not hide values, insert skeletons, change dimensions or alter
-     * the current market display.
-     */
-
-    root.dataset.marketRefreshing =
+    currentRoot.dataset.marketRefreshing =
       "true";
-
-    /*
-     * Start both requests independently.
-     *
-     * Each response applies as soon as it succeeds. A timing failure therefore
-     * does not prevent market data from updating, and vice versa.
-     */
 
     const marketRequest =
       refreshMarketData(generation);
@@ -3829,7 +3820,7 @@ window.marketConfig = {
             generation ===
             state.generation
           ) {
-            delete root.dataset
+            delete currentRoot.dataset
               .marketRefreshing;
           }
         });
@@ -3866,13 +3857,6 @@ window.marketConfig = {
       return;
     }
 
-    /*
-     * setTimeout is intentional instead of setInterval.
-     *
-     * The next refresh is scheduled only after the current refresh has
-     * completed, preventing interval drift and request accumulation.
-     */
-
     state.fallbackTimer =
       window.setTimeout(() => {
         state.fallbackTimer = null;
@@ -3882,8 +3866,7 @@ window.marketConfig = {
         });
       }, getRefreshInterval());
   }
-
-  /* ==========================================================================
+    /* ==========================================================================
      Countdown-triggered Refresh
      ========================================================================== */
 
@@ -3899,12 +3882,6 @@ window.marketConfig = {
       true;
 
     clearFallbackTimer();
-
-    /*
-     * Multiple cards may reach zero during the same second.
-     *
-     * Collapse all of those expirations into one refresh.
-     */
 
     Promise.resolve()
       .then(() => refreshNow())
@@ -3926,13 +3903,6 @@ window.marketConfig = {
     }
 
     if (document.hidden) {
-      /*
-       * Browsers throttle background intervals anyway.
-       *
-       * Stop them intentionally and recalculate from the absolute timing API
-       * target when the page becomes visible again.
-       */
-
       clearFallbackTimer();
       clearCountdownTimer();
 
@@ -3958,7 +3928,7 @@ window.marketConfig = {
   }
 
   /* ==========================================================================
-     Request Cleanup
+     Lifecycle
      ========================================================================== */
 
   function abortAllRequests() {
@@ -3971,24 +3941,27 @@ window.marketConfig = {
     state.abortControllers.clear();
   }
 
-  /* ==========================================================================
-     Lifecycle
-     ========================================================================== */
-
   function start() {
     if (state.started) {
       return;
     }
 
-    state.started = true;
-
     /*
-     * Every lifecycle receives its own generation.
+     * Resolve the Overview only after jQuery DOM-ready.
      *
-     * A response belonging to a previous stopped lifecycle can therefore
-     * never mutate the current page.
+     * The previous implementation queried for the root when this file was
+     * evaluated. On pages where this script loads before the Overview markup,
+     * that returned null and permanently stopped the refresh controller before
+     * its ready handler could ever run.
      */
 
+    const currentRoot = getRoot();
+
+    if (!currentRoot) {
+      return;
+    }
+
+    state.started = true;
     state.generation += 1;
 
     document.addEventListener(
@@ -3997,10 +3970,9 @@ window.marketConfig = {
     );
 
     /*
-     * Initial page HTML remains fully visible.
+     * Do not replace or hide SSR content while the initial request is running.
      *
-     * This first request simply reconciles the server-rendered values against
-     * the newest API snapshot.
+     * The first API result simply reconciles the currently rendered snapshot.
      */
 
     refreshNow().finally(() => {
@@ -4026,8 +3998,12 @@ window.marketConfig = {
     state.countdownRefreshQueued =
       false;
 
-    delete root.dataset
-      .marketRefreshing;
+    const currentRoot = getRoot();
+
+    if (currentRoot) {
+      delete currentRoot.dataset
+        .marketRefreshing;
+    }
 
     document.removeEventListener(
       "visibilitychange",
@@ -4051,20 +4027,16 @@ window.marketConfig = {
     });
 
   /* ==========================================================================
-     Auto Start
+     Auto Start — jQuery 4
      ========================================================================== */
 
-  if (
-    document.readyState === "loading"
-  ) {
-    document.addEventListener(
-      "DOMContentLoaded",
-      start,
-      {
-        once: true,
-      },
-    );
-  } else {
-    start();
-  }
-})(window, document);
+  /*
+   * jQuery owns DOM-ready for this site.
+   *
+   * The refresh controller itself remains framework-independent after startup:
+   * requests use native fetch, timers use browser APIs and DOM updates are
+   * handled by MarketCommon / MarketHomeDetails.
+   */
+
+  $(start);
+})(window, document, jQuery);
