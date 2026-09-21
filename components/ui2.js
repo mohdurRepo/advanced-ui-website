@@ -1639,6 +1639,7 @@ window.marketConfig = {
           item.companyNameAr,
           item.companyNameAR,
           item.issuerNameAr,
+          item.issuerName,
           item.companyName,
           item.szCompany,
           item.companyEn,
@@ -1653,6 +1654,7 @@ window.marketConfig = {
         item.companyNameEn,
         item.companyNameEN,
         item.issuerNameEn,
+        item.issuerName,
         item.companyName,
         item.szCompany,
         item.companyAr,
@@ -1981,7 +1983,8 @@ window.marketConfig = {
 
     return row;
   }
-    function ensureChangeValue(row) {
+
+  function ensureChangeValue(row) {
     const numbers = row.querySelector(".market-movers__numbers");
 
     if (!numbers) {
@@ -2054,13 +2057,27 @@ window.marketConfig = {
       "price-neutral",
     );
 
+    /*
+     * Legacy/JSP volume rows already use the .market-movers__change element
+     * itself as <data>. Reusing that node is important: appending another
+     * <data> inside it duplicates the rendered volume.
+     */
+
+    if (change.tagName === "DATA") {
+      change.querySelectorAll(".market-change__icon").forEach((icon) => {
+        icon.remove();
+      });
+
+      return change;
+    }
+
     const directionIcon = change.querySelector(
       ".market-change__icon:not(.icon-riyal)",
     );
 
     directionIcon?.remove();
 
-    let value = change.querySelector("data.numeric");
+    let value = change.querySelector("data.numeric, data");
 
     if (!value) {
       const existingNumeric = change.querySelector(".numeric");
@@ -2312,7 +2329,7 @@ window.marketConfig = {
     common.setDataValue(
       value,
       rawValue,
-      common.formatCompact(rawValue),
+      common.formatDecimal(rawValue, 2),
     );
   }
 
@@ -2485,7 +2502,7 @@ window.marketConfig = {
     return { bySymbol, byName };
   }
 
-  function createWatchRow(columnCount, { directChangeCell = false } = {}) {
+  function createWatchRow(columnCount = 4) {
     const row = document.createElement("tr");
     const heading = document.createElement("th");
     const link = document.createElement("a");
@@ -2496,12 +2513,7 @@ window.marketConfig = {
 
     for (let index = 1; index < columnCount; index += 1) {
       const cell = document.createElement("td");
-
-      cell.className =
-        directChangeCell && index === 2
-          ? "numeric market-change"
-          : "numeric";
-
+      cell.className = index === 2 ? "numeric market-change" : "numeric";
       row.append(cell);
     }
 
@@ -2518,49 +2530,69 @@ window.marketConfig = {
     if (!value) {
       value = document.createElement("data");
       value.className = "numeric";
-
       cell.append(value);
     }
 
     return value;
   }
 
-  function ensureTableChange(cell) {
+  function normalizePercentCell(cell, directional) {
     if (!cell) {
       return null;
     }
 
-    let change = cell.matches(".market-change")
-      ? cell
-      : cell.querySelector(".market-change");
+    const dataElements = Array.from(cell.querySelectorAll("data"));
 
-    if (!change) {
-      change = document.createElement("span");
-      change.className = "market-change";
-
-      cell.append(change);
-    }
-
-    let icon = change.querySelector(".market-change__icon");
-    let value = change.querySelector("data");
-
-    if (!icon) {
-      icon = document.createElement("span");
-      icon.className = "market-change__icon";
-      icon.setAttribute("aria-hidden", "true");
-
-      change.prepend(icon);
-    }
+    let value =
+      dataElements.find((element) => element.parentElement === cell) ||
+      dataElements[0] ||
+      null;
 
     if (!value) {
       value = document.createElement("data");
       value.className = "numeric";
-
-      change.append(value);
     }
 
+    if (value.parentElement !== cell) {
+      cell.append(value);
+    }
+
+    dataElements.forEach((element) => {
+      if (element !== value) {
+        element.remove();
+      }
+    });
+
+    cell.querySelectorAll(".market-change").forEach((element) => {
+      if (element !== cell) {
+        element.remove();
+      }
+    });
+
+    cell.querySelectorAll(".market-change__icon").forEach((icon) => {
+      icon.remove();
+    });
+
+    common.clearPriceState(cell);
+
+    if (!directional) {
+      cell.classList.remove("market-change");
+
+      return {
+        container: cell,
+        value,
+      };
+    }
+
+    cell.classList.add("market-change");
+
+    const icon = document.createElement("span");
+    icon.className = "market-change__icon";
+    icon.setAttribute("aria-hidden", "true");
+    cell.insertBefore(icon, value);
+
     return {
-      container: change,
+      container: cell,
       value,
     };
   }
@@ -2604,10 +2636,44 @@ window.marketConfig = {
     );
   }
 
-  function updateWatchPercent(row, item) {
+  function getWatchPercentValue(item, fundKey) {
+    if (fundKey === "etfs") {
+      return common.firstDefined(
+        item?.percentChangeDoubleModified,
+        item?.precentChange,
+        item?.unformatedPrecentChange,
+        item?.percentChange,
+      );
+    }
+
+    if (fundKey === "cefs") {
+      return common.firstDefined(
+        item?.unformatedPrecentChange,
+        item?.precentChange,
+        item?.percentChangeDoubleModified,
+        item?.percentChange,
+      );
+    }
+
+    return getPercentChange(item);
+  }
+
+  function updateWatchPercent(row, item, fundKey) {
     const cell = row.cells[2];
-    const parts = ensureTableChange(cell);
-    const rawValue = getPercentChange(item);
+    const rawValue = getWatchPercentValue(item, fundKey);
+    const numericValue = common.toNumber(rawValue);
+
+    if (!cell || numericValue === null) {
+      return;
+    }
+
+    /*
+     * Zero-change rows in the JSP are plain numeric cells. Normalize the
+     * existing cell instead of appending a second change component; otherwise
+     * values such as "0.0%" and "0.00%" are rendered side-by-side.
+     */
+
+    const parts = normalizePercentCell(cell, numericValue !== 0);
 
     if (!parts) {
       return;
@@ -2615,44 +2681,36 @@ window.marketConfig = {
 
     common.setDataValue(
       parts.value,
-      rawValue,
-      common.formatPercent(rawValue, { decimals: 2 }),
+      numericValue,
+      common.formatPercent(numericValue, { decimals: 2 }),
       {
         updateTarget: parts.container,
       },
     );
 
-    if (common.toNumber(rawValue) !== null) {
-      common.applyPriceState(parts.container, rawValue);
+    if (numericValue !== 0) {
+      common.applyPriceState(parts.container, numericValue);
     }
   }
 
-  function ensureCurrencyValue(cell) {
-    if (!cell) {
-      return null;
-    }
+  function updateWatchInav(row, item, cellIndex) {
+    const cell = row.cells[cellIndex];
+    const rawValue = common.firstDefined(
+      item?.INAV,
+      item?.INAVModified,
+    );
 
-    let icon = cell.querySelector(".icon-riyal");
+    const numericValue = common.toNumber(rawValue);
 
-    if (!icon) {
-      icon = document.createElement("span");
-      icon.className = "has-icon icon-riyal";
-      icon.setAttribute("aria-hidden", "true");
-
-      cell.prepend(icon);
-    }
-
-    return ensureCellData(cell);
-  }
-
-  function updateWatchTurnover(row, item, cellIndex) {
-    const rawValue = getTurnover(item);
-
-    if (common.toNumber(rawValue) === null) {
+    if (!cell || numericValue === null) {
       return;
     }
 
-    const value = ensureCurrencyValue(row.cells[cellIndex]);
+    cell.querySelectorAll(".icon-riyal").forEach((icon) => {
+      icon.remove();
+    });
+
+    const value = ensureCellData(cell);
 
     if (!value) {
       return;
@@ -2660,19 +2718,37 @@ window.marketConfig = {
 
     common.setDataValue(
       value,
-      rawValue,
-      common.formatCompact(rawValue),
+      numericValue,
+      numericValue === 0
+        ? "-"
+        : common.formatDecimal(numericValue, 2),
     );
   }
 
   function updateWatchVolume(row, item, cellIndex) {
-    const rawValue = getVolume(item);
+    const rawValue = common.firstDefined(
+      item?.volumeTraded,
+      item?.volume,
+      item?.bdVolume,
+    );
 
-    if (common.toNumber(rawValue) === null) {
+    const numericValue = common.toNumber(rawValue);
+
+    if (numericValue === null) {
       return;
     }
 
-    const value = ensureCellData(row.cells[cellIndex]);
+    const cell = row.cells[cellIndex];
+
+    if (!cell) {
+      return;
+    }
+
+    cell.querySelectorAll(".icon-riyal").forEach((icon) => {
+      icon.remove();
+    });
+
+    const value = ensureCellData(cell);
 
     if (!value) {
       return;
@@ -2680,8 +2756,8 @@ window.marketConfig = {
 
     common.setDataValue(
       value,
-      rawValue,
-      common.formatCompact(rawValue),
+      numericValue,
+      common.formatDecimal(numericValue, 2),
     );
   }
 
@@ -2707,9 +2783,14 @@ window.marketConfig = {
       return;
     }
 
-    const isCef = fundKey === "cefs";
-    const columnCount = isCef ? 5 : 4;
+    /*
+     * Current JSP contract:
+     *
+     * ETF: Fund | Price | Change | INAV
+     * CEF: Fund | Price | Change | Volume
+     */
 
+    const columnCount = 4;
     const existing = getTableRowsByIdentity(tbody);
     const usedRows = new Set();
 
@@ -2723,9 +2804,7 @@ window.marketConfig = {
         null;
 
       if (!row) {
-        row = createWatchRow(columnCount, {
-          directChangeCell: !isCef,
-        });
+        row = createWatchRow(columnCount);
       }
 
       updateWatchIdentity(
@@ -2735,19 +2814,12 @@ window.marketConfig = {
       );
 
       updateWatchPrice(row, item);
-      updateWatchPercent(row, item);
+      updateWatchPercent(row, item, fundKey);
 
-      /*
-       * Do not reuse the legacy ETF INAV field for the new table's Value
-       * column. Value is updated only when the response exposes an actual
-       * turnover / traded-value field; otherwise the existing rendered value
-       * is preserved.
-       */
-
-      updateWatchTurnover(row, item, 3);
-
-      if (isCef) {
-        updateWatchVolume(row, item, 4);
+      if (fundKey === "etfs") {
+        updateWatchInav(row, item, 3);
+      } else if (fundKey === "cefs") {
+        updateWatchVolume(row, item, 3);
       }
 
       usedRows.add(row);
@@ -2759,6 +2831,195 @@ window.marketConfig = {
         row.remove();
       }
     });
+  }
+
+  /* ==========================================================================
+     Derivatives — MT30
+     ========================================================================== */
+
+  function getObjectAtPath(data, path) {
+    const value = common.getPath(data, path, null);
+
+    return value && typeof value === "object" && !Array.isArray(value)
+      ? value
+      : null;
+  }
+
+  function getMt30IndexItem(data) {
+    const indices = common.getPath(data, "indicesList", null);
+
+    if (!Array.isArray(indices)) {
+      return null;
+    }
+
+    return (
+      indices.find((item) => {
+        const symbol = String(
+          common.firstDefined(
+            item?.symbol,
+            item?.szSymbol,
+            item?.indexSymbol,
+            item?.code,
+          ) || "",
+        )
+          .trim()
+          .toUpperCase();
+
+        return symbol === "MT30" || symbol.includes("MT30");
+      }) || null
+    );
+  }
+
+  function getMt30Sources(data) {
+    return [
+      getObjectAtPath(data, "mt30Bean.tasiTodaysSummaryBean"),
+      getObjectAtPath(data, "mt30IndicesBean.tasiTodaysSummaryBean"),
+      getObjectAtPath(data, "mt30IndexBean.tasiTodaysSummaryBean"),
+      getObjectAtPath(data, "timt30Info.tasiTodaysSummaryBean"),
+      getObjectAtPath(data, "TIMT30Info.tasiTodaysSummaryBean"),
+      getObjectAtPath(data, "mt30Info.tasiTodaysSummaryBean"),
+      getMt30IndexItem(data),
+    ].filter(Boolean);
+  }
+
+  function getFirstNumericField(sources, fieldNames) {
+    let zeroValue = null;
+
+    for (const source of sources) {
+      for (const fieldName of fieldNames) {
+        if (!Object.prototype.hasOwnProperty.call(source, fieldName)) {
+          continue;
+        }
+
+        const numericValue = common.toNumber(source[fieldName]);
+
+        if (numericValue === null) {
+          continue;
+        }
+
+        if (numericValue !== 0) {
+          return numericValue;
+        }
+
+        zeroValue = 0;
+      }
+    }
+
+    return zeroValue;
+  }
+
+  function updateMt30Metric(element, rawValue) {
+    if (!element || rawValue === null) {
+      return;
+    }
+
+    const previousValue = common.readElementRawValue(element);
+
+    /*
+     * Do not replace a valid SSR/live value with a zero placeholder.
+     * A non-zero API value will still replace an SSR 0.00 immediately.
+     */
+
+    if (
+      rawValue === 0 &&
+      previousValue !== null &&
+      previousValue !== 0
+    ) {
+      return;
+    }
+
+    common.setDataValue(
+      element,
+      rawValue,
+      common.formatDecimal(rawValue, 2),
+    );
+  }
+
+  function updateMt30(data) {
+    const panel = getPanel("#derivatives-mt30");
+
+    if (!panel) {
+      return;
+    }
+
+    const sources = getMt30Sources(data);
+
+    const directOpenPrice = getFirstNumericField(
+      [data],
+      [
+        "mt30OpenPrice",
+        "mt30IndexOpenPrice",
+        "mt30Open",
+      ],
+    );
+
+    const nestedOpenPrice = getFirstNumericField(
+      sources,
+      [
+        "openPrice",
+        "open",
+      ],
+    );
+
+    const openPrice = getFirstNumericField(
+      [
+        { value: directOpenPrice },
+        { value: nestedOpenPrice },
+      ],
+      ["value"],
+    );
+
+    const directPreviousClose = getFirstNumericField(
+      [data],
+      [
+        "mt30PreviousClose",
+        "mt30PrevClose",
+        "mt30PreviousIndexPrice",
+        "mt30PreviouseIndexPrice",
+        "mt30IndexPreviousClose",
+      ],
+    );
+
+    const nestedPreviousClose = getFirstNumericField(
+      sources,
+      [
+        "previouseIndexPrice",
+        "previousIndexPrice",
+        "previousClose",
+        "prevClose",
+      ],
+    );
+
+    const previousClose = getFirstNumericField(
+      [
+        { value: directPreviousClose },
+        { value: nestedPreviousClose },
+      ],
+      ["value"],
+    );
+
+    const mobileValues = getMobileMetricValues(panel);
+    const statItems = getStatItems(panel);
+
+    updateMt30Metric(mobileValues[0], openPrice);
+    updateMt30Metric(mobileValues[1], previousClose);
+
+    updateMt30Metric(
+      getStatValueElement(statItems[0]),
+      openPrice,
+    );
+
+    updateMt30Metric(
+      getStatValueElement(statItems[1]),
+      previousClose,
+    );
+
+    if (
+      openPrice !== null ||
+      previousClose !== null
+    ) {
+      setBusyState(panel, false);
+    }
   }
 
   /* ==========================================================================
@@ -2811,12 +3072,11 @@ window.marketConfig = {
     updateMarket(data, "sukuk");
 
     updateFunds(data);
+    updateMt30(data);
 
     /*
-     * The supplied legacy contract contains MT30 summary-card fields but no
-     * verified data paths for the MT30 statistics or the Derivatives dashboard
-     * tables. Those regions are intentionally left untouched here rather than
-     * populated from guessed fields.
+     * The Derivatives dashboard tables remain server-rendered because the
+     * supplied legacy refresh contract does not define live table mappings.
      */
   }
 
@@ -2840,6 +3100,7 @@ window.marketConfig = {
     },
 
     updateFunds,
+    updateMt30,
   });
 })(window, document);
 ======
