@@ -2063,6 +2063,20 @@ export function createMarketChartOptions({
 
   const showChartScaffold = hasData || showEmptyState === true;
 
+  const isEmptyScaffold = showEmptyState === true && !hasData;
+
+  const emptyEnd = Date.now();
+  const emptyStart = emptyEnd - 60 * 60 * 1_000;
+
+  const scaffoldData = [
+    [emptyStart, null],
+    [emptyEnd, null],
+  ];
+
+  const renderedData = isEmptyScaffold ? scaffoldData : data;
+
+  const renderedNavigatorData = isEmptyScaffold ? scaffoldData : navigatorData;
+
   /* ------------------------------------------------------------------------
      Context / Theme
      ------------------------------------------------------------------------ */
@@ -2192,17 +2206,14 @@ export function createMarketChartOptions({
 
   const mainSeries = createMainSeries({
     mode: normalizedMode,
-
     symbol,
     seriesName,
 
-    data,
+    data: renderedData,
 
     seriesTheme,
-
     animation: resolvedAnimation,
   });
-
   /* ------------------------------------------------------------------------
      Accessibility
      ------------------------------------------------------------------------ */
@@ -2344,7 +2355,7 @@ export function createMarketChartOptions({
 
       range: normalizedRange,
 
-      data: navigatorData,
+      data: renderedNavigatorData,
 
       direction,
 
@@ -2383,6 +2394,17 @@ export function createMarketChartOptions({
         historicalTicks,
       }),
 
+      ...(isEmptyScaffold
+        ? {
+            min: emptyStart,
+            max: emptyEnd,
+            tickPositions: [emptyStart, (emptyStart + emptyEnd) / 2, emptyEnd],
+            labels: {
+              enabled: false,
+            },
+          }
+        : {}),
+
       visible: showChartScaffold,
     },
 
@@ -2402,6 +2424,17 @@ export function createMarketChartOptions({
         decimals,
         rtl,
       }),
+
+      ...(isEmptyScaffold
+        ? {
+            min: 0,
+            max: 1,
+            tickPositions: [0, 0.25, 0.5, 0.75, 1],
+            labels: {
+              enabled: false,
+            },
+          }
+        : {}),
 
       visible: showChartScaffold,
     },
