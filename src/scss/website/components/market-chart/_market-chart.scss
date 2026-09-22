@@ -703,7 +703,7 @@
    Empty and Error States
    ========================================================================== */
 
-.market-chart:is([data-chart-state="empty"], [data-chart-state="error"]) {
+.market-chart[data-chart-state="error"] {
   .highcharts-series-group,
   .highcharts-markers,
   .highcharts-data-labels,
@@ -722,7 +722,12 @@
     pointer-events: none;
   }
 }
-
+.market-chart[data-chart-state="empty"] {
+  .market-chart__message {
+    background: transparent;
+    pointer-events: none;
+  }
+}
 /* ==========================================================================
    Follow-Live State
    ========================================================================== */
