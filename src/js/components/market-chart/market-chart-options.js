@@ -1445,7 +1445,7 @@ function createNavigatorOptions({
 
   range,
   data,
-
+  hideLabels = false,
   direction,
 
   language,
@@ -1650,7 +1650,7 @@ function createNavigatorOptions({
               }),
 
       labels: {
-        enabled: labelsEnabled,
+        enabled: labelsEnabled && !hideLabels,
 
         /*
          * Keep labels inside the navigator instead of reserving another row
@@ -2353,7 +2353,7 @@ export function createMarketChartOptions({
       enabled: navigatorAllowed && showChartScaffold,
 
       range: normalizedRange,
-
+      hideLabels: isEmptyScaffold,
       data: renderedNavigatorData,
 
       direction,
