@@ -657,6 +657,9 @@
          * Overview remains intentionally simple.
          */
         mode: "trend",
+
+                showEmptyState: true,
+
         range: "1D",
 
         language: getLanguage(),
@@ -838,10 +841,13 @@
 
           requestTimeout: REQUEST_TIMEOUT,
 
-          async fetchUpdates({ signal, since } = {}) {
+          async fetchUpdates({ signal, since, fullSnapshot = false } = {}) {
             const snapshot = await requestSnapshot(market, signal);
 
-            const points = selectLivePoints(snapshot, since);
+            const points = selectLivePoints(
+              snapshot,
+              fullSnapshot ? null : since,
+            );
 
             /*
              * No valid delta:
@@ -2486,6 +2492,8 @@
 
         mode: "trend",
 
+        showEmptyState: true,
+
         language: getLanguage(),
 
         timeZone: TIME_ZONE,
@@ -2513,7 +2521,9 @@
          * deterministic and free of
          * animation residue.
          */
-        animation: false,
+        animation: {
+  duration: 450,
+},
 
         xAxisTitle: null,
 
@@ -2702,14 +2712,16 @@
            *
            * Not fetchPoint().
            */
-          async fetchUpdates({ signal, since } = {}) {
-            const snapshot = await requestSnapshot(
-              serverConfiguration.intradayChartType,
+          async fetchUpdates({ signal, since, fullSnapshot = false } = {}) {
+              const snapshot = await requestSnapshot(
+                serverConfiguration.intradayChartType,
+                signal,
+              );
 
-              signal,
-            );
-
-            const points = selectLivePoints(snapshot, since);
+              const points = selectLivePoints(
+                snapshot,
+                fullSnapshot ? null : since,
+          );
 
             return points.length
               ? {

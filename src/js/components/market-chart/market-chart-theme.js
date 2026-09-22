@@ -1,61 +1,56 @@
-/* *
- *
- *  Market Chart — Theme
- *
- *  Bridges the Market Chart design system's CSS custom properties into
- *  the plain values Highcharts requires.
- *
- *  Ownership rules
- *  -----------------
- *  1. JavaScript owns semantic market direction: `"up" | "down" | "neutral"`.
- *
- *  2. CSS owns the actual design-system colors:
- *       `--chart-success`
- *       `--chart-danger`
- *       `--chart-neutral`
- *
- *  3. The same resolved semantic direction color is used by the trend/area
- *     series, the line series, and the navigator data series.
- *
- *  4. Navigator chrome (mask, outline, handles) remains neutral. Only
- *     navigator *data* presentation (line, fill) follows market direction.
- *
- *  5. Candlestick colors are literal design-system tokens and do not
- *     depend on the overall chart direction.
- *
- *  `--chart-line` / `--chart-direction-color` are retained as
- *  compatibility values in the returned theme object, but they are NOT
- *  authoritative for direction resolution. This prevents computed CSS
- *  state from becoming stale relative to controller state during live
- *  updates — see {@link resolveDirectionColor}.
- *
- *  Several navigator values are opacity fractions rather than literal
- *  colors. This module combines those opacity values with the
- *  appropriate base color — see {@link colorWithOpacity}.
- *
- *  A note on `color-mix()`: some CSS custom properties can be returned by
- *  `getComputedStyle()` as a modern CSS color expression rather than a
- *  legacy `rgb()`/hex value. {@link colorWithOpacity} therefore attempts
- *  Highcharts parsing first, falls back to a lightweight hex/rgb parser,
- *  and finally passes an unsupported CSS color expression through
- *  unchanged rather than producing an invalid color.
- *
- * */
+/* ==========================================================================
+   Market Chart Theme
+   ==========================================================================
+   Bridges Market Chart design-system CSS custom properties into the plain
+   values required by Highcharts.
 
-"use strict";
+   Ownership rules:
 
-/* *
- *
- *  Defaults
- *
- * */
+   1. JavaScript owns semantic market direction:
+        "up" | "down" | "neutral"
 
-/**
- * Fallback theme values, used whenever a CSS custom property is absent or
- * cannot be read (e.g. the element is not yet attached to a document).
- *
- * @type {Readonly<object>}
- */
+   2. CSS owns the actual design-system colors:
+        --chart-success
+        --chart-danger
+        --chart-neutral
+
+   3. The same resolved semantic direction color is used by:
+        - trend / area series
+        - line series
+        - navigator data series
+
+   4. Navigator chrome remains neutral:
+        - mask
+        - outline
+        - handles
+
+      Only navigator data presentation follows market direction:
+        - line
+        - fill
+
+   5. Candlestick colors are literal design-system tokens and do not depend
+      on the overall chart direction.
+
+   `--chart-line` / `--chart-direction-color` are retained as compatibility
+   values in the returned theme object, but they are NOT authoritative for
+   direction resolution. This prevents computed CSS state from becoming
+   stale relative to controller state during live updates.
+
+   Several navigator values are opacity fractions rather than literal colors.
+   This module combines those opacity values with the appropriate base color.
+
+   `color-mix()` note:
+   Some CSS custom properties can be returned by getComputedStyle() as a
+   modern CSS color expression rather than a legacy rgb()/hex value.
+   colorWithOpacity() therefore attempts Highcharts parsing first, falls back
+   to simple hex/rgb parsing, and finally passes an unsupported CSS color
+   expression through unchanged rather than producing an invalid color.
+   ========================================================================== */
+
+/* ==========================================================================
+   Defaults
+   ========================================================================== */
+
 const DEFAULT_THEME = Object.freeze({
   background: "#ffffff",
 
@@ -73,9 +68,12 @@ const DEFAULT_THEME = Object.freeze({
   warning: "#b54708",
   neutral: "#667085",
 
-  // Compatibility token only. Direction selection does not use this
-  // value as the source of truth — see resolveDirectionColor(). It
-  // remains exposed because older consumers may still inspect it.
+  /*
+   * Compatibility token only.
+   *
+   * Direction selection does not use this value as the source of truth.
+   * It remains exposed because older consumers may still inspect it.
+   */
   line: null,
 
   candleUp: null,
@@ -100,57 +98,30 @@ const DEFAULT_THEME = Object.freeze({
   navigatorHandleBackground: "#ffffff",
 });
 
-/* *
- *
- *  Generic Helpers
- *
- * */
+/* ==========================================================================
+   Generic Helpers
+   ========================================================================== */
 
-/**
- * @param {*} value
- * @returns {boolean}
- */
 function isElement(value) {
   return Boolean(value && value.nodeType === 1 && value.ownerDocument);
 }
 
-/**
- * @param {*} value
- * @param {number} fallback
- * @returns {number}
- */
 function toFiniteNumber(value, fallback) {
   const number = Number(value);
 
   return Number.isFinite(number) ? number : fallback;
 }
 
-/**
- * @param {number} value
- * @param {number} minimum
- * @param {number} maximum
- * @returns {number}
- */
 function clamp(value, minimum, maximum) {
   return Math.min(Math.max(value, minimum), maximum);
 }
 
-/**
- * @param {*} value
- * @returns {string|null} The trimmed string, or `null` when empty.
- */
 function normalizeCSSValue(value) {
   const resolved = String(value ?? "").trim();
 
   return resolved || null;
 }
 
-/**
- * @param {CSSStyleDeclaration|null} styles
- * @param {string} name
- * @param {*} fallback
- * @returns {*}
- */
 function readCSSVariable(styles, name, fallback) {
   if (!styles || typeof styles.getPropertyValue !== "function") {
     return fallback;
@@ -159,15 +130,6 @@ function readCSSVariable(styles, name, fallback) {
   return normalizeCSSValue(styles.getPropertyValue(name)) ?? fallback;
 }
 
-/**
- * Reads the first defined value among several candidate custom property
- * names, in priority order — used to support renamed/aliased tokens.
- *
- * @param {CSSStyleDeclaration|null} styles
- * @param {string[]} names
- * @param {*} fallback
- * @returns {*}
- */
 function readCSSVariableAny(styles, names, fallback) {
   for (const name of names) {
     const value = readCSSVariable(styles, name, null);
@@ -180,15 +142,6 @@ function readCSSVariableAny(styles, names, fallback) {
   return fallback;
 }
 
-/**
- * @param {CSSStyleDeclaration|null} styles
- * @param {string[]} names
- * @param {number} fallback
- * @param {object} [options]
- * @param {number|null} [options.minimum=null]
- * @param {number|null} [options.maximum=null]
- * @returns {number}
- */
 function readCSSNumber(
   styles,
   names,
@@ -214,10 +167,6 @@ function readCSSNumber(
   return value;
 }
 
-/**
- * @param {Element} element
- * @returns {CSSStyleDeclaration|null}
- */
 function getComputedStyles(element) {
   if (!isElement(element)) {
     return null;
@@ -236,18 +185,16 @@ function getComputedStyles(element) {
   }
 }
 
-/* *
- *
- *  Direction
- *
- * */
+/* ==========================================================================
+   Direction
+   ========================================================================== */
 
 /**
  * Converts supported direction aliases into the controller's canonical
  * semantic direction.
  *
  * @param {*} direction
- * @returns {'up'|'down'|'neutral'}
+ * @returns {"up"|"down"|"neutral"}
  */
 function normalizeDirection(direction) {
   const value = String(direction ?? "neutral")
@@ -268,14 +215,18 @@ function normalizeDirection(direction) {
 /**
  * Resolves the actual series color for a semantic market direction.
  *
- * Direction is intentionally authoritative here: this does **not** first
- * read the computed `--chart-line` value, because that would make
- * Highcharts presentation dependent on DOM/CSS synchronization timing.
- * CSS still owns the design-system color *values* themselves, through
- * `--chart-success` / `--chart-danger` / `--chart-neutral`.
+ * Direction is intentionally authoritative here. We do NOT first read the
+ * computed `--chart-line` value because that makes Highcharts presentation
+ * dependent on DOM/CSS synchronization timing.
  *
- * `theme.line` is retained only as a compatibility fallback for callers
- * that supply a custom theme object without the semantic colors.
+ * CSS still owns the design-system color values themselves through:
+ *
+ *   --chart-success
+ *   --chart-danger
+ *   --chart-neutral
+ *
+ * `theme.line` is retained only as a compatibility fallback for callers that
+ * provide a custom theme object without the semantic colors.
  *
  * @param {object} theme
  * @param {*} direction
@@ -297,16 +248,10 @@ function resolveDirectionColor(theme, direction) {
   }
 }
 
-/* *
- *
- *  Color Helpers
- *
- * */
+/* ==========================================================================
+   Color Helpers
+   ========================================================================== */
 
-/**
- * @param {*} color
- * @returns {{r: number, g: number, b: number}|null}
- */
 function parseHexColor(color) {
   const value = String(color ?? "").trim();
 
@@ -333,10 +278,6 @@ function parseHexColor(color) {
   };
 }
 
-/**
- * @param {*} color
- * @returns {{r: number, g: number, b: number}|null}
- */
 function parseRGBColor(color) {
   const match =
     /^rgba?\(\s*([\d.]+)\s*,\s*([\d.]+)\s*,\s*([\d.]+)(?:\s*,\s*[\d.]+\s*)?\)$/i.exec(
@@ -354,10 +295,6 @@ function parseRGBColor(color) {
   };
 }
 
-/**
- * @param {*} value
- * @returns {boolean}
- */
 function hasFiniteRGB(value) {
   return Boolean(
     Array.isArray(value) &&
@@ -371,16 +308,10 @@ function hasFiniteRGB(value) {
 /**
  * Applies an opacity multiplier to a color.
  *
- * Highcharts is given the first chance to parse modern color formats. If
- * that is not possible, basic hex/rgb colors are handled manually.
- * Unsupported modern CSS expressions (`color-mix()`, `oklch()`, an
- * unresolved `var()`, ...) are returned unchanged rather than converted
- * to an incorrect fallback color.
- *
- * @param {typeof Highcharts} Highcharts
- * @param {*} color
- * @param {*} opacity
- * @returns {string}
+ * Highcharts is allowed to parse modern color formats first. If that is not
+ * possible, basic hex/rgb colors are handled manually. Unsupported modern CSS
+ * expressions are returned unchanged rather than converted to an incorrect
+ * fallback color.
  */
 function colorWithOpacity(Highcharts, color, opacity) {
   const resolvedColor = normalizeCSSValue(color) || DEFAULT_THEME.neutral;
@@ -404,16 +335,24 @@ function colorWithOpacity(Highcharts, color, opacity) {
         }
       }
     } catch {
-      // Fall through to the lightweight parser.
+      /*
+       * Fall through to the lightweight parser.
+       */
     }
   }
 
   const parsed = parseHexColor(resolvedColor) || parseRGBColor(resolvedColor);
 
   if (!parsed) {
-    // Examples: color-mix(...), oklch(...), var(...). Keep the
-    // original CSS-compatible value — we lose only the additional
-    // opacity multiplication rather than returning a broken color.
+    /*
+     * Examples:
+     *   color-mix(...)
+     *   oklch(...)
+     *   var(...)
+     *
+     * Keep the original CSS-compatible value. We lose only the additional
+     * opacity multiplication rather than returning a broken color.
+     */
     return resolvedColor;
   }
 
@@ -422,13 +361,6 @@ function colorWithOpacity(Highcharts, color, opacity) {
   )}, ${Math.round(parsed.b)}, ${alpha})`;
 }
 
-/**
- * @param {typeof Highcharts} Highcharts
- * @param {*} color
- * @param {*} startOpacity
- * @param {*} endOpacity
- * @returns {object} A Highcharts linear-gradient color object, top-to-bottom.
- */
 function createVerticalGradient(Highcharts, color, startOpacity, endOpacity) {
   return {
     linearGradient: {
@@ -445,19 +377,15 @@ function createVerticalGradient(Highcharts, color, startOpacity, endOpacity) {
   };
 }
 
-/* *
- *
- *  Theme Resolution
- *
- * */
+/* ==========================================================================
+   Theme Resolution
+   ========================================================================== */
 
 /**
- * Reads all Market Chart design-system values from the chart host. The
- * returned object contains only plain values suitable for passing
- * directly into Highcharts configuration.
+ * Reads all Market Chart design-system values from the chart host.
  *
- * @param {Element} element
- * @returns {object}
+ * The returned object deliberately contains only plain values suitable for
+ * passing into Highcharts configuration.
  */
 export function getMarketChartTheme(element) {
   const styles = getComputedStyles(element);
@@ -542,18 +470,21 @@ export function getMarketChartTheme(element) {
     warning,
     neutral,
 
-    // Compatibility / inspection value. The controller's explicit
-    // direction remains authoritative when series and navigator
-    // colors are resolved — see resolveDirectionColor().
+    /*
+     * Compatibility / inspection value.
+     *
+     * The controller's explicit direction remains authoritative when series
+     * and navigator colors are resolved.
+     */
     line: readCSSVariableAny(
       styles,
       ["--chart-line", "--chart-direction-color"],
       DEFAULT_THEME.line,
     ),
 
-    /* ------------------------------------------------------------
-     * Candlestick
-     * ------------------------------------------------------------ */
+    /* ----------------------------------------------------------------------
+       Candlestick
+       ---------------------------------------------------------------------- */
 
     candleUp: readCSSVariableAny(
       styles,
@@ -579,9 +510,9 @@ export function getMarketChartTheme(element) {
       DEFAULT_THEME.candleDownLine,
     ),
 
-    /* ------------------------------------------------------------
-     * Tooltip
-     * ------------------------------------------------------------ */
+    /* ----------------------------------------------------------------------
+       Tooltip
+       ---------------------------------------------------------------------- */
 
     tooltipBackground: readCSSVariableAny(
       styles,
@@ -597,9 +528,9 @@ export function getMarketChartTheme(element) {
 
     focus: readCSSVariableAny(styles, ["--chart-focus"], DEFAULT_THEME.focus),
 
-    /* ------------------------------------------------------------
-     * Area
-     * ------------------------------------------------------------ */
+    /* ----------------------------------------------------------------------
+       Area
+       ---------------------------------------------------------------------- */
 
     areaStartOpacity: readCSSNumber(
       styles,
@@ -621,9 +552,9 @@ export function getMarketChartTheme(element) {
       },
     ),
 
-    /* ------------------------------------------------------------
-     * Navigator
-     * ------------------------------------------------------------ */
+    /* ----------------------------------------------------------------------
+       Navigator
+       ---------------------------------------------------------------------- */
 
     navigatorLineOpacity: readCSSNumber(
       styles,
@@ -693,22 +624,15 @@ export function getMarketChartTheme(element) {
   };
 }
 
-/* *
- *
- *  Series Theme
- *
- * */
+/* ==========================================================================
+   Series Theme
+   ========================================================================== */
 
 /**
- * Creates the Highcharts presentation values for the primary Market Chart
- * series. Trend and line modes are semantically directional; candlesticks
- * retain independent up/down point colors regardless of direction.
+ * Creates Highcharts presentation values for the primary Market Chart series.
  *
- * @param {typeof Highcharts} Highcharts
- * @param {object} theme
- * @param {'trend'|'line'|'candlestick'} [mode='trend']
- * @param {'up'|'down'|'neutral'} [direction='neutral']
- * @returns {object}
+ * Trend and line modes are semantically directional.
+ * Candlesticks retain independent up/down point colors.
  */
 export function getMarketChartSeriesTheme(
   Highcharts,
@@ -722,9 +646,9 @@ export function getMarketChartSeriesTheme(
     .trim()
     .toLowerCase();
 
-  /* ------------------------------------------------------------------
-   * Candlestick
-   * ------------------------------------------------------------------ */
+  /* ------------------------------------------------------------------------
+     Candlestick
+     ------------------------------------------------------------------------ */
 
   if (normalizedMode === "candlestick") {
     const downFill = source.candleDown || source.danger || DEFAULT_THEME.danger;
@@ -744,11 +668,14 @@ export function getMarketChartSeriesTheme(
       DEFAULT_THEME.success;
 
     return {
-      // Highcharts candlestick terminology:
-      //   color        = falling candle fill
-      //   lineColor    = falling candle outline/wick
-      //   upColor      = rising candle fill
-      //   upLineColor  = rising candle outline/wick
+      /*
+       * Highcharts candlestick terminology:
+       *
+       * `color`     = falling candle fill
+       * `lineColor` = falling candle outline/wick
+       * `upColor`   = rising candle fill
+       * `upLineColor` = rising candle outline/wick
+       */
       color: downFill,
       lineColor: downLine,
 
@@ -759,13 +686,15 @@ export function getMarketChartSeriesTheme(
     };
   }
 
-  // One semantic color resolver is intentionally shared by trend, line,
-  // and navigator presentation.
+  /*
+   * One semantic color resolver is intentionally shared by trend, line and
+   * navigator presentation.
+   */
   const directionColor = resolveDirectionColor(source, direction);
 
-  /* ------------------------------------------------------------------
-   * Line
-   * ------------------------------------------------------------------ */
+  /* ------------------------------------------------------------------------
+     Line
+     ------------------------------------------------------------------------ */
 
   if (normalizedMode === "line") {
     return {
@@ -775,9 +704,9 @@ export function getMarketChartSeriesTheme(
     };
   }
 
-  /* ------------------------------------------------------------------
-   * Trend / Area Spline
-   * ------------------------------------------------------------------ */
+  /* ------------------------------------------------------------------------
+     Trend / Area Spline
+     ------------------------------------------------------------------------ */
 
   return {
     color: directionColor,
@@ -793,26 +722,23 @@ export function getMarketChartSeriesTheme(
   };
 }
 
-/* *
- *
- *  Navigator Theme
- *
- * */
+/* ==========================================================================
+   Navigator Theme
+   ========================================================================== */
 
 /**
  * Creates the navigator presentation.
  *
- * Navigator *data* presentation follows exactly the same semantic
- * direction as the main trend/line chart. Navigator *chrome* (mask,
- * outline, handles) remains neutral, based on border tokens. This
- * separation prevents a falling/red chart from retaining an old
- * rising/green navigator while still keeping handles/masks visually
- * neutral.
+ * IMPORTANT:
  *
- * @param {typeof Highcharts} Highcharts
- * @param {object} theme
- * @param {'up'|'down'|'neutral'} [direction='neutral']
- * @returns {object}
+ * Navigator data presentation:
+ *   follows exactly the same semantic direction as the main trend/line chart.
+ *
+ * Navigator chrome:
+ *   remains neutral and is based on border tokens.
+ *
+ * This separation prevents a falling/red chart from retaining an old
+ * rising/green navigator while still keeping handles/masks visually neutral.
  */
 export function getMarketChartNavigatorTheme(
   Highcharts,
@@ -821,23 +747,30 @@ export function getMarketChartNavigatorTheme(
 ) {
   const source = theme || DEFAULT_THEME;
 
-  // Same resolver as the primary series:
-  //
-  //   direction -> resolveDirectionColor() -> main + navigator
-  //
-  // This is the important contract that keeps the navigator and the
-  // main series in visual agreement.
+  /*
+   * Same resolver as the primary series.
+   *
+   * This is the important contract:
+   *
+   *     direction
+   *        ↓
+   * resolveDirectionColor()
+   *        ↓
+   * main + navigator
+   */
   const color = resolveDirectionColor(source, direction);
 
-  // Mask / outline / handles are interface chrome, not market data.
-  // They intentionally do not become green/red.
+  /*
+   * Mask / outline / handles are interface chrome, not market data.
+   * They intentionally do not become green/red.
+   */
   const neutralBase =
     source.borderStrong || source.border || DEFAULT_THEME.borderStrong;
 
   return {
-    /* ------------------------------------------------------------
-     * Directional Navigator Data
-     * ------------------------------------------------------------ */
+    /* ----------------------------------------------------------------------
+       Directional navigator data
+       ---------------------------------------------------------------------- */
 
     color,
 
@@ -857,9 +790,9 @@ export function getMarketChartNavigatorTheme(
       source.navigatorFillEndOpacity ?? DEFAULT_THEME.navigatorFillEndOpacity,
     ),
 
-    /* ------------------------------------------------------------
-     * Neutral Navigator Chrome
-     * ------------------------------------------------------------ */
+    /* ----------------------------------------------------------------------
+       Neutral navigator chrome
+       ---------------------------------------------------------------------- */
 
     maskFill: colorWithOpacity(
       Highcharts,
@@ -888,25 +821,8 @@ export function getMarketChartNavigatorTheme(
   };
 }
 
-/* *
- *
- *  Default Export
- *
- * */
-
-const MarketChartTheme = {
-  DEFAULT_THEME,
-  getMarketChartTheme,
-  getMarketChartSeriesTheme,
-  getMarketChartNavigatorTheme,
-};
-
-export default MarketChartTheme;
-
-/* *
- *
- *  Named Exports
- *
- * */
+/* ==========================================================================
+   Public Constants
+   ========================================================================== */
 
 export { DEFAULT_THEME };

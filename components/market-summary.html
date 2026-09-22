@@ -5704,17 +5704,6 @@
                           >
                             Main Market Performance
                           </h3>
-
-                          <div
-                            class="chart-toolbar__meta"
-                            aria-label="Market status"
-                            data-chart-live-meta
-                          >
-                            <span
-                              class="chart-toolbar__meta-separator"
-                              aria-hidden="true"
-                            ></span>
-                          </div>
                         </div>
                       </div>
 
@@ -10523,20 +10512,6 @@
         ALL: 365 * DAY,
       });
 
-      const LIVE_STATUS_LABELS = Object.freeze({
-        live: { open: true, en: "Live", ar: "مباشر" },
-        updating: { open: true, en: "Live", ar: "مباشر" },
-        waiting: { open: true, en: "Live", ar: "مباشر" },
-        starting: { open: true, en: "Live", ar: "مباشر" },
-        offline: { open: false, en: "Offline", ar: "غير متصل" },
-        hidden: { open: false, en: "Paused", ar: "متوقف مؤقتاً" },
-        paused: { open: false, en: "Paused", ar: "متوقف مؤقتاً" },
-        stopped: { open: false, en: "Closed", ar: "مغلق" },
-        error: { open: false, en: "Reconnecting", ar: "إعادة الاتصال" },
-        idle: { open: false, en: "Closed", ar: "مغلق" },
-        destroyed: { open: false, en: "Closed", ar: "مغلق" },
-      });
-
       /* ==========================================================================
    Runtime
    ========================================================================== */
@@ -10552,9 +10527,6 @@
       let exportTrigger = null;
       let exportMenu = null;
       let compareButton = null;
-
-      let liveStatusText = null;
-      let liveStatusIcon = null;
 
       let serverConfiguration = null;
 
@@ -10589,9 +10561,6 @@
         exportMenu = exportRoot?.querySelector("[data-chart-export-menu]");
 
         compareButton = root.querySelector("[data-chart-compare]");
-
-        liveStatusText = root.querySelector("[data-chart-live-status]");
-        liveStatusIcon = root.querySelector(".market-status");
       }
 
       /* ==========================================================================
@@ -11521,7 +11490,9 @@
           candleBucketSize: LIVE_CANDLE_BUCKET,
 
           liveWindowDuration: null,
-          animation: false,
+          animation: {
+            duration: 450,
+          },
           xAxisTitle: null,
           yAxisTitle: labels.value,
 
@@ -11617,10 +11588,6 @@
               return points.length ? { points } : null;
             },
 
-            onStateChange(state) {
-              updateLiveStatusUI(state.state);
-            },
-
             onError(error, metadata) {
               if (isAbortError(error)) {
                 return;
@@ -11639,28 +11606,6 @@
 
           messages: getMessages(),
         };
-      }
-
-      /* ==========================================================================
-   Live Status UI — unchanged from production.
-   ========================================================================== */
-      function updateLiveStatusUI(stateValue) {
-        // "Live"/"Paused" badge removed — only the chart's own "Updated"
-        // indicator remains user-facing now.
-        if (liveStatusText) {
-          liveStatusText.hidden = true;
-        }
-        liveStatusIcon?.classList.remove(
-          "market-status--open",
-          "market-status--closed",
-        );
-      }
-      function bindLiveStatus() {
-        chartElement.addEventListener(
-          "marketchartlivestatechange",
-          (event) => updateLiveStatusUI(event.detail?.state),
-          { signal: pageSignal },
-        );
       }
 
       /* ==========================================================================
@@ -11922,8 +11867,6 @@
 
           root.marketChartController = controller;
           chartElement.dataset.chartState = "ready";
-
-          updateLiveStatusUI(controller.getState().live?.state);
         } finally {
           root.setAttribute("aria-busy", "false");
         }
@@ -12222,7 +12165,6 @@
 
           bindExportMenu();
           bindCompare();
-          bindLiveStatus();
 
           await createPerformanceChart();
 
