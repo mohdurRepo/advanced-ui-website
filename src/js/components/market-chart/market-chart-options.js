@@ -2069,10 +2069,9 @@ export function createMarketChartOptions({
   const emptyStart = emptyEnd - 60 * 60 * 1_000;
 
   const scaffoldData = [
-    [emptyStart, null],
-    [emptyEnd, null],
+    [emptyStart, 0],
+    [emptyEnd, 0],
   ];
-
   const renderedData = isEmptyScaffold ? scaffoldData : data;
 
   const renderedNavigatorData = isEmptyScaffold ? scaffoldData : navigatorData;

@@ -723,6 +723,12 @@
   }
 }
 .market-chart[data-chart-state="empty"] {
+  .highcharts-series-group {
+    visibility: hidden;
+    opacity: 0;
+    pointer-events: none;
+  }
+
   .market-chart__message {
     background: transparent;
     pointer-events: none;
