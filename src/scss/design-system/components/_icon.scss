@@ -358,6 +358,31 @@ html[dir="rtl"] .icon-list-flip-rtl {
   block-size: 100%;
 }
 
+.sar-symbol {
+  --icon-size: 1em;
+
+  display: inline-block;
+  inline-size: var(--icon-size);
+  block-size: var(--icon-size);
+
+  overflow: hidden;
+  vertical-align: middle;
+  line-height: 1;
+  text-indent: 100%;
+  white-space: nowrap;
+}
+
+.sar-symbol::before {
+  content: "";
+
+  display: block;
+  inline-size: 100%;
+  block-size: 100%;
+
+  background-color: currentColor;
+  mask: url("/assets/icons/riyal-symbol.svg") center / contain no-repeat;
+  -webkit-mask: url("/assets/icons/riyal-symbol.svg") center / contain no-repeat;
+}
 /* ==========================================================================
    Colors
    ========================================================================== */

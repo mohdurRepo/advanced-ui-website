@@ -158,7 +158,6 @@ export class MarketChartLiveController {
     this.handleVisibilityChange = this.handleVisibilityChange.bind(this);
     this.handleOnline = this.handleOnline.bind(this);
     this.handleOffline = this.handleOffline.bind(this);
-    this.handleWindowFocus = this.handleWindowFocus.bind(this);
     this.handlePageHide = this.handlePageHide.bind(this);
     this.handlePageShow = this.handlePageShow.bind(this);
 
@@ -177,9 +176,6 @@ export class MarketChartLiveController {
 
     this.window?.addEventListener?.("online", this.handleOnline, { signal });
     this.window?.addEventListener?.("offline", this.handleOffline, { signal });
-    this.window?.addEventListener?.("focus", this.handleWindowFocus, {
-      signal,
-    });
     this.window?.addEventListener?.("pagehide", this.handlePageHide, {
       signal,
     });
@@ -207,40 +203,16 @@ export class MarketChartLiveController {
       return;
     }
 
-    if (this.configuration.pauseWhenHidden !== false) {
-      if (this.document?.hidden) {
-        this.addPauseReason(PAUSE_REASON_DOCUMENT_HIDDEN);
-      } else {
-        this.pendingRefreshContext = {
-          ...(this.pendingRefreshContext || {}),
-          reason: "visibility-resume",
-          fullSnapshot: true,
-        };
-
-        this.removePauseReason(PAUSE_REASON_DOCUMENT_HIDDEN);
-      }
-
+    if (this.document?.hidden) {
+      this.addPauseReason(PAUSE_REASON_DOCUMENT_HIDDEN);
       return;
     }
 
-    if (!this.document?.hidden) {
-      this.refresh();
-    }
+    this.removePauseReason(PAUSE_REASON_DOCUMENT_HIDDEN);
   }
 
   handleOnline() {
     this.removePauseReason(PAUSE_REASON_OFFLINE);
-  }
-
-  handleWindowFocus() {
-    if (this.destroyed || this.document?.hidden) {
-      return;
-    }
-
-    this.refresh({
-      reason: "window-focus",
-      fullSnapshot: true,
-    });
   }
 
   handleOffline() {

@@ -1403,7 +1403,7 @@ function createMainSeries({
       ? "candlestick"
       : normalizedMode === "line"
         ? "line"
-        : "areaspline";
+        : "area";
 
   return {
     id: `market-chart-${String(symbol || "series").toLowerCase()}`,
@@ -1413,6 +1413,12 @@ function createMainSeries({
     type,
 
     data: Array.isArray(data) ? data : [],
+
+    ...(normalizedMode !== "candlestick"
+      ? {
+          threshold: null,
+        }
+      : {}),
 
     animation,
 
@@ -1738,7 +1744,7 @@ function createNavigatorOptions({
 
       name: "Navigator",
 
-      type: "areaspline",
+      type: "area",
 
       /*
        * Always trend / close-price data.
