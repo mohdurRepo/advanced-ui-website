@@ -5,9 +5,9 @@
    ========================================================================== */
 
 .page {
-  --page-bg: var(--color-bg); 
+  --page-bg: var(--color-bg);
 
---page-pattern-image: url("/assets/images/home-background-pattern.png");
+  --page-pattern-image: url("/assets/images/home-background-pattern.png");
   --page-pattern-position-y: 0;
   --page-pattern-size: min(62rem, calc(100% - 2rem));
 
@@ -30,8 +30,7 @@
 
   min-inline-size: 0;
 
-  overflow-x: clip;
-  overflow-y: visible;
+  overflow: visible;
 
   background: var(--page-bg);
   color: var(--color-text);
