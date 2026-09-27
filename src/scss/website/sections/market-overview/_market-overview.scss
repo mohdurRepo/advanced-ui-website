@@ -99,13 +99,26 @@
 
   --market-overview-connection-gap: var(--space-2, #{ds.space(2)});
 
+  --hero-section-bg-start: #002c72;
+  --hero-section-bg-middle: #063f91;
+  --hero-section-bg-end: #0759aa;
+
+  --hero-section-gradient-angle: 90deg;
+
+  --hero-section-background: linear-gradient(
+    var(--hero-section-gradient-angle),
+    var(--hero-section-bg-start) 0%,
+    var(--hero-section-bg-middle) 58%,
+    var(--hero-section-bg-end) 100%
+  );
+
   /* -----------------------------------------------------------------------
      Interactive Disclosure Control
      -------------------------------------------------------------------- */
 
   --market-overview-control-width: 12rem;
 
-  --market-overview-control-size: 2.75rem;
+  --market-overview-control-size: 2.25rem;
 
   --market-overview-control-bg: var(--color-surface);
 
@@ -152,7 +165,12 @@
 
   padding-block-start: var(--market-overview-connection-gap);
 
-  background: transparent;
+  background: linear-gradient(
+    var(--hero-section-gradient-angle),
+    var(--hero-section-bg-start) 0%,
+    var(--hero-section-bg-middle) 58%,
+    var(--hero-section-bg-end) 100%
+  );
 }
 
 /* ==========================================================================
@@ -265,7 +283,7 @@
    ========================================================================== */
 
 .market-overview__summary-icon {
-  --icon-size: 1.25rem;
+  --icon-size: 1rem;
 
   display: inline-grid;
   place-items: center;
@@ -445,12 +463,12 @@
    */
 
   .market-overview__disclosure:not([open]) {
-    padding-block-start: 0;
+    margin-block-start: 0;
   }
 
   .market-overview__disclosure:not([open]) .market-overview__summary-icon {
     box-shadow:
-      0 0 0 0.375rem rgb(255 255 255 / 0.12),
+      0 0 0 0.275rem rgb(255 255 255 / 0.12),
       var(--shadow-lg);
   }
 }
@@ -548,7 +566,7 @@ html[dir="rtl"] {
 
     --market-overview-control-width: 10rem;
 
-    --market-overview-control-size: 3rem;
+    --market-overview-control-size: 2.25rem;
   }
 }
 
@@ -569,7 +587,7 @@ html[dir="rtl"] {
 
     --market-overview-control-width: 8rem;
 
-    --market-overview-control-size: 2.875rem;
+    --market-overview-control-size: 2.575rem;
   }
 
   .market-overview[data-market-details-mode="disclosure"] {
@@ -577,7 +595,7 @@ html[dir="rtl"] {
   }
 
   .market-overview__summary-icon {
-    --icon-size: 1.125rem;
+    --icon-size: 1rem;
   }
 }
 

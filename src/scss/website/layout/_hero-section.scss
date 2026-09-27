@@ -49,8 +49,8 @@
   );
 
   /* Layout */
-  --hero-section-space-start: #{ds.space(2)};
-  --hero-section-space-end: clamp(#{ds.space(8)}, 4vw, 3.5rem);
+  --hero-section-space-start: 0;
+  --hero-section-space-end: 0.75rem;
 
   /* Decorative glow */
   --hero-section-glow-size: 34rem;
@@ -75,6 +75,8 @@
   color: var(--color-text, var(--hero-section-color));
 
   color-scheme: dark;
+
+  min-height: 6rem;
 }
 
 /* ==========================================================================
