@@ -110,26 +110,7 @@ const CALENDAR_I18N = {
    ========================================================================== */
 
 const FALLBACK_CALENDAR_DATA = {
-  "20260608T000000": [
-    {
-      companyCode: "SIDC 2130",
-      calendarType: "Extraordinary",
-      eventDate: "June 8, 2026",
-    },
-    {
-      companyCode: "SPIMACO 2070",
-      calendarType: "Assembly",
-      eventDate: "June 8, 2026",
-    },
-  ],
-
-  "20260612T000000": [
-    {
-      companyCode: "TASI",
-      calendarType: "Market Event",
-      eventDate: "June 12, 2026",
-    },
-  ],
+ 
 };
 
 /* ==========================================================================
