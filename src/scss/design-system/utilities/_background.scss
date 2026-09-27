@@ -1,3 +1,7 @@
+/* ==========================================================================
+   Backgrounds
+   ========================================================================== */
+
 .bg-body {
   background-color: var(--color-bg) !important;
 }
@@ -33,6 +37,11 @@
 .bg-info {
   background-color: var(--color-info) !important;
   color: var(--color-on-info) !important;
+}
+
+.bg-attention {
+  background-color: var(--color-attention) !important;
+  color: var(--color-on-attention) !important;
 }
 
 .bg-warning {

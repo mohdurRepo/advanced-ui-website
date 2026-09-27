@@ -12,17 +12,18 @@
  * - Multiple-open accordions
  * - Optional expand / collapse all control
  * - Disabled items
- * - Light, dark, and high-contrast themes
  * - RTL
- * - Reduced motion
+ * - High contrast
+ * - Forced colors
+ * - Reduced motion through global motion tokens
  */
 
 .accordion {
   --accordion-gap: var(--space-3);
 
   display: grid;
-  gap: var(--accordion-gap);
 
+  gap: var(--accordion-gap);
   min-width: 0;
 }
 
@@ -33,6 +34,8 @@
 .accordion-actions {
   display: flex;
   justify-content: flex-end;
+
+  min-width: 0;
 }
 
 /* ==========================================================================
@@ -50,7 +53,6 @@
   color: var(--color-text);
 
   @include ds.transition((border-color, box-shadow), "fast");
-  
 }
 
 /* ==========================================================================
@@ -61,6 +63,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+
   gap: var(--space-4);
 
   inline-size: 100%;
@@ -95,7 +98,11 @@
   position: relative;
   z-index: 1;
 
-  @include ds.focus-ring;
+  /*
+   * The accordion item clips its contents to preserve rounded corners.
+   * A negative offset keeps the focus ring visible inside that boundary.
+   */
+  @include ds.focus-ring($offset: -2px);
 }
 
 /* ==========================================================================
@@ -141,9 +148,9 @@
    ========================================================================== */
 
 /**
- * Panels remain in the document while collapsed so opening and closing can
- * animate smoothly. The collapsed state is hidden from interaction through
- * visibility rather than the HTML hidden attribute.
+ * The panel remains in the document while collapsed so opening and closing
+ * can animate. Visibility prevents collapsed content from receiving pointer
+ * or keyboard interaction.
  */
 
 .accordion-panel {
@@ -252,37 +259,5 @@ html[data-contrast="high"] .accordion-item {
 
   .accordion-trigger:focus-visible {
     outline-color: Highlight;
-  }
-}
-
-/* ==========================================================================
-   Reduced Motion
-   ========================================================================== */
-
-@media (prefers-reduced-motion: reduce) {
-  .accordion-item,
-  .accordion-trigger,
-  .accordion-icon,
-  .accordion-panel,
-  .accordion-panel-inner {
-    transition: none;
-  }
-
-  .accordion-icon {
-    transform: none;
-  }
-}
-
-html[data-motion="reduce"] {
-  .accordion-item,
-  .accordion-trigger,
-  .accordion-icon,
-  .accordion-panel,
-  .accordion-panel-inner {
-    transition: none;
-  }
-
-  .accordion-icon {
-    transform: none;
   }
 }

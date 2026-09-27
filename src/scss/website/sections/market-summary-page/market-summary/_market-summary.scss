@@ -1,0 +1,103 @@
+@use "../../../../design-system/abstracts" as ds;
+
+/* ==========================================================================
+   Main Market Hero
+   ========================================================================== */
+
+/**
+ * Main Market specialization of the shared Hero Section.
+ *
+ * Shared responsibilities:
+ *
+ * - hero-section → hero shell / background / spacing
+ * - split-layout → two-region composition
+ * - hero-intro → title and description
+ * - instrument-price → market value presentation
+ *
+ * This file owns only the Main Market composition between those primitives.
+ */
+
+/* ==========================================================================
+   Layout
+   ========================================================================== */
+
+.main-market-hero {
+  align-items: end;
+}
+
+/* ==========================================================================
+   Summary
+   ========================================================================== */
+
+.main-market-hero__summary {
+  display: flex;
+  flex-direction: column;
+
+  align-items: flex-start;
+
+  gap: ds.space(5);
+
+  min-inline-size: 0;
+
+  padding-block-start: ds.space(4);
+}
+
+/* ==========================================================================
+   Actions
+   ========================================================================== */
+
+.main-market-hero__actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+
+  gap: ds.space(3);
+
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Large Tablet
+   ========================================================================== */
+
+@include ds.respond-down("lg") {
+  .main-market-hero {
+    align-items: start;
+  }
+
+  .main-market-hero__summary {
+    padding-block-start: 0;
+  }
+}
+
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+
+@include ds.respond-down("sm") {
+  .main-market-hero__summary {
+    gap: ds.space(4);
+  }
+
+  .main-market-hero__actions {
+    inline-size: 100%;
+  }
+
+  .main-market-hero__actions > .btn {
+    flex: 1 1 auto;
+  }
+}
+
+/* ==========================================================================
+   Print
+   ========================================================================== */
+
+@media print {
+  .main-market-hero__summary {
+    gap: ds.space(3);
+  }
+
+  .main-market-hero__actions {
+    display: none;
+  }
+}

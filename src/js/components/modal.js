@@ -1,6 +1,13 @@
+/* ==========================================================================
+   Modal
+   ========================================================================== */
+
 const OPEN_SELECTOR = "[data-modal-open]";
 const CLOSE_SELECTOR = "[data-modal-close]";
 const MODAL_SELECTOR = ".modal";
+const DIALOG_SELECTOR = ".modal-dialog";
+const CONTENT_SELECTOR = ".modal-content";
+const BACKDROP_SELECTOR = ".modal-backdrop";
 
 const FOCUSABLE_SELECTOR = [
   "a[href]",
@@ -16,9 +23,31 @@ const modalOrigins = new WeakMap();
 
 let activeModal = null;
 let activeTrigger = null;
+
 let previousBodyOverflow = "";
 let previousBodyPaddingInlineEnd = "";
+
 let initialized = false;
+
+/* ==========================================================================
+   General Helpers
+   ========================================================================== */
+
+function isElement(value) {
+  return value instanceof HTMLElement;
+}
+
+function isDisabled(element) {
+  if (!isElement(element)) {
+    return false;
+  }
+
+  return Boolean(
+    element.disabled ||
+    element.classList.contains("is-disabled") ||
+    element.getAttribute("aria-disabled") === "true",
+  );
+}
 
 /* ==========================================================================
    Modal Lookup
@@ -30,6 +59,7 @@ let initialized = false;
  * @param {string} id
  * @returns {HTMLElement | null}
  */
+
 function getModal(id) {
   if (!id) {
     return null;
@@ -37,7 +67,7 @@ function getModal(id) {
 
   const modal = document.getElementById(id);
 
-  if (!(modal instanceof HTMLElement) || !modal.matches(MODAL_SELECTOR)) {
+  if (!isElement(modal) || !modal.matches(MODAL_SELECTOR)) {
     return null;
   }
 
@@ -49,13 +79,14 @@ function getModal(id) {
    ========================================================================== */
 
 /**
- * Move a modal to the document body.
+ * Move a modal to document.body.
  *
  * This prevents transformed, isolated, filtered, or contained ancestors from
  * trapping the modal inside their stacking context.
  *
  * @param {HTMLElement} modal
  */
+
 function mountModal(modal) {
   if (modal.parentElement === document.body) {
     return;
@@ -81,6 +112,7 @@ function mountModal(modal) {
  *
  * @param {HTMLElement} modal
  */
+
 function unmountModal(modal) {
   const placeholder = modalOrigins.get(modal);
 
@@ -96,23 +128,59 @@ function unmountModal(modal) {
 }
 
 /* ==========================================================================
+   ARIA Setup
+   ========================================================================== */
+
+function ensureModalRelationships(modal) {
+  const content = modal.querySelector(CONTENT_SELECTOR);
+
+  const title = modal.querySelector(".modal-title");
+
+  if (!isElement(content)) {
+    return;
+  }
+
+  if (!content.hasAttribute("role")) {
+    content.setAttribute("role", "dialog");
+  }
+
+  content.setAttribute("aria-modal", "true");
+
+  if (isElement(title)) {
+    if (!title.id) {
+      title.id = `${modal.id || "modal"}-title`;
+    }
+
+    if (!content.hasAttribute("aria-labelledby")) {
+      content.setAttribute("aria-labelledby", title.id);
+    }
+  }
+
+  if (!content.hasAttribute("tabindex")) {
+    content.setAttribute("tabindex", "-1");
+  }
+}
+
+/* ==========================================================================
    Focus Management
    ========================================================================== */
 
 /**
- * Return the visible, interactive elements owned by a modal.
+ * Return visible interactive elements owned by a modal.
  *
  * @param {HTMLElement} modal
  * @returns {HTMLElement[]}
  */
+
 function getFocusableElements(modal) {
   return Array.from(modal.querySelectorAll(FOCUSABLE_SELECTOR)).filter(
     (element) => {
-      if (!(element instanceof HTMLElement)) {
+      if (!isElement(element)) {
         return false;
       }
 
       if (
+        isDisabled(element) ||
         element.hidden ||
         element.getAttribute("aria-hidden") === "true" ||
         element.closest("[hidden]") ||
@@ -127,29 +195,25 @@ function getFocusableElements(modal) {
 }
 
 /**
- * Focus the preferred initial element inside a modal.
+ * Focus the preferred initial element.
  *
  * @param {HTMLElement} modal
  */
+
 function focusInitialElement(modal) {
   const preferredTarget = modal.querySelector("[data-modal-initial-focus]");
 
   const fallbackTarget =
     modal.querySelector(CLOSE_SELECTOR) ??
     getFocusableElements(modal)[0] ??
-    modal.querySelector(".modal-content");
+    modal.querySelector(CONTENT_SELECTOR);
 
-  const focusTarget = preferredTarget ?? fallbackTarget;
+  const focusTarget = isElement(preferredTarget)
+    ? preferredTarget
+    : fallbackTarget;
 
-  if (!(focusTarget instanceof HTMLElement)) {
+  if (!isElement(focusTarget)) {
     return;
-  }
-
-  if (
-    focusTarget.matches(".modal-content") &&
-    !focusTarget.hasAttribute("tabindex")
-  ) {
-    focusTarget.setAttribute("tabindex", "-1");
   }
 
   requestAnimationFrame(() => {
@@ -164,6 +228,7 @@ function focusInitialElement(modal) {
  *
  * @param {KeyboardEvent} event
  */
+
 function trapFocus(event) {
   if (event.key !== "Tab" || !activeModal) {
     return;
@@ -171,24 +236,35 @@ function trapFocus(event) {
 
   const focusableElements = getFocusableElements(activeModal);
 
+  const content = activeModal.querySelector(CONTENT_SELECTOR);
+
   if (!focusableElements.length) {
     event.preventDefault();
 
-    activeModal.querySelector(".modal-content")?.focus({
-      preventScroll: true,
-    });
+    if (isElement(content)) {
+      content.focus({
+        preventScroll: true,
+      });
+    }
 
     return;
   }
 
   const firstElement = focusableElements[0];
+
   const lastElement = focusableElements[focusableElements.length - 1];
+
   const currentElement = document.activeElement;
 
-  if (!activeModal.contains(currentElement)) {
+  if (
+    !(currentElement instanceof Node) ||
+    !activeModal.contains(currentElement)
+  ) {
     event.preventDefault();
 
-    firstElement.focus();
+    firstElement.focus({
+      preventScroll: true,
+    });
 
     return;
   }
@@ -196,7 +272,9 @@ function trapFocus(event) {
   if (event.shiftKey && currentElement === firstElement) {
     event.preventDefault();
 
-    lastElement.focus();
+    lastElement.focus({
+      preventScroll: true,
+    });
 
     return;
   }
@@ -204,7 +282,9 @@ function trapFocus(event) {
   if (!event.shiftKey && currentElement === lastElement) {
     event.preventDefault();
 
-    firstElement.focus();
+    firstElement.focus({
+      preventScroll: true,
+    });
   }
 }
 
@@ -215,6 +295,7 @@ function trapFocus(event) {
 /**
  * Lock document scrolling without causing horizontal layout movement.
  */
+
 function lockPageScroll() {
   if (document.documentElement.classList.contains("has-open-modal")) {
     return;
@@ -224,6 +305,7 @@ function lockPageScroll() {
     window.innerWidth - document.documentElement.clientWidth;
 
   previousBodyOverflow = document.body.style.overflow;
+
   previousBodyPaddingInlineEnd = document.body.style.paddingInlineEnd;
 
   document.documentElement.style.setProperty(
@@ -232,6 +314,7 @@ function lockPageScroll() {
   );
 
   document.documentElement.classList.add("has-open-modal");
+
   document.body.classList.add("has-open-modal");
 
   document.body.style.overflow = "hidden";
@@ -244,11 +327,14 @@ function lockPageScroll() {
 /**
  * Restore document scrolling.
  */
+
 function unlockPageScroll() {
   document.documentElement.classList.remove("has-open-modal");
+
   document.body.classList.remove("has-open-modal");
 
   document.body.style.overflow = previousBodyOverflow;
+
   document.body.style.paddingInlineEnd = previousBodyPaddingInlineEnd;
 
   document.documentElement.style.removeProperty("--modal-scrollbar-width");
@@ -267,13 +353,14 @@ function unlockPageScroll() {
  * @param {HTMLElement} modal
  * @param {HTMLElement | null} trigger
  */
+
 export function openModal(modal, trigger = null) {
-  if (!(modal instanceof HTMLElement)) {
-    return;
+  if (!isElement(modal)) {
+    return false;
   }
 
   if (activeModal === modal) {
-    return;
+    return false;
   }
 
   if (activeModal) {
@@ -284,31 +371,38 @@ export function openModal(modal, trigger = null) {
 
   activeModal = modal;
 
-  activeTrigger =
-    trigger instanceof HTMLElement
-      ? trigger
-      : document.activeElement instanceof HTMLElement
-        ? document.activeElement
-        : null;
+  activeTrigger = isElement(trigger)
+    ? trigger
+    : isElement(document.activeElement)
+      ? document.activeElement
+      : null;
 
   mountModal(modal);
 
+  ensureModalRelationships(modal);
+
   modal.hidden = false;
+
   modal.classList.add("is-open");
+
   modal.setAttribute("aria-hidden", "false");
 
   lockPageScroll();
+
   focusInitialElement(modal);
 
   modal.dispatchEvent(
     new CustomEvent("modal:open", {
       bubbles: true,
+
       detail: {
         modal,
         trigger: activeTrigger,
       },
     }),
   );
+
+  return true;
 }
 
 /* ==========================================================================
@@ -321,15 +415,18 @@ export function openModal(modal, trigger = null) {
  * @param {HTMLElement | null} modal
  * @param {{ restoreFocus?: boolean }} options
  */
+
 export function closeModal(modal = activeModal, { restoreFocus = true } = {}) {
-  if (!(modal instanceof HTMLElement)) {
-    return;
+  if (!isElement(modal)) {
+    return false;
   }
 
   const triggerToRestore = modal === activeModal ? activeTrigger : null;
 
   modal.classList.remove("is-open");
+
   modal.setAttribute("aria-hidden", "true");
+
   modal.hidden = true;
 
   if (modal === activeModal) {
@@ -344,6 +441,7 @@ export function closeModal(modal = activeModal, { restoreFocus = true } = {}) {
   modal.dispatchEvent(
     new CustomEvent("modal:close", {
       bubbles: true,
+
       detail: {
         modal,
         trigger: triggerToRestore,
@@ -353,7 +451,7 @@ export function closeModal(modal = activeModal, { restoreFocus = true } = {}) {
 
   if (
     restoreFocus &&
-    triggerToRestore instanceof HTMLElement &&
+    isElement(triggerToRestore) &&
     triggerToRestore.isConnected
   ) {
     requestAnimationFrame(() => {
@@ -362,6 +460,16 @@ export function closeModal(modal = activeModal, { restoreFocus = true } = {}) {
       });
     });
   }
+
+  return true;
+}
+
+/* ==========================================================================
+   Backdrop
+   ========================================================================== */
+
+function shouldCloseFromBackdrop(modal) {
+  return modal.dataset.modalStatic !== "true";
 }
 
 /* ==========================================================================
@@ -375,7 +483,12 @@ function handleDocumentClick(event) {
 
   const openTrigger = event.target.closest(OPEN_SELECTOR);
 
-  if (openTrigger instanceof HTMLElement) {
+  if (isElement(openTrigger)) {
+    if (isDisabled(openTrigger)) {
+      event.preventDefault();
+      return;
+    }
+
     const modal = getModal(openTrigger.dataset.modalOpen);
 
     if (!modal) {
@@ -391,17 +504,44 @@ function handleDocumentClick(event) {
 
   const closeTrigger = event.target.closest(CLOSE_SELECTOR);
 
-  if (closeTrigger instanceof HTMLElement) {
+  if (isElement(closeTrigger)) {
+    if (isDisabled(closeTrigger)) {
+      event.preventDefault();
+      return;
+    }
+
     const modal = closeTrigger.closest(MODAL_SELECTOR);
 
-    if (!(modal instanceof HTMLElement)) {
+    if (!isElement(modal)) {
       return;
     }
 
     event.preventDefault();
 
     closeModal(modal);
+
+    return;
   }
+
+  const backdrop = event.target.closest(BACKDROP_SELECTOR);
+
+  if (!isElement(backdrop)) {
+    return;
+  }
+
+  const modal = backdrop.closest(MODAL_SELECTOR);
+
+  if (
+    !isElement(modal) ||
+    modal !== activeModal ||
+    !shouldCloseFromBackdrop(modal)
+  ) {
+    return;
+  }
+
+  event.preventDefault();
+
+  closeModal(modal);
 }
 
 /* ==========================================================================
@@ -414,6 +554,10 @@ function handleDocumentKeydown(event) {
   }
 
   if (event.key === "Escape") {
+    if (activeModal.dataset.modalStatic === "true") {
+      return;
+    }
+
     event.preventDefault();
 
     closeModal();
@@ -428,6 +572,24 @@ function handleDocumentKeydown(event) {
    Initialization
    ========================================================================== */
 
+function initializeModal(modal) {
+  if (!isElement(modal)) {
+    return;
+  }
+
+  ensureModalRelationships(modal);
+
+  if (!modal.classList.contains("is-open")) {
+    modal.hidden = true;
+
+    modal.setAttribute("aria-hidden", "true");
+  }
+}
+
+/**
+ * Initialize modal infrastructure.
+ */
+
 export function initModals() {
   if (initialized) {
     return;
@@ -435,6 +597,9 @@ export function initModals() {
 
   initialized = true;
 
+  document.querySelectorAll(MODAL_SELECTOR).forEach(initializeModal);
+
   document.addEventListener("click", handleDocumentClick);
+
   document.addEventListener("keydown", handleDocumentKeydown);
 }

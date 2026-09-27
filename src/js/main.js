@@ -10,6 +10,8 @@ import { initGlobal } from "./global";
    ========================================================================== */
 
 import "./components/tabs";
+import "./components/tooltip";
+import "./components/motion";
 
 import { initPageLoader } from "./components/page-loader";
 import { initAccordions } from "./components/accordion";
@@ -21,7 +23,6 @@ import { initDropdowns } from "./components/dropdown";
 import { initCustomSelects } from "./components/custom-select";
 import { initCustomDates } from "./components/custom-date";
 import { initForms } from "./components/form";
-import { initTextAnimation } from "./components/text-animation";
 import { initCompanySearch } from "./components/company-search";
 
 import { initDataViews, refreshDataViews } from "./components/data-view";
@@ -168,7 +169,6 @@ function initApp() {
   initDataViews();
   initDirectories();
 
-  initTextAnimation();
   initCompanySearch();
 
   /*

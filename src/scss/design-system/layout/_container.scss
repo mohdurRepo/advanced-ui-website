@@ -24,7 +24,9 @@
 .container-xxl,
 .container-xxxl,
 .container-fluid {
-  width: min(100% - var(--container-padding, 2rem), var(--container-max, 100%));
+  --container-padding: var(--space-8);
+
+  width: min(100% - var(--container-padding), var(--container-max, 100%));
 
   margin-inline: auto;
 }
@@ -32,10 +34,6 @@
 /* ==========================================================================
    Default Container
    ========================================================================== */
-
-/*
- * The default website container uses the largest constrained width.
- */
 
 .container {
   --container-max: #{ds.$container-xxxl};
@@ -78,7 +76,7 @@
 }
 
 /* ==========================================================================
-   Mobile
+   Responsive
    ========================================================================== */
 
 @include ds.respond-down("sm") {
@@ -90,6 +88,6 @@
   .container-xxl,
   .container-xxxl,
   .container-fluid {
-    --container-padding: 1rem;
+    --container-padding: var(--space-4);
   }
 }

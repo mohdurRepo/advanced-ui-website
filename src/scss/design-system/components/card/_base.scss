@@ -12,22 +12,20 @@
  * - semantic surface tokens;
  * - border, radius, elevation, and spacing;
  * - shared structural regions;
- * - the website-wide bottom-end pattern;
- * - common interaction and state behavior.
+ * - the shared decorative brand pattern;
+ * - common presentation and state behavior.
  *
  * Specialized Cards remain responsible for their own composition.
  */
 
 .card {
   /* Surface */
-
   --card-bg: var(--color-surface);
   --card-color: var(--color-text);
   --card-heading-color: var(--color-heading);
   --card-muted-color: var(--color-text-muted);
 
   /* Border and shape */
-
   --card-border-width: 1px;
   --card-border-style: solid;
   --card-border-color: var(--color-border);
@@ -35,26 +33,25 @@
   --card-radius: var(--radius-lg);
 
   /* Elevation */
-
   --card-shadow: var(--shadow-sm);
   --card-hover-shadow: var(--shadow-md);
   --card-hover-translate: -0.125rem;
 
   /* Spacing */
-
-  --card-padding-block: #{ds.space(4)};
-  --card-padding-inline: #{ds.space(4)};
-  --card-gap: #{ds.space(4)};
+  --card-padding-block: var(--space-4);
+  --card-padding-inline: var(--space-4);
+  --card-gap: var(--space-4);
 
   /* Decorative pattern */
-
   --card-pattern-image: url("/assets/images/financial-bg-pattern.png");
   --card-pattern-color: var(--color-primary);
   --card-pattern-size: 13rem;
-  --card-pattern-opacity: 0.075;
+  --card-pattern-opacity: 0.5;
   --card-pattern-hover-opacity: 0.13;
+  --card-pattern-scale-x: 1;
 
   position: relative;
+
   isolation: isolate;
 
   display: flex;
@@ -65,6 +62,7 @@
 
   border: var(--card-border-width) var(--card-border-style)
     var(--card-border-color);
+
   border-radius: var(--card-radius);
 
   background: var(--card-bg);
@@ -78,25 +76,36 @@
    ========================================================================== */
 
 /**
- * The shared pattern remains behind Card content and does not require the
- * Card itself to clip overflow. Focus rings, dropdowns, and popovers can
- * therefore extend beyond the Card boundary.
+ * Shared Card brand decoration.
+ *
+ * The artwork is positioned at the logical bottom-end corner:
+ *
+ * LTR → bottom-right
+ * RTL → bottom-left
+ *
+ * The artwork itself is mirrored in RTL so its visual direction continues
+ * pointing inward toward the Card content.
+ *
+ * `scale` is deliberately independent from `transform` so hover scaling can
+ * coexist with RTL mirroring.
  */
 
 .card::before {
   content: "";
 
   position: absolute;
+
   inset-inline-end: 0;
   inset-block-end: 0;
+
   z-index: -1;
 
   inline-size: var(--card-pattern-size);
   block-size: var(--card-pattern-size);
 
-  border-end-end-radius: calc(var(--card-radius) - var(--card-border-width));
-
   overflow: hidden;
+
+  border-end-end-radius: calc(var(--card-radius) - var(--card-border-width));
 
   background-color: var(--card-pattern-color);
 
@@ -104,7 +113,9 @@
 
   pointer-events: none;
 
-  transform-origin: right bottom;
+  transform-origin: center;
+
+  scale: var(--card-pattern-scale-x) 1;
 
   -webkit-mask-image: var(--card-pattern-image);
   mask-image: var(--card-pattern-image);
@@ -132,6 +143,7 @@
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
+
   gap: var(--card-gap);
 
   min-inline-size: 0;
@@ -151,6 +163,7 @@
   display: flex;
   flex: 1 1 auto;
   flex-direction: column;
+
   gap: var(--card-gap);
 
   min-inline-size: 0;
@@ -182,6 +195,7 @@
   align-items: center;
   justify-content: space-between;
   flex-wrap: wrap;
+
   gap: var(--card-gap);
 
   min-inline-size: 0;
@@ -225,7 +239,8 @@
 .card__heading {
   display: grid;
   align-content: start;
-  gap: #{ds.space(1)};
+
+  gap: var(--space-1);
 
   min-inline-size: 0;
 }
@@ -291,8 +306,7 @@
    ========================================================================== */
 
 /**
- * Media clips independently so the Card root can continue allowing overlays
- * and focus indicators to extend beyond its boundary.
+ * Media clips independently so the Card root can remain overflow-visible.
  */
 
 .card-media,
@@ -306,6 +320,7 @@
   border-start-start-radius: calc(
     var(--card-radius) - var(--card-border-width)
   );
+
   border-start-end-radius: calc(var(--card-radius) - var(--card-border-width));
 
   background: var(--color-surface-alt);
@@ -339,7 +354,8 @@
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: #{ds.space(2)};
+
+  gap: var(--space-2);
 
   min-inline-size: 0;
 }
@@ -349,9 +365,10 @@
    ========================================================================== */
 
 .card--compact {
-  --card-padding-block: #{ds.space(3)};
-  --card-padding-inline: #{ds.space(3)};
-  --card-gap: #{ds.space(3)};
+  --card-padding-block: var(--space-3);
+  --card-padding-inline: var(--space-3);
+  --card-gap: var(--space-3);
+
   --card-pattern-size: 10rem;
 }
 
@@ -360,9 +377,10 @@
    ========================================================================== */
 
 .card--comfortable {
-  --card-padding-block: #{ds.space(6)};
-  --card-padding-inline: #{ds.space(6)};
-  --card-gap: #{ds.space(5)};
+  --card-padding-block: var(--space-6);
+  --card-padding-inline: var(--space-6);
+  --card-gap: var(--space-5);
+
   --card-pattern-size: 16rem;
 }
 
@@ -406,8 +424,7 @@
    ========================================================================== */
 
 /**
- * Use only when a Card's media or specialized decoration already owns the
- * complete visual background.
+ * Use when a specialized Card already owns its complete visual background.
  */
 
 .card--no-pattern {
@@ -420,29 +437,45 @@
    Interactive Card
    ========================================================================== */
 
+/**
+ * Provides visual interaction only.
+ *
+ * Actual interaction semantics must come from appropriate HTML such as an
+ * anchor, button, or specialized interactive Card component.
+ */
+
 .card--interactive {
   cursor: pointer;
 
   @include ds.transition((border-color, box-shadow, transform), "fast");
 }
 
-.card--interactive:hover {
-  border-color: var(--card-hover-border-color);
+@media (hover: hover) and (pointer: fine) {
+  .card--interactive:hover:not(.is-disabled):not([aria-disabled="true"]) {
+    border-color: var(--card-hover-border-color);
 
-  box-shadow: var(--card-hover-shadow);
+    box-shadow: var(--card-hover-shadow);
 
-  transform: translateY(var(--card-hover-translate));
-}
+    transform: translateY(var(--card-hover-translate));
+  }
 
-.card--interactive:hover::before,
-.card--interactive:focus-within::before {
-  opacity: var(--card-pattern-hover-opacity);
+  .card--interactive:hover:not(.is-disabled):not(
+      [aria-disabled="true"]
+    )::before {
+    opacity: var(--card-pattern-hover-opacity);
 
-  transform: scale(1.025);
+    transform: scale(1.025);
+  }
 }
 
 .card--interactive:focus-within {
   border-color: var(--color-primary);
+}
+
+.card--interactive:focus-within::before {
+  opacity: var(--card-pattern-hover-opacity);
+
+  transform: scale(1.025);
 }
 
 /* ==========================================================================
@@ -466,7 +499,7 @@
 }
 
 /* ==========================================================================
-   Disabled State
+   Disabled Presentation
    ========================================================================== */
 
 .card.is-disabled,
@@ -474,22 +507,15 @@
   --card-color: var(--color-on-disabled);
   --card-heading-color: var(--color-on-disabled);
   --card-muted-color: var(--color-on-disabled);
+
   --card-border-color: var(--color-disabled);
+
   --card-pattern-opacity: 0.035;
+  --card-pattern-hover-opacity: 0.035;
 
   background: var(--color-disabled);
 
   cursor: not-allowed;
-  pointer-events: none;
-}
-
-.card.is-disabled .btn,
-.card.is-disabled a,
-.card.is-disabled button,
-.card[aria-disabled="true"] .btn,
-.card[aria-disabled="true"] a,
-.card[aria-disabled="true"] button {
-  pointer-events: none;
 }
 
 /* ==========================================================================
@@ -500,51 +526,19 @@
   cursor: wait;
 }
 
-.card[aria-busy="true"] .card-header,
-.card[aria-busy="true"] .card__header,
-.card[aria-busy="true"] .card-body,
-.card[aria-busy="true"] .card__body,
-.card[aria-busy="true"] .card-footer,
-.card[aria-busy="true"] .card__footer {
-  pointer-events: none;
-}
-
 /* ==========================================================================
    RTL
    ========================================================================== */
 
-/*
- * The shared financial pattern is directional artwork.
- *
- * Logical positioning already moves the pattern from the bottom-end corner
- * in LTR to the bottom-end corner in RTL. Mirror the artwork itself as well
- * so its visual flow follows the document direction.
- *
- * Use the independent `scale` property rather than `transform` because Card
- * variants use `transform` for hover/focus animation.
- */
-
-html[dir="rtl"] .card::before {
-  -webkit-mask-position: left bottom;
-  mask-position: left bottom;
-
-  transform-origin: center bottom;
-
-  scale: -1 1;
-}
-
-/* ==========================================================================
-   Dark Theme
-   ========================================================================== */
-
 /**
- * The pattern uses the active semantic primary color, with slightly stronger
- * opacity on dark page surfaces so it remains visible without becoming noisy.
+ * Logical positioning already moves the decoration to bottom-left in RTL.
+ *
+ * Only the artwork itself needs mirroring so its visual flow remains directed
+ * toward the Card content.
  */
 
-html[data-theme="dark"] .card {
-  --card-pattern-opacity: 0.12;
-  --card-pattern-hover-opacity: 0.2;
+html[dir="rtl"] .card {
+  --card-pattern-scale-x: -1;
 }
 
 /* ==========================================================================
@@ -553,9 +547,10 @@ html[data-theme="dark"] .card {
 
 @include ds.respond-down("sm") {
   .card {
-    --card-padding-block: #{ds.space(3)};
-    --card-padding-inline: #{ds.space(3)};
-    --card-gap: #{ds.space(3)};
+    --card-padding-block: var(--space-3);
+    --card-padding-inline: var(--space-3);
+    --card-gap: var(--space-3);
+
     --card-radius: var(--radius-md);
     --card-pattern-size: 10rem;
   }
@@ -589,6 +584,7 @@ html[data-theme="dark"] .card {
 html[data-contrast="high"] .card {
   --card-border-color: currentColor;
   --card-hover-border-color: currentColor;
+
   --card-shadow: none;
   --card-hover-shadow: none;
 
@@ -617,6 +613,8 @@ html[data-contrast="high"] .card[data-selected="true"] {
     color: CanvasText;
 
     box-shadow: none;
+
+    forced-color-adjust: auto;
   }
 
   .card::before {
@@ -654,12 +652,13 @@ html[data-contrast="high"] .card[data-selected="true"] {
    Reduced Motion
    ========================================================================== */
 
-@media (prefers-reduced-motion: reduce) {
-  .card,
-  .card::before {
-    transition: none;
-  }
+/**
+ * Global motion tokens already reduce transition duration.
+ *
+ * Only non-essential transform movement needs explicit removal.
+ */
 
+@media (prefers-reduced-motion: reduce) {
   .card--interactive:hover {
     transform: none;
   }
@@ -670,15 +669,15 @@ html[data-contrast="high"] .card[data-selected="true"] {
   }
 }
 
-html[data-motion="reduce"] .card,
-html[data-motion="reduce"] .card::before {
-  transition: none;
-}
+html[data-motion="reduce"] {
+  .card--interactive:hover {
+    transform: none;
+  }
 
-html[data-motion="reduce"] .card--interactive:hover,
-html[data-motion="reduce"] .card--interactive:hover::before,
-html[data-motion="reduce"] .card--interactive:focus-within::before {
-  transform: none;
+  .card--interactive:hover::before,
+  .card--interactive:focus-within::before {
+    transform: none;
+  }
 }
 
 /* ==========================================================================
@@ -687,10 +686,10 @@ html[data-motion="reduce"] .card--interactive:focus-within::before {
 
 @media print {
   .card {
-    border-color: #000000;
+    border-color: #000;
 
     background: transparent;
-    color: #000000;
+    color: #000;
 
     box-shadow: none;
   }
@@ -699,7 +698,7 @@ html[data-motion="reduce"] .card--interactive:focus-within::before {
     display: none;
   }
 
-  .card--interactive:hover {
+  .card--interactive {
     transform: none;
   }
 }

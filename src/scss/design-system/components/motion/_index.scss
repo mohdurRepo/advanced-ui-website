@@ -1,0 +1,22 @@
+/* ==========================================================================
+   Motion
+   ========================================================================== */
+
+/**
+ * Progressive-enhancement motion primitives:
+ *
+ * - viewport reveal;
+ * - staggered groups;
+ * - text (type / words / chars).
+ *
+ * JavaScript owns observation, timing and state classes.
+ * SCSS owns visual states and presets; tokens live in `_config.scss`.
+ *
+ * Content is never hidden unless the activation gate in `_config.scss`
+ * passes, so Motion is safe without JavaScript, under reduced motion,
+ * and in print.
+ */
+
+@forward "reveal";
+@forward "group";
+@forward "text";

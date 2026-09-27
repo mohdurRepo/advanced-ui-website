@@ -4,10 +4,28 @@
    Tabs
    ========================================================================== */
 
+/**
+ * Reusable horizontal tab system.
+ *
+ * Supports:
+ * - Primary underline tabs
+ * - Pill tabs
+ * - Compact tabs
+ * - Full-width tabs
+ * - Contained tabs
+ * - Secondary nested tabs
+ * - Horizontally scrollable navigation
+ * - Active-tab centering through JavaScript
+ * - RTL
+ * - High contrast
+ * - Forced colors
+ * - Reduced motion
+ */
+
 .tabs {
-  --tabs-gap: 0.5rem;
+  --tabs-gap: var(--space-2);
   --tabs-nav-border: var(--color-border);
-  --tabs-content-space: 0.5rem;
+  --tabs-content-space: var(--space-2);
 
   --tab-bg: transparent;
   --tab-color: var(--color-text-muted);
@@ -43,9 +61,12 @@
   border-block-end: 1px solid var(--tabs-nav-border);
 
   scrollbar-width: none;
+
   scroll-behavior: smooth;
+  scroll-snap-type: inline proximity;
 
   overscroll-behavior-inline: contain;
+
   -webkit-overflow-scrolling: touch;
 }
 
@@ -65,11 +86,12 @@
   align-items: center;
   justify-content: center;
 
-  gap: 0.5rem;
+  gap: var(--space-2);
 
   min-block-size: 2.75rem;
-  padding-block: 0.75rem;
-  padding-inline: 1rem;
+
+  padding-block: var(--space-3);
+  padding-inline: var(--space-4);
 
   border: 0;
   border-block-end: 2px solid var(--tab-border);
@@ -89,15 +111,10 @@
   cursor: pointer;
   user-select: none;
 
+  scroll-snap-align: center;
+
   @include ds.transition(
-    (
-      background-color,
-      border-color,
-      color,
-      box-shadow,
-      outline-color,
-      transform
-    ),
+    (background-color, border-color, color, box-shadow, transform),
     "fast"
   );
 }
@@ -106,7 +123,7 @@
    Tab Hover
    ========================================================================== */
 
-.tab-link:hover:not(:disabled):not(.is-disabled) {
+.tab-link:hover:not(:disabled):not(.is-disabled):not([aria-disabled="true"]) {
   background: var(--tab-hover-bg);
   color: var(--tab-hover-color);
 }
@@ -115,15 +132,12 @@
    Tab Focus
    ========================================================================== */
 
-.tab-link:focus {
-  outline: none;
-}
-
 .tab-link:focus-visible {
   position: relative;
+
   z-index: 1;
 
-  @include ds.focus-ring;
+  @include ds.focus-ring($offset: -2px);
 }
 
 /* ==========================================================================
@@ -149,7 +163,6 @@
   color: var(--color-on-disabled);
 
   cursor: not-allowed;
-  pointer-events: none;
 
   opacity: 0.7;
 }
@@ -160,6 +173,7 @@
 
 .tabs-content {
   min-inline-size: 0;
+
   padding-block-start: var(--tabs-content-space);
 }
 
@@ -180,7 +194,7 @@
 }
 
 .tab-pane[hidden] {
-  display: none !important;
+  display: none;
 }
 
 /* ==========================================================================
@@ -188,9 +202,9 @@
    ========================================================================== */
 
 .tabs--pill {
-  --tabs-gap: 0.5rem;
+  --tabs-gap: var(--space-2);
   --tabs-nav-border: transparent;
-  --tabs-content-space: 1rem;
+  --tabs-content-space: var(--space-4);
 
   --tab-bg: transparent;
   --tab-color: var(--color-text-muted);
@@ -205,7 +219,7 @@
 }
 
 .tabs--pill > .tabs-nav {
-  padding-block: 0.5rem;
+  padding-block: var(--space-2);
 
   border-block-end: 0;
 }
@@ -224,12 +238,13 @@
    ========================================================================== */
 
 .tabs--compact {
-  --tabs-content-space: 1rem;
+  --tabs-content-space: var(--space-4);
 }
 
 .tabs--compact > .tabs-nav > .tab-link {
   min-block-size: 2.25rem;
-  padding-block: 0.5rem;
+
+  padding-block: var(--space-2);
   padding-inline: 0.875rem;
 
   font-size: var(--text-xs);
@@ -248,21 +263,9 @@
    ========================================================================== */
 
 /**
- * Presents primary tabs and their content as one continuous surface.
+ * Presents primary tabs and content as one continuous surface.
  *
- * Intended for:
- *
- * - result/data views;
- * - tables controlled by tabs;
- * - filter -> result compositions;
- * - dashboards where navigation belongs directly to the panel below it.
- *
- * Unlike tabs--secondary:
- *
- * - the normal primary underline indicator is retained;
- * - navigation is not pill-shaped;
- * - the active panel is not presented as a separate inset card;
- * - tabs and content share one outer border/radius.
+ * This variant intentionally retains the normal primary underline indicator.
  */
 
 .tabs--contained {
@@ -272,7 +275,7 @@
   --contained-tabs-border: var(--color-border);
   --contained-tabs-radius: var(--radius-lg);
 
-  --contained-tabs-nav-padding-inline: #{ds.space(4)};
+  --contained-tabs-nav-padding-inline: var(--space-4);
   --contained-tabs-nav-min-height: 3rem;
 
   min-inline-size: 0;
@@ -329,11 +332,11 @@
    Contained Data View
    ========================================================================== */
 
-/*
- * The outer tabs element owns the visual surface.
+/**
+ * Kept for current backward compatibility.
  *
- * Any data-view workspace nested inside therefore joins this same surface
- * rather than looking like another independent card.
+ * We will revisit this coupling when Forms/Data is cleaned before moving into
+ * the website layer.
  */
 
 .tabs--contained .data-view__workspace {
@@ -346,29 +349,14 @@
   min-inline-size: 0;
 }
 
-/*
- * Remove nested rounding from the table surface.
- *
- * The outer .tabs--contained component now supplies the visible radius.
- */
-
 .tabs--contained .table-shell,
 .tabs--contained .table-responsive {
   border-radius: 0;
 }
 
-/*
- * The tab-navigation separator becomes the seam between navigation and data.
- * Avoid rendering another top border directly beneath it.
- */
-
 .tabs--contained .table-responsive {
   border-block-start: 0;
 }
-
-/* ==========================================================================
-   Contained Cards
-   ========================================================================== */
 
 .tabs--contained .data-view__cards,
 .tabs--contained .data-view__cards-inner {
@@ -379,19 +367,16 @@
    Secondary Tabs
    ========================================================================== */
 
-/*
- * Secondary tabs are intended for navigation nested inside a primary
- * tab panel.
+/**
+ * Secondary tabs are intended for navigation nested inside a primary panel.
  *
- * They intentionally differ from primary tabs through:
+ * They intentionally use:
+ * - a contained navigation surface;
+ * - pill-shaped controls;
+ * - a filled active state;
+ * - an inset content panel.
  *
- * - a contained navigation surface
- * - pill-shaped controls
- * - a filled active state
- * - an inset content panel
- *
- * Direct-child selectors prevent this variant from styling any deeper
- * nested tabs.
+ * Direct-child selectors prevent styling deeper nested tabs.
  */
 
 .tabs--secondary {
@@ -416,7 +401,8 @@
   --secondary-tabs-panel-color: var(--color-text);
   --secondary-tabs-panel-border: var(--color-border);
   --secondary-tabs-panel-radius: var(--radius-lg);
-  --secondary-tabs-panel-padding: clamp(1rem, 2vw, 1.5rem);
+
+  --secondary-tabs-panel-padding: clamp(var(--space-4), 2vw, var(--space-6));
 }
 
 /* ==========================================================================
@@ -428,12 +414,13 @@
   flex-wrap: wrap;
   align-items: center;
 
-  gap: ds.space(2);
+  gap: var(--space-2);
 
   inline-size: fit-content;
   max-inline-size: 100%;
   min-inline-size: 0;
-  padding: ds.space(1);
+
+  padding: var(--space-1);
 
   border: 1px solid var(--secondary-tabs-nav-border);
   border-radius: var(--radius-pill);
@@ -451,8 +438,9 @@
   flex: 0 0 auto;
 
   min-block-size: 2.5rem;
-  padding-block: 0.5rem;
-  padding-inline: 1rem;
+
+  padding-block: var(--space-2);
+  padding-inline: var(--space-4);
 
   border: 1px solid var(--secondary-tab-border);
   border-radius: var(--radius-pill);
@@ -462,18 +450,9 @@
 
   font-size: var(--text-sm);
   font-weight: ds.font-weight("semibold");
-  line-height: 1.2;
+  line-height: var(--line-height-tight);
 
   box-shadow: none;
-}
-
-/*
- * The secondary variant uses a filled active state rather than the
- * underline indicator used by primary tabs.
- */
-
-.tabs--secondary > .tabs-nav > .tab-link::after {
-  content: none;
 }
 
 /* ==========================================================================
@@ -482,9 +461,9 @@
 
 .tabs--secondary
   > .tabs-nav
-  > .tab-link:hover:not(:disabled):not(.is-disabled):not(.active):not(
-    [aria-selected="true"]
-  ) {
+  > .tab-link:hover:not(:disabled):not(.is-disabled):not(
+    [aria-disabled="true"]
+  ):not(.active):not(.is-active):not([aria-selected="true"]) {
   border-color: var(--secondary-tab-hover-border);
 
   background: var(--secondary-tab-hover-bg);
@@ -510,11 +489,17 @@
    Secondary Tab Active Hover
    ========================================================================== */
 
-.tabs--secondary > .tabs-nav > .tab-link.active:hover:not(:disabled),
-.tabs--secondary > .tabs-nav > .tab-link.is-active:hover:not(:disabled),
 .tabs--secondary
   > .tabs-nav
-  > .tab-link[aria-selected="true"]:hover:not(:disabled) {
+  > .tab-link.active:hover:not(:disabled):not([aria-disabled="true"]),
+.tabs--secondary
+  > .tabs-nav
+  > .tab-link.is-active:hover:not(:disabled):not([aria-disabled="true"]),
+.tabs--secondary
+  > .tabs-nav
+  > .tab-link[aria-selected="true"]:hover:not(:disabled):not(
+    [aria-disabled="true"]
+  ) {
   border-color: var(--secondary-tab-active-border);
 
   background: var(--secondary-tab-active-bg);
@@ -527,7 +512,9 @@
 
 .tabs--secondary
   > .tabs-nav
-  > .tab-link:active:not(:disabled):not(.is-disabled) {
+  > .tab-link:active:not(:disabled):not(.is-disabled):not(
+    [aria-disabled="true"]
+  ) {
   transform: translateY(1px);
 }
 
@@ -537,7 +524,8 @@
 
 .tabs--secondary > .tabs-content {
   min-inline-size: 0;
-  margin-block-start: ds.space(4);
+
+  margin-block-start: var(--space-4);
   padding-block-start: 0;
 }
 
@@ -577,6 +565,10 @@
    Secondary Panel Tables
    ========================================================================== */
 
+/**
+ * Kept until the deferred Forms/Data cleanup.
+ */
+
 .tabs--secondary > .tabs-content > .tab-pane .table-shell,
 .tabs--secondary > .tabs-content > .tab-pane .table-responsive {
   min-inline-size: 0;
@@ -587,21 +579,24 @@
 }
 
 /* ==========================================================================
-   Responsive
+   Tablet
    ========================================================================== */
 
 @include ds.respond-down("md") {
-  /* ------------------------------------------------------------------------
-     Contained Tabs
-     ------------------------------------------------------------------------ */
-
-  .tabs--contained {
-    --contained-tabs-nav-padding-inline: #{ds.space(3)};
+  /*
+   * Scroll snapping is particularly useful on touch-sized tab strips.
+   */
+  .tabs-nav {
+    scroll-snap-type: inline proximity;
   }
 
-  /* ------------------------------------------------------------------------
-     Secondary Tabs
-     ------------------------------------------------------------------------ */
+  /* Contained Tabs */
+
+  .tabs--contained {
+    --contained-tabs-nav-padding-inline: var(--space-3);
+  }
+
+  /* Secondary Tabs */
 
   .tabs--secondary > .tabs-nav {
     flex-wrap: nowrap;
@@ -621,35 +616,30 @@
    ========================================================================== */
 
 @include ds.respond-down("sm") {
-  /*
-   * Full-width tabs become horizontally scrollable controls on compact
-   * screens rather than forcing every label into an excessively narrow
-   * equal-width column.
+  /**
+   * Full-width tabs become horizontally scrollable controls rather than
+   * squeezing every label into an excessively narrow equal-width column.
    */
 
   .tabs--full > .tabs-nav > .tab-link {
     flex: 0 0 auto;
   }
 
-  /* ------------------------------------------------------------------------
-     Contained Tabs
-     ------------------------------------------------------------------------ */
+  /* Contained Tabs */
 
   .tabs--contained {
     --contained-tabs-radius: var(--radius-md);
-    --contained-tabs-nav-padding-inline: #{ds.space(2)};
+    --contained-tabs-nav-padding-inline: var(--space-2);
   }
 
-  /* ------------------------------------------------------------------------
-     Secondary Tabs
-     ------------------------------------------------------------------------ */
+  /* Secondary Tabs */
 
   .tabs--secondary {
-    --secondary-tabs-panel-padding: 1rem;
+    --secondary-tabs-panel-padding: var(--space-4);
   }
 
   .tabs--secondary > .tabs-content {
-    margin-block-start: ds.space(3);
+    margin-block-start: var(--space-3);
   }
 
   .tabs--secondary > .tabs-content > .tab-pane.active,
@@ -674,9 +664,7 @@ html[data-contrast="high"] {
     border-color: currentColor;
   }
 
-  /* ------------------------------------------------------------------------
-     Contained Tabs
-     ------------------------------------------------------------------------ */
+  /* Contained Tabs */
 
   .tabs--contained {
     border-width: 2px;
@@ -687,9 +675,7 @@ html[data-contrast="high"] {
     border-color: var(--color-border-strong);
   }
 
-  /* ------------------------------------------------------------------------
-     Secondary Tabs
-     ------------------------------------------------------------------------ */
+  /* Secondary Tabs */
 
   .tabs--secondary > .tabs-nav,
   .tabs--secondary > .tabs-content > .tab-pane.active,
@@ -723,6 +709,8 @@ html[data-contrast="high"] {
 
   .tab-link {
     color: ButtonText;
+
+    forced-color-adjust: auto;
   }
 
   .tab-link.active,
@@ -732,9 +720,13 @@ html[data-contrast="high"] {
     color: Highlight;
   }
 
-  /* ------------------------------------------------------------------------
-     Contained Tabs
-     ------------------------------------------------------------------------ */
+  .tab-link:disabled,
+  .tab-link.is-disabled,
+  .tab-link[aria-disabled="true"] {
+    color: GrayText;
+  }
+
+  /* Contained Tabs */
 
   .tabs--contained {
     border-color: CanvasText;
@@ -754,9 +746,7 @@ html[data-contrast="high"] {
     color: CanvasText;
   }
 
-  /* ------------------------------------------------------------------------
-     Secondary Tabs
-     ------------------------------------------------------------------------ */
+  /* Secondary Tabs */
 
   .tabs--secondary > .tabs-nav,
   .tabs--secondary > .tabs-content > .tab-pane.active,
@@ -782,18 +772,24 @@ html[data-contrast="high"] {
    Reduced Motion
    ========================================================================== */
 
+/**
+ * Global transition tokens already become 0ms.
+ *
+ * Tab-strip scrolling and the small secondary press transform require
+ * explicit motion handling.
+ */
+
 @media (prefers-reduced-motion: reduce) {
   .tabs-nav {
     scroll-behavior: auto;
-  }
-
-  .tab-link {
-    transition: none;
+    scroll-snap-type: none;
   }
 
   .tabs--secondary
     > .tabs-nav
-    > .tab-link:active:not(:disabled):not(.is-disabled) {
+    > .tab-link:active:not(:disabled):not(.is-disabled):not(
+      [aria-disabled="true"]
+    ) {
     transform: none;
   }
 }
@@ -801,15 +797,14 @@ html[data-contrast="high"] {
 html[data-motion="reduce"] {
   .tabs-nav {
     scroll-behavior: auto;
-  }
-
-  .tab-link {
-    transition: none;
+    scroll-snap-type: none;
   }
 
   .tabs--secondary
     > .tabs-nav
-    > .tab-link:active:not(:disabled):not(.is-disabled) {
+    > .tab-link:active:not(:disabled):not(.is-disabled):not(
+      [aria-disabled="true"]
+    ) {
     transform: none;
   }
 }

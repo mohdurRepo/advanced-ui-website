@@ -11,7 +11,8 @@
 .grid-3,
 .grid-4 {
   display: grid;
-  gap: var(--grid-gap, 1rem);
+
+  gap: var(--grid-gap, var(--space-4));
   min-width: 0;
 }
 
@@ -31,6 +32,10 @@
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
+/* ==========================================================================
+   Responsive CSS Grid
+   ========================================================================== */
+
 @include ds.respond-down("md") {
   .grid-2,
   .grid-3,
@@ -44,17 +49,20 @@
    ========================================================================== */
 
 .row {
+  --grid-gutter: var(--space-6);
+
   display: flex;
   flex-wrap: wrap;
 
-  margin-inline: calc(var(--grid-gutter, 1.5rem) / -2);
+  margin-inline: calc(var(--grid-gutter) / -2);
   min-width: 0;
 }
 
 .row > * {
   width: 100%;
   min-width: 0;
-  padding-inline: calc(var(--grid-gutter, 1.5rem) / 2);
+
+  padding-inline: calc(var(--grid-gutter) / 2);
 }
 
 @for $column from 1 through 12 {
@@ -63,6 +71,10 @@
     width: math.percentage(math.div($column, 12));
   }
 }
+
+/* ==========================================================================
+   Responsive Columns
+   ========================================================================== */
 
 @each $breakpoint, $value in ds.$breakpoints {
   @if $breakpoint != "xs" {

@@ -4,45 +4,51 @@
    Resource Card
    ========================================================================== */
 
-/*
- * A document and downloadable-resource card.
+/**
+ * Document and downloadable-resource Card.
  *
- * Use:
+ * Recommended structure:
  *
  * <article class="card resource-card">
+ *   ...
+ * </article>
  *
  * Variants:
  *
- * - .resource-card--compact: smaller full-resource card
- * - .resource-card--brief: title, optional update date, and one action
- * - .resource-card--featured: editorially highlighted resource
+ * - .resource-card--compact
+ * - .resource-card--brief
+ * - .resource-card--featured
+ *
+ * States:
+ *
+ * - .is-unavailable / [data-available="false"]
+ * - .is-loading / [aria-busy="true"]
  */
 
 .resource-card {
-  /* Semantic colours */
-
+  /* Surface */
   --resource-card-bg: var(--color-surface);
   --resource-card-color: var(--color-text);
   --resource-card-heading: var(--color-heading);
   --resource-card-muted: var(--color-text-muted);
 
+  /* Border and accent */
   --resource-card-border: var(--color-border);
   --resource-card-accent: var(--color-primary);
 
   /* Shape and elevation */
-
   --resource-card-radius: var(--radius-lg);
   --resource-card-shadow: var(--shadow-sm);
   --resource-card-hover-shadow: var(--shadow-md);
+  --resource-card-hover-translate: -0.25rem;
 
   /* Layout */
+  --resource-card-padding: clamp(var(--space-4), 1.5vw, var(--space-5));
 
-  --resource-card-padding: clamp(1rem, 1.5vw, 1.25rem);
-  --resource-card-gap: #{ds.space(4)};
+  --resource-card-gap: var(--space-4);
   --resource-card-min-height: 21rem;
 
   /* Shared Card mappings */
-
   --card-bg: var(--resource-card-bg);
   --card-color: var(--resource-card-color);
   --card-heading-color: var(--resource-card-heading);
@@ -53,20 +59,6 @@
 
   --card-shadow: var(--resource-card-shadow);
   --card-hover-shadow: var(--resource-card-hover-shadow);
-
-  /* Shared Card pattern */
-
-  --resource-card-pattern: url("/assets/images/financial-bg-pattern.png");
-  --resource-card-pattern-size: 15rem;
-  --resource-card-pattern-color: var(--color-primary);
-  --resource-card-pattern-opacity: 0.11;
-  --resource-card-pattern-hover-opacity: 0.2;
-
-  --card-pattern-image: var(--resource-card-pattern);
-  --card-pattern-size: var(--resource-card-pattern-size);
-  --card-pattern-color: var(--resource-card-pattern-color);
-  --card-pattern-opacity: var(--resource-card-pattern-opacity);
-  --card-pattern-hover-opacity: var(--resource-card-pattern-hover-opacity);
 
   min-block-size: var(--resource-card-min-height);
 
@@ -92,9 +84,11 @@
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: ds.space(3);
+
+  gap: var(--space-3);
 
   min-inline-size: 0;
+
   padding: var(--resource-card-padding);
   padding-block-end: 0;
 }
@@ -102,17 +96,23 @@
 .resource-card__heading {
   display: grid;
   align-content: start;
-  gap: ds.space(2);
+
+  gap: var(--space-2);
 
   flex: 1 1 auto;
 
   min-inline-size: 0;
 }
 
+/* ==========================================================================
+   Eyebrow
+   ========================================================================== */
+
 .resource-card__eyebrow {
   inline-size: fit-content;
   max-inline-size: 100%;
-  padding-block: 0.25rem;
+
+  padding-block: var(--space-1);
   padding-inline: 0.625rem;
 
   border: 1px solid var(--resource-card-border);
@@ -130,6 +130,10 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+/* ==========================================================================
+   Resource Icon
+   ========================================================================== */
 
 .resource-card__icon {
   --icon-size: 1.25rem;
@@ -154,6 +158,10 @@
   );
 }
 
+/* ==========================================================================
+   Title
+   ========================================================================== */
+
 .resource-card__title {
   margin: 0;
 
@@ -177,6 +185,7 @@
   @include ds.transition(color, "fast");
 }
 
+.resource-card__title-link:link,
 .resource-card__title-link:visited {
   color: inherit;
 }
@@ -187,10 +196,6 @@
   text-decoration-line: underline;
   text-decoration-thickness: 0.08em;
   text-underline-offset: 0.18em;
-}
-
-.resource-card__title-link:focus {
-  outline: none;
 }
 
 .resource-card__title-link:focus-visible {
@@ -205,9 +210,11 @@
   display: flex;
   flex: 1 1 auto;
   flex-direction: column;
+
   gap: var(--resource-card-gap);
 
   min-inline-size: 0;
+
   padding: var(--resource-card-padding);
 }
 
@@ -223,13 +230,19 @@
   text-wrap: pretty;
 }
 
+/* ==========================================================================
+   Metadata
+   ========================================================================== */
+
 .resource-card__meta {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: ds.space(2) ds.space(3);
+
+  gap: var(--space-2) var(--space-3);
 
   min-inline-size: 0;
+
   margin-block-start: auto;
 
   color: var(--resource-card-muted);
@@ -243,7 +256,8 @@
 
   display: inline-flex;
   align-items: center;
-  gap: ds.space(1);
+
+  gap: var(--space-1);
 
   min-inline-size: 0;
 }
@@ -274,15 +288,19 @@
 
 .resource-card__footer {
   display: grid;
-  gap: ds.space(3);
+
+  gap: var(--space-3);
 
   margin-block-start: auto;
+
   padding: var(--resource-card-padding);
 
   border-block-start: 1px solid var(--resource-card-border);
+
   border-end-start-radius: calc(
     var(--resource-card-radius) - var(--card-border-width)
   );
+
   border-end-end-radius: calc(
     var(--resource-card-radius) - var(--card-border-width)
   );
@@ -292,19 +310,20 @@
 
 @supports not (background: color-mix(in srgb, white, transparent)) {
   .resource-card__footer {
-    background: rgb(255 255 255 / 0.86);
-  }
-
-  html[data-theme="dark"] .resource-card__footer {
-    background: rgb(0 0 0 / 0.24);
+    background: var(--resource-card-bg);
   }
 }
+
+/* ==========================================================================
+   File Information
+   ========================================================================== */
 
 .resource-card__file {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: ds.space(1);
+
+  gap: var(--space-1);
 
   min-inline-size: 0;
 
@@ -331,12 +350,17 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* ==========================================================================
+   Actions
+   ========================================================================== */
+
 .resource-card__actions {
   display: flex;
   align-items: center;
   justify-content: space-between;
   flex-wrap: wrap;
-  gap: ds.space(2);
+
+  gap: var(--space-2);
 
   min-inline-size: 0;
 }
@@ -363,15 +387,16 @@
    ========================================================================== */
 
 @media (hover: hover) and (pointer: fine) {
-  .resource-card:hover {
+  .resource-card:hover:not(.is-unavailable):not([data-available="false"]) {
     border-color: var(--resource-card-accent);
 
     box-shadow: var(--resource-card-hover-shadow);
 
-    transform: translateY(-0.25rem);
+    transform: translateY(var(--resource-card-hover-translate));
   }
 
-  .resource-card:hover .resource-card__icon {
+  .resource-card:hover:not(.is-unavailable):not([data-available="false"])
+    .resource-card__icon {
     border-color: var(--resource-card-accent);
 
     background: var(--resource-card-accent);
@@ -381,13 +406,14 @@
   }
 }
 
-.resource-card:focus-within {
+.resource-card:focus-within:not(.is-unavailable):not([data-available="false"]) {
   border-color: var(--resource-card-accent);
 
   box-shadow: var(--resource-card-hover-shadow);
 }
 
-.resource-card:focus-within .resource-card__icon {
+.resource-card:focus-within:not(.is-unavailable):not([data-available="false"])
+  .resource-card__icon {
   border-color: var(--resource-card-accent);
 
   background: var(--resource-card-accent);
@@ -400,10 +426,8 @@
 
 .resource-card--compact {
   --resource-card-min-height: 17rem;
-  --resource-card-padding: 1rem;
-  --resource-card-gap: 0.75rem;
-
-  --resource-card-pattern-size: 12rem;
+  --resource-card-padding: var(--space-4);
+  --resource-card-gap: var(--space-3);
 }
 
 .resource-card--compact .resource-card__title {
@@ -416,29 +440,27 @@
 }
 
 /* ==========================================================================
-   Brief Resource Variant
+   Brief Variant
    ========================================================================== */
 
-/*
- * For concise resources containing only a title, optional category, optional
- * update date, and a single primary action.
+/**
+ * Concise resource containing a title, optional category/date, and one
+ * primary action.
  */
 
 .resource-card--brief {
   --resource-card-min-height: 0;
-  --resource-card-padding: clamp(1rem, 1.5vw, 1.25rem);
-  --resource-card-gap: ds.space(3);
 
-  --resource-card-pattern-size: 13rem;
-  --resource-card-pattern-opacity: 0.16;
-  --resource-card-pattern-hover-opacity: 0.26;
+  --resource-card-padding: clamp(var(--space-4), 1.5vw, var(--space-5));
+
+  --resource-card-gap: var(--space-3);
 }
 
 .resource-card--brief .resource-card__body {
   flex: 0 0 auto;
 
-  padding-block-start: ds.space(3);
-  padding-block-end: ds.space(3);
+  padding-block-start: var(--space-3);
+  padding-block-end: var(--space-3);
 }
 
 .resource-card--brief .resource-card__meta {
@@ -459,16 +481,14 @@
 
 .resource-card--featured {
   --resource-card-bg: var(--color-primary);
+
   --resource-card-color: var(--color-on-primary);
   --resource-card-heading: var(--color-on-primary);
+
   --resource-card-muted: rgb(255 255 255 / 0.78);
 
   --resource-card-border: transparent;
   --resource-card-accent: var(--color-on-primary);
-
-  --resource-card-pattern-color: var(--color-on-primary);
-  --resource-card-pattern-opacity: 0.16;
-  --resource-card-pattern-hover-opacity: 0.28;
 }
 
 @supports (color: color-mix(in srgb, white, transparent)) {
@@ -499,8 +519,22 @@
   background: rgb(0 0 0 / 0.08);
 }
 
-.resource-card--featured:hover .resource-card__icon,
-.resource-card--featured:focus-within .resource-card__icon {
+@media (hover: hover) and (pointer: fine) {
+  .resource-card--featured:hover:not(.is-unavailable):not(
+      [data-available="false"]
+    )
+    .resource-card__icon {
+    border-color: rgb(255 255 255 / 0.48);
+
+    background: var(--color-on-primary);
+    color: var(--color-primary);
+  }
+}
+
+.resource-card--featured:focus-within:not(.is-unavailable):not(
+    [data-available="false"]
+  )
+  .resource-card__icon {
   border-color: rgb(255 255 255 / 0.48);
 
   background: var(--color-on-primary);
@@ -508,14 +542,19 @@
 }
 
 /* ==========================================================================
-   Unavailable and Loading States
+   Unavailable State
    ========================================================================== */
+
+/**
+ * Availability state is presentation only.
+ *
+ * Links and buttons must be disabled through their native state, `inert`,
+ * or application behavior as appropriate.
+ */
 
 .resource-card.is-unavailable,
 .resource-card[data-available="false"] {
   --resource-card-accent: var(--color-on-disabled);
-  --resource-card-pattern-opacity: 0.035;
-  --resource-card-pattern-hover-opacity: 0.035;
 
   color: var(--color-on-disabled);
 
@@ -533,17 +572,20 @@
   opacity: 0.72;
 }
 
-.resource-card.is-unavailable a,
-.resource-card.is-unavailable button,
-.resource-card[data-available="false"] a,
-.resource-card[data-available="false"] button {
-  pointer-events: none;
-}
+/* ==========================================================================
+   Loading State
+   ========================================================================== */
+
+/**
+ * The loading overlay is presentation only.
+ *
+ * If interaction must be blocked while loading, apply `inert` to the Card or
+ * disable its interactive descendants through application logic.
+ */
 
 .resource-card.is-loading,
 .resource-card[aria-busy="true"] {
   cursor: wait;
-  pointer-events: none;
 }
 
 .resource-card.is-loading .resource-card__header,
@@ -560,18 +602,34 @@
   content: "";
 
   position: absolute;
-  inset: 0.75rem;
+
+  inset: var(--space-3);
+
   z-index: 2;
 
   border-radius: var(--radius-md);
 
   background:
-    linear-gradient(90deg, transparent, rgb(255 255 255 / 0.5), transparent),
+    linear-gradient(
+      90deg,
+      transparent,
+      color-mix(in srgb, var(--color-surface) 60%, transparent),
+      transparent
+    ),
     var(--color-surface-alt);
 
   background-size: 200% 100%;
 
   animation: resource-card-loading 1.4s ease-in-out infinite;
+
+  pointer-events: none;
+}
+
+@supports not (background: color-mix(in srgb, white, transparent)) {
+  .resource-card.is-loading::after,
+  .resource-card[aria-busy="true"]::after {
+    background: var(--color-surface-alt);
+  }
 }
 
 @keyframes resource-card-loading {
@@ -585,7 +643,7 @@
 }
 
 /* ==========================================================================
-   Responsive
+   Touch
    ========================================================================== */
 
 @media (hover: none), (pointer: coarse) {
@@ -595,10 +653,13 @@
   }
 }
 
+/* ==========================================================================
+   Tablet
+   ========================================================================== */
+
 @include ds.respond-down("md") {
   .resource-card {
     --resource-card-min-height: 20rem;
-    --resource-card-pattern-size: 13rem;
   }
 
   .resource-card--brief {
@@ -606,14 +667,17 @@
   }
 }
 
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+
 @include ds.respond-down("sm") {
   .resource-card {
     --resource-card-min-height: 0;
-    --resource-card-padding: 1rem;
+    --resource-card-padding: var(--space-4);
     --resource-card-gap: 0.875rem;
 
     --resource-card-radius: var(--radius-md);
-    --resource-card-pattern-size: 11rem;
   }
 
   .resource-card__title {
@@ -625,7 +689,7 @@
   }
 
   .resource-card__footer {
-    gap: ds.space(2);
+    gap: var(--space-2);
   }
 
   .resource-card__actions {
@@ -635,30 +699,11 @@
   .resource-card__actions .btn {
     flex: 1 1 auto;
   }
-
-  .resource-card--brief {
-    --resource-card-pattern-size: 10rem;
-  }
 }
 
 /* ==========================================================================
-   Theme and Accessibility
+   High Contrast
    ========================================================================== */
-
-html[data-theme="dark"] .resource-card {
-  --resource-card-pattern-opacity: 0.14;
-  --resource-card-pattern-hover-opacity: 0.23;
-}
-
-html[data-theme="dark"] .resource-card--brief {
-  --resource-card-pattern-opacity: 0.2;
-  --resource-card-pattern-hover-opacity: 0.3;
-}
-
-html[data-theme="dark"] .resource-card--featured {
-  --resource-card-pattern-opacity: 0.16;
-  --resource-card-pattern-hover-opacity: 0.26;
-}
 
 html[data-contrast="high"] .resource-card {
   border-width: 2px;
@@ -667,10 +712,11 @@ html[data-contrast="high"] .resource-card {
   box-shadow: none;
 }
 
-html[data-contrast="high"] .resource-card:hover,
-html[data-contrast="high"] .resource-card:focus-within {
-  outline: var(--focus-ring-width, 2px) solid currentColor;
-  outline-offset: 2px;
+html[data-contrast="high"]
+  .resource-card:not(.is-unavailable):not(
+    [data-available="false"]
+  ):focus-within {
+  @include ds.focus-ring(currentColor);
 
   transform: none;
 }
@@ -688,6 +734,10 @@ html[data-contrast="high"] .resource-card--featured {
   --resource-card-muted: var(--color-bg);
 }
 
+/* ==========================================================================
+   Forced Colors
+   ========================================================================== */
+
 @media (forced-colors: active) {
   .resource-card {
     border-color: CanvasText;
@@ -696,6 +746,8 @@ html[data-contrast="high"] .resource-card--featured {
     color: CanvasText;
 
     box-shadow: none;
+
+    forced-color-adjust: auto;
   }
 
   .resource-card__icon,
@@ -714,8 +766,9 @@ html[data-contrast="high"] .resource-card--featured {
     color: CanvasText;
   }
 
-  .resource-card:hover,
-  .resource-card:focus-within {
+  .resource-card:not(.is-unavailable):not(
+      [data-available="false"]
+    ):focus-within {
     outline: 2px solid Highlight;
     outline-offset: 2px;
 
@@ -724,17 +777,18 @@ html[data-contrast="high"] .resource-card--featured {
 }
 
 /* ==========================================================================
-   Motion and Print
+   Reduced Motion
    ========================================================================== */
 
-@media (prefers-reduced-motion: reduce) {
-  .resource-card,
-  .resource-card__icon {
-    transition: none;
-  }
+/**
+ * Transition durations are handled globally through --transition-*.
+ *
+ * Non-essential translation and the loading animation are disabled explicitly.
+ */
 
+@media (prefers-reduced-motion: reduce) {
   .resource-card:hover,
-  .resource-card:hover .resource-card__icon {
+  .resource-card__icon {
     transform: none;
   }
 
@@ -744,20 +798,21 @@ html[data-contrast="high"] .resource-card--featured {
   }
 }
 
-html[data-motion="reduce"] .resource-card,
-html[data-motion="reduce"] .resource-card__icon {
-  transition: none;
+html[data-motion="reduce"] {
+  .resource-card:hover,
+  .resource-card__icon {
+    transform: none;
+  }
+
+  .resource-card.is-loading::after,
+  .resource-card[aria-busy="true"]::after {
+    animation: none;
+  }
 }
 
-html[data-motion="reduce"] .resource-card:hover,
-html[data-motion="reduce"] .resource-card:hover .resource-card__icon {
-  transform: none;
-}
-
-html[data-motion="reduce"] .resource-card.is-loading::after,
-html[data-motion="reduce"] .resource-card[aria-busy="true"]::after {
-  animation: none;
-}
+/* ==========================================================================
+   Print
+   ========================================================================== */
 
 @media print {
   .resource-card {
@@ -765,10 +820,10 @@ html[data-motion="reduce"] .resource-card[aria-busy="true"]::after {
 
     break-inside: avoid;
 
-    border-color: #000000;
+    border-color: #000;
 
     background: transparent;
-    color: #000000;
+    color: #000;
 
     box-shadow: none;
     transform: none;
@@ -779,6 +834,11 @@ html[data-motion="reduce"] .resource-card[aria-busy="true"]::after {
   }
 
   .resource-card__actions {
+    display: none;
+  }
+
+  .resource-card.is-loading::after,
+  .resource-card[aria-busy="true"]::after {
     display: none;
   }
 }

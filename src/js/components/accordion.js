@@ -8,23 +8,55 @@ const SELECTORS = {
   expandAllIcon: "[data-accordion-expand-icon]",
 };
 
+const initializedAccordions = new WeakSet();
+
 let accordionId = 0;
+let eventsBound = false;
 
 /* ==========================================================================
-   Helpers
+   DOM Helpers
    ========================================================================== */
 
-function getTrigger(item) {
-  return item.querySelector(SELECTORS.trigger);
-}
+/**
+ * Returns descendants owned by the supplied accordion.
+ *
+ * Filtering by the closest accordion prevents a parent accordion from
+ * accidentally controlling items belonging to a nested accordion.
+ */
 
-function getPanel(item) {
-  return item.querySelector(SELECTORS.panel);
+function getOwnedElements(accordion, selector) {
+  return [...accordion.querySelectorAll(selector)].filter(
+    (element) => element.closest(SELECTORS.accordion) === accordion,
+  );
 }
 
 function getItems(accordion) {
-  return [...accordion.querySelectorAll(SELECTORS.item)];
+  return getOwnedElements(accordion, SELECTORS.item);
 }
+
+function getExpandAllControl(accordion) {
+  return getOwnedElements(accordion, SELECTORS.expandAll)[0] ?? null;
+}
+
+function getTrigger(item) {
+  return (
+    [...item.querySelectorAll(SELECTORS.trigger)].find(
+      (trigger) => trigger.closest(SELECTORS.item) === item,
+    ) ?? null
+  );
+}
+
+function getPanel(item) {
+  return (
+    [...item.querySelectorAll(SELECTORS.panel)].find(
+      (panel) => panel.closest(SELECTORS.item) === item,
+    ) ?? null
+  );
+}
+
+/* ==========================================================================
+   State Helpers
+   ========================================================================== */
 
 function isTriggerDisabled(trigger) {
   return (
@@ -48,7 +80,22 @@ function getInteractiveItems(accordion) {
 }
 
 /* ==========================================================================
-   Accessibility
+   IDs
+   ========================================================================== */
+
+function createUniqueId(prefix) {
+  let id;
+
+  do {
+    accordionId += 1;
+    id = `${prefix}-${accordionId}`;
+  } while (document.getElementById(id));
+
+  return id;
+}
+
+/* ==========================================================================
+   Accessibility Relationships
    ========================================================================== */
 
 function ensureItemRelationships(item) {
@@ -57,14 +104,12 @@ function ensureItemRelationships(item) {
 
   if (!trigger || !panel) return;
 
-  accordionId += 1;
-
   if (!trigger.id) {
-    trigger.id = `accordion-trigger-${accordionId}`;
+    trigger.id = createUniqueId("accordion-trigger");
   }
 
   if (!panel.id) {
-    panel.id = `accordion-panel-${accordionId}`;
+    panel.id = createUniqueId("accordion-panel");
   }
 
   trigger.setAttribute("aria-controls", panel.id);
@@ -77,73 +122,99 @@ function ensureItemRelationships(item) {
    Item State
    ========================================================================== */
 
-function openItem(item) {
-  const trigger = getTrigger(item);
+/**
+ * State changes are allowed programmatically even for disabled items.
+ *
+ * Disabled means the user cannot interact with the trigger. It should not
+ * prevent the accordion controller from normalizing state internally.
+ */
 
-  if (!trigger || isTriggerDisabled(trigger)) return;
-
-  item.classList.add("is-open");
-  trigger.setAttribute("aria-expanded", "true");
-}
-
-function closeItem(item) {
-  const trigger = getTrigger(item);
-
-  if (!trigger || isTriggerDisabled(trigger)) return;
-
-  item.classList.remove("is-open");
-  trigger.setAttribute("aria-expanded", "false");
-}
-
-function syncItemState(item) {
+function setItemExpanded(item, expanded) {
   const trigger = getTrigger(item);
 
   if (!trigger) return;
 
-  const expanded = trigger.getAttribute("aria-expanded") === "true";
-
+  trigger.setAttribute("aria-expanded", String(expanded));
   item.classList.toggle("is-open", expanded);
 }
 
+function openItem(item) {
+  setItemExpanded(item, true);
+}
+
+function closeItem(item) {
+  setItemExpanded(item, false);
+}
+
+function syncItemState(item) {
+  setItemExpanded(item, isItemOpen(item));
+}
+
 /* ==========================================================================
-   Expand All State
+   Expand All Control
    ========================================================================== */
 
+function setControlDisabled(control, disabled) {
+  if ("disabled" in control) {
+    control.disabled = disabled;
+  }
+
+  control.setAttribute("aria-disabled", String(disabled));
+}
+
 function updateExpandAllControl(accordion) {
-  const control = accordion.querySelector(SELECTORS.expandAll);
+  const control = getExpandAllControl(accordion);
 
   if (!control) return;
 
   const items = getInteractiveItems(accordion);
 
   if (items.length === 0) {
-    control.disabled = true;
+    setControlDisabled(control, true);
+
     control.setAttribute("aria-expanded", "false");
+    control.dataset.accordionState = "collapsed";
+
     return;
   }
 
-  control.disabled = false;
+  setControlDisabled(control, false);
 
   const allExpanded = items.every(isItemOpen);
 
   control.setAttribute("aria-expanded", String(allExpanded));
+  control.dataset.accordionState = allExpanded ? "expanded" : "collapsed";
 
   const label = control.querySelector(SELECTORS.expandAllLabel);
 
   if (label) {
-    label.textContent = allExpanded ? "Collapse all" : "Expand all";
+    const expandLabel = control.dataset.accordionExpandLabel ?? "Expand all";
+
+    const collapseLabel =
+      control.dataset.accordionCollapseLabel ?? "Collapse all";
+
+    label.textContent = allExpanded ? collapseLabel : expandLabel;
   }
+
+  /*
+   * Existing icon classes are retained for backwards compatibility.
+   *
+   * The control also exposes data-accordion-state so the icon implementation
+   * can later move completely to CSS without changing accordion behavior.
+   */
 
   const icon = control.querySelector(SELECTORS.expandAllIcon);
 
   if (icon) {
     icon.classList.toggle("icon-add-plus", !allExpanded);
     icon.classList.toggle("icon-minus-line", allExpanded);
+
+    icon.dataset.accordionState = allExpanded ? "expanded" : "collapsed";
   }
 }
 
 /* ==========================================================================
-   Interaction
+   Item Interaction
    ========================================================================== */
 
 function toggleItem(trigger) {
@@ -154,7 +225,13 @@ function toggleItem(trigger) {
 
   if (!item || !accordion) return;
 
+  /*
+   * Protect nested accordions from accidentally operating on a parent item.
+   */
+  if (item.closest(SELECTORS.accordion) !== accordion) return;
+
   const wasOpen = isItemOpen(item);
+
   const allowMultiple = accordion.hasAttribute("data-accordion-multiple");
 
   if (!allowMultiple && !wasOpen) {
@@ -165,14 +242,14 @@ function toggleItem(trigger) {
     });
   }
 
-  if (wasOpen) {
-    closeItem(item);
-  } else {
-    openItem(item);
-  }
+  setItemExpanded(item, !wasOpen);
 
   updateExpandAllControl(accordion);
 }
+
+/* ==========================================================================
+   Expand / Collapse All
+   ========================================================================== */
 
 function toggleAll(accordion) {
   if (!accordion.hasAttribute("data-accordion-multiple")) return;
@@ -184,11 +261,7 @@ function toggleAll(accordion) {
   const allExpanded = items.every(isItemOpen);
 
   items.forEach((item) => {
-    if (allExpanded) {
-      closeItem(item);
-    } else {
-      openItem(item);
-    }
+    setItemExpanded(item, !allExpanded);
   });
 
   updateExpandAllControl(accordion);
@@ -199,7 +272,12 @@ function toggleAll(accordion) {
    ========================================================================== */
 
 function initializeAccordion(accordion) {
+  if (initializedAccordions.has(accordion)) return;
+
+  initializedAccordions.add(accordion);
+
   const allowMultiple = accordion.hasAttribute("data-accordion-multiple");
+
   const items = getItems(accordion);
 
   let foundOpenItem = false;
@@ -219,12 +297,14 @@ function initializeAccordion(accordion) {
     }
 
     /*
-     * Single-open accordions are normalized during initialization so invalid
-     * markup cannot leave multiple items expanded.
+     * A single-open accordion may contain only one expanded item.
+     * Invalid initial markup is normalized deterministically by keeping
+     * the first expanded item open.
      */
+
     if (!allowMultiple && isItemOpen(item)) {
       if (foundOpenItem) {
-        trigger.setAttribute("aria-expanded", "false");
+        closeItem(item);
       } else {
         foundOpenItem = true;
       }
@@ -233,16 +313,53 @@ function initializeAccordion(accordion) {
     syncItemState(item);
   });
 
-  const expandAllControl = accordion.querySelector(SELECTORS.expandAll);
+  const expandAllControl = getExpandAllControl(accordion);
 
   /*
-   * Expand-all behavior only makes sense when multiple items may be open.
+   * Expand-all behavior only makes sense for multiple-open accordions.
    */
-  if (expandAllControl && !allowMultiple) {
-    expandAllControl.hidden = true;
+
+  if (expandAllControl) {
+    expandAllControl.hidden = !allowMultiple;
   }
 
   updateExpandAllControl(accordion);
+}
+
+/* ==========================================================================
+   Events
+   ========================================================================== */
+
+function handleDocumentClick(event) {
+  if (!(event.target instanceof Element)) return;
+
+  const expandAllControl = event.target.closest(SELECTORS.expandAll);
+
+  if (expandAllControl) {
+    if (isTriggerDisabled(expandAllControl)) return;
+
+    const accordion = expandAllControl.closest(SELECTORS.accordion);
+
+    if (accordion) {
+      toggleAll(accordion);
+    }
+
+    return;
+  }
+
+  const trigger = event.target.closest(SELECTORS.trigger);
+
+  if (!trigger) return;
+
+  toggleItem(trigger);
+}
+
+function bindEvents() {
+  if (eventsBound) return;
+
+  document.addEventListener("click", handleDocumentClick);
+
+  eventsBound = true;
 }
 
 /* ==========================================================================
@@ -252,23 +369,5 @@ function initializeAccordion(accordion) {
 export function initAccordions() {
   document.querySelectorAll(SELECTORS.accordion).forEach(initializeAccordion);
 
-  document.addEventListener("click", (event) => {
-    const expandAllControl = event.target.closest(SELECTORS.expandAll);
-
-    if (expandAllControl) {
-      const accordion = expandAllControl.closest(SELECTORS.accordion);
-
-      if (accordion) {
-        toggleAll(accordion);
-      }
-
-      return;
-    }
-
-    const trigger = event.target.closest(SELECTORS.trigger);
-
-    if (!trigger) return;
-
-    toggleItem(trigger);
-  });
+  bindEvents();
 }

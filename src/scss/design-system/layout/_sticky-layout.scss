@@ -16,7 +16,7 @@
   --sticky-layout-content: minmax(0, 1fr);
   --sticky-layout-aside-min: 18rem;
   --sticky-layout-aside-max: 22rem;
-  --sticky-layout-gap: var(--space-8, 2rem);
+  --sticky-layout-gap: var(--space-8);
 
   display: grid;
 
@@ -27,7 +27,6 @@
   align-items: start;
 
   gap: var(--sticky-layout-gap);
-
   min-width: 0;
 }
 
@@ -54,8 +53,7 @@
 
 .sticky-layout__sticky {
   position: sticky;
-
-  top: var(--sticky-offset, 2rem);
+  top: var(--sticky-offset, var(--space-8));
 }
 
 /* ==========================================================================
@@ -102,7 +100,7 @@
 
 @include ds.respond-down("lg") {
   .sticky-layout {
-    --sticky-layout-gap: var(--space-6, 1.5rem);
+    --sticky-layout-gap: var(--space-6);
 
     grid-template-columns: minmax(0, 1fr);
   }
@@ -131,6 +129,6 @@
 
 @include ds.respond-down("sm") {
   .sticky-layout {
-    --sticky-layout-gap: var(--space-4, 1rem);
+    --sticky-layout-gap: var(--space-4);
   }
 }

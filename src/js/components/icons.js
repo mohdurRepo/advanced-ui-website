@@ -373,44 +373,6 @@ const SVG_SPRITE = `
     <path d="M8.59375 17.875V7.5625H13.4062" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
     <path d="M18.2188 3.4375H13.4062V17.875H18.2188V3.4375Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
   </symbol>
-
- 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  
-
-
-
-
-  
-
-
-
-
-
-
-
-
-
 </svg>
 `;
 

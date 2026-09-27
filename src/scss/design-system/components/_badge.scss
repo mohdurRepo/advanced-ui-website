@@ -6,6 +6,7 @@ $badge-variants: (
   "accent",
   "success",
   "info",
+  "attention",
   "warning",
   "danger",
   "light",
@@ -16,6 +17,18 @@ $badge-variants: (
    Badge
    ========================================================================== */
 
+/**
+ * Compact semantic label.
+ *
+ * Supports:
+ * - Solid and outline variants
+ * - Semantic status colors
+ * - Multiple sizes
+ * - Pill and square shapes
+ * - Mask and inline SVG icons
+ * - Disabled presentation
+ */
+
 .badge {
   --badge-bg: transparent;
   --badge-color: var(--color-text);
@@ -25,11 +38,14 @@ $badge-variants: (
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.375rem;
+
+  gap: var(--space-2);
 
   min-block-size: 1.5rem;
   max-inline-size: 100%;
-  padding: 0.25rem 0.625rem;
+
+  padding-block: var(--space-1);
+  padding-inline: 0.625rem;
 
   border: 1px solid var(--badge-border);
   border-radius: var(--badge-radius);
@@ -82,12 +98,12 @@ $badge-variants: (
 }
 
 /*
- * The regular warning color is intended primarily as a surface color.
- * Use a darker foreground for an outlined badge on a light surface.
+ * Warning surfaces use a stronger dedicated text token for readable
+ * foreground treatment when the badge itself has no warning background.
  */
 
 .badge-outline-warning {
-  --badge-color: var(--color-warning-text, #92400e);
+  --badge-color: var(--color-warning-text);
 }
 
 /* ==========================================================================
@@ -96,14 +112,18 @@ $badge-variants: (
 
 .badge-sm {
   min-block-size: 1.25rem;
-  padding: 0.125rem 0.5rem;
+
+  padding-block: 0.125rem;
+  padding-inline: var(--space-2);
 
   font-size: 0.6875rem;
 }
 
 .badge-lg {
   min-block-size: 1.875rem;
-  padding: 0.375rem 0.875rem;
+
+  padding-block: 0.375rem;
+  padding-inline: 0.875rem;
 
   font-size: var(--text-sm);
 }
@@ -111,6 +131,22 @@ $badge-variants: (
 /* ==========================================================================
    Icon Support
    ========================================================================== */
+
+/*
+ * Supports both:
+ *
+ * <span class="badge has-icon icon-check">
+ *
+ * and:
+ *
+ * <span class="badge">
+ *   <span class="has-icon icon-check"></span>
+ * </span>
+ */
+
+.badge.has-icon {
+  --icon-size: 0.875em;
+}
 
 .badge .has-icon,
 .badge .svg-icon {
@@ -120,11 +156,10 @@ $badge-variants: (
 }
 
 /* ==========================================================================
-   States
+   Disabled Presentation
    ========================================================================== */
 
 .badge-disabled,
 .badge[aria-disabled="true"] {
   opacity: 0.6;
-  pointer-events: none;
 }

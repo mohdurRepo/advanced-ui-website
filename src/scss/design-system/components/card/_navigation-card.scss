@@ -20,18 +20,15 @@
 
 .navigation-card {
   /* Media */
-
   --navigation-card-media-ratio: 16 / 9;
   --navigation-card-media-width: 36%;
   --navigation-card-media-min-width: 9rem;
 
   /* Content */
-
-  --navigation-card-content-gap: #{ds.space(3)};
+  --navigation-card-content-gap: var(--space-3);
   --navigation-card-accent-size: 0.25rem;
 
   /* Motion */
-
   --navigation-card-action-translate: 0.2rem;
   --navigation-card-media-scale: 1.025;
 
@@ -46,8 +43,6 @@
 
   cursor: pointer;
   touch-action: manipulation;
-
-  -webkit-tap-highlight-color: transparent;
 
   @include ds.transition((border-color, box-shadow, transform), "fast");
 }
@@ -75,6 +70,7 @@
 
   inline-size: 100%;
   min-inline-size: 0;
+
   aspect-ratio: var(--navigation-card-media-ratio);
 
   overflow: hidden;
@@ -82,6 +78,7 @@
   border-start-start-radius: calc(
     var(--card-radius) - var(--card-border-width)
   );
+
   border-start-end-radius: calc(var(--card-radius) - var(--card-border-width));
 
   background: linear-gradient(
@@ -95,15 +92,12 @@
    Media Overlay
    ========================================================================== */
 
-/**
- * The overlay supports future labels and status content placed over media.
- */
-
 .navigation-card__media::after {
   content: "";
 
   position: absolute;
   inset: 0;
+
   z-index: 1;
 
   background: linear-gradient(180deg, transparent 58%, rgb(0 0 0 / 0.14) 100%);
@@ -143,6 +137,7 @@
   display: flex;
   flex: 1 1 auto;
   flex-direction: column;
+
   gap: var(--navigation-card-content-gap);
 
   min-inline-size: 0;
@@ -156,13 +151,14 @@
    ========================================================================== */
 
 /**
- * A restrained logical-start accent indicates hover and keyboard focus.
+ * Restrained logical-start accent used for hover and keyboard focus.
  */
 
 .navigation-card__body::before {
   content: "";
 
   position: absolute;
+
   inset-block: var(--card-padding-block);
   inset-inline-start: 0;
 
@@ -189,8 +185,8 @@
 .navigation-card__header {
   display: grid;
   align-content: start;
-  gap: #{ds.space(2)};
 
+  gap: var(--space-2);
   min-inline-size: 0;
 }
 
@@ -249,8 +245,9 @@
    ========================================================================== */
 
 /**
- * This is visual action text rather than a nested interactive element.
- * The Navigation Card itself remains the only link.
+ * Visual action text only.
+ *
+ * The Navigation Card itself remains the only interactive link.
  */
 
 .navigation-card__action {
@@ -258,13 +255,14 @@
 
   display: inline-flex;
   align-items: center;
-  gap: #{ds.space(2)};
+
+  gap: var(--space-2);
 
   inline-size: fit-content;
   max-inline-size: 100%;
 
   margin-block-start: auto;
-  padding-block-start: #{ds.space(2)};
+  padding-block-start: var(--space-2);
 
   color: var(--color-primary);
 
@@ -280,11 +278,8 @@
    ========================================================================== */
 
 /**
- * `translate` is intentionally used instead of `transform`.
- *
- * The shared `.icon-flip-rtl` utility owns the icon's transform. Using the
- * independent translate property prevents hover motion from replacing the
- * RTL scale transform.
+ * `translate` remains independent from `transform` so `.icon-flip-rtl`
+ * can continue owning the icon's transform without conflict.
  */
 
 .navigation-card__action::before {
@@ -299,15 +294,9 @@
    Horizontal Variant
    ========================================================================== */
 
-/**
- * Used by category and landing pages.
- *
- * The media occupies the logical inline start. The content receives the
- * remaining width without overflow.
- */
-
 .navigation-card--horizontal {
   display: grid;
+
   grid-template-columns:
     minmax(
       var(--navigation-card-media-min-width),
@@ -321,10 +310,13 @@
 .navigation-card--horizontal .navigation-card__media {
   inline-size: 100%;
   block-size: 100%;
+
   min-block-size: 11rem;
+
   aspect-ratio: auto;
 
   border-start-end-radius: 0;
+
   border-end-start-radius: calc(var(--card-radius) - var(--card-border-width));
 }
 
@@ -333,9 +325,10 @@
    ========================================================================== */
 
 .navigation-card--compact {
-  --card-padding-block: #{ds.space(3)};
-  --card-padding-inline: #{ds.space(3)};
-  --navigation-card-content-gap: #{ds.space(2)};
+  --card-padding-block: var(--space-3);
+  --card-padding-inline: var(--space-3);
+
+  --navigation-card-content-gap: var(--space-2);
 }
 
 .navigation-card--compact .navigation-card__title {
@@ -349,8 +342,6 @@
 .navigation-card--featured {
   --card-border-color: var(--color-primary);
   --card-shadow: var(--shadow-md);
-  --card-pattern-opacity: 0.11;
-  --card-pattern-hover-opacity: 0.18;
 }
 
 .navigation-card--featured .navigation-card__title {
@@ -362,9 +353,7 @@
    ========================================================================== */
 
 /**
- * Use when a destination does not have approved media.
- *
- * Remove the media markup instead of outputting an empty or broken image.
+ * Remove media markup entirely when a destination has no approved media.
  */
 
 .navigation-card--no-media {
@@ -381,7 +370,7 @@
    ========================================================================== */
 
 @media (hover: hover) and (pointer: fine) {
-  .navigation-card:hover {
+  .navigation-card:hover:not(.is-disabled):not([aria-disabled="true"]) {
     border-color: var(--card-hover-border-color);
 
     box-shadow: var(--card-hover-shadow);
@@ -389,25 +378,26 @@
     transform: translateY(var(--card-hover-translate));
   }
 
-  .navigation-card:hover::before {
-    opacity: var(--card-pattern-hover-opacity);
-
-    transform: scale(1.025);
-  }
-
-  .navigation-card:hover .navigation-card__image,
-  .navigation-card:hover .navigation-card__media img,
-  .navigation-card:hover .navigation-card__media video {
+  .navigation-card:hover:not(.is-disabled):not([aria-disabled="true"])
+    .navigation-card__image,
+  .navigation-card:hover:not(.is-disabled):not([aria-disabled="true"])
+    .navigation-card__media
+    img,
+  .navigation-card:hover:not(.is-disabled):not([aria-disabled="true"])
+    .navigation-card__media
+    video {
     transform: scale(var(--navigation-card-media-scale));
   }
 
-  .navigation-card:hover .navigation-card__body::before {
+  .navigation-card:hover:not(.is-disabled):not([aria-disabled="true"])
+    .navigation-card__body::before {
     opacity: 1;
 
     transform: scaleY(1);
   }
 
-  .navigation-card:hover .navigation-card__action::before {
+  .navigation-card:hover:not(.is-disabled):not([aria-disabled="true"])
+    .navigation-card__action::before {
     translate: var(--navigation-card-action-translate) 0;
   }
 }
@@ -416,20 +406,10 @@
    Focus
    ========================================================================== */
 
-.navigation-card:focus {
-  outline: none;
-}
-
 .navigation-card:focus-visible {
   border-color: var(--color-primary);
 
   @include ds.focus-ring;
-}
-
-.navigation-card:focus-visible::before {
-  opacity: var(--card-pattern-hover-opacity);
-
-  transform: scale(1.025);
 }
 
 .navigation-card:focus-visible .navigation-card__body::before {
@@ -446,20 +426,26 @@
    Active
    ========================================================================== */
 
-.navigation-card:active {
+.navigation-card:active:not(.is-disabled):not([aria-disabled="true"]) {
   box-shadow: var(--card-shadow);
 
   transform: translateY(0);
 }
 
 /* ==========================================================================
-   Disabled
+   Disabled Presentation
    ========================================================================== */
+
+/**
+ * aria-disabled on an anchor does not prevent navigation.
+ *
+ * When this state is used, JavaScript must prevent activation or the href
+ * should be removed by the consuming application.
+ */
 
 .navigation-card.is-disabled,
 .navigation-card[aria-disabled="true"] {
   cursor: not-allowed;
-  pointer-events: none;
 }
 
 /* ==========================================================================
@@ -470,6 +456,10 @@ html[dir="rtl"] .navigation-card {
   --navigation-card-action-translate: -0.2rem;
 }
 
+/*
+ * Uppercase Latin-style tracking is not appropriate for Arabic text.
+ */
+
 html[dir="rtl"] .navigation-card__eyebrow {
   letter-spacing: 0;
 }
@@ -479,8 +469,10 @@ html[dir="rtl"] .navigation-card__eyebrow {
    ========================================================================== */
 
 /**
- * Horizontal Cards become vertical when their individual container becomes
- * too narrow for a professional two-region layout.
+ * Horizontal Cards may become vertical based on an ancestor query container.
+ *
+ * This acts as progressive enhancement. The viewport breakpoint below remains
+ * the guaranteed responsive fallback.
  */
 
 @container (max-width: 31.99rem) {
@@ -492,12 +484,15 @@ html[dir="rtl"] .navigation-card__eyebrow {
   .navigation-card--horizontal .navigation-card__media {
     inline-size: 100%;
     block-size: auto;
+
     min-block-size: 0;
+
     aspect-ratio: var(--navigation-card-media-ratio);
 
     border-start-end-radius: calc(
       var(--card-radius) - var(--card-border-width)
     );
+
     border-end-start-radius: 0;
   }
 }
@@ -526,12 +521,15 @@ html[dir="rtl"] .navigation-card__eyebrow {
   .navigation-card--horizontal .navigation-card__media {
     inline-size: 100%;
     block-size: auto;
+
     min-block-size: 0;
+
     aspect-ratio: var(--navigation-card-media-ratio);
 
     border-start-end-radius: calc(
       var(--card-radius) - var(--card-border-width)
     );
+
     border-end-start-radius: 0;
   }
 
@@ -626,54 +624,45 @@ html[data-contrast="high"] .navigation-card__action {
    Reduced Motion
    ========================================================================== */
 
+/*
+ * Global motion tokens already reduce transition durations to 0ms.
+ * Movement and scaling are removed explicitly because they are non-essential.
+ */
+
 @media (prefers-reduced-motion: reduce) {
-  .navigation-card,
-  .navigation-card::before,
-  .navigation-card__image,
-  .navigation-card__media img,
-  .navigation-card__media video,
-  .navigation-card__body::before,
-  .navigation-card__action::before {
-    transition: none;
+  .navigation-card:hover,
+  .navigation-card:active {
+    transform: none;
   }
 
-  .navigation-card:hover,
-  .navigation-card:hover::before,
-  .navigation-card:focus-visible::before,
   .navigation-card:hover .navigation-card__image,
   .navigation-card:hover .navigation-card__media img,
-  .navigation-card:hover .navigation-card__media video,
+  .navigation-card:hover .navigation-card__media video {
+    transform: none;
+  }
+
   .navigation-card:hover .navigation-card__action::before,
   .navigation-card:focus-visible .navigation-card__action::before {
-    transform: none;
     translate: none;
   }
 }
 
-html[data-motion="reduce"] .navigation-card,
-html[data-motion="reduce"] .navigation-card::before,
-html[data-motion="reduce"] .navigation-card__image,
-html[data-motion="reduce"] .navigation-card__media img,
-html[data-motion="reduce"] .navigation-card__media video,
-html[data-motion="reduce"] .navigation-card__body::before,
-html[data-motion="reduce"] .navigation-card__action::before {
-  transition: none;
-}
+html[data-motion="reduce"] {
+  .navigation-card:hover,
+  .navigation-card:active {
+    transform: none;
+  }
 
-html[data-motion="reduce"] .navigation-card:hover,
-html[data-motion="reduce"] .navigation-card:hover::before,
-html[data-motion="reduce"] .navigation-card:focus-visible::before,
-html[data-motion="reduce"] .navigation-card:hover .navigation-card__image,
-html[data-motion="reduce"] .navigation-card:hover .navigation-card__media img,
-html[data-motion="reduce"] .navigation-card:hover .navigation-card__media video,
-html[data-motion="reduce"]
-  .navigation-card:hover
-  .navigation-card__action::before,
-html[data-motion="reduce"]
-  .navigation-card:focus-visible
-  .navigation-card__action::before {
-  transform: none;
-  translate: none;
+  .navigation-card:hover .navigation-card__image,
+  .navigation-card:hover .navigation-card__media img,
+  .navigation-card:hover .navigation-card__media video {
+    transform: none;
+  }
+
+  .navigation-card:hover .navigation-card__action::before,
+  .navigation-card:focus-visible .navigation-card__action::before {
+    translate: none;
+  }
 }
 
 /* ==========================================================================
@@ -684,7 +673,7 @@ html[data-motion="reduce"]
   .navigation-card {
     break-inside: avoid;
 
-    color: #000000;
+    color: #000;
 
     box-shadow: none;
     transform: none;
@@ -696,6 +685,6 @@ html[data-motion="reduce"]
   }
 
   .navigation-card__action {
-    color: #000000;
+    color: #000;
   }
 }

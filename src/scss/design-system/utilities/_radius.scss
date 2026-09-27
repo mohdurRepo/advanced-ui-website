@@ -1,7 +1,11 @@
 @use "../abstracts" as ds;
 
+/* ==========================================================================
+   Border Radius
+   ========================================================================== */
+
 @each $key, $value in ds.$radii {
   .rounded-#{$key} {
-    border-radius: $value !important;
+    border-radius: var(--radius-#{$key}) !important;
   }
 }

@@ -4,14 +4,14 @@
 
 /**
  * Creates consistent vertical spacing between direct children.
- * The child components remain responsible for their appearance.
+ * Child components remain responsible for their appearance.
  */
 
 .stack {
   display: flex;
   flex-direction: column;
 
-  gap: var(--stack-space, var(--space-6, 1.5rem));
+  gap: var(--stack-space, var(--space-6));
   min-width: 0;
 }
 
@@ -20,27 +20,27 @@
    ========================================================================== */
 
 .stack--xs {
-  --stack-space: var(--space-2, 0.5rem);
+  --stack-space: var(--space-2);
 }
 
 .stack--sm {
-  --stack-space: var(--space-3, 0.75rem);
+  --stack-space: var(--space-3);
 }
 
 .stack--md {
-  --stack-space: var(--space-4, 1rem);
+  --stack-space: var(--space-4);
 }
 
 .stack--lg {
-  --stack-space: var(--space-6, 1.5rem);
+  --stack-space: var(--space-6);
 }
 
 .stack--xl {
-  --stack-space: var(--space-8, 2rem);
+  --stack-space: var(--space-8);
 }
 
 .stack--2xl {
-  --stack-space: var(--space-12, 3rem);
+  --stack-space: var(--space-12);
 }
 
 /* ==========================================================================

@@ -6,6 +6,7 @@ $button-variants: (
   "accent",
   "success",
   "info",
+  "attention",
   "warning",
   "danger",
   "light",
@@ -16,6 +17,22 @@ $button-variants: (
    Button
    ========================================================================== */
 
+/**
+ * Reusable button primitive.
+ *
+ * Supports:
+ * - Solid, outline, and ghost variants
+ * - Semantic status variants
+ * - Multiple sizes and shapes
+ * - Icon-only buttons
+ * - Leading and trailing icons
+ * - Loading states
+ * - Directional icon movement
+ * - RTL
+ * - Disabled states
+ * - Reduced motion
+ */
+
 .btn {
   --btn-bg: transparent;
   --btn-color: var(--color-text);
@@ -25,16 +42,21 @@ $button-variants: (
   --btn-hover-color: var(--color-text);
   --btn-hover-border-color: transparent;
 
-  --btn-gap: 0.5rem;
-  --btn-icon-shift: 0.25rem;
+  --btn-gap: var(--space-2);
+  --btn-icon-shift: var(--space-1);
+
+  appearance: none;
 
   display: inline-flex;
   align-items: center;
   justify-content: center;
+
   gap: var(--btn-gap);
 
-  min-height: 2.75rem;
-  padding: 0.625rem 1.25rem;
+  min-block-size: 2.75rem;
+
+  padding-block: 0.625rem;
+  padding-inline: var(--space-5);
 
   border: 1px solid var(--btn-border-color);
   border-radius: var(--radius-sm);
@@ -45,8 +67,9 @@ $button-variants: (
   font: inherit;
   font-size: var(--text-sm);
   font-weight: ds.font-weight("semibold");
-  line-height: 1;
+  line-height: var(--line-height-tight);
 
+  text-align: center;
   text-decoration: none;
 
   cursor: pointer;
@@ -59,8 +82,13 @@ $button-variants: (
   );
 }
 
-.btn:hover:not(:disabled):not(.is-disabled) {
+/* ==========================================================================
+   Interaction
+   ========================================================================== */
+
+.btn:hover:not(:disabled):not(.is-disabled):not([aria-disabled="true"]) {
   border-color: var(--btn-hover-border-color);
+
   background: var(--btn-hover-bg);
   color: var(--btn-hover-color);
 }
@@ -69,19 +97,23 @@ $button-variants: (
   @include ds.focus-ring;
 }
 
-.btn:active:not(:disabled):not(.is-disabled) {
+.btn:active:not(:disabled):not(.is-disabled):not([aria-disabled="true"]) {
   transform: translateY(1px);
 }
+
+/* ==========================================================================
+   Disabled State
+   ========================================================================== */
 
 .btn:disabled,
 .btn.is-disabled,
 .btn[aria-disabled="true"] {
   border-color: var(--color-disabled);
+
   background: var(--color-disabled);
   color: var(--color-on-disabled);
 
   cursor: not-allowed;
-  pointer-events: none;
 }
 
 /* ==========================================================================
@@ -148,15 +180,19 @@ $button-variants: (
    ========================================================================== */
 
 .btn-sm {
-  min-height: 2.25rem;
-  padding: 0.5rem 1rem;
+  min-block-size: 2.25rem;
+
+  padding-block: var(--space-2);
+  padding-inline: var(--space-4);
 
   font-size: var(--text-xs);
 }
 
 .btn-lg {
-  min-height: 3.25rem;
-  padding: 0.75rem 1.5rem;
+  min-block-size: 3.25rem;
+
+  padding-block: var(--space-3);
+  padding-inline: var(--space-6);
 
   font-size: var(--text-base);
 }
@@ -170,6 +206,18 @@ $button-variants: (
 }
 
 /* ==========================================================================
+   Icon Position
+   ========================================================================== */
+
+/*
+ * Button-specific ownership lives here rather than in the icon primitive.
+ */
+
+.btn-icon-end {
+  flex-direction: row-reverse;
+}
+
+/* ==========================================================================
    Icon-only Button
    ========================================================================== */
 
@@ -179,7 +227,9 @@ $button-variants: (
 
   inline-size: 2.75rem;
   block-size: 2.75rem;
-  min-height: 0;
+
+  min-block-size: 0;
+
   padding: 0;
 }
 
@@ -201,9 +251,22 @@ $button-variants: (
 .btn[aria-busy="true"] {
   cursor: wait;
   opacity: 0.8;
-  pointer-events: none;
 }
 
+/*
+ * Support both icon compositions:
+ *
+ * <button class="btn has-icon btn-loading">
+ *
+ * and:
+ *
+ * <button class="btn btn-loading">
+ *   <span class="has-icon"></span>
+ * </button>
+ */
+
+.btn-loading.has-icon::before,
+.btn[aria-busy="true"].has-icon::before,
 .btn-loading .has-icon::before,
 .btn[aria-busy="true"] .has-icon::before {
   animation: icon-spin 1s linear infinite;
@@ -213,49 +276,98 @@ $button-variants: (
    Directional Icon
    ========================================================================== */
 
-.btn-arrow .has-icon,
-.btn-arrow .svg-icon {
+/*
+ * Mask icons may live directly on the button through `.has-icon`,
+ * or inside the button as their own element.
+ */
+
+.btn-arrow.has-icon::before,
+.btn-arrow .has-icon::before,
+.btn-arrow > .svg-icon {
   transition: transform var(--transition-normal);
 }
 
-.btn-arrow:hover:not(:disabled):not(.is-disabled) .has-icon,
-.btn-arrow:hover:not(:disabled):not(.is-disabled) .svg-icon {
+.btn-arrow:hover:not(:disabled):not(.is-disabled):not(
+    [aria-disabled="true"]
+  ).has-icon::before,
+.btn-arrow:hover:not(:disabled):not(.is-disabled):not([aria-disabled="true"])
+  .has-icon::before,
+.btn-arrow:hover:not(:disabled):not(.is-disabled):not([aria-disabled="true"])
+  > .svg-icon {
   transform: translateX(var(--btn-icon-shift));
 }
 
-html[dir="rtl"] .btn-arrow:hover:not(:disabled):not(.is-disabled) .has-icon,
-html[dir="rtl"] .btn-arrow:hover:not(:disabled):not(.is-disabled) .svg-icon {
-  transform: translateX(calc(0rem - var(--btn-icon-shift)));
+html[dir="rtl"]
+  .btn-arrow:hover:not(:disabled):not(.is-disabled):not(
+    [aria-disabled="true"]
+  ).has-icon::before,
+html[dir="rtl"]
+  .btn-arrow:hover:not(:disabled):not(.is-disabled):not([aria-disabled="true"])
+  .has-icon::before,
+html[dir="rtl"]
+  .btn-arrow:hover:not(:disabled):not(.is-disabled):not([aria-disabled="true"])
+  > .svg-icon {
+  transform: translateX(calc(-1 * var(--btn-icon-shift)));
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] .btn {
+  border-width: 2px;
+}
+
+/* ==========================================================================
+   Forced Colors
+   ========================================================================== */
+
+@media (forced-colors: active) {
+  .btn {
+    border-color: ButtonText;
+
+    forced-color-adjust: auto;
+  }
 }
 
 /* ==========================================================================
    Reduced Motion
    ========================================================================== */
 
+/*
+ * Transition duration is already reduced globally through --transition-*.
+ *
+ * Non-essential transforms and loading animation are explicitly disabled.
+ */
+
 @media (prefers-reduced-motion: reduce) {
-  .btn,
-  .btn-arrow .has-icon,
-  .btn-arrow .svg-icon {
-    transition: none;
+  .btn:active:not(:disabled):not(.is-disabled),
+  .btn-arrow.has-icon::before,
+  .btn-arrow .has-icon::before,
+  .btn-arrow > .svg-icon {
+    transform: none;
   }
 
-  .btn:active:not(:disabled):not(.is-disabled),
-  .btn-arrow:hover .has-icon,
-  .btn-arrow:hover .svg-icon {
-    transform: none;
+  .btn-loading.has-icon::before,
+  .btn[aria-busy="true"].has-icon::before,
+  .btn-loading .has-icon::before,
+  .btn[aria-busy="true"] .has-icon::before {
+    animation: none;
   }
 }
 
 html[data-motion="reduce"] {
-  .btn,
-  .btn-arrow .has-icon,
-  .btn-arrow .svg-icon {
-    transition: none;
+  .btn:active:not(:disabled):not(.is-disabled),
+  .btn-arrow.has-icon::before,
+  .btn-arrow .has-icon::before,
+  .btn-arrow > .svg-icon {
+    transform: none;
   }
 
-  .btn:active:not(:disabled):not(.is-disabled),
-  .btn-arrow:hover .has-icon,
-  .btn-arrow:hover .svg-icon {
-    transform: none;
+  .btn-loading.has-icon::before,
+  .btn[aria-busy="true"].has-icon::before,
+  .btn-loading .has-icon::before,
+  .btn[aria-busy="true"] .has-icon::before {
+    animation: none;
   }
 }

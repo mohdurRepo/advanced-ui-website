@@ -1,0 +1,40 @@
+/* ==========================================================================
+   Motion Group
+   ========================================================================== */
+
+/**
+ * Stagger timing for related Motion elements.
+ *
+ * JavaScript reads `--motion-stagger` / `--motion-group-delay` from here,
+ * resolves each item's final delay, and writes it inline on the item.
+ *
+ * No reduced-motion or print overrides are needed: under those conditions
+ * the reveal / text states never apply, so delays have nothing to delay.
+ */
+
+/* ==========================================================================
+   Tokens
+   ========================================================================== */
+
+[data-motion-group] {
+  --motion-stagger: 100ms;
+  --motion-group-delay: 0ms;
+}
+
+/* ==========================================================================
+   Stagger Presets
+   ========================================================================== */
+
+[data-motion-group] {
+  &[data-motion-stagger="fast"] {
+    --motion-stagger: 60ms;
+  }
+
+  &[data-motion-stagger="normal"] {
+    --motion-stagger: 100ms;
+  }
+
+  &[data-motion-stagger="slow"] {
+    --motion-stagger: 150ms;
+  }
+}

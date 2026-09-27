@@ -11,12 +11,14 @@
 
 .split-layout {
   display: grid;
+
   grid-template-columns:
     minmax(0, 1fr)
     minmax(18rem, 0.5fr);
 
   align-items: stretch;
-  gap: var(--space-8, 2rem);
+
+  gap: var(--space-8);
   min-width: 0;
 }
 
@@ -115,12 +117,12 @@
 
 @include ds.respond-down("md") {
   .split-layout {
-    gap: var(--space-6, 1.5rem);
+    gap: var(--space-6);
   }
 }
 
 @include ds.respond-down("sm") {
   .split-layout {
-    gap: var(--space-4, 1rem);
+    gap: var(--space-4);
   }
 }

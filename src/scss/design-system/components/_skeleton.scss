@@ -1,16 +1,15 @@
-@use "../abstracts" as ds;
-
 /* ==========================================================================
    Skeleton
    ========================================================================== */
 
-/*
+/**
  * Generic content-loading placeholder.
  *
- * Use while content is unavailable during the initial request.
+ * Use while content is temporarily unavailable.
  *
- * This component owns only placeholder presentation.
- * Components and pages remain responsible for dimensions and composition.
+ * This component owns placeholder presentation only.
+ * Consumers remain responsible for dimensions, composition, and accessible
+ * loading semantics.
  */
 
 /* ==========================================================================
@@ -18,17 +17,21 @@
    ========================================================================== */
 
 .skeleton {
-  --skeleton-base: rgb(0 68 227 / 0.1);
-  --skeleton-highlight: rgb(255 255 255 / 0.72);
+  --skeleton-base: var(--color-surface-alt);
+  --skeleton-highlight: var(--color-surface);
+
+  --skeleton-width: 100%;
+  --skeleton-height: 0.75rem;
+  --skeleton-radius: var(--radius-pill);
 
   display: block;
 
-  inline-size: var(--skeleton-width, 100%);
+  inline-size: var(--skeleton-width);
   max-inline-size: 100%;
 
-  block-size: var(--skeleton-height, 0.75rem);
+  block-size: var(--skeleton-height);
 
-  border-radius: var(--skeleton-radius, var(--radius-pill));
+  border-radius: var(--skeleton-radius);
 
   background: linear-gradient(
     90deg,
@@ -67,36 +70,9 @@
    ========================================================================== */
 
 .skeleton--circle {
+  --skeleton-width: var(--skeleton-size, 2.5rem);
+  --skeleton-height: var(--skeleton-size, 2.5rem);
   --skeleton-radius: 50%;
-
-  inline-size: var(--skeleton-size, 2.5rem);
-  block-size: var(--skeleton-size, 2.5rem);
-}
-
-/* ==========================================================================
-   Market Values
-   ========================================================================== */
-
-/*
- * Shared market-data placeholder sizes.
- *
- * These remain generic enough for index values, quotes, metrics,
- * tables, and mobile cards.
- */
-
-.skeleton--market-value {
-  --skeleton-width: 8rem;
-  --skeleton-height: 1.75rem;
-}
-
-.skeleton--market-change {
-  --skeleton-width: 4rem;
-  --skeleton-height: 1rem;
-}
-
-.skeleton--market-percent {
-  --skeleton-width: 3.5rem;
-  --skeleton-height: 1rem;
 }
 
 /* ==========================================================================
@@ -111,22 +87,6 @@
   to {
     background-position: -20% 0;
   }
-}
-
-/* ==========================================================================
-   Dark Surfaces
-   ========================================================================== */
-
-:where(
-    .surface-dark,
-    .surface-brand,
-    .surface-hero,
-    .surface-insights,
-    .surface-market
-  )
-  .skeleton {
-  --skeleton-base: rgb(255 255 255 / 0.14);
-  --skeleton-highlight: rgb(255 255 255 / 0.32);
 }
 
 /* ==========================================================================

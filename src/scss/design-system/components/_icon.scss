@@ -89,6 +89,13 @@ $icons: (
    Base Icon
    ========================================================================== */
 
+/**
+ * Adds a registered mask icon before inline content.
+ *
+ * The host element keeps its inherited typography. Icon dimensions and
+ * alignment are controlled independently through local custom properties.
+ */
+
 .has-icon {
   --icon-size: 1em;
   --icon-gap: var(--space-2);
@@ -97,9 +104,9 @@ $icons: (
 
   display: inline-flex;
   align-items: center;
+
   gap: var(--icon-gap);
 
-  line-height: 1;
   vertical-align: middle;
 }
 
@@ -113,8 +120,8 @@ $icons: (
 
   background-color: currentColor;
 
-  mask: var(--icon-svg) center / contain no-repeat;
   -webkit-mask: var(--icon-svg) center / contain no-repeat;
+  mask: var(--icon-svg) center / contain no-repeat;
 
   transform: scaleX(var(--icon-scale-x));
 
@@ -172,6 +179,12 @@ $icons: (
   flex-direction: row-reverse;
 }
 
+/*
+ * `.btn-icon-end` is retained temporarily for backwards compatibility.
+ * Its ownership should move to the button component when that component
+ * is cleaned.
+ */
+
 /* ==========================================================================
    Direction
    ========================================================================== */
@@ -227,6 +240,7 @@ html[dir="rtl"] .icon-flip-rtl {
   --icon-list-scale-x: 1;
 
   display: grid;
+
   gap: var(--icon-list-gap);
 
   margin: 0;
@@ -238,8 +252,8 @@ html[dir="rtl"] .icon-flip-rtl {
 .icon-list > li {
   display: flex;
   align-items: flex-start;
-  gap: var(--icon-list-item-gap);
 
+  gap: var(--icon-list-item-gap);
   min-width: 0;
 }
 
@@ -255,8 +269,8 @@ html[dir="rtl"] .icon-flip-rtl {
 
   background-color: var(--icon-list-color);
 
-  mask: var(--icon-svg) center / contain no-repeat;
   -webkit-mask: var(--icon-svg) center / contain no-repeat;
+  mask: var(--icon-svg) center / contain no-repeat;
 
   transform: scaleX(var(--icon-list-scale-x));
 }
@@ -299,6 +313,14 @@ html[dir="rtl"] .icon-flip-rtl {
   --icon-list-color: var(--color-primary);
 }
 
+.icon-list-secondary {
+  --icon-list-color: var(--color-secondary);
+}
+
+.icon-list-accent {
+  --icon-list-color: var(--color-accent);
+}
+
 .icon-list-muted {
   --icon-list-color: var(--color-text-muted);
 }
@@ -313,6 +335,10 @@ html[dir="rtl"] .icon-flip-rtl {
 
 .icon-list-info {
   --icon-list-color: var(--color-info);
+}
+
+.icon-list-attention {
+  --icon-list-color: var(--color-attention);
 }
 
 .icon-list-warning {
@@ -358,16 +384,23 @@ html[dir="rtl"] .icon-list-flip-rtl {
   block-size: 100%;
 }
 
+/* ==========================================================================
+   Saudi Riyal Symbol
+   ========================================================================== */
+
 .sar-symbol {
   --icon-size: 1em;
 
   display: inline-block;
+
   inline-size: var(--icon-size);
   block-size: var(--icon-size);
 
   overflow: hidden;
+
   vertical-align: middle;
   line-height: 1;
+
   text-indent: 100%;
   white-space: nowrap;
 }
@@ -376,19 +409,30 @@ html[dir="rtl"] .icon-list-flip-rtl {
   content: "";
 
   display: block;
+
   inline-size: 100%;
   block-size: 100%;
 
   background-color: currentColor;
-  mask: url("/assets/icons/riyal-symbol.svg") center / contain no-repeat;
+
   -webkit-mask: url("/assets/icons/riyal-symbol.svg") center / contain no-repeat;
+  mask: url("/assets/icons/riyal-symbol.svg") center / contain no-repeat;
 }
+
 /* ==========================================================================
    Colors
    ========================================================================== */
 
-.icon-accent {
+.icon-primary {
   color: var(--color-primary);
+}
+
+.icon-secondary {
+  color: var(--color-secondary);
+}
+
+.icon-accent {
+  color: var(--color-accent);
 }
 
 .icon-muted {
@@ -407,6 +451,10 @@ html[dir="rtl"] .icon-list-flip-rtl {
   color: var(--color-info);
 }
 
+.icon-attention {
+  color: var(--color-attention);
+}
+
 .icon-warning {
   color: var(--color-warning);
 }
@@ -419,14 +467,19 @@ html[dir="rtl"] .icon-list-flip-rtl {
    Reduced Motion
    ========================================================================== */
 
+/*
+ * Global motion tokens already remove transition durations.
+ *
+ * Explicit animation disabling remains necessary here because icon-spin and
+ * icon-pulse use keyframe animations rather than transition tokens.
+ */
+
 @media (prefers-reduced-motion: reduce) {
   .has-icon::before {
     animation: none;
-    transition: none;
   }
 }
 
 html[data-motion="reduce"] .has-icon::before {
   animation: none;
-  transition: none;
 }

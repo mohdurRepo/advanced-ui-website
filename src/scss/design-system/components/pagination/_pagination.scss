@@ -7,7 +7,7 @@
 /**
  * Generic navigation for paginated result sets.
  *
- * Use real links whenever each page has a URL. This preserves:
+ * Prefer real links when every page has its own URL. This preserves:
  *
  * - progressive enhancement;
  * - browser history;
@@ -15,33 +15,29 @@
  * - bookmarkable result pages;
  * - search-engine discoverability.
  *
- * Buttons should be used only when pagination is fully client-controlled.
+ * Use buttons only when pagination is fully client-controlled.
  */
 
 .pagination {
   /* Sizing */
-
-  --pagination-gap: #{ds.space(1)};
-  --pagination-layout-gap: #{ds.space(3)};
+  --pagination-gap: var(--space-1);
+  --pagination-layout-gap: var(--space-3);
 
   --pagination-control-size: 2.75rem;
-  --pagination-control-padding-block: #{ds.space(2)};
-  --pagination-control-padding-inline: #{ds.space(2)};
+  --pagination-control-padding-block: var(--space-2);
+  --pagination-control-padding-inline: var(--space-2);
 
   /* Default state */
-
   --pagination-bg: var(--color-surface);
   --pagination-color: var(--color-text);
   --pagination-border: var(--color-border);
 
   /* Hover state */
-
   --pagination-hover-bg: var(--color-surface-alt);
   --pagination-hover-color: var(--color-primary);
   --pagination-hover-border: var(--color-border-strong);
 
   /* Current page */
-
   --pagination-current-bg: var(--color-primary);
   --pagination-current-color: var(--color-on-primary);
   --pagination-current-border: var(--color-primary);
@@ -50,6 +46,7 @@
   align-items: center;
   justify-content: space-between;
   flex-wrap: wrap;
+
   gap: var(--pagination-layout-gap);
 
   inline-size: 100%;
@@ -61,7 +58,7 @@
    ========================================================================== */
 
 /**
- * Optional result-range summary:
+ * Optional result summary:
  *
  * Showing 1–20 of 266 issuers
  */
@@ -70,6 +67,7 @@
   flex: 1 1 14rem;
 
   min-inline-size: 0;
+
   margin: 0;
 
   color: var(--color-text-muted);
@@ -100,12 +98,14 @@
   align-items: center;
   justify-content: center;
   flex-wrap: wrap;
+
   gap: var(--pagination-gap);
 
   min-inline-size: 0;
 
   margin: 0;
   margin-inline-start: auto;
+
   padding: 0;
 
   list-style: none;
@@ -130,7 +130,7 @@
    ========================================================================== */
 
 /**
- * Render this item in the list for narrow screens:
+ * Optional narrow-screen status item:
  *
  * <li class="pagination__item pagination__item--status">
  *   <span class="pagination__status">
@@ -148,11 +148,11 @@
    ========================================================================== */
 
 /**
- * `.pagination__link` may be applied to:
+ * `.pagination__link` may be used on:
  *
- * - an anchor for URL-based pagination;
- * - a button for client-controlled pagination;
- * - a span representing a disabled control.
+ * - anchors for URL pagination;
+ * - buttons for client pagination;
+ * - spans for disabled navigation controls.
  */
 
 .pagination__link {
@@ -161,7 +161,8 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: #{ds.space(2)};
+
+  gap: var(--space-2);
 
   min-inline-size: var(--pagination-control-size);
   min-block-size: var(--pagination-control-size);
@@ -188,8 +189,6 @@
   cursor: pointer;
   touch-action: manipulation;
   user-select: none;
-
-  -webkit-tap-highlight-color: transparent;
 
   @include ds.transition(
     (background-color, border-color, color, box-shadow, transform),
@@ -220,12 +219,9 @@
    Focus
    ========================================================================== */
 
-.pagination__link:focus {
-  outline: none;
-}
-
 .pagination__link:focus-visible {
   position: relative;
+
   z-index: 1;
 
   @include ds.focus-ring;
@@ -246,10 +242,9 @@
    ========================================================================== */
 
 /**
- * `aria-current="page"` is the authoritative state.
+ * `aria-current="page"` is authoritative.
  *
- * `.is-current` remains available for JavaScript styling hooks but should
- * always be accompanied by the ARIA attribute.
+ * `.is-current` remains available for styling compatibility.
  */
 
 .pagination__link[aria-current="page"],
@@ -272,7 +267,7 @@
    ========================================================================== */
 
 /**
- * For URL pagination, prefer a span without an href:
+ * For URL pagination, prefer a non-link element when navigation is disabled:
  *
  * <span
  *   class="pagination__link pagination__link--previous is-disabled"
@@ -291,7 +286,6 @@
   color: var(--color-on-disabled);
 
   cursor: not-allowed;
-  pointer-events: none;
 }
 
 /* ==========================================================================
@@ -300,7 +294,7 @@
 
 .pagination__link--previous,
 .pagination__link--next {
-  padding-inline: #{ds.space(3)};
+  padding-inline: var(--space-3);
 }
 
 .pagination__link--previous.has-icon,
@@ -314,7 +308,7 @@
 
 .pagination__link--first,
 .pagination__link--last {
-  padding-inline: #{ds.space(3)};
+  padding-inline: var(--space-3);
 }
 
 .pagination__link--first.has-icon,
@@ -363,13 +357,14 @@
   display: inline-flex;
   align-items: baseline;
   justify-content: center;
+
   gap: 0.35em;
 
   min-inline-size: 0;
   min-block-size: var(--pagination-control-size);
 
   padding-block: var(--pagination-control-padding-block);
-  padding-inline: #{ds.space(2)};
+  padding-inline: var(--space-2);
 
   color: var(--color-text-muted);
 
@@ -433,15 +428,15 @@
 
 .pagination--compact {
   --pagination-control-size: 2.5rem;
-  --pagination-control-padding-block: #{ds.space(1)};
-  --pagination-control-padding-inline: #{ds.space(1)};
+  --pagination-control-padding-block: var(--space-1);
+  --pagination-control-padding-inline: var(--space-1);
 }
 
 .pagination--compact .pagination__link--previous,
 .pagination--compact .pagination__link--next,
 .pagination--compact .pagination__link--first,
 .pagination--compact .pagination__link--last {
-  padding-inline: #{ds.space(2)};
+  padding-inline: var(--space-2);
 }
 
 /* ==========================================================================
@@ -477,12 +472,16 @@
    Loading State
    ========================================================================== */
 
+/**
+ * Presentation only.
+ *
+ * If controls must be unavailable while loading, disable native buttons,
+ * render disabled non-link controls, or apply `inert` to the pagination
+ * region through application logic.
+ */
+
 .pagination[aria-busy="true"] {
   cursor: wait;
-}
-
-.pagination[aria-busy="true"] .pagination__link {
-  pointer-events: none;
 }
 
 /* ==========================================================================
@@ -492,9 +491,12 @@
 @include ds.respond-down("sm") {
   .pagination {
     display: grid;
+
     grid-template-columns: minmax(0, 1fr);
+
     justify-items: stretch;
-    gap: ds.space(2);
+
+    gap: var(--space-2);
   }
 
   .pagination__summary {
@@ -513,17 +515,25 @@
     text-align: center;
   }
 
-  /*
-   * Keep exactly Previous, current page, and Next in one stable row.
-   * This works with both the older and newer pagination HTML contracts.
+  /**
+   * Preserve one stable mobile row:
+   *
+   * Previous | Current | Next
    */
 
   .pagination__list {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+
+    grid-template-columns:
+      minmax(0, 1fr)
+      auto
+      minmax(0, 1fr);
+
     align-items: center;
 
     inline-size: 100%;
+
+    margin-inline: 0;
   }
 
   .pagination__item {
@@ -532,20 +542,26 @@
 
   .pagination__item:has(.pagination__link--previous) {
     display: inline-flex;
+
     grid-column: 1;
+
     justify-self: start;
   }
 
   .pagination__item:has(.pagination__link[aria-current="page"]),
   .pagination__item:has(.pagination__link.is-current) {
     display: inline-flex;
+
     grid-column: 2;
+
     justify-self: center;
   }
 
   .pagination__item:has(.pagination__link--next) {
     display: inline-flex;
+
     grid-column: 3;
+
     justify-self: end;
   }
 
@@ -556,7 +572,8 @@
   .pagination__link--previous,
   .pagination__link--next {
     min-inline-size: var(--pagination-control-size);
-    padding-inline: ds.space(2);
+
+    padding-inline: var(--space-2);
   }
 
   .pagination__link-text {
@@ -584,7 +601,7 @@
   }
 
   .pagination__status {
-    padding-inline: #{ds.space(1)};
+    padding-inline: var(--space-1);
 
     font-size: var(--text-xs);
   }
@@ -625,9 +642,13 @@ html[data-contrast="high"] .pagination__link:disabled {
 
     background: ButtonFace;
     color: ButtonText;
+
+    forced-color-adjust: auto;
   }
 
-  .pagination__link:hover,
+  .pagination__link:hover:not([aria-disabled="true"]):not(.is-disabled):not(
+      :disabled
+    ),
   .pagination__link:focus-visible {
     border-color: Highlight;
 
@@ -661,18 +682,16 @@ html[data-contrast="high"] .pagination__link:disabled {
    Reduced Motion
    ========================================================================== */
 
-@media (prefers-reduced-motion: reduce) {
-  .pagination__link {
-    transition: none;
-  }
+/**
+ * Transition duration is already controlled globally.
+ *
+ * Only the non-essential pressed translation requires explicit removal.
+ */
 
+@media (prefers-reduced-motion: reduce) {
   .pagination__link:active {
     transform: none;
   }
-}
-
-html[data-motion="reduce"] .pagination__link {
-  transition: none;
 }
 
 html[data-motion="reduce"] .pagination__link:active {

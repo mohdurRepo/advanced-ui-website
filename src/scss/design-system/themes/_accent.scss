@@ -8,6 +8,7 @@ html[data-accent="blue"] {
   --color-primary: #{ds.brand("blue")};
   --color-primary-hover: #0038bb;
   --color-on-primary: #{ds.brand("white")};
+
   --focus-ring: var(--color-primary);
 }
 
@@ -15,6 +16,7 @@ html[data-theme="dark"][data-accent="blue"] {
   --color-primary: #7095ff;
   --color-primary-hover: #91acff;
   --color-on-primary: #{ds.brand("navy")};
+
   --focus-ring: var(--color-primary);
 }
 
@@ -26,6 +28,7 @@ html[data-accent="navy"] {
   --color-primary: #{ds.brand("navy")};
   --color-primary-hover: #003652;
   --color-on-primary: #{ds.brand("white")};
+
   --focus-ring: var(--color-primary);
 }
 
@@ -33,6 +36,7 @@ html[data-theme="dark"][data-accent="navy"] {
   --color-primary: #{ds.brand("cool-grey")};
   --color-primary-hover: #c3ccd1;
   --color-on-primary: #{ds.brand("navy")};
+
   --focus-ring: var(--color-primary);
 }
 
@@ -49,6 +53,7 @@ html[data-accent="teal"] {
   --color-primary: #007a66;
   --color-primary-hover: #006150;
   --color-on-primary: #{ds.brand("white")};
+
   --focus-ring: var(--color-primary);
 }
 
@@ -56,5 +61,6 @@ html[data-theme="dark"][data-accent="teal"] {
   --color-primary: #{ds.brand("teal")};
   --color-primary-hover: #31d8b6;
   --color-on-primary: #{ds.brand("navy")};
+
   --focus-ring: var(--color-primary);
 }

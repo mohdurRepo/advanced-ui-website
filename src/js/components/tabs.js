@@ -13,21 +13,20 @@
 
   const SELECTORS = Object.freeze({
     root: ".tabs[data-tabs]",
-
     nav: ":scope > .tabs-nav",
-
     content: ":scope > .tabs-content",
-
     tab: ':scope > [role="tab"][data-tab-target]',
-
     panel: ':scope > [role="tabpanel"]',
   });
 
   const CLASSES = Object.freeze({
     active: "active",
-
     disabled: "is-disabled",
   });
+
+  const initializedTabs = new WeakSet();
+
+  let started = false;
 
   /* ==========================================================================
      General Helpers
@@ -45,22 +44,11 @@
     );
   }
 
-  /**
-   * Escape an element ID before using it in a selector.
-   *
-   * Kept as a shared helper for programmatic selectors and older browsers.
-   *
-   * @param {string} value
-   * @returns {string}
-   */
-  function escapeSelector(value) {
-    const normalized = String(value ?? "");
-
-    if (window.CSS?.escape) {
-      return window.CSS.escape(normalized);
-    }
-
-    return normalized.replace(/([^\w-])/g, "\\$1");
+  function prefersReducedMotion() {
+    return (
+      document.documentElement.dataset.motion === "reduce" ||
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    );
   }
 
   /* ==========================================================================
@@ -68,7 +56,7 @@
      ========================================================================== */
 
   /**
-   * Return only the tabs and panels owned directly by one tabs instance.
+   * Return only the tabs and panels directly owned by one tabs instance.
    *
    * Nested tabs are initialized independently.
    *
@@ -80,13 +68,13 @@
    *   panels: HTMLElement[]
    * } | null}
    */
+
   function getTabElements(root) {
     if (!isElement(root)) {
       return null;
     }
 
     const nav = root.querySelector(SELECTORS.nav);
-
     const content = root.querySelector(SELECTORS.content);
 
     if (!isElement(nav) || !isElement(content)) {
@@ -124,6 +112,7 @@
    * @param {HTMLElement[]} panels
    * @returns {HTMLElement | null}
    */
+
   function getTargetPanel(tab, panels) {
     const targetId = String(tab?.dataset?.tabTarget ?? "")
       .replace(/^#/, "")
@@ -133,19 +122,17 @@
       return null;
     }
 
-    return panels.find((panel) => panel.id === targetId) || null;
+    return panels.find((panel) => panel.id === targetId) ?? null;
   }
 
   /**
    * Return the stable application key associated with a tab.
    *
-   * `data-tab` is preferred because `data-tab-target` usually contains a
-   * longer DOM panel ID.
-   *
    * @param {HTMLElement} tab
    * @param {HTMLElement} panel
    * @returns {string}
    */
+
   function getTabKey(tab, panel) {
     return String(
       tab?.dataset?.tab ||
@@ -182,13 +169,26 @@
      Relationship Setup
      ========================================================================== */
 
-  function ensureRelationships(tabs, panels) {
+  function ensureRelationships(nav, tabs, panels) {
+    if (!nav.hasAttribute("role")) {
+      nav.setAttribute("role", "tablist");
+    }
+
+    if (!nav.hasAttribute("aria-orientation")) {
+      nav.setAttribute("aria-orientation", "horizontal");
+    }
+
     tabs.forEach((tab) => {
       const panel = getTargetPanel(tab, panels);
 
       if (!panel) {
         return;
       }
+
+      /*
+       * data-tab-target requires a panel ID, so the panel already has a
+       * stable identifier. Generate the tab ID from it when necessary.
+       */
 
       if (!tab.id) {
         tab.id = `${panel.id}-tab`;
@@ -211,10 +211,10 @@
       tab.classList.toggle(CLASSES.active, isActive);
 
       /*
-       * Remove legacy duplicate state classes when present.
+       * JavaScript owns one canonical state class.
        *
-       * The stylesheet may continue supporting them for backward
-       * compatibility, but JavaScript owns one canonical class.
+       * The stylesheet continues supporting `.is-active` for backward
+       * compatibility with server-rendered or legacy markup.
        */
 
       tab.classList.remove("is-active");
@@ -240,6 +240,49 @@
   }
 
   /* ==========================================================================
+     Tab Visibility
+     ========================================================================== */
+
+  /**
+   * Center a selected tab inside an overflowing horizontal tab strip.
+   *
+   * The browser handles logical inline direction, so the same implementation
+   * works correctly in both LTR and RTL.
+   *
+   * No scrolling occurs when the complete navigation already fits.
+   *
+   * @param {HTMLElement} root
+   * @param {HTMLElement} tab
+   * @param {{ smooth?: boolean }} options
+   */
+
+  function centerTabInNav(root, tab, { smooth = true } = {}) {
+    const elements = getTabElements(root);
+
+    if (!elements || !elements.tabs.includes(tab)) {
+      return;
+    }
+
+    const { nav } = elements;
+
+    /*
+     * Account for sub-pixel layout differences before deciding that the tab
+     * strip actually overflows.
+     */
+
+    if (nav.scrollWidth <= nav.clientWidth + 1) {
+      return;
+    }
+
+    tab.scrollIntoView({
+      behavior: smooth && !prefersReducedMotion() ? "smooth" : "auto",
+
+      block: "nearest",
+      inline: "center",
+    });
+  }
+
+  /* ==========================================================================
      Change Event
      ========================================================================== */
 
@@ -257,15 +300,11 @@
 
         detail: Object.freeze({
           tab,
-
           panel,
-
           previousTab,
-
           previousPanel,
 
           tabKey: getTabKey(tab, panel),
-
           targetId: panel.id,
 
           reason,
@@ -281,25 +320,32 @@
   /**
    * Activate one tab.
    *
-   * The method is intentionally idempotent:
+   * State synchronization is intentionally idempotent:
    *
-   * - state is always normalized;
-   * - selecting the active tab does not emit another tabs:change event;
-   * - consumers therefore receive one event for one actual selection change.
+   * - the complete tab/panel state is always normalized;
+   * - reselecting the active tab does not emit another change event;
+   * - user-triggered selection may still center the active tab.
    *
    * @param {HTMLElement} root
    * @param {HTMLElement} selectedTab
    * @param {{
    *   focus?: boolean,
    *   emit?: boolean,
+   *   center?: boolean,
    *   reason?: string
    * }} options
    * @returns {boolean}
    */
+
   function activateTab(
     root,
     selectedTab,
-    { focus = false, emit = true, reason = "programmatic" } = {},
+    {
+      focus = false,
+      emit = true,
+      center = false,
+      reason = "programmatic",
+    } = {},
   ) {
     const elements = getTabElements(root);
 
@@ -323,30 +369,43 @@
       previousTab !== selectedTab || previousPanel !== selectedPanel;
 
     /*
-     * Always synchronize the complete state. This also repairs incomplete
-     * server-rendered markup without producing a duplicate activation event.
+     * Always synchronize the complete state.
+     *
+     * This also repairs incomplete server-rendered markup without generating
+     * duplicate tabs:change events.
      */
 
     updateTabState(tabs, selectedTab);
 
     updatePanelState(panels, selectedPanel);
 
+    /*
+     * Focus first.
+     *
+     * Browsers may automatically reveal a newly focused tab near an edge.
+     * The next animation frame then performs our deliberate centered
+     * positioning.
+     */
+
     if (focus) {
-      selectedTab.focus();
+      selectedTab.focus({
+        preventScroll: true,
+      });
+    }
+
+    if (center) {
+      window.requestAnimationFrame(() => {
+        centerTabInNav(root, selectedTab);
+      });
     }
 
     if (emit && selectionChanged) {
       dispatchTabChange({
         root,
-
         tab: selectedTab,
-
         panel: selectedPanel,
-
         previousTab,
-
         previousPanel,
-
         reason,
       });
     }
@@ -361,21 +420,18 @@
   /**
    * Initialize one tabs instance from its server-rendered state.
    *
-   * The tab marked with either:
+   * `.active` or `aria-selected="true"` is respected. Otherwise the first
+   * enabled tab becomes active.
    *
-   * - .active
-   * - aria-selected="true"
-   *
-   * is respected. Otherwise, the first enabled tab is selected.
-   *
-   * Initialization does not emit tabs:change. Page modules must initialize
-   * their active feature from the current ARIA/markup state once.
+   * Initialization deliberately does not center the selected tab. The page
+   * should not unexpectedly scroll before the user interacts.
    *
    * @param {HTMLElement} root
    * @returns {boolean}
    */
+
   function initializeTabs(root) {
-    if (!isElement(root) || root.dataset.tabsInitialized === "true") {
+    if (!isElement(root) || initializedTabs.has(root)) {
       return false;
     }
 
@@ -385,9 +441,9 @@
       return false;
     }
 
-    const { tabs, panels } = elements;
+    const { nav, tabs, panels } = elements;
 
-    ensureRelationships(tabs, panels);
+    ensureRelationships(nav, tabs, panels);
 
     const initialTab =
       tabs.find(
@@ -402,29 +458,39 @@
     }
 
     /*
-     * Mark the instance before synchronizing it so dynamic DOM observers
-     * cannot initialize the same root twice.
+     * Mark before synchronizing so MutationObserver-driven initialization
+     * cannot process this root twice.
      */
+
+    initializedTabs.add(root);
 
     root.dataset.tabsInitialized = "true";
 
     activateTab(root, initialTab, {
       emit: false,
-
+      center: false,
       reason: "initialization",
     });
 
     return true;
   }
 
-  function initializeAllTabs(root = document) {
-    if (!root || typeof root.querySelectorAll !== "function") {
+  function initializeAllTabs(scope = document) {
+    if (!scope) {
       return;
     }
 
-    root
-      .querySelectorAll(SELECTORS.root)
-      .forEach((tabsRoot) => initializeTabs(tabsRoot));
+    if (isElement(scope) && scope.matches(SELECTORS.root)) {
+      initializeTabs(scope);
+    }
+
+    if (typeof scope.querySelectorAll !== "function") {
+      return;
+    }
+
+    scope.querySelectorAll(SELECTORS.root).forEach((root) => {
+      initializeTabs(root);
+    });
   }
 
   /* ==========================================================================
@@ -432,11 +498,12 @@
      ========================================================================== */
 
   /**
-   * Return the tabs instance directly owning a tab.
+   * Return the tabs instance directly owning one tab.
    *
    * @param {HTMLElement} tab
    * @returns {HTMLElement | null}
    */
+
   function getOwningRoot(tab) {
     if (!isElement(tab)) {
       return null;
@@ -478,9 +545,15 @@
       return;
     }
 
+    if (isTabDisabled(tab)) {
+      event.preventDefault();
+      return;
+    }
+
     event.preventDefault();
 
     activateTab(root, tab, {
+      center: true,
       reason: "click",
     });
   }
@@ -514,6 +587,10 @@
 
     const enabledTabs = elements.tabs.filter((tab) => !isTabDisabled(tab));
 
+    if (!enabledTabs.length) {
+      return;
+    }
+
     const currentIndex = enabledTabs.indexOf(currentTab);
 
     if (currentIndex === -1) {
@@ -546,6 +623,7 @@
         event.preventDefault();
 
         activateTab(root, currentTab, {
+          center: true,
           reason: "keyboard",
         });
 
@@ -561,7 +639,7 @@
 
     activateTab(root, enabledTabs[nextIndex], {
       focus: true,
-
+      center: true,
       reason: "keyboard",
     });
   }
@@ -575,13 +653,7 @@
       return;
     }
 
-    if (node.matches(SELECTORS.root)) {
-      initializeTabs(node);
-    }
-
-    node
-      .querySelectorAll?.(SELECTORS.root)
-      .forEach((root) => initializeTabs(root));
+    initializeAllTabs(node);
   }
 
   const observer = new MutationObserver((mutations) => {
@@ -593,8 +665,6 @@
   /* ==========================================================================
      Startup
      ========================================================================== */
-
-  let started = false;
 
   function startTabs() {
     if (started) {
@@ -608,7 +678,6 @@
     if (document.body) {
       observer.observe(document.body, {
         childList: true,
-
         subtree: true,
       });
     }
@@ -625,11 +694,4 @@
   } else {
     startTabs();
   }
-
-  /*
-   * Keep the selector helper referenced so builds configured with aggressive
-   * dead-code checks do not report it as an accidental unused utility.
-   */
-
-  void escapeSelector;
 })();

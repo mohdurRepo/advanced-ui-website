@@ -12,7 +12,7 @@
   flex-wrap: wrap;
   align-items: center;
 
-  gap: var(--cluster-space, var(--space-3, 0.75rem));
+  gap: var(--cluster-space, var(--space-3));
   min-width: 0;
 }
 
@@ -21,23 +21,23 @@
    ========================================================================== */
 
 .cluster--xs {
-  --cluster-space: var(--space-1, 0.25rem);
+  --cluster-space: var(--space-1);
 }
 
 .cluster--sm {
-  --cluster-space: var(--space-2, 0.5rem);
+  --cluster-space: var(--space-2);
 }
 
 .cluster--md {
-  --cluster-space: var(--space-3, 0.75rem);
+  --cluster-space: var(--space-3);
 }
 
 .cluster--lg {
-  --cluster-space: var(--space-4, 1rem);
+  --cluster-space: var(--space-4);
 }
 
 .cluster--xl {
-  --cluster-space: var(--space-6, 1.5rem);
+  --cluster-space: var(--space-6);
 }
 
 /* ==========================================================================

@@ -1,16 +1,25 @@
+/* ==========================================================================
+   Utilities
+   ========================================================================== */
+
+/* Spacing and layout */
 @forward "spacing";
 @forward "display";
 @forward "flex";
 @forward "text";
 @forward "sizing";
 
+/* Visual */
 @forward "radius";
 @forward "shadow";
 @forward "border";
 @forward "background";
 
+/* Positioning and behavior */
 @forward "position";
 @forward "overflow";
 @forward "visibility";
 @forward "scrollbar";
+
+/* Contextual surfaces */
 @forward "surface";

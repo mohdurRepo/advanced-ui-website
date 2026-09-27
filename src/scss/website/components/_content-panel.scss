@@ -1,0 +1,171 @@
+@use "../../design-system/abstracts" as ds;
+
+/* ==========================================================================
+   Content Panel
+   ========================================================================== */
+
+/**
+ * Generic website content container.
+ *
+ * Provides a reusable visual shell for:
+ *
+ * - dashboards
+ * - data regions
+ * - grouped tools
+ * - reports
+ * - information blocks
+ * - compound website sections
+ *
+ * The component owns visual containment only.
+ * Child components remain responsible for their own internal composition.
+ */
+
+.content-panel {
+  --content-panel-bg: var(--color-surface-alt);
+  --content-panel-color: var(--color-text);
+
+  --content-panel-border: var(--color-border);
+  --content-panel-radius: var(--radius-2xl);
+
+  --content-panel-padding: clamp(#{ds.space(4)}, 2vw, #{ds.space(6)});
+  --content-panel-gap: clamp(#{ds.space(3)}, 1.5vw, #{ds.space(5)});
+
+  --content-panel-shadow: none;
+
+  position: relative;
+
+  display: grid;
+  gap: var(--content-panel-gap);
+
+  min-inline-size: 0;
+  min-block-size: 0;
+
+  padding: var(--content-panel-padding);
+
+  overflow: hidden;
+
+  border: 1px solid var(--content-panel-border);
+  border-radius: var(--content-panel-radius);
+
+  background: var(--content-panel-bg);
+  color: var(--content-panel-color);
+
+  box-shadow: var(--content-panel-shadow);
+}
+
+/* ==========================================================================
+   Surface Variants
+   ========================================================================== */
+
+.content-panel--surface {
+  --content-panel-bg: var(--color-surface);
+}
+
+.content-panel--alt {
+  --content-panel-bg: var(--color-surface-alt);
+}
+
+/* ==========================================================================
+   Elevation
+   ========================================================================== */
+
+.content-panel--elevated {
+  --content-panel-shadow: var(--shadow-md);
+}
+
+/* ==========================================================================
+   Spacing
+   ========================================================================== */
+
+.content-panel--compact {
+  --content-panel-padding: #{ds.space(4)};
+  --content-panel-gap: #{ds.space(3)};
+}
+
+.content-panel--spacious {
+  --content-panel-padding: clamp(#{ds.space(5)}, 2.5vw, #{ds.space(8)});
+  --content-panel-gap: clamp(#{ds.space(4)}, 2vw, #{ds.space(6)});
+}
+
+/* ==========================================================================
+   Child Safety
+   ========================================================================== */
+
+.content-panel > * {
+  min-inline-size: 0;
+  min-block-size: 0;
+}
+
+/* ==========================================================================
+   Tablet
+   ========================================================================== */
+
+@include ds.respond-down("md") {
+  .content-panel {
+    --content-panel-padding: #{ds.space(4)};
+    --content-panel-gap: #{ds.space(4)};
+  }
+}
+
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+
+@include ds.respond-down("sm") {
+  .content-panel {
+    --content-panel-padding: #{ds.space(3)};
+    --content-panel-gap: #{ds.space(3)};
+
+    --content-panel-radius: var(--radius-xl);
+  }
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] .content-panel {
+  border-width: 2px;
+  border-color: currentColor;
+
+  background: var(--color-bg);
+
+  box-shadow: none;
+}
+
+/* ==========================================================================
+   Forced Colors
+   ========================================================================== */
+
+@media (forced-colors: active) {
+  .content-panel {
+    border-color: CanvasText;
+
+    background: Canvas;
+    color: CanvasText;
+
+    box-shadow: none;
+
+    forced-color-adjust: auto;
+  }
+}
+
+/* ==========================================================================
+   Print
+   ========================================================================== */
+
+@media print {
+  .content-panel {
+    padding: 0;
+
+    overflow: visible;
+
+    border: 0;
+    border-radius: 0;
+
+    background: transparent;
+    color: #000000;
+
+    box-shadow: none;
+  }
+}

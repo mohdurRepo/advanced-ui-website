@@ -1,0 +1,959 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Motion primitives of the Abu Faisal Design System: reveal, stagger, text and placeholder animation."
+    />
+
+    <title>Motion | Abu Faisal Design System</title>
+
+    <!--
+      Runs before first paint:
+      1. applies saved settings (language, theme, motion…);
+      2. enables Motion so content starts hidden (no flash on load);
+      3. arms a safety timer that shows everything if JavaScript never loads.
+    -->
+    <script>
+      (function () {
+        var root = document.documentElement;
+
+        var lang = localStorage.getItem("se-lang") || "en";
+        var themeChoice = localStorage.getItem("se-theme") || "system";
+        var accent = localStorage.getItem("se-accent") || "blue";
+        var fontSize = localStorage.getItem("se-font-size") || "0";
+        var contrast = localStorage.getItem("se-contrast") || "normal";
+        var motion = localStorage.getItem("se-motion") || "normal";
+
+        var systemTheme =
+          window.matchMedia &&
+          window.matchMedia("(prefers-color-scheme: dark)").matches
+            ? "dark"
+            : "light";
+
+        root.lang = lang === "ar" ? "ar" : "en";
+        root.dir = lang === "ar" ? "rtl" : "ltr";
+
+        root.setAttribute(
+          "data-theme",
+          themeChoice === "system" ? systemTheme : themeChoice,
+        );
+        root.setAttribute("data-theme-choice", themeChoice);
+        root.setAttribute("data-accent", accent);
+        root.setAttribute("data-font-size", fontSize);
+        root.setAttribute("data-contrast", contrast);
+        root.setAttribute("data-motion", motion);
+
+        root.classList.add("motion-ready");
+
+        window.__motionFallback = window.setTimeout(function () {
+          window.__motionFallbackFired = true;
+          root.classList.remove("motion-ready");
+        }, 3000);
+      })();
+    </script>
+
+    <link rel="stylesheet" href="/src/scss/main.scss" />
+    <script type="module" src="/src/js/main.js"></script>
+  </head>
+
+  <body>
+    <main>
+      <!-- ================================================================
+           Hero — the page's one orchestrated moment
+           ================================================================ -->
+
+      <section class="section">
+        <div class="container">
+          <div class="content-layout" data-motion-group>
+            <span
+              class="badge badge-primary mb-4"
+              data-motion="reveal"
+              data-motion-from="fade"
+            >
+              Motion System
+            </span>
+
+            <h1 data-motion="reveal" data-motion-from="bottom">
+              Professional motion without compromising performance.
+            </h1>
+
+            <p
+              class="text-muted mt-4"
+              data-motion="reveal"
+              data-motion-from="bottom"
+            >
+              Reveal, stagger, text and placeholder animation. No inline styles,
+              no scroll listeners, and full reduced-motion support.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================================================================
+           Reveal — Directions
+           ================================================================ -->
+
+      <section class="section">
+        <div class="container">
+          <header
+            class="section-heading"
+            data-motion="reveal"
+            data-motion-from="bottom"
+          >
+            <div>
+              <span class="section-heading__eyebrow">Reveal</span>
+              <h2 class="section-heading__title">Direction presets</h2>
+            </div>
+          </header>
+
+          <div class="grid mt-8" data-motion-group data-motion-stagger="slow">
+            <article class="card" data-motion="reveal" data-motion-from="fade">
+              <div class="card-body">
+                <h3>Fade</h3>
+                <p class="text-muted mt-2">Opacity only, no movement.</p>
+                <code class="mt-4">data-motion-from="fade"</code>
+              </div>
+            </article>
+
+            <article
+              class="card"
+              data-motion="reveal"
+              data-motion-from="bottom"
+            >
+              <div class="card-body">
+                <h3>From bottom</h3>
+                <p class="text-muted mt-2">Rises into place.</p>
+                <code class="mt-4">data-motion-from="bottom"</code>
+              </div>
+            </article>
+
+            <article class="card" data-motion="reveal" data-motion-from="top">
+              <div class="card-body">
+                <h3>From top</h3>
+                <p class="text-muted mt-2">Settles down into place.</p>
+                <code class="mt-4">data-motion-from="top"</code>
+              </div>
+            </article>
+
+            <article class="card" data-motion="reveal" data-motion-from="start">
+              <div class="card-body">
+                <h3>From start</h3>
+                <p class="text-muted mt-2">
+                  From the reading start: left in LTR, right in RTL.
+                </p>
+                <code class="mt-4">data-motion-from="start"</code>
+              </div>
+            </article>
+
+            <article class="card" data-motion="reveal" data-motion-from="end">
+              <div class="card-body">
+                <h3>From end</h3>
+                <p class="text-muted mt-2">
+                  From the reading end: right in LTR, left in RTL.
+                </p>
+                <code class="mt-4">data-motion-from="end"</code>
+              </div>
+            </article>
+
+            <article class="card" data-motion="reveal" data-motion-from="scale">
+              <div class="card-body">
+                <h3>Scale</h3>
+                <p class="text-muted mt-2">Grows slightly while fading in.</p>
+                <code class="mt-4">data-motion-from="scale"</code>
+              </div>
+            </article>
+
+            <article class="card" data-motion="reveal" data-motion-from="blur">
+              <div class="card-body">
+                <h3>Blur</h3>
+                <p class="text-muted mt-2">
+                  Comes into focus. Reserve for one key element per page.
+                </p>
+                <code class="mt-4">data-motion-from="blur"</code>
+              </div>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================================================================
+           Reveal — Distance and Speed
+           ================================================================ -->
+
+      <section class="section">
+        <div class="container">
+          <header
+            class="section-heading"
+            data-motion="reveal"
+            data-motion-from="bottom"
+          >
+            <div>
+              <span class="section-heading__eyebrow">Reveal</span>
+              <h2 class="section-heading__title">Distance and speed</h2>
+            </div>
+          </header>
+
+          <!-- Distance: staggered so each travel length is easy to compare -->
+
+          <div class="grid mt-8" data-motion-group>
+            <article
+              class="card"
+              data-motion="reveal"
+              data-motion-from="bottom"
+              data-motion-distance="sm"
+            >
+              <div class="card-body">
+                <h3>Small distance</h3>
+                <p class="text-muted mt-2">0.75rem</p>
+                <code class="mt-4">data-motion-distance="sm"</code>
+              </div>
+            </article>
+
+            <article
+              class="card"
+              data-motion="reveal"
+              data-motion-from="bottom"
+              data-motion-distance="md"
+            >
+              <div class="card-body">
+                <h3>Medium distance</h3>
+                <p class="text-muted mt-2">1.5rem · default</p>
+                <code class="mt-4">data-motion-distance="md"</code>
+              </div>
+            </article>
+
+            <article
+              class="card"
+              data-motion="reveal"
+              data-motion-from="bottom"
+              data-motion-distance="lg"
+            >
+              <div class="card-body">
+                <h3>Large distance</h3>
+                <p class="text-muted mt-2">2.5rem</p>
+                <code class="mt-4">data-motion-distance="lg"</code>
+              </div>
+            </article>
+          </div>
+
+          <!-- Speed: no group, so all three start together and finish apart -->
+
+          <div class="grid mt-6">
+            <article
+              class="card"
+              data-motion="reveal"
+              data-motion-from="bottom"
+              data-motion-speed="fast"
+            >
+              <div class="card-body">
+                <h3>Fast</h3>
+                <p class="text-muted mt-2">500ms</p>
+                <code class="mt-4">data-motion-speed="fast"</code>
+              </div>
+            </article>
+
+            <article
+              class="card"
+              data-motion="reveal"
+              data-motion-from="bottom"
+              data-motion-speed="normal"
+            >
+              <div class="card-body">
+                <h3>Normal</h3>
+                <p class="text-muted mt-2">800ms · default</p>
+                <code class="mt-4">data-motion-speed="normal"</code>
+              </div>
+            </article>
+
+            <article
+              class="card"
+              data-motion="reveal"
+              data-motion-from="bottom"
+              data-motion-speed="slow"
+            >
+              <div class="card-body">
+                <h3>Slow</h3>
+                <p class="text-muted mt-2">1100ms</p>
+                <code class="mt-4">data-motion-speed="slow"</code>
+              </div>
+            </article>
+          </div>
+
+          <!-- Custom values -->
+
+          <div class="grid mt-6">
+            <article
+              class="card"
+              data-motion="reveal"
+              data-motion-from="bottom"
+              data-motion-duration="400"
+            >
+              <div class="card-body">
+                <h3>Custom duration</h3>
+                <p class="text-muted mt-2">Any value in milliseconds.</p>
+                <code class="mt-4">data-motion-duration="400"</code>
+              </div>
+            </article>
+
+            <article
+              class="card"
+              data-motion="reveal"
+              data-motion-from="bottom"
+              data-motion-delay="300"
+            >
+              <div class="card-body">
+                <h3>Custom delay</h3>
+                <p class="text-muted mt-2">Waits before starting.</p>
+                <code class="mt-4">data-motion-delay="300"</code>
+              </div>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================================================================
+           Groups
+           ================================================================ -->
+
+      <section class="section">
+        <div class="container">
+          <header
+            class="section-heading"
+            data-motion="reveal"
+            data-motion-from="bottom"
+          >
+            <div>
+              <span class="section-heading__eyebrow">Groups</span>
+              <h2 class="section-heading__title">Automatic stagger</h2>
+            </div>
+          </header>
+
+          <div class="grid mt-8" data-motion-group data-motion-stagger="fast">
+            <article class="card" data-motion="reveal" data-motion-from="end">
+              <div class="card-body">
+                <h3>Fast</h3>
+                <p class="text-muted mt-2">60ms between items.</p>
+              </div>
+            </article>
+
+            <article class="card" data-motion="reveal" data-motion-from="end">
+              <div class="card-body">
+                <h3>Fast</h3>
+                <p class="text-muted mt-2">For dense lists and tables.</p>
+              </div>
+            </article>
+
+            <article class="card" data-motion="reveal" data-motion-from="end">
+              <div class="card-body">
+                <h3>Fast</h3>
+                <code class="mt-2">data-motion-stagger="fast"</code>
+              </div>
+            </article>
+          </div>
+
+          <div class="grid mt-6" data-motion-group>
+            <article class="card" data-motion="reveal" data-motion-from="end">
+              <div class="card-body">
+                <h3>Normal</h3>
+                <p class="text-muted mt-2">100ms between items.</p>
+              </div>
+            </article>
+
+            <article class="card" data-motion="reveal" data-motion-from="end">
+              <div class="card-body">
+                <h3>Normal</h3>
+                <p class="text-muted mt-2">The default for card grids.</p>
+              </div>
+            </article>
+
+            <article class="card" data-motion="reveal" data-motion-from="end">
+              <div class="card-body">
+                <h3>Normal</h3>
+                <code class="mt-2">data-motion-group</code>
+              </div>
+            </article>
+          </div>
+
+          <div class="grid mt-6" data-motion-group data-motion-stagger="slow">
+            <article class="card" data-motion="reveal" data-motion-from="end">
+              <div class="card-body">
+                <h3>Slow</h3>
+                <p class="text-muted mt-2">150ms between items.</p>
+              </div>
+            </article>
+
+            <article class="card" data-motion="reveal" data-motion-from="end">
+              <div class="card-body">
+                <h3>Slow</h3>
+                <p class="text-muted mt-2">For a few large, key items.</p>
+              </div>
+            </article>
+
+            <article class="card" data-motion="reveal" data-motion-from="end">
+              <div class="card-body">
+                <h3>Slow</h3>
+                <code class="mt-2">data-motion-stagger="slow"</code>
+              </div>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================================================================
+           Text
+           ================================================================ -->
+
+      <section class="section">
+        <div class="container">
+          <header
+            class="section-heading"
+            data-motion="reveal"
+            data-motion-from="bottom"
+          >
+            <div>
+              <span class="section-heading__eyebrow">Text</span>
+              <h2 class="section-heading__title">
+                Typing, words and characters
+              </h2>
+            </div>
+          </header>
+
+          <div class="mt-8">
+            <h3 data-motion="type">
+              Market intelligence built for confident decisions.
+            </h3>
+            <code class="mt-2">data-motion="type"</code>
+          </div>
+
+          <div class="mt-8">
+            <p data-motion="type" data-motion-speed="fast">
+              Typing pauses naturally after commas, and after full stops.
+            </p>
+            <code class="mt-2"
+              >data-motion="type" data-motion-speed="fast"</code
+            >
+          </div>
+
+          <div class="mt-8">
+            <h3 data-motion="words">
+              Discover markets, opportunities and insights with clarity.
+            </h3>
+            <code class="mt-2">data-motion="words"</code>
+          </div>
+
+          <div class="mt-8">
+            <h3 data-motion="chars" data-motion-text-stagger="fast">
+              Invest with insight.
+            </h3>
+            <code class="mt-2">data-motion="chars"</code>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================================================================
+           Arabic / RTL
+           ================================================================ -->
+
+      <section class="section" lang="ar" dir="rtl">
+        <div class="container">
+          <header
+            class="section-heading"
+            data-motion="reveal"
+            data-motion-from="bottom"
+          >
+            <div>
+              <span class="section-heading__eyebrow">العربية</span>
+              <h2 class="section-heading__title">النصوص من اليمين لليسار</h2>
+            </div>
+          </header>
+
+          <div class="mt-8">
+            <h3 data-motion="words">
+              اكتشف الأسواق والفرص الاستثمارية بوضوح وثقة
+            </h3>
+          </div>
+
+          <div class="mt-8">
+            <!-- "chars" on Arabic animates by word so letters stay joined -->
+            <p data-motion="chars">استثمر بثقة</p>
+          </div>
+
+          <div class="mt-8">
+            <p data-motion="type">
+              بيانات السوق تساعدك على اتخاذ قرارات أكثر وضوحاً.
+            </p>
+          </div>
+
+          <div class="grid mt-8" data-motion-group>
+            <article class="card" data-motion="reveal" data-motion-from="start">
+              <div class="card-body">
+                <h3>من البداية</h3>
+                <p class="text-muted mt-2">يدخل من اليمين.</p>
+              </div>
+            </article>
+
+            <article class="card" data-motion="reveal" data-motion-from="end">
+              <div class="card-body">
+                <h3>من النهاية</h3>
+                <p class="text-muted mt-2">يدخل من اليسار.</p>
+              </div>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================================================================
+           Forms — Placeholder Typing
+           Inputs sit inside revealed cards, so each one waits
+           (data-motion-delay) until its card has landed.
+           ================================================================ -->
+
+      <section class="section">
+        <div class="container">
+          <header
+            class="section-heading"
+            data-motion="reveal"
+            data-motion-from="bottom"
+          >
+            <div>
+              <span class="section-heading__eyebrow">Forms</span>
+              <h2 class="section-heading__title">Placeholder typing</h2>
+            </div>
+          </header>
+
+          <div class="grid mt-8" data-motion-group>
+            <!-- Loop -->
+
+            <article
+              class="card"
+              data-motion="reveal"
+              data-motion-from="bottom"
+            >
+              <div class="card-body">
+                <h3>Loop</h3>
+                <p class="text-muted mt-2">
+                  Cycles forever. Pauses off screen, in a hidden tab, and while
+                  the field is focused.
+                </p>
+
+                <form class="form mt-6" role="search" onsubmit="return false;">
+                  <div class="form-group">
+                    <label class="form-label" for="motion-search">
+                      Search markets
+                    </label>
+
+                    <div class="form-field form-field-icon-start">
+                      <svg
+                        class="form-field-icon"
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        aria-hidden="true"
+                        focusable="false"
+                      >
+                        <circle cx="11" cy="11" r="7" />
+                        <path d="m20 20-3.5-3.5" />
+                      </svg>
+
+                      <input
+                        id="motion-search"
+                        class="form-control"
+                        type="search"
+                        name="q"
+                        autocomplete="off"
+                        placeholder="Search markets…"
+                        data-motion="placeholder"
+                        data-motion-placeholders="Search stocks…|Search sectors…|Search market news…"
+                        data-motion-loop
+                        data-motion-delay="700"
+                      />
+                    </div>
+                  </div>
+                </form>
+
+                <code class="mt-4">data-motion-loop</code>
+              </div>
+            </article>
+
+            <!-- Once -->
+
+            <article
+              class="card"
+              data-motion="reveal"
+              data-motion-from="bottom"
+            >
+              <div class="card-body">
+                <h3>Once</h3>
+                <p class="text-muted mt-2">
+                  Types each phrase once and stays on the last. Focus finishes
+                  it immediately.
+                </p>
+
+                <form class="form mt-6" onsubmit="return false;">
+                  <div class="form-group">
+                    <label class="form-label" for="motion-email">
+                      Email address
+                    </label>
+
+                    <div class="input-group">
+                      <input
+                        id="motion-email"
+                        class="form-control"
+                        type="email"
+                        name="email"
+                        autocomplete="email"
+                        placeholder="you@company.com"
+                        data-motion="placeholder"
+                        data-motion-placeholders="name@company.com|you@company.com"
+                        data-motion-delay="700"
+                      />
+
+                      <button class="input-group-action" type="submit">
+                        Subscribe
+                      </button>
+                    </div>
+                  </div>
+                </form>
+
+                <code class="mt-4">data-motion="placeholder"</code>
+              </div>
+            </article>
+
+            <!-- Textarea -->
+
+            <article
+              class="card"
+              data-motion="reveal"
+              data-motion-from="bottom"
+            >
+              <div class="card-body">
+                <h3>Textarea</h3>
+                <p class="text-muted mt-2">
+                  Slower typing and a longer hold for longer prompts.
+                </p>
+
+                <form class="form mt-6" onsubmit="return false;">
+                  <div class="form-group">
+                    <label class="form-label" for="motion-request">
+                      Research request
+                    </label>
+
+                    <textarea
+                      id="motion-request"
+                      class="form-control"
+                      name="request"
+                      rows="3"
+                      placeholder="Describe what you are looking for…"
+                      data-motion="placeholder"
+                      data-motion-placeholders="Compare two sectors over five years…|Summarize today's market movers…|Describe what you are looking for…"
+                      data-motion-loop
+                      data-motion-speed="slow"
+                      data-motion-hold="2600"
+                      data-motion-delay="700"
+                    ></textarea>
+                  </div>
+                </form>
+
+                <code class="mt-4">data-motion-speed="slow"</code>
+              </div>
+            </article>
+
+            <!-- Arabic -->
+
+            <article
+              class="card"
+              lang="ar"
+              dir="rtl"
+              data-motion="reveal"
+              data-motion-from="bottom"
+            >
+              <div class="card-body">
+                <h3>عربي</h3>
+                <p class="text-muted mt-2">الحروف تبقى متصلة أثناء الكتابة.</p>
+
+                <form class="form mt-6" role="search" onsubmit="return false;">
+                  <div class="form-group">
+                    <label class="form-label" for="motion-search-ar">
+                      ابحث في الأسواق
+                    </label>
+
+                    <div class="form-field form-field-icon-start">
+                      <svg
+                        class="form-field-icon"
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        aria-hidden="true"
+                        focusable="false"
+                      >
+                        <circle cx="11" cy="11" r="7" />
+                        <path d="m20 20-3.5-3.5" />
+                      </svg>
+
+                      <input
+                        id="motion-search-ar"
+                        class="form-control"
+                        type="search"
+                        name="q-ar"
+                        autocomplete="off"
+                        placeholder="ابحث في الأسواق…"
+                        data-motion="placeholder"
+                        data-motion-placeholders="ابحث عن الأسهم…|ابحث عن القطاعات…|ابحث في أخبار السوق…"
+                        data-motion-loop
+                        data-motion-delay="700"
+                      />
+                    </div>
+                  </div>
+                </form>
+              </div>
+            </article>
+
+            <!-- Skipped -->
+
+            <article
+              class="card"
+              data-motion="reveal"
+              data-motion-from="bottom"
+            >
+              <div class="card-body">
+                <h3>Skipped automatically</h3>
+                <p class="text-muted mt-2">
+                  Floating labels and disabled fields keep a static placeholder,
+                  even with the attribute set.
+                </p>
+
+                <form class="form mt-6" onsubmit="return false;">
+                  <div class="form-floating">
+                    <input
+                      id="motion-floating"
+                      class="form-control"
+                      type="text"
+                      placeholder="Company name"
+                      data-motion="placeholder"
+                      data-motion-placeholders="Acme Holdings|Gulf Trading Co."
+                      data-motion-loop
+                    />
+
+                    <label for="motion-floating">Company</label>
+                  </div>
+
+                  <div class="form-group">
+                    <label class="form-label" for="motion-disabled">
+                      Account ID
+                    </label>
+
+                    <input
+                      id="motion-disabled"
+                      class="form-control"
+                      type="text"
+                      placeholder="Assigned after approval"
+                      disabled
+                      data-motion="placeholder"
+                      data-motion-loop
+                    />
+                  </div>
+                </form>
+              </div>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================================================================
+           Triggers — Once, Repeat, Threshold
+           ================================================================ -->
+
+      <section class="section">
+        <div class="container">
+          <header
+            class="section-heading"
+            data-motion="reveal"
+            data-motion-from="bottom"
+          >
+            <div>
+              <span class="section-heading__eyebrow">Triggers</span>
+              <h2 class="section-heading__title">When motion plays</h2>
+            </div>
+          </header>
+
+          <div class="grid mt-8">
+            <article class="card" data-motion="reveal" data-motion-from="start">
+              <div class="card-body">
+                <h3>Once</h3>
+                <p class="text-muted mt-2">
+                  The default. Plays on first entry, then stays.
+                </p>
+                <code class="mt-4">data-motion="reveal"</code>
+              </div>
+            </article>
+
+            <article
+              class="card"
+              data-motion="reveal"
+              data-motion-from="end"
+              data-motion-once="false"
+            >
+              <div class="card-body">
+                <h3>Repeat</h3>
+                <p class="text-muted mt-2">
+                  Scroll it fully out of view and back. Resets only when
+                  completely hidden.
+                </p>
+                <code class="mt-4">data-motion-once="false"</code>
+              </div>
+            </article>
+          </div>
+
+          <div class="grid mt-6">
+            <article
+              class="card"
+              data-motion="reveal"
+              data-motion-from="bottom"
+              data-motion-threshold="0.1"
+            >
+              <div class="card-body">
+                <h3>10% visible</h3>
+                <p class="text-muted mt-2">
+                  By default, motion starts when the top edge passes 12% above
+                  the bottom of the screen. A threshold waits for a share of the
+                  element instead.
+                </p>
+                <code class="mt-4">data-motion-threshold="0.1"</code>
+              </div>
+            </article>
+
+            <article
+              class="card"
+              data-motion="reveal"
+              data-motion-from="bottom"
+              data-motion-threshold="0.5"
+            >
+              <div class="card-body">
+                <h3>50% visible</h3>
+                <p class="text-muted mt-2">
+                  Waits until about half of the element is on screen.
+                </p>
+                <code class="mt-4">data-motion-threshold="0.5"</code>
+              </div>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================================================================
+           Real-world Example
+           The heading animates by word, so its wrapper is not a reveal
+           (otherwise it would animate twice). Cards wait 200ms for it.
+           ================================================================ -->
+
+      <section class="section">
+        <div class="container">
+          <header class="section-heading">
+            <div>
+              <span
+                class="section-heading__eyebrow"
+                data-motion="reveal"
+                data-motion-from="fade"
+              >
+                Example
+              </span>
+
+              <h2
+                class="section-heading__title"
+                data-motion="words"
+                data-motion-text-stagger="fast"
+              >
+                Latest market insights
+              </h2>
+            </div>
+          </header>
+
+          <div
+            class="grid mt-8"
+            data-motion-group
+            data-motion-stagger="120"
+            data-motion-group-delay="200"
+          >
+            <article
+              class="card"
+              data-motion="reveal"
+              data-motion-from="bottom"
+            >
+              <div class="card-body">
+                <span class="badge badge-info">Markets</span>
+                <h3 class="mt-4">Market activity</h3>
+                <p class="text-muted mt-2">
+                  Review recent activity and market indicators.
+                </p>
+                <a class="btn btn-link mt-4" href="#">Learn more</a>
+              </div>
+            </article>
+
+            <article
+              class="card"
+              data-motion="reveal"
+              data-motion-from="bottom"
+            >
+              <div class="card-body">
+                <span class="badge badge-success">Insights</span>
+                <h3 class="mt-4">Investment insights</h3>
+                <p class="text-muted mt-2">
+                  Explore research and financial information.
+                </p>
+                <a class="btn btn-link mt-4" href="#">Learn more</a>
+              </div>
+            </article>
+
+            <article
+              class="card"
+              data-motion="reveal"
+              data-motion-from="bottom"
+            >
+              <div class="card-body">
+                <span class="badge badge-primary">Data</span>
+                <h3 class="mt-4">Market data</h3>
+                <p class="text-muted mt-2">
+                  Follow important market metrics and performance.
+                </p>
+                <a class="btn btn-link mt-4" href="#">Learn more</a>
+              </div>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================================================================
+           End
+           ================================================================ -->
+
+      <section class="section">
+        <div class="container">
+          <div class="card" data-motion="reveal" data-motion-from="scale">
+            <div class="card-body">
+              <h2>Validation checklist</h2>
+              <p class="text-muted mt-2">
+                Reload: no flash, and the hero plays as one sequence. Inspect
+                any element: no inline styles. Turn on reduced motion and
+                reload: everything appears instantly and typed text is already
+                complete.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>

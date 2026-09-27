@@ -1,46 +1,36 @@
 @use "../abstracts" as ds;
 
 /* ==========================================================================
-   Spacing Tokens
-   ========================================================================== */
-
-:root {
-  @each $key, $value in ds.$spaces {
-    --space-#{$key}: #{$value};
-  }
-}
-
-/* ==========================================================================
    Margin
    ========================================================================== */
 
 @each $key, $value in ds.$spaces {
   .m-#{$key} {
-    margin: $value !important;
+    margin: var(--space-#{$key}) !important;
   }
 
   .mt-#{$key} {
-    margin-block-start: $value !important;
+    margin-block-start: var(--space-#{$key}) !important;
   }
 
   .mb-#{$key} {
-    margin-block-end: $value !important;
+    margin-block-end: var(--space-#{$key}) !important;
   }
 
   .ms-#{$key} {
-    margin-inline-start: $value !important;
+    margin-inline-start: var(--space-#{$key}) !important;
   }
 
   .me-#{$key} {
-    margin-inline-end: $value !important;
+    margin-inline-end: var(--space-#{$key}) !important;
   }
 
   .mx-#{$key} {
-    margin-inline: $value !important;
+    margin-inline: var(--space-#{$key}) !important;
   }
 
   .my-#{$key} {
-    margin-block: $value !important;
+    margin-block: var(--space-#{$key}) !important;
   }
 }
 
@@ -50,31 +40,31 @@
 
 @each $key, $value in ds.$spaces {
   .p-#{$key} {
-    padding: $value !important;
+    padding: var(--space-#{$key}) !important;
   }
 
   .pt-#{$key} {
-    padding-block-start: $value !important;
+    padding-block-start: var(--space-#{$key}) !important;
   }
 
   .pb-#{$key} {
-    padding-block-end: $value !important;
+    padding-block-end: var(--space-#{$key}) !important;
   }
 
   .ps-#{$key} {
-    padding-inline-start: $value !important;
+    padding-inline-start: var(--space-#{$key}) !important;
   }
 
   .pe-#{$key} {
-    padding-inline-end: $value !important;
+    padding-inline-end: var(--space-#{$key}) !important;
   }
 
   .px-#{$key} {
-    padding-inline: $value !important;
+    padding-inline: var(--space-#{$key}) !important;
   }
 
   .py-#{$key} {
-    padding-block: $value !important;
+    padding-block: var(--space-#{$key}) !important;
   }
 }
 
@@ -84,14 +74,14 @@
 
 @each $key, $value in ds.$spaces {
   .gap-#{$key} {
-    gap: $value !important;
+    gap: var(--space-#{$key}) !important;
   }
 
   .row-gap-#{$key} {
-    row-gap: $value !important;
+    row-gap: var(--space-#{$key}) !important;
   }
 
   .column-gap-#{$key} {
-    column-gap: $value !important;
+    column-gap: var(--space-#{$key}) !important;
   }
 }

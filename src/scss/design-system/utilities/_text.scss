@@ -44,6 +44,10 @@
   color: var(--color-info) !important;
 }
 
+.text-attention {
+  color: var(--color-attention) !important;
+}
+
 .text-warning {
   color: var(--color-warning) !important;
 }
@@ -65,11 +69,11 @@
 }
 
 .text-white {
-  color: #ffffff !important;
+  color: #{ds.brand("white")} !important;
 }
 
 .text-black {
-  color: #000000 !important;
+  color: #{ds.brand("black")} !important;
 }
 
 /* ==========================================================================

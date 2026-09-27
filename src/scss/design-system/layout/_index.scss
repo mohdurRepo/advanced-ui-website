@@ -1,13 +1,21 @@
+/* ==========================================================================
+   Layout
+   ========================================================================== */
+
+/* Structural foundations */
 @forward "container";
 @forward "grid";
 
+/* Flow primitives */
 @forward "stack";
 @forward "cluster";
 
+/* Content positioning */
 @forward "center-layout";
 @forward "content-layout";
 @forward "cover-layout";
 
+/* Multi-region layouts */
 @forward "split-layout";
 @forward "sidebar-layout";
 @forward "sticky-layout";

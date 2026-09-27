@@ -1,5 +1,9 @@
 @use "../abstracts" as ds;
 
+/* ==========================================================================
+   Light Theme
+   ========================================================================== */
+
 :root,
 html[data-theme="light"] {
   color-scheme: light;
@@ -9,10 +13,10 @@ html[data-theme="light"] {
      ========================================================================== */
 
   --color-bg: #{ds.brand("off-white")};
+
   --color-surface: #{ds.brand("white")};
   --color-surface-alt: #eef2f5;
 
-  /* Interactive surfaces */
   --color-surface-hover: #f3f6f8;
   --color-surface-active: #e8eef3;
   --color-surface-selected: #eaf0ff;
@@ -50,8 +54,8 @@ html[data-theme="light"] {
   --color-on-accent: #{ds.brand("navy")};
 
   /* ==========================================================================
-   Status
-   ========================================================================== */
+     Status
+     ========================================================================== */
 
   --color-success: #15803d;
   --color-success-hover: #166534;
@@ -61,28 +65,13 @@ html[data-theme="light"] {
   --color-info-hover: #075985;
   --color-on-info: #{ds.brand("white")};
 
-  /*
- * Low-severity attention state.
- * Used for accumulated losses between 20% and 35%.
- */
-
   --color-attention: #f8d983;
   --color-attention-hover: #f5c95c;
   --color-on-attention: #{ds.brand("navy")};
 
-  /*
- * Medium-severity warning state.
- * Used for accumulated losses between 35% and 50%.
- */
-
   --color-warning: #f59e0b;
   --color-warning-hover: #d97706;
   --color-on-warning: #{ds.brand("navy")};
-
-  /*
- * High-severity danger state.
- * Used for accumulated losses of 50% or more.
- */
 
   --color-danger: #dc2626;
   --color-danger-hover: #b91c1c;

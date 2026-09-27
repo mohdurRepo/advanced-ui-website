@@ -4,6 +4,20 @@
    Alert
    ========================================================================== */
 
+/**
+ * Reusable contextual message.
+ *
+ * Supports:
+ * - Semantic color variants
+ * - Optional icon
+ * - Optional title
+ * - Optional dismiss control
+ * - Compact sizing
+ * - Full-width banner presentation
+ * - High contrast
+ * - Forced colors
+ */
+
 .alert {
   --alert-bg: var(--color-surface);
   --alert-color: var(--color-text);
@@ -12,9 +26,13 @@
 
   display: flex;
   align-items: flex-start;
+
   gap: 0.875rem;
 
-  padding: 1rem 1.25rem;
+  min-inline-size: 0;
+
+  padding-block: var(--space-4);
+  padding-inline: var(--space-5);
 
   border: 1px solid var(--alert-border);
   border-radius: var(--radius-md);
@@ -34,26 +52,35 @@
   --icon-size: 1.25rem;
 
   flex: 0 0 auto;
+
   color: var(--alert-icon-color);
 }
 
 .alert-content {
   flex: 1 1 auto;
+
   min-inline-size: 0;
 }
 
 .alert-title {
-  margin: 0 0 0.25rem;
+  margin: 0;
+  margin-block-end: var(--space-1);
 
   color: inherit;
+
   font-size: var(--text-sm);
   font-weight: ds.font-weight("bold");
   line-height: var(--line-height-tight);
+
+  overflow-wrap: anywhere;
 }
 
 .alert-text {
   margin: 0;
+
   color: inherit;
+
+  overflow-wrap: anywhere;
 }
 
 .alert-close {
@@ -61,7 +88,7 @@
 }
 
 /* ==========================================================================
-   Variants
+   Primary
    ========================================================================== */
 
 .alert-primary {
@@ -74,6 +101,10 @@
   --alert-icon-color: var(--color-primary);
 }
 
+/* ==========================================================================
+   Success
+   ========================================================================== */
+
 .alert-success {
   --alert-bg: color-mix(in oklab, var(--color-success), transparent 88%);
 
@@ -83,6 +114,10 @@
 
   --alert-icon-color: var(--color-success);
 }
+
+/* ==========================================================================
+   Info
+   ========================================================================== */
 
 .alert-info {
   --alert-bg: color-mix(in oklab, var(--color-info), transparent 88%);
@@ -94,15 +129,37 @@
   --alert-icon-color: var(--color-info);
 }
 
+/* ==========================================================================
+   Attention
+   ========================================================================== */
+
+.alert-attention {
+  --alert-bg: color-mix(in oklab, var(--color-attention), transparent 84%);
+
+  --alert-color: var(--color-on-attention);
+
+  --alert-border: color-mix(in oklab, var(--color-attention), transparent 55%);
+
+  --alert-icon-color: var(--color-on-attention);
+}
+
+/* ==========================================================================
+   Warning
+   ========================================================================== */
+
 .alert-warning {
   --alert-bg: color-mix(in oklab, var(--color-warning), transparent 84%);
 
-  --alert-color: var(--color-warning-text, #92400e);
+  --alert-color: var(--color-warning-text);
 
   --alert-border: color-mix(in oklab, var(--color-warning), transparent 55%);
 
-  --alert-icon-color: var(--color-warning-text, #92400e);
+  --alert-icon-color: var(--color-warning-text);
 }
+
+/* ==========================================================================
+   Danger
+   ========================================================================== */
 
 .alert-danger {
   --alert-bg: color-mix(in oklab, var(--color-danger), transparent 88%);
@@ -119,7 +176,9 @@
    ========================================================================== */
 
 .alert-sm {
-  padding: 0.75rem 1rem;
+  padding-block: var(--space-3);
+  padding-inline: var(--space-4);
+
   font-size: var(--text-xs);
 }
 
@@ -151,11 +210,33 @@ html[data-contrast="high"] {
   .alert-primary,
   .alert-success,
   .alert-info,
+  .alert-attention,
   .alert-warning,
   .alert-danger {
     --alert-bg: var(--color-surface);
     --alert-color: var(--color-text);
-    --alert-border: var(--color-border);
+    --alert-border: currentColor;
     --alert-icon-color: currentColor;
+  }
+}
+
+/* ==========================================================================
+   Forced Colors
+   ========================================================================== */
+
+@media (forced-colors: active) {
+  .alert {
+    border-color: CanvasText;
+
+    background: Canvas;
+    color: CanvasText;
+
+    forced-color-adjust: auto;
+  }
+
+  .alert-icon,
+  .alert-title,
+  .alert-text {
+    color: CanvasText;
   }
 }

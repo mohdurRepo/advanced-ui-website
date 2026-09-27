@@ -4,14 +4,32 @@
    Tooltip
    ========================================================================== */
 
+/**
+ * Viewport-aware tooltip.
+ *
+ * Positioning is owned by the Tooltip JavaScript because CSS alone cannot
+ * reliably:
+ *
+ * - detect viewport collisions;
+ * - flip placement near an edge;
+ * - shift an oversized tooltip back into view;
+ * - account for RTL logical start/end placement.
+ *
+ * `.tooltip` owns the trigger relationship.
+ * `.tooltip__content` is positioned against the viewport with `position: fixed`.
+ */
+
 .tooltip {
   --tooltip-bg: var(--color-heading);
   --tooltip-color: var(--color-bg);
-
   --tooltip-border: var(--color-border);
+
   --tooltip-radius: var(--radius-md);
-  --tooltip-offset: 0.75rem;
-  --tooltip-arrow-offset: 0.3125rem;
+
+  --tooltip-offset: var(--space-3);
+  --tooltip-arrow-size: 0.625rem;
+
+  --tooltip-max-width: 18rem;
 
   position: relative;
 
@@ -19,26 +37,37 @@
   align-items: center;
   justify-content: center;
 
-  overflow: visible;
+  min-inline-size: 0;
+  max-inline-size: 100%;
 }
 
 /* ==========================================================================
    Content
    ========================================================================== */
 
-.tooltip::after {
-  content: attr(data-tooltip);
+.tooltip__content {
+  /*
+   * Fixed positioning is essential.
+   *
+   * The tooltip is positioned against the viewport rather than against its
+   * containing block, preventing it from increasing document width.
+   */
+  position: fixed;
 
-  position: absolute;
+  inset-block-start: 0;
+  inset-inline-start: 0;
+
   z-index: var(--z-tooltip);
 
-  inset-block-end: calc(100% + var(--tooltip-offset));
-  inset-inline-start: 50%;
-
   inline-size: max-content;
-  min-inline-size: 10rem;
-  max-inline-size: min(18rem, calc(100vw - 2rem));
-  padding: 0.625rem 0.875rem;
+
+  max-inline-size: min(
+    var(--tooltip-max-width),
+    calc(100dvw - (var(--space-4) * 2))
+  );
+
+  padding-block: 0.625rem;
+  padding-inline: 0.875rem;
 
   border: 1px solid var(--tooltip-border);
   border-radius: var(--tooltip-radius);
@@ -58,159 +87,134 @@
 
   visibility: hidden;
   opacity: 0;
+
   pointer-events: none;
 
-  transform: translateX(-50%) translateY(0.25rem);
+  /*
+   * JavaScript owns viewport coordinates.
+   *
+   * Translation is used rather than top/left mutation so repositioning stays
+   * inexpensive and avoids layout churn.
+   */
+  transform: translate3d(var(--tooltip-x, 0), var(--tooltip-y, 0), 0);
 
-  @include ds.transition((opacity, transform, visibility), "fast");
-}
-
-/* ==========================================================================
-   Arrow
-   ========================================================================== */
-
-.tooltip::before {
-  content: "";
-
-  position: absolute;
-  z-index: calc(var(--z-tooltip) + 1);
-
-  inset-block-end: calc(100% + var(--tooltip-arrow-offset));
-  inset-inline-start: 50%;
-
-  inline-size: 0.625rem;
-  block-size: 0.625rem;
-
-  border-inline-end: 1px solid var(--tooltip-border);
-  border-block-end: 1px solid var(--tooltip-border);
-
-  background: var(--tooltip-bg);
-
-  visibility: hidden;
-  opacity: 0;
-  pointer-events: none;
-
-  transform: translateX(-50%) rotate(45deg);
-
-  @include ds.transition((opacity, visibility), "fast");
+  @include ds.transition(opacity, "fast");
 }
 
 /* ==========================================================================
    Visible State
    ========================================================================== */
 
-.tooltip:hover::after,
-.tooltip:hover::before,
-.tooltip:focus-within::after,
-.tooltip:focus-within::before,
-.tooltip.is-open::after,
-.tooltip.is-open::before {
+.tooltip.is-open > .tooltip__content {
   visibility: visible;
   opacity: 1;
 }
 
-.tooltip:hover::after,
-.tooltip:focus-within::after,
-.tooltip.is-open::after {
-  transform: translateX(-50%) translateY(0);
+/* ==========================================================================
+   Arrow
+   ========================================================================== */
+
+/**
+ * The arrow is always rendered inside the bubble.
+ *
+ * JavaScript resolves:
+ *
+ * --tooltip-arrow-x
+ * --tooltip-arrow-y
+ *
+ * and sets data-tooltip-placement to:
+ *
+ * top | bottom | start | end
+ */
+
+.tooltip__content::before {
+  content: "";
+
+  position: absolute;
+
+  inline-size: var(--tooltip-arrow-size);
+  block-size: var(--tooltip-arrow-size);
+
+  background: var(--tooltip-bg);
+
+  pointer-events: none;
+}
+
+/* ==========================================================================
+   Top Placement
+   ========================================================================== */
+
+.tooltip[data-tooltip-placement="top"] > .tooltip__content::before {
+  inset-block-start: 100%;
+  inset-inline-start: var(--tooltip-arrow-x, 50%);
+
+  border-inline-end: 1px solid var(--tooltip-border);
+  border-block-end: 1px solid var(--tooltip-border);
+
+  transform: translate(-50%, -50%) rotate(45deg);
 }
 
 /* ==========================================================================
    Bottom Placement
    ========================================================================== */
 
-.tooltip-bottom::after {
-  inset-block-start: calc(100% + var(--tooltip-offset));
-  inset-block-end: auto;
+.tooltip[data-tooltip-placement="bottom"] > .tooltip__content::before {
+  inset-block-end: 100%;
+  inset-inline-start: var(--tooltip-arrow-x, 50%);
 
-  transform: translateX(-50%) translateY(-0.25rem);
-}
-
-.tooltip-bottom::before {
-  inset-block-start: calc(100% + var(--tooltip-arrow-offset));
-  inset-block-end: auto;
-
-  border: 0;
   border-inline-start: 1px solid var(--tooltip-border);
   border-block-start: 1px solid var(--tooltip-border);
-}
 
-.tooltip-bottom:hover::after,
-.tooltip-bottom:focus-within::after,
-.tooltip-bottom.is-open::after {
-  transform: translateX(-50%) translateY(0);
+  transform: translate(-50%, 50%) rotate(45deg);
 }
 
 /* ==========================================================================
    Start Placement
    ========================================================================== */
 
-.tooltip-start::after {
-  inset-block-start: 50%;
-  inset-block-end: auto;
-  inset-inline-start: auto;
-  inset-inline-end: calc(100% + var(--tooltip-offset));
+/**
+ * Logical start:
+ *
+ * LTR → left side
+ * RTL → right side
+ */
 
-  transform: translateY(-50%) translateX(0.25rem);
-}
+.tooltip[data-tooltip-placement="start"] > .tooltip__content::before {
+  inset-block-start: var(--tooltip-arrow-y, 50%);
+  inset-inline-start: 100%;
 
-.tooltip-start::before {
-  inset-block-start: 50%;
-  inset-block-end: auto;
-  inset-inline-start: auto;
-  inset-inline-end: calc(100% + var(--tooltip-arrow-offset));
-
-  border: 0;
   border-inline-end: 1px solid var(--tooltip-border);
   border-block-start: 1px solid var(--tooltip-border);
 
-  transform: translateY(-50%) rotate(45deg);
-}
-
-.tooltip-start:hover::after,
-.tooltip-start:focus-within::after,
-.tooltip-start.is-open::after {
-  transform: translateY(-50%) translateX(0);
+  transform: translate(-50%, -50%) rotate(45deg);
 }
 
 /* ==========================================================================
    End Placement
    ========================================================================== */
 
-.tooltip-end::after {
-  inset-block-start: 50%;
-  inset-block-end: auto;
-  inset-inline-start: calc(100% + var(--tooltip-offset));
+/**
+ * Logical end:
+ *
+ * LTR → right side
+ * RTL → left side
+ */
 
-  transform: translateY(-50%) translateX(-0.25rem);
-}
+.tooltip[data-tooltip-placement="end"] > .tooltip__content::before {
+  inset-block-start: var(--tooltip-arrow-y, 50%);
+  inset-inline-end: 100%;
 
-.tooltip-end::before {
-  inset-block-start: 50%;
-  inset-block-end: auto;
-  inset-inline-start: calc(100% + var(--tooltip-arrow-offset));
-
-  border: 0;
   border-inline-start: 1px solid var(--tooltip-border);
   border-block-end: 1px solid var(--tooltip-border);
 
-  transform: translateY(-50%) rotate(45deg);
-}
-
-.tooltip-end:hover::after,
-.tooltip-end:focus-within::after,
-.tooltip-end.is-open::after {
-  transform: translateY(-50%) translateX(0);
+  transform: translate(50%, -50%) rotate(45deg);
 }
 
 /* ==========================================================================
    Empty Content
    ========================================================================== */
 
-.tooltip:not([data-tooltip])::before,
-.tooltip:not([data-tooltip])::after,
-.tooltip[data-tooltip=""]::before,
-.tooltip[data-tooltip=""]::after {
+.tooltip__content:empty {
   display: none;
 }
 
@@ -218,25 +222,50 @@
    High Contrast
    ========================================================================== */
 
-html[data-contrast="high"] .tooltip::after {
+html[data-contrast="high"] .tooltip__content {
   border-width: 2px;
+
   box-shadow: none;
+}
+
+/* ==========================================================================
+   Forced Colors
+   ========================================================================== */
+
+@media (forced-colors: active) {
+  .tooltip__content {
+    border-color: CanvasText;
+
+    background: Canvas;
+    color: CanvasText;
+
+    box-shadow: none;
+
+    forced-color-adjust: auto;
+  }
+
+  .tooltip__content::before {
+    border-color: CanvasText;
+
+    background: Canvas;
+  }
 }
 
 /* ==========================================================================
    Reduced Motion
    ========================================================================== */
 
-@media (prefers-reduced-motion: reduce) {
-  .tooltip::after,
-  .tooltip::before {
-    transition: none;
-  }
-}
+/**
+ * Transition timing is already reduced globally through --transition-fast.
+ * No transform animation is used by the Tooltip itself.
+ */
 
-html[data-motion="reduce"] {
-  .tooltip::after,
-  .tooltip::before {
-    transition: none;
+/* ==========================================================================
+   Print
+   ========================================================================== */
+
+@media print {
+  .tooltip__content {
+    display: none;
   }
 }

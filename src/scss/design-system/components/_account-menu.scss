@@ -4,11 +4,20 @@
    Account Menu
    ========================================================================== */
 
-/*
- * Visual specialization of the shared dropdown component.
+/**
+ * Visual specialization of the shared Dropdown component.
  *
- * Menu positioning, menu items, separators, and interaction behavior belong
- * to the reusable dropdown component.
+ * Dropdown continues to own:
+ *
+ * - menu positioning;
+ * - menu visibility;
+ * - keyboard behavior;
+ * - menu items;
+ * - separators;
+ * - focus movement;
+ * - outside-click handling.
+ *
+ * Account Menu owns only account-specific trigger and summary presentation.
  */
 
 .account-menu {
@@ -35,12 +44,15 @@
 
   display: inline-flex;
   align-items: center;
-  gap: ds.space(2);
+
+  gap: var(--space-2);
 
   max-inline-size: 100%;
+
   min-block-size: 3rem;
-  padding-block: ds.space(2);
-  padding-inline: ds.space(3);
+
+  padding-block: var(--space-2);
+  padding-inline: var(--space-3);
 
   border: 1px solid var(--account-trigger-border);
   border-radius: var(--radius-pill);
@@ -50,6 +62,7 @@
 
   font: inherit;
   line-height: 1;
+
   text-align: start;
 
   cursor: pointer;
@@ -58,29 +71,55 @@
   @include ds.transition((background-color, border-color, color), "fast");
 }
 
-.account-menu__trigger:hover:not(:disabled):not(.is-disabled),
-.account-menu__trigger[aria-expanded="true"] {
+/* ==========================================================================
+   Trigger Hover / Open
+   ========================================================================== */
+
+@media (hover: hover) and (pointer: fine) {
+  .account-menu__trigger:hover:not(:disabled):not(.is-disabled):not(
+      [aria-disabled="true"]
+    ) {
+    border-color: var(--account-trigger-hover-border);
+
+    background: var(--account-trigger-hover-bg);
+  }
+}
+
+.account-menu__trigger[aria-expanded="true"]:not(:disabled):not(
+    .is-disabled
+  ):not([aria-disabled="true"]) {
   border-color: var(--account-trigger-hover-border);
+
   background: var(--account-trigger-hover-bg);
 }
 
-.account-menu__trigger:focus {
-  outline: none;
-}
+/* ==========================================================================
+   Trigger Focus
+   ========================================================================== */
 
 .account-menu__trigger:focus-visible {
   @include ds.focus-ring;
 }
 
+/* ==========================================================================
+   Trigger Disabled
+   ========================================================================== */
+
+/**
+ * Presentation only.
+ *
+ * Native `disabled` or shared Dropdown behavior must own interaction blocking.
+ */
+
 .account-menu__trigger:disabled,
 .account-menu__trigger.is-disabled,
 .account-menu__trigger[aria-disabled="true"] {
   border-color: var(--color-disabled);
+
   background: var(--color-surface-alt);
   color: var(--color-on-disabled);
 
   cursor: not-allowed;
-  pointer-events: none;
 }
 
 /* ==========================================================================
@@ -126,6 +165,7 @@
 
 .account-menu__identity {
   display: grid;
+
   gap: 0.125rem;
 
   flex: 1 1 auto;
@@ -173,6 +213,7 @@
   flex: 0 0 auto;
 
   color: currentColor;
+
   pointer-events: none;
 
   @include ds.transition(transform, "fast");
@@ -188,11 +229,13 @@
 
 .account-menu__summary {
   display: grid;
-  gap: ds.space(1);
+
+  gap: var(--space-1);
 
   min-inline-size: 0;
-  padding-block: ds.space(2);
-  padding-inline: ds.space(3);
+
+  padding-block: var(--space-2);
+  padding-inline: var(--space-3);
 }
 
 .account-menu__summary-name,
@@ -220,20 +263,20 @@
    Inverse Variant
    ========================================================================== */
 
-/*
- * Used on dark or branded surfaces such as page heroes and dark headers.
+/**
+ * Used on dark or branded surfaces such as hero areas and dark headers.
  */
 
 .account-menu--inverse {
   --account-trigger-bg: rgb(255 255 255 / 0.1);
-  --account-trigger-color: #ffffff;
+  --account-trigger-color: var(--color-light);
   --account-trigger-border: rgb(255 255 255 / 0.35);
 
   --account-trigger-hover-bg: rgb(255 255 255 / 0.18);
   --account-trigger-hover-border: rgb(255 255 255 / 0.65);
 
   --account-avatar-bg: rgb(255 255 255 / 0.16);
-  --account-avatar-color: #ffffff;
+  --account-avatar-color: var(--color-light);
   --account-avatar-border: rgb(255 255 255 / 0.7);
 }
 
@@ -251,8 +294,9 @@
 
 .account-menu--compact .account-menu__trigger {
   min-block-size: 2.5rem;
-  padding-block: ds.space(1);
-  padding-inline: ds.space(2);
+
+  padding-block: var(--space-1);
+  padding-inline: var(--space-2);
 }
 
 .account-menu--compact .account-menu__avatar {
@@ -311,22 +355,41 @@ html[data-contrast="high"] {
     --account-avatar-color: CanvasText;
     --account-avatar-border: CanvasText;
   }
+
+  .account-menu__trigger {
+    forced-color-adjust: auto;
+  }
+
+  .account-menu__trigger[aria-expanded="true"]:not(:disabled):not(
+      .is-disabled
+    ):not([aria-disabled="true"]) {
+    color: HighlightText;
+  }
+
+  .account-menu__trigger:disabled,
+  .account-menu__trigger.is-disabled,
+  .account-menu__trigger[aria-disabled="true"] {
+    border-color: GrayText;
+    color: GrayText;
+  }
 }
 
 /* ==========================================================================
    Reduced Motion
    ========================================================================== */
 
+/**
+ * Trigger color transitions already use global motion tokens.
+ *
+ * Only the non-essential chevron rotation needs explicit removal.
+ */
+
 @media (prefers-reduced-motion: reduce) {
-  .account-menu__trigger,
   .account-menu__chevron {
-    transition: none;
+    transform: none;
   }
 }
 
-html[data-motion="reduce"] {
-  .account-menu__trigger,
-  .account-menu__chevron {
-    transition: none;
-  }
+html[data-motion="reduce"] .account-menu__chevron {
+  transform: none;
 }

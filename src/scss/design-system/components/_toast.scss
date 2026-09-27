@@ -4,17 +4,27 @@
    Toast Container
    ========================================================================== */
 
+/**
+ * Global notification stack.
+ *
+ * The container does not intercept pointer input; individual Toasts do.
+ */
+
 .toast-container {
   position: fixed;
+
   z-index: var(--z-toast);
 
-  inset-block-start: 1rem;
-  inset-inline-end: 1rem;
+  inset-block-start: var(--space-4);
+  inset-inline-end: var(--space-4);
 
   display: grid;
-  gap: 0.75rem;
 
-  inline-size: min(100% - 2rem, 26.25rem);
+  gap: var(--space-3);
+
+  inline-size: min(calc(100dvw - (var(--space-4) * 2)), 26.25rem);
+
+  max-inline-size: calc(100dvw - (var(--space-4) * 2));
 
   pointer-events: none;
 }
@@ -26,19 +36,27 @@
 .toast {
   --toast-bg: var(--color-surface);
   --toast-color: var(--color-text);
+  --toast-muted-color: var(--color-text-muted);
+
   --toast-border: var(--color-border);
   --toast-accent: var(--color-primary);
+
+  --toast-translate: var(--space-4);
 
   position: relative;
 
   display: flex;
   align-items: flex-start;
+
   gap: 0.875rem;
 
-  padding: 1rem 1.25rem;
+  min-inline-size: 0;
+
+  padding-block: var(--space-4);
+  padding-inline: var(--space-5);
 
   border: 1px solid var(--toast-border);
-  border-inline-start: 0.25rem solid var(--toast-accent);
+  border-inline-start: var(--space-1) solid var(--toast-accent);
   border-radius: var(--radius-md);
 
   background: var(--toast-bg);
@@ -49,13 +67,25 @@
   pointer-events: auto;
 
   opacity: 0;
-  transform: translateX(1rem);
+
+  transform: translateX(var(--toast-translate));
 
   animation: toast-in var(--transition-normal) forwards;
 }
 
+/* ==========================================================================
+   RTL
+   ========================================================================== */
+
+/**
+ * Toasts enter from logical inline-end:
+ *
+ * LTR → right
+ * RTL → left
+ */
+
 html[dir="rtl"] .toast {
-  transform: translateX(-1rem);
+  --toast-translate: calc(var(--space-4) * -1);
 }
 
 /* ==========================================================================
@@ -68,10 +98,6 @@ html[dir="rtl"] .toast {
   animation: toast-out var(--transition-normal) forwards;
 }
 
-html[dir="rtl"] .toast.is-leaving {
-  animation-name: toast-out-rtl;
-}
-
 /* ==========================================================================
    Icon
    ========================================================================== */
@@ -79,8 +105,19 @@ html[dir="rtl"] .toast.is-leaving {
 .toast-icon {
   --icon-size: 1.25rem;
 
+  display: inline-grid;
+  place-items: center;
+
   flex: 0 0 auto;
+
+  min-inline-size: 1.25rem;
+  min-block-size: 1.25rem;
+
   color: var(--toast-accent);
+
+  font-size: var(--text-sm);
+  font-weight: ds.font-weight("bold");
+  line-height: 1;
 }
 
 /* ==========================================================================
@@ -89,13 +126,16 @@ html[dir="rtl"] .toast.is-leaving {
 
 .toast-content {
   flex: 1 1 auto;
+
   min-inline-size: 0;
 }
 
 .toast-title {
-  margin: 0 0 0.25rem;
+  margin: 0;
+  margin-block-end: var(--space-1);
 
   color: var(--toast-color);
+
   font-size: var(--text-sm);
   font-weight: ds.font-weight("bold");
   line-height: var(--line-height-tight);
@@ -106,7 +146,8 @@ html[dir="rtl"] .toast.is-leaving {
 .toast-message {
   margin: 0;
 
-  color: var(--color-text-muted);
+  color: var(--toast-muted-color);
+
   font-size: var(--text-sm);
   line-height: var(--line-height-normal);
 
@@ -119,11 +160,13 @@ html[dir="rtl"] .toast.is-leaving {
 
 .toast-close {
   display: inline-grid;
-  flex: 0 0 auto;
   place-items: center;
+
+  flex: 0 0 auto;
 
   inline-size: 1.75rem;
   block-size: 1.75rem;
+
   padding: 0;
 
   border: 0;
@@ -133,14 +176,20 @@ html[dir="rtl"] .toast.is-leaving {
   color: var(--toast-color);
 
   cursor: pointer;
+
   opacity: 0.7;
 
   @include ds.transition((opacity, background-color, color), "fast");
 }
 
-.toast-close:hover:not(:disabled) {
-  background: var(--color-surface-alt);
-  opacity: 1;
+@media (hover: hover) and (pointer: fine) {
+  .toast-close:hover:not(:disabled):not(.is-disabled):not(
+      [aria-disabled="true"]
+    ) {
+    background: var(--color-surface-alt);
+
+    opacity: 1;
+  }
 }
 
 .toast-close:focus-visible {
@@ -149,10 +198,13 @@ html[dir="rtl"] .toast.is-leaving {
   @include ds.focus-ring;
 }
 
-.toast-close:disabled {
+.toast-close:disabled,
+.toast-close.is-disabled,
+.toast-close[aria-disabled="true"] {
   color: var(--color-on-disabled);
 
   cursor: not-allowed;
+
   opacity: 0.5;
 }
 
@@ -172,6 +224,10 @@ html[dir="rtl"] .toast.is-leaving {
   --toast-accent: var(--color-info);
 }
 
+.toast-attention {
+  --toast-accent: var(--color-attention);
+}
+
 .toast-warning {
   --toast-accent: var(--color-warning);
 }
@@ -187,21 +243,22 @@ html[dir="rtl"] .toast.is-leaving {
 @keyframes toast-in {
   to {
     opacity: 1;
+
     transform: translateX(0);
   }
 }
 
 @keyframes toast-out {
-  to {
-    opacity: 0;
-    transform: translateX(1rem);
-  }
-}
+  from {
+    opacity: 1;
 
-@keyframes toast-out-rtl {
+    transform: translateX(0);
+  }
+
   to {
     opacity: 0;
-    transform: translateX(-1rem);
+
+    transform: translateX(var(--toast-translate));
   }
 }
 
@@ -211,8 +268,10 @@ html[dir="rtl"] .toast.is-leaving {
 
 @include ds.respond-down("sm") {
   .toast-container {
-    inset-inline: 1rem;
+    inset-inline: var(--space-4);
+
     inline-size: auto;
+    max-inline-size: none;
   }
 }
 
@@ -223,18 +282,68 @@ html[dir="rtl"] .toast.is-leaving {
 html[data-contrast="high"] .toast {
   border-width: 2px;
   border-inline-start-width: 0.375rem;
+
+  box-shadow: none;
+}
+
+/* ==========================================================================
+   Forced Colors
+   ========================================================================== */
+
+@media (forced-colors: active) {
+  .toast {
+    border-color: CanvasText;
+
+    background: Canvas;
+    color: CanvasText;
+
+    box-shadow: none;
+
+    forced-color-adjust: auto;
+  }
+
+  .toast-title,
+  .toast-message {
+    color: CanvasText;
+  }
+
+  .toast-icon {
+    color: Highlight;
+  }
+
+  .toast-close {
+    color: ButtonText;
+  }
+
+  .toast-close:hover:not(:disabled):not(.is-disabled):not(
+      [aria-disabled="true"]
+    ),
+  .toast-close:focus-visible {
+    background: Highlight;
+    color: HighlightText;
+  }
+
+  .toast-close:disabled,
+  .toast-close.is-disabled,
+  .toast-close[aria-disabled="true"] {
+    color: GrayText;
+  }
 }
 
 /* ==========================================================================
    Reduced Motion
    ========================================================================== */
 
+/**
+ * Toast entry/exit uses keyframe animation rather than transition tokens alone,
+ * so reduced motion is handled explicitly.
+ */
+
 @media (prefers-reduced-motion: reduce) {
   .toast,
-  .toast.is-leaving,
-  html[dir="rtl"] .toast,
-  html[dir="rtl"] .toast.is-leaving {
+  .toast.is-leaving {
     animation: none;
+
     transform: none;
   }
 
@@ -242,8 +351,8 @@ html[data-contrast="high"] .toast {
     opacity: 1;
   }
 
-  .toast-close {
-    transition: none;
+  .toast.is-leaving {
+    opacity: 0;
   }
 }
 
@@ -251,6 +360,7 @@ html[data-motion="reduce"] {
   .toast,
   .toast.is-leaving {
     animation: none;
+
     transform: none;
   }
 
@@ -258,7 +368,17 @@ html[data-motion="reduce"] {
     opacity: 1;
   }
 
-  .toast-close {
-    transition: none;
+  .toast.is-leaving {
+    opacity: 0;
+  }
+}
+
+/* ==========================================================================
+   Print
+   ========================================================================== */
+
+@media print {
+  .toast-container {
+    display: none;
   }
 }

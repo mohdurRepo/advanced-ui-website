@@ -8,12 +8,18 @@
 
     <link rel="stylesheet" href="/src/scss/main.scss" />
 
+    <!-- ================================================================
+       Critical UI Bootstrap
+       ================================================================ -->
+
     <script>
       (function () {
         "use strict";
 
         var root = document.documentElement;
-        var RESTORE_TIMEOUT = 4000;
+
+        var LANGUAGE_RESTORE_TIMEOUT = 4000;
+        var MOTION_FALLBACK_TIMEOUT = 3000;
 
         function getStoredValue(key, fallback) {
           try {
@@ -37,11 +43,43 @@
           }
         }
 
-        var pageLanguage = root.getAttribute("lang") === "ar" ? "ar" : "en";
+        var documentLanguage = root.getAttribute("lang") === "ar" ? "ar" : "en";
 
         var storedLanguage = getStoredValue("se-lang", null);
-
         var urlLanguage = getUrlLanguage();
+
+        var resolvedLanguage =
+          urlLanguage ||
+          (storedLanguage === "ar" || storedLanguage === "en"
+            ? storedLanguage
+            : documentLanguage);
+
+        var resolvedDirection = resolvedLanguage === "ar" ? "rtl" : "ltr";
+
+        /*
+         * Apply direction before stylesheet evaluation.
+         */
+
+        root.setAttribute("lang", resolvedLanguage);
+        root.setAttribute("dir", resolvedDirection);
+
+        /*
+         * Hide mismatched server content while Portal restores language.
+         */
+
+        if (resolvedLanguage !== documentLanguage) {
+          root.style.visibility = "hidden";
+
+          root.setAttribute("data-language-restoring", "true");
+
+          window.__languageRestoreFallback = window.setTimeout(function () {
+            root.style.removeProperty("visibility");
+
+            root.removeAttribute("data-language-restoring");
+
+            window.__languageRestoreFallback = null;
+          }, LANGUAGE_RESTORE_TIMEOUT);
+        }
 
         var themeChoice = getStoredValue("se-theme", "system");
 
@@ -59,44 +97,43 @@
             ? "dark"
             : "light";
 
+        var prefersReducedMotion =
+          window.matchMedia &&
+          window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
         var resolvedTheme =
           themeChoice === "system" ? systemTheme : themeChoice;
 
-        /*
-         * Portal rendered the document using pageLanguage.
-         *
-         * If the saved language differs and the URL has no explicit locale,
-         * temporarily hide the document while language.js restores the saved
-         * language through Portal.
-         */
-        if (
-          !urlLanguage &&
-          (storedLanguage === "ar" || storedLanguage === "en") &&
-          storedLanguage !== pageLanguage
-        ) {
-          root.style.visibility = "hidden";
-          root.setAttribute("data-language-restoring", "true");
-
-          /*
-           * Safety fallback: never leave the document permanently hidden.
-           */
-          window.setTimeout(function () {
-            root.style.removeProperty("visibility");
-            root.removeAttribute("data-language-restoring");
-          }, RESTORE_TIMEOUT);
-        }
-
-        /*
-         * Portal owns lang and dir. Do not overwrite them here.
-         */
         root.setAttribute("data-theme", resolvedTheme);
+
         root.setAttribute("data-theme-choice", themeChoice);
+
         root.setAttribute("data-accent", accent);
+
         root.setAttribute("data-font-size", fontSize);
+
         root.setAttribute("data-contrast", contrast);
+
         root.setAttribute("data-motion", motion);
+
+        /*
+         * Prepare motion before body paint.
+         */
+
+        if (motion !== "reduce" && !prefersReducedMotion) {
+          root.classList.add("motion-ready");
+
+          window.__motionFallback = window.setTimeout(function () {
+            window.__motionFallbackFired = true;
+
+            root.classList.remove("motion-ready");
+
+            window.__motionFallback = null;
+          }, MOTION_FALLBACK_TIMEOUT);
+        }
       })();
     </script>
+
     <!-- Highcharts Stock -->
     <script src="https://code.highcharts.com/stock/highstock.js"></script>
 
@@ -5497,33 +5534,53 @@
         <div class="hero-section__background" aria-hidden="true"></div>
 
         <div class="container hero-section__content">
-          <div class="hero-intro">
+          <div
+            class="split-layout split-layout--wide-primary split-layout--center main-market-hero"
+            data-motion-group
+            data-motion-stagger="normal"
+          >
             <!-- ====================================================================
-           Header
+           Primary
            ==================================================================== -->
 
-            <header class="hero-intro__header">
-              <div class="hero-intro__brand">
-                <span
-                  class="hero-intro__icon has-icon icon-tadawul"
-                  aria-hidden="true"
-                ></span>
+            <div
+              class="split-layout__primary"
+              data-motion="reveal"
+              data-motion-from="start"
+            >
+              <div class="hero-intro">
+                <header class="hero-intro__header">
+                  <div class="hero-intro__brand">
+                    <span
+                      class="hero-intro__icon has-icon icon-tadawul"
+                      aria-hidden="true"
+                    ></span>
 
-                <h1 id="main-market-title" class="hero-intro__title">
-                  Main Market
-                </h1>
+                    <h1 id="main-market-title" class="hero-intro__title">
+                      Main Market
+                    </h1>
+                  </div>
+
+                  <p
+                    id="main-market-description"
+                    class="hero-intro__description"
+                  >
+                    An overview of activity across the Exchange’s Main Market.
+                  </p>
+                </header>
               </div>
-
-              <p id="main-market-description" class="hero-intro__description">
-                An overview of activity across the Exchange’s Main Market.
-              </p>
-            </header>
+            </div>
 
             <!-- ====================================================================
-           Footer
+           Secondary
            ==================================================================== -->
 
-            <footer class="hero-intro__footer">
+            <aside
+              class="split-layout__secondary main-market-hero__summary"
+              aria-label="Main Market summary"
+              data-motion="reveal"
+              data-motion-from="end"
+            >
               <!-- ==================================================================
              TASI Index
              ================================================================== -->
@@ -5545,15 +5602,11 @@
                ================================================================ -->
 
                 <div class="instrument-price__current">
-                  <!-- Initial Loading -->
-
                   <span
                     class="skeleton skeleton--market-value"
                     aria-hidden="true"
                     data-market-index-loading
                   ></span>
-
-                  <!-- Live Value -->
 
                   <data
                     class="instrument-price__value market-live-update"
@@ -5574,8 +5627,6 @@
                   class="instrument-price__change price-up"
                   data-market-index-change-state
                 >
-                  <!-- Initial Loading -->
-
                   <span
                     class="skeleton skeleton--market-change"
                     aria-hidden="true"
@@ -5588,8 +5639,6 @@
                     data-market-index-loading
                   ></span>
 
-                  <!-- Direction Icon -->
-
                   <span
                     class="instrument-price__change-icon has-icon icon-triangle-up"
                     aria-hidden="true"
@@ -5597,8 +5646,6 @@
                     data-market-index-live
                     hidden
                   ></span>
-
-                  <!-- Change Value -->
 
                   <data
                     class="instrument-price__change-value market-live-update"
@@ -5609,8 +5656,6 @@
                   >
                     28.65
                   </data>
-
-                  <!-- Change Percentage -->
 
                   <span
                     class="instrument-price__change-percentage"
@@ -5627,7 +5672,10 @@
              Actions
              ================================================================== -->
 
-              <nav class="hero-intro__actions" aria-label="Main Market actions">
+              <nav
+                class="main-market-hero__actions"
+                aria-label="Main Market actions"
+              >
                 <a class="btn btn-light btn-arrow" href="#">
                   <span>Invest Now</span>
 
@@ -5646,7 +5694,7 @@
                   ></span>
                 </a>
               </nav>
-            </footer>
+            </aside>
           </div>
         </div>
       </section>
@@ -5660,7 +5708,12 @@
         aria-labelledby="market-dashboard-title"
       >
         <div class="container">
-          <div class="market-dashboard__surface">
+          <div
+            class="content-panel content-panel--alt"
+            data-motion="reveal"
+            data-motion-from="bottom"
+            data-motion-distance="sm"
+          >
             <h2 id="market-dashboard-title" class="visually-hidden">
               Main Market Dashboard
             </h2>
@@ -5669,12 +5722,21 @@
            Main dashboard columns
            =============================================================== -->
 
-            <div class="market-dashboard__grid">
+            <div
+              class="market-dashboard__grid"
+              data-motion-group
+              data-motion-stagger="normal"
+            >
               <!-- =============================================================
      Market Performance
      ============================================================= -->
 
-              <div class="market-dashboard__primary">
+              <div
+                class="market-dashboard__primary"
+                data-motion="reveal"
+                data-motion-from="start"
+                data-motion-distance="sm"
+              >
                 <section
                   class="performance-chart market-index-chart"
                   data-performance-chart
@@ -6024,6 +6086,9 @@
               <section
                 class="market-dashboard__secondary market-activity"
                 aria-labelledby="market-activity-title"
+                data-motion="reveal"
+                data-motion-from="end"
+                data-motion-distance="sm"
               >
                 <header class="market-activity__header">
                   <span
@@ -7731,12 +7796,15 @@
               aria-label="Main Market trading summary"
               aria-busy="true"
               data-market-metrics
+              data-motion-group
+              data-motion-stagger="fast"
             >
-              <!-- =============================================================
-       Value Traded
-       ============================================================= -->
-
-              <div class="market-dashboard__metric">
+              <div
+                class="market-dashboard__metric"
+                data-motion="reveal"
+                data-motion-from="bottom"
+                data-motion-distance="sm"
+              >
                 <dt class="market-dashboard__metric-label">Value Traded</dt>
 
                 <dd class="market-dashboard__metric-value" dir="ltr">
@@ -7761,7 +7829,12 @@
        Volume Traded
        ============================================================= -->
 
-              <div class="market-dashboard__metric">
+              <div
+                class="market-dashboard__metric"
+                data-motion="reveal"
+                data-motion-from="bottom"
+                data-motion-distance="sm"
+              >
                 <dt class="market-dashboard__metric-label">Volume Traded</dt>
 
                 <dd class="market-dashboard__metric-value" dir="ltr">
@@ -7786,7 +7859,12 @@
        Market Capitalization
        ============================================================= -->
 
-              <div class="market-dashboard__metric">
+              <div
+                class="market-dashboard__metric"
+                data-motion="reveal"
+                data-motion-from="bottom"
+                data-motion-distance="sm"
+              >
                 <dt class="market-dashboard__metric-label">
                   Market Capitalization
                 </dt>
@@ -7813,7 +7891,12 @@
        Symbols Up
        ============================================================= -->
 
-              <div class="market-dashboard__metric">
+              <div
+                class="market-dashboard__metric"
+                data-motion="reveal"
+                data-motion-from="bottom"
+                data-motion-distance="sm"
+              >
                 <dt class="market-dashboard__metric-label price-up">
                   Symbols Up
                 </dt>
@@ -7840,7 +7923,12 @@
        Symbols Down
        ============================================================= -->
 
-              <div class="market-dashboard__metric">
+              <div
+                class="market-dashboard__metric"
+                data-motion="reveal"
+                data-motion-from="bottom"
+                data-motion-distance="sm"
+              >
                 <dt class="market-dashboard__metric-label price-down">
                   Symbols Down
                 </dt>
@@ -7867,7 +7955,12 @@
        Symbols Listed
        ============================================================= -->
 
-              <div class="market-dashboard__metric">
+              <div
+                class="market-dashboard__metric"
+                data-motion="reveal"
+                data-motion-from="bottom"
+                data-motion-distance="sm"
+              >
                 <dt class="market-dashboard__metric-label">Symbols Listed</dt>
 
                 <dd class="market-dashboard__metric-value" dir="ltr">
@@ -7892,18 +7985,23 @@
             <!-- ===============================================================
            Dashboard note
            =============================================================== -->
-
-            <aside class="chart-notes" aria-label="Chart information">
-              <ul class="chart-notes__list">
-                <li class="chart-notes__item">
+            <aside
+              class="note-panel note-panel--compact"
+              aria-label="Market information"
+              data-motion="reveal"
+              data-motion-from="bottom"
+              data-motion-distance="sm"
+            >
+              <ul class="note-panel__list">
+                <li class="note-panel__item">
                   <span
-                    class="chart-notes__status has-icon icon-check"
+                    class="note-panel__marker has-icon icon-check"
                     aria-hidden="true"
                   ></span>
 
-                  <span class="chart-notes__text">
+                  <div class="note-panel__content">
                     Prices are delayed by a minimum of five minutes.
-                  </span>
+                  </div>
                 </li>
               </ul>
             </aside>

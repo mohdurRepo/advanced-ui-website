@@ -1,7 +1,3 @@
-/* ==========================================================================
-   Dropdown
-   ========================================================================== */
-
 const SELECTORS = {
   root: "[data-dropdown]",
   trigger: "[data-dropdown-trigger]",
@@ -20,15 +16,26 @@ const CLASSES = {
 const initializedDropdowns = new WeakSet();
 
 let activeDropdown = null;
+let dropdownId = 0;
+let globalListenersBound = false;
 
 /* ==========================================================================
    Helpers
    ========================================================================== */
 
 /**
- * Return the trigger and menu owned by a dropdown root.
+ * Returns the event target when it is an Element.
  *
- * Nested dropdowns are excluded.
+ * Delegated event handlers must not assume EventTarget implements closest().
+ */
+
+const getEventElement = (event) =>
+  event.target instanceof Element ? event.target : null;
+
+/**
+ * Returns the trigger and menu owned by a dropdown root.
+ *
+ * Elements belonging to nested dropdown roots are excluded.
  *
  * @param {HTMLElement} root
  * @returns {{
@@ -36,6 +43,7 @@ let activeDropdown = null;
  *   menu: HTMLElement
  * } | null}
  */
+
 const getDropdownParts = (root) => {
   const trigger = Array.from(root.querySelectorAll(SELECTORS.trigger)).find(
     (element) => element.closest(SELECTORS.root) === root,
@@ -60,11 +68,12 @@ const getDropdownParts = (root) => {
 };
 
 /**
- * Return enabled menu items owned by one dropdown.
+ * Returns enabled menu items owned by one dropdown.
  *
  * @param {HTMLElement} root
  * @returns {HTMLElement[]}
  */
+
 const getMenuItems = (root) => {
   const parts = getDropdownParts(root);
 
@@ -75,6 +84,7 @@ const getMenuItems = (root) => {
   return Array.from(parts.menu.querySelectorAll(SELECTORS.item)).filter(
     (item) => {
       const ownsItem = item.closest(SELECTORS.root) === root;
+
       const isDisabled =
         item.matches(":disabled") ||
         item.classList.contains("is-disabled") ||
@@ -86,22 +96,24 @@ const getMenuItems = (root) => {
 };
 
 /**
- * Check whether a trigger is disabled.
+ * Checks whether a trigger or menu item is disabled.
  *
- * @param {HTMLElement} trigger
+ * @param {HTMLElement} element
  * @returns {boolean}
  */
-const isTriggerDisabled = (trigger) =>
-  trigger.matches(":disabled") ||
-  trigger.classList.contains("is-disabled") ||
-  trigger.getAttribute("aria-disabled") === "true";
+
+const isDisabled = (element) =>
+  element.matches(":disabled") ||
+  element.classList.contains("is-disabled") ||
+  element.getAttribute("aria-disabled") === "true";
 
 /**
- * Check whether a dropdown is open.
+ * Checks whether a dropdown is open.
  *
  * @param {HTMLElement} root
  * @returns {boolean}
  */
+
 const isDropdownOpen = (root) => {
   const parts = getDropdownParts(root);
 
@@ -115,17 +127,33 @@ const isDropdownOpen = (root) => {
 };
 
 /* ==========================================================================
+   IDs
+   ========================================================================== */
+
+const createUniqueId = (prefix) => {
+  let id;
+
+  do {
+    dropdownId += 1;
+    id = `${prefix}-${dropdownId}`;
+  } while (document.getElementById(id));
+
+  return id;
+};
+
+/* ==========================================================================
    State
    ========================================================================== */
 
 /**
- * Close one dropdown.
+ * Closes one dropdown.
  *
  * @param {HTMLElement} root
  * @param {{
  *   restoreFocus?: boolean
  * }} options
  */
+
 const closeDropdown = (root, { restoreFocus = false } = {}) => {
   const parts = getDropdownParts(root);
 
@@ -134,6 +162,7 @@ const closeDropdown = (root, { restoreFocus = false } = {}) => {
   }
 
   const { trigger, menu } = parts;
+  const wasOpen = isDropdownOpen(root);
 
   trigger.setAttribute("aria-expanded", "false");
 
@@ -151,6 +180,10 @@ const closeDropdown = (root, { restoreFocus = false } = {}) => {
     trigger.focus();
   }
 
+  if (!wasOpen) {
+    return;
+  }
+
   root.dispatchEvent(
     new CustomEvent("dropdown:close", {
       bubbles: true,
@@ -163,11 +196,12 @@ const closeDropdown = (root, { restoreFocus = false } = {}) => {
 };
 
 /**
- * Close the currently active dropdown.
+ * Closes the currently active dropdown.
  *
  * @param {HTMLElement | null} exceptRoot
  * @param {{ restoreFocus?: boolean }} options
  */
+
 const closeActiveDropdown = (
   exceptRoot = null,
   { restoreFocus = false } = {},
@@ -182,13 +216,14 @@ const closeActiveDropdown = (
 };
 
 /**
- * Open one dropdown.
+ * Opens one dropdown.
  *
  * @param {HTMLElement} root
  * @param {{
  *   focus?: "first" | "last" | false
  * }} options
  */
+
 const openDropdown = (root, { focus = false } = {}) => {
   const parts = getDropdownParts(root);
 
@@ -198,7 +233,18 @@ const openDropdown = (root, { focus = false } = {}) => {
 
   const { trigger, menu } = parts;
 
-  if (isTriggerDisabled(trigger)) {
+  if (isDisabled(trigger)) {
+    return;
+  }
+
+  if (isDropdownOpen(root)) {
+    if (focus) {
+      const items = getMenuItems(root);
+      const target = focus === "last" ? items.at(-1) : items[0];
+
+      target?.focus();
+    }
+
     return;
   }
 
@@ -216,6 +262,7 @@ const openDropdown = (root, { focus = false } = {}) => {
 
   if (focus) {
     const items = getMenuItems(root);
+
     const target = focus === "last" ? items.at(-1) : items[0];
 
     target?.focus();
@@ -233,17 +280,23 @@ const openDropdown = (root, { focus = false } = {}) => {
 };
 
 /**
- * Toggle one dropdown.
+ * Toggles one dropdown.
  *
  * @param {HTMLElement} root
+ * @param {{
+ *   focus?: "first" | "last" | false
+ * }} options
  */
-const toggleDropdown = (root) => {
+
+const toggleDropdown = (root, { focus = false } = {}) => {
   if (isDropdownOpen(root)) {
     closeDropdown(root);
     return;
   }
 
-  openDropdown(root);
+  openDropdown(root, {
+    focus,
+  });
 };
 
 /* ==========================================================================
@@ -251,10 +304,14 @@ const toggleDropdown = (root) => {
    ========================================================================== */
 
 /**
- * Initialize one dropdown.
+ * Initializes one dropdown.
+ *
+ * Dropdown triggers are expected to be buttons. Button triggers are normalized
+ * to type="button" so they cannot accidentally submit a surrounding form.
  *
  * @param {HTMLElement} root
  */
+
 const initializeDropdown = (root) => {
   if (initializedDropdowns.has(root)) {
     return;
@@ -268,30 +325,40 @@ const initializeDropdown = (root) => {
 
   const { trigger, menu } = parts;
 
-  if (!trigger.hasAttribute("aria-haspopup")) {
-    trigger.setAttribute("aria-haspopup", "menu");
+  if (trigger instanceof HTMLButtonElement && !trigger.hasAttribute("type")) {
+    trigger.type = "button";
   }
 
+  if (!trigger.id) {
+    trigger.id = createUniqueId("dropdown-trigger");
+  }
+
+  if (!menu.id) {
+    menu.id = createUniqueId("dropdown-menu");
+  }
+
+  trigger.setAttribute("aria-haspopup", "menu");
   trigger.setAttribute("aria-expanded", "false");
+  trigger.setAttribute("aria-controls", menu.id);
 
-  if (!menu.hasAttribute("role")) {
-    menu.setAttribute("role", "menu");
-  }
+  menu.setAttribute("role", "menu");
+  menu.setAttribute("aria-labelledby", trigger.id);
 
   menu.hidden = true;
+  menu.classList.remove(CLASSES.open);
+  menu.removeAttribute("data-open");
 
-  if (menu.id) {
-    trigger.setAttribute("aria-controls", menu.id);
-  }
+  root.classList.remove(CLASSES.open);
 
   initializedDropdowns.add(root);
 };
 
 /**
- * Initialize all dropdowns inside a scope.
+ * Initializes all dropdowns inside a scope.
  *
  * @param {ParentNode} scope
  */
+
 const initializeDropdownsIn = (scope = document) => {
   if (scope instanceof HTMLElement && scope.matches(SELECTORS.root)) {
     initializeDropdown(scope);
@@ -307,41 +374,51 @@ const initializeDropdownsIn = (scope = document) => {
    ========================================================================== */
 
 const handleDocumentClick = (event) => {
-  const trigger = event.target.closest(SELECTORS.trigger);
+  const target = getEventElement(event);
+
+  if (!target) {
+    return;
+  }
+
+  const trigger = target.closest(SELECTORS.trigger);
 
   if (trigger instanceof HTMLElement) {
     const root = trigger.closest(SELECTORS.root);
 
-    if (root instanceof HTMLElement) {
-      event.preventDefault();
-      event.stopPropagation();
+    if (
+      root instanceof HTMLElement &&
+      trigger.closest(SELECTORS.root) === root
+    ) {
+      if (isDisabled(trigger)) {
+        event.preventDefault();
+        return;
+      }
 
-      toggleDropdown(root);
+      /*
+       * Menu-button activation moves focus into the menu.
+       * Native buttons already translate Enter and Space into click events,
+       * so keyboard activation follows this same path.
+       */
+      toggleDropdown(root, {
+        focus: "first",
+      });
+
       return;
     }
   }
 
-  const menuItem = event.target.closest(SELECTORS.item);
+  const menuItem = target.closest(SELECTORS.item);
 
   if (menuItem instanceof HTMLElement) {
     const root = menuItem.closest(SELECTORS.root);
 
-    if (
-      root instanceof HTMLElement &&
-      menuItem.getAttribute("aria-disabled") !== "true" &&
-      !menuItem.classList.contains("is-disabled") &&
-      !menuItem.matches(":disabled")
-    ) {
+    if (root instanceof HTMLElement && !isDisabled(menuItem)) {
       closeDropdown(root);
       return;
     }
   }
 
-  if (
-    activeDropdown &&
-    event.target instanceof Node &&
-    !activeDropdown.contains(event.target)
-  ) {
+  if (activeDropdown && !activeDropdown.contains(target)) {
     closeDropdown(activeDropdown);
   }
 };
@@ -351,7 +428,13 @@ const handleDocumentClick = (event) => {
    ========================================================================== */
 
 const handleDocumentKeydown = (event) => {
-  const trigger = event.target.closest(SELECTORS.trigger);
+  const target = getEventElement(event);
+
+  if (!target) {
+    return;
+  }
+
+  const trigger = target.closest(SELECTORS.trigger);
 
   if (trigger instanceof HTMLElement) {
     const root = trigger.closest(SELECTORS.root);
@@ -360,25 +443,34 @@ const handleDocumentKeydown = (event) => {
       return;
     }
 
+    if (isDisabled(trigger)) {
+      return;
+    }
+
     switch (event.key) {
-      case "Enter":
-      case " ":
-        event.preventDefault();
-        toggleDropdown(root);
-        return;
+      /*
+       * Enter and Space are intentionally not handled here.
+       *
+       * Native buttons already activate through click for these keys.
+       * Handling them here as well would cause duplicate toggles.
+       */
 
       case "ArrowDown":
         event.preventDefault();
+
         openDropdown(root, {
           focus: "first",
         });
+
         return;
 
       case "ArrowUp":
         event.preventDefault();
+
         openDropdown(root, {
           focus: "last",
         });
+
         return;
 
       case "Escape":
@@ -386,6 +478,7 @@ const handleDocumentKeydown = (event) => {
           event.preventDefault();
           closeDropdown(root);
         }
+
         return;
 
       default:
@@ -393,7 +486,7 @@ const handleDocumentKeydown = (event) => {
     }
   }
 
-  const menuItem = event.target.closest(SELECTORS.item);
+  const menuItem = target.closest(SELECTORS.item);
 
   if (!(menuItem instanceof HTMLElement)) {
     if (event.key === "Escape" && activeDropdown) {
@@ -414,6 +507,11 @@ const handleDocumentKeydown = (event) => {
   }
 
   const items = getMenuItems(root);
+
+  if (items.length === 0) {
+    return;
+  }
+
   const currentIndex = items.indexOf(menuItem);
 
   if (currentIndex === -1) {
@@ -449,6 +547,10 @@ const handleDocumentKeydown = (event) => {
       return;
 
     case "Tab":
+      /*
+       * Do not trap focus. The menu closes and normal browser tab navigation
+       * continues to the next focusable element.
+       */
       closeDropdown(root);
       return;
 
@@ -457,6 +559,7 @@ const handleDocumentKeydown = (event) => {
   }
 
   event.preventDefault();
+
   items[nextIndex]?.focus();
 };
 
@@ -494,11 +597,10 @@ const observer = new MutationObserver((mutations) => {
    Public API
    ========================================================================== */
 
-let globalListenersBound = false;
-
 /**
- * Initialize the reusable dropdown system.
+ * Initializes the reusable dropdown system.
  */
+
 export const initDropdowns = () => {
   initializeDropdownsIn(document);
 
@@ -519,21 +621,26 @@ export const initDropdowns = () => {
 };
 
 /**
- * Programmatically open a dropdown.
+ * Programmatically opens a dropdown.
  *
  * @param {HTMLElement} root
+ * @param {{
+ *   focus?: "first" | "last" | false
+ * }} options
  */
-export const showDropdown = (root) => {
+
+export const showDropdown = (root, options = {}) => {
   initializeDropdown(root);
-  openDropdown(root);
+  openDropdown(root, options);
 };
 
 /**
- * Programmatically close a dropdown.
+ * Programmatically closes a dropdown.
  *
  * @param {HTMLElement} root
  * @param {{ restoreFocus?: boolean }} options
  */
+
 export const hideDropdown = (root, options = {}) => {
   closeDropdown(root, options);
 };
