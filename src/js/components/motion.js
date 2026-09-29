@@ -3,35 +3,33 @@
    ========================================================================== */
 
 /**
- * Progressive-enhancement motion system.
+ * Progressive-enhancement motion runtime.
  *
- * Supported modes:
+ * Types (data-motion)
+ *   reveal | type | words | chars | placeholder
  *
- * - data-motion="reveal"
- * - data-motion="type"
- * - data-motion="words"
- * - data-motion="chars"
- * - data-motion="placeholder"   (inputs / textareas)
+ * Authority
+ *   The site preference <html data-motion-preference="reduce"> is the only
+ *   switch. Operating-system motion settings are intentionally not read, so
+ *   every visitor gets the same behaviour.
  *
- * Design goals:
+ * Guarantees
+ *   - no scroll listeners (IntersectionObserver only);
+ *   - content is never lost if JavaScript fails, loads late or is blocked;
+ *   - screen readers get the full text once;
+ *   - no inline styles, no layout shift, no layout-property animation;
+ *   - RTL handled in SCSS, not runtime direction math.
  *
- * - no scroll listeners (IntersectionObserver only);
- * - content is never lost if JavaScript fails or loads late;
- * - reduced motion respected (OS setting and site setting, live);
- * - RTL handled by SCSS, not runtime direction math;
- * - accessible text animation (screen readers get the full text once);
- * - no layout shift and no layout-property animation.
+ * State classes (read by SCSS)
+ *   .motion-ready        on <html>: the runtime is active
+ *   .is-motion-enhanced  text host has been prepared
+ *   .is-motion-visible   element has entered and is animating in
+ *   .is-motion-complete  finished; motion styles released
+ *   .is-motion-in        this word / character has entered
  *
- * State classes (read by SCSS):
- *
- * - .is-motion-enhanced  text host has been split / prepared;
- * - .is-motion-visible   element has entered and is animating in;
- * - .is-motion-complete  animation finished; motion styles released;
- * - .is-motion-in        (text units) this word / character has entered.
- *
- * Clean DOM: Motion never writes inline `style` attributes. Delays and
- * staggers are scheduled in JavaScript; custom durations become shared,
- * de-duplicated rules in one runtime stylesheet.
+ * Timing
+ *   Delays and staggers are scheduled here. Custom durations become shared,
+ *   de-duplicated rules in one runtime stylesheet.
  */
 
 /* ==========================================================================
@@ -41,6 +39,8 @@
 const MOTION_SELECTOR = "[data-motion]";
 const GROUP_SELECTOR = "[data-motion-group]";
 const ANY_MOTION_SELECTOR = `${MOTION_SELECTOR}, ${GROUP_SELECTOR}`;
+
+const PREFERENCE_ATTRIBUTE = "data-motion-preference";
 
 /* ==========================================================================
    Defaults
@@ -54,7 +54,7 @@ const ANY_MOTION_SELECTOR = `${MOTION_SELECTOR}, ${GROUP_SELECTOR}`;
 const DEFAULT_THRESHOLD = 0;
 const DEFAULT_ROOT_MARGIN = "0px 0px -12% 0px";
 
-/* Fallbacks only; the real values come from the SCSS custom properties. */
+/* Fallbacks only; the real values come from motion/_config.scss. */
 
 const DEFAULT_REVEAL_DURATION = 800;
 const DEFAULT_TEXT_DURATION = 650;
@@ -63,11 +63,11 @@ const DEFAULT_GROUP_STAGGER = 100;
 
 /* Typing: milliseconds per character. */
 
-const TYPING_SPEEDS = {
+const TYPING_SPEEDS = Object.freeze({
   fast: 30,
   normal: 45,
   slow: 70,
-};
+});
 
 /* Natural pauses after punctuation (multiplier of typing speed). */
 
@@ -81,6 +81,10 @@ const CLAUSE_END = /[,;:،؛]$/u;
 
 const COMPLETION_BUFFER = 50;
 
+/* Maximum wait for web fonts before the first sequence starts. */
+
+const PAGE_READY_MAX_WAIT = 1200;
+
 const PRESETS = new Set(["fast", "normal", "slow"]);
 
 const SUPPORTED_TYPES = new Set([
@@ -90,8 +94,8 @@ const SUPPORTED_TYPES = new Set([
   "chars",
   "placeholder",
 ]);
+
 const TEXT_TYPES = new Set(["type", "words", "chars"]);
-const UNIT_TYPES = new Set(["words", "chars"]);
 
 /**
  * Cursive scripts whose letters join. Splitting them into separate boxes
@@ -118,19 +122,36 @@ const elementDelays = new WeakMap();
 
 const startTimers = new WeakMap();
 
+/* Grapheme segmenters, one per language. */
+
+const segmenters = new Map();
+
 /* Runtime stylesheet for custom durations (see registerDurationRule). */
 
 let runtimeSheet = null;
 
 const registeredDurations = new Set();
 
+/* Enter observers, pooled by threshold + rootMargin. */
+
 const observerPool = new Map();
+
+/* One exit observer for repeat-mode elements (see Intersection). */
+
+let exitObserver = null;
 
 let mutationObserver = null;
 let preferenceObserver = null;
-let motionMediaQuery = null;
 
 let initialized = false;
+
+/*
+ * pending  initialization is still deciding whether Motion can run;
+ * enabled  the full runtime is available;
+ * static   fallback: always show final content.
+ */
+
+let runtimeMode = "pending";
 
 /* ==========================================================================
    General Helpers
@@ -185,7 +206,9 @@ function getState(element) {
   let state = elementStates.get(element);
 
   if (!state) {
-    state = { completionTimer: null };
+    state = {
+      completionTimer: null,
+    };
 
     elementStates.set(element, state);
   }
@@ -193,35 +216,15 @@ function getState(element) {
   return state;
 }
 
-/**
- * The group that owns an element — never the element itself.
- */
+function isInViewport(element) {
+  const rect = element.getBoundingClientRect();
 
-function getOwningGroup(element) {
-  return element.parentElement?.closest(GROUP_SELECTOR) ?? null;
-}
-
-/**
- * The group this element is a stagger item of, or null.
- *
- * Only top-level items count. A Motion element nested inside another item
- * (e.g. a typing input inside a revealed card) is not staggered separately;
- * it keeps its own data-motion-delay instead.
- */
-
-function getItemGroup(element) {
-  const group = getOwningGroup(element);
-
-  if (!group) {
-    return null;
-  }
-
-  const parentMotion = element.parentElement?.closest(MOTION_SELECTOR);
-
-  const nested =
-    parentMotion && parentMotion !== group && group.contains(parentMotion);
-
-  return nested ? null : group;
+  return (
+    rect.bottom > 0 &&
+    rect.right > 0 &&
+    rect.top < window.innerHeight &&
+    rect.left < window.innerWidth
+  );
 }
 
 /* ==========================================================================
@@ -230,19 +233,46 @@ function getItemGroup(element) {
 
 function prefersReducedMotion() {
   return (
-    document.documentElement.dataset.motion === "reduce" ||
-    motionMediaQuery?.matches === true
+    document.documentElement.getAttribute(PREFERENCE_ATTRIBUTE) === "reduce"
   );
+}
+
+/**
+ * True only when the runtime is active and the site allows motion.
+ * Every start, step and resume re-checks this, so a preference change
+ * takes effect immediately, even mid-animation.
+ */
+
+function canAnimate() {
+  return runtimeMode === "enabled" && !prefersReducedMotion();
+}
+
+/**
+ * If a required primitive is missing, Motion fails open and leaves content
+ * in its final visible state.
+ */
+
+function supportsMotionRuntime() {
+  return (
+    typeof window.IntersectionObserver === "function" &&
+    typeof window.MutationObserver === "function"
+  );
+}
+
+/**
+ * Public read-only motion preference.
+ *
+ * Other components should use this instead of their own checks, so the
+ * whole site follows one setting.
+ */
+
+export function isReducedMotion() {
+  return prefersReducedMotion();
 }
 
 /* ==========================================================================
    Motion Type
    ========================================================================== */
-
-/**
- * <html data-motion="normal|reduce"> is the site setting, not a Motion
- * element; it is ignored here because those values are not supported types.
- */
 
 function getMotionType(element) {
   if (!isElement(element)) {
@@ -287,12 +317,17 @@ function getManualDelay(element) {
 }
 
 /**
- * The element's start delay: group stagger + manual delay for group items,
- * manual delay otherwise.
+ * Group items: group stagger + manual delay. Others: manual delay.
  */
 
 function getDelay(element) {
   return elementDelays.get(element) ?? getManualDelay(element);
+}
+
+function hasStarted(element) {
+  return (
+    element.classList.contains("is-motion-visible") || startTimers.has(element)
+  );
 }
 
 /* ==========================================================================
@@ -300,13 +335,16 @@ function getDelay(element) {
    ========================================================================== */
 
 /**
- * Custom durations (data-motion-duration="400") cannot be expressed in the
- * static SCSS. Instead of inline styles, each distinct value gets one shared
- * rule in a single runtime stylesheet:
+ * data-motion-duration="400" cannot be expressed by the static presets, so
+ * each distinct value receives one shared rule in a single runtime <style>:
  *
- *   [data-motion][data-motion-duration="400"] { --motion-duration: 400ms; … }
+ *   [data-motion][data-motion-duration="400"] {
+ *     --motion-duration: 400ms;
+ *     --motion-text-duration: 400ms;
+ *   }
  *
- * Ten elements with the same value share one rule; the DOM stays clean.
+ * A plain <style> element is used instead of adoptedStyleSheets for the
+ * widest browser support.
  */
 
 function getRuntimeSheet() {
@@ -314,28 +352,29 @@ function getRuntimeSheet() {
     return runtimeSheet;
   }
 
-  const supportsAdopted =
-    "adoptedStyleSheets" in Document.prototype &&
-    "replaceSync" in CSSStyleSheet.prototype;
+  const style = document.createElement("style");
 
-  if (supportsAdopted) {
-    runtimeSheet = new CSSStyleSheet();
+  style.dataset.motionRuntime = "";
 
-    document.adoptedStyleSheets = [
-      ...document.adoptedStyleSheets,
-      runtimeSheet,
-    ];
-  } else {
-    const style = document.createElement("style");
+  document.head.append(style);
 
-    style.dataset.motionRuntime = "";
-
-    document.head.append(style);
-
-    runtimeSheet = style.sheet;
-  }
+  runtimeSheet = style.sheet;
 
   return runtimeSheet;
+}
+
+/**
+ * Escapes a value for a quoted CSS attribute selector without relying on
+ * CSS.escape().
+ */
+
+function escapeCssString(value) {
+  return String(value)
+    .replaceAll("\\", "\\\\")
+    .replaceAll('"', '\\"')
+    .replaceAll("\n", "\\a ")
+    .replaceAll("\r", "\\d ")
+    .replaceAll("\f", "\\c ");
 }
 
 function registerDurationRule(value) {
@@ -345,27 +384,34 @@ function registerDurationRule(value) {
     return;
   }
 
-  registeredDurations.add(key);
+  /* parseMilliseconds() normalizes invalid input to a safe number. */
 
   const milliseconds = parseMilliseconds(key, DEFAULT_REVEAL_DURATION);
 
-  const selector = `[data-motion][data-motion-duration="${CSS.escape(key)}"]`;
+  const selector = `[data-motion][data-motion-duration="${escapeCssString(
+    key,
+  )}"]`;
 
   try {
     const sheet = getRuntimeSheet();
 
+    if (!sheet) {
+      return;
+    }
+
     sheet.insertRule(
-      `${selector} { --motion-duration: ${milliseconds}ms; --motion-text-duration: ${milliseconds}ms; }`,
+      `${selector} { ` +
+        `--motion-duration: ${milliseconds}ms; ` +
+        `--motion-text-duration: ${milliseconds}ms; ` +
+        `}`,
       sheet.cssRules.length,
     );
+
+    registeredDurations.add(key);
   } catch {
-    /* Invalid value: the preset duration simply applies. */
+    /* A malformed value must never break Motion; SCSS timing remains. */
   }
 }
-
-/**
- * Read per-element options from data attributes.
- */
 
 function applyElementConfiguration(element, type) {
   if (element.dataset.motionDuration !== undefined && type !== "type") {
@@ -374,8 +420,38 @@ function applyElementConfiguration(element, type) {
 }
 
 /* ==========================================================================
-   Group Configuration
+   Groups
    ========================================================================== */
+
+/**
+ * The group that owns an element, never the element itself.
+ */
+
+function getOwningGroup(element) {
+  return element.parentElement?.closest(GROUP_SELECTOR) ?? null;
+}
+
+/**
+ * The group this element is a stagger item of, or null.
+ *
+ * Only top-level items count. A Motion element nested inside another item
+ * (e.g. a typing input inside a revealed card) keeps its own delay.
+ */
+
+function getItemGroup(element) {
+  const group = getOwningGroup(element);
+
+  if (!group) {
+    return null;
+  }
+
+  const parentMotion = element.parentElement?.closest(MOTION_SELECTOR);
+
+  const nested =
+    parentMotion && parentMotion !== group && group.contains(parentMotion);
+
+  return nested ? null : group;
+}
 
 /**
  * Numeric attributes are read directly; presets come from the SCSS tokens.
@@ -411,22 +487,25 @@ function getGroupItems(group) {
   );
 }
 
+/**
+ * Only items that have not started are (re)indexed, so items inserted
+ * later stagger among themselves instead of inheriting a long delay from
+ * their position in the whole group.
+ */
+
 function applyGroupTiming(group) {
   const stagger = getGroupStagger(group);
+
   const groupDelay = getGroupDelay(group);
 
-  getGroupItems(group).forEach((element, index) => {
-    const type = getMotionType(element);
-
-    if (!type) {
-      return;
-    }
-
-    elementDelays.set(
-      element,
-      groupDelay + index * stagger + getManualDelay(element),
-    );
-  });
+  getGroupItems(group)
+    .filter((element) => getMotionType(element) && !hasStarted(element))
+    .forEach((element, index) => {
+      elementDelays.set(
+        element,
+        groupDelay + index * stagger + getManualDelay(element),
+      );
+    });
 }
 
 function initializeGroup(group) {
@@ -448,11 +527,9 @@ function initializeGroups(scope = document) {
 }
 
 function refreshGroup(group) {
-  if (!isElement(group)) {
-    return;
+  if (isElement(group)) {
+    applyGroupTiming(group);
   }
-
-  applyGroupTiming(group);
 }
 
 /* ==========================================================================
@@ -467,16 +544,42 @@ function getElementLanguage(element) {
   );
 }
 
-function segmentGraphemes(element, text) {
-  if (typeof Intl !== "undefined" && typeof Intl.Segmenter === "function") {
-    const segmenter = new Intl.Segmenter(getElementLanguage(element), {
-      granularity: "grapheme",
-    });
+/**
+ * One Intl.Segmenter per language. An invalid language tag or a missing
+ * Intl.Segmenter falls back to code points.
+ */
 
-    return Array.from(segmenter.segment(text), ({ segment }) => segment);
+function getSegmenter(language) {
+  if (typeof Intl === "undefined" || typeof Intl.Segmenter !== "function") {
+    return null;
   }
 
-  return Array.from(text);
+  const key = language ?? "";
+
+  if (!segmenters.has(key)) {
+    try {
+      segmenters.set(
+        key,
+        new Intl.Segmenter(language, { granularity: "grapheme" }),
+      );
+    } catch {
+      segmenters.set(key, null);
+    }
+  }
+
+  return segmenters.get(key);
+}
+
+function segmentGraphemes(element, text) {
+  const segmenter = getSegmenter(getElementLanguage(element));
+
+  if (!segmenter) {
+    /* Code points: never splits UTF-16 surrogate pairs. */
+
+    return Array.from(text);
+  }
+
+  return Array.from(segmenter.segment(text), ({ segment }) => segment);
 }
 
 function segmentWords(text) {
@@ -517,11 +620,8 @@ function createHiddenSpan(className, text = "") {
 }
 
 /**
- * Replace the host content with the prepared layers.
- *
- * Screen readers get one clean copy of the text through .motion-text__sr
- * (aria-label is ignored on <p> and generic elements). If the author already
- * supplied an aria-label, that is respected instead.
+ * Screen readers get one clean copy through .motion-text__sr (aria-label is
+ * ignored on <p> and generic elements). An author aria-label is respected.
  */
 
 function mountTextLayers(element, text, layers) {
@@ -553,7 +653,7 @@ function prepareUnitText(element, type, text) {
   const units = [];
 
   segments.forEach((segment) => {
-    /* Whitespace stays a plain text node so it never animates on its own. */
+    /* Whitespace stays a plain text node so it never animates alone. */
 
     if (/^\s+$/u.test(segment)) {
       visual.append(document.createTextNode(segment));
@@ -570,7 +670,10 @@ function prepareUnitText(element, type, text) {
 
   mountTextLayers(element, text, [visual]);
 
-  return { units };
+  return {
+    units,
+    unitFrame: null,
+  };
 }
 
 /* ==========================================================================
@@ -598,6 +701,7 @@ function prepareTypingText(element, text) {
 
   return {
     typed,
+
     graphemes: segmentGraphemes(element, text),
 
     typingIndex: 0,
@@ -611,16 +715,16 @@ function prepareTypingText(element, text) {
    ========================================================================== */
 
 function initializeTextElement(element, type) {
-  /* Plain-text hosts only; rich markup is never destructively split. */
+  /*
+   * Plain-text hosts only. Rich markup is never split, because that could
+   * remove links, inline semantics or component structure.
+   */
 
   if (element.childElementCount > 0) {
     return false;
   }
 
-  /*
-   * Collapse source indentation and line breaks. Without this, typing would
-   * "type" the invisible HTML indentation and pause before the first letter.
-   */
+  /* Collapse source indentation so typing never "types" invisible space. */
 
   const text = (element.textContent ?? "").replace(/\s+/gu, " ").trim();
 
@@ -636,6 +740,7 @@ function initializeTextElement(element, type) {
   elementStates.set(element, {
     type,
     text,
+
     completionTimer: null,
 
     ...prepared,
@@ -684,7 +789,7 @@ function getTypingPause(grapheme, speed) {
 
 /**
  * .is-motion-complete releases every motion style, handing the element back
- * to its component (own transitions, hover transforms, etc.).
+ * to its component's own styles and interaction states.
  */
 
 function clearCompletionTimer(element) {
@@ -712,8 +817,8 @@ function scheduleCompletion(element, milliseconds) {
 }
 
 /**
- * Measured from the moment the element starts (its JS delay has passed).
- * A --motion-delay set by an author in CSS is still honored.
+ * Measured from the moment the element starts. The JavaScript delay has
+ * already elapsed; an author --motion-delay in CSS is still included.
  */
 
 function getRevealCompletionTime(element) {
@@ -730,17 +835,18 @@ function getRevealCompletionTime(element) {
 function clearStartTimer(element) {
   const timer = startTimers.get(element);
 
-  if (timer !== undefined) {
-    window.clearTimeout(timer);
-
-    startTimers.delete(element);
+  if (timer === undefined) {
+    return;
   }
+
+  window.clearTimeout(timer);
+
+  startTimers.delete(element);
 }
 
 /**
- * Run `start` after the element's delay. The element stays in its hidden
- * CSS state until then, so no transition-delay (and no inline style) is
- * needed.
+ * Runs `start` after the resolved delay. The element stays in its hidden
+ * CSS state until then, so no inline transition-delay is needed.
  */
 
 function startAfterDelay(element, start) {
@@ -754,23 +860,30 @@ function startAfterDelay(element, start) {
     return;
   }
 
-  startTimers.set(
-    element,
-    window.setTimeout(() => {
-      startTimers.delete(element);
+  const timer = window.setTimeout(() => {
+    startTimers.delete(element);
 
-      start();
-    }, delay),
-  );
+    /* The preference may have changed while waiting. */
+
+    if (!canAnimate()) {
+      completeMotionElement(element);
+
+      return;
+    }
+
+    start();
+  }, delay);
+
+  startTimers.set(element, timer);
 }
 
 /* ==========================================================================
-   Unit Runtime (words / chars)
+   Unit Runtime — Words / Characters
    ========================================================================== */
 
 /**
- * Units enter one by one by receiving .is-motion-in. A single animation
- * frame loop runs only while units are still entering, then stops.
+ * Units enter one by one by receiving .is-motion-in. One animation-frame
+ * loop exists only while units still need to enter.
  */
 
 function stopUnits(state) {
@@ -779,6 +892,34 @@ function stopUnits(state) {
   }
 
   state.unitFrame = null;
+}
+
+function showAllUnits(element) {
+  const state = elementStates.get(element);
+
+  if (!state?.units) {
+    return;
+  }
+
+  stopUnits(state);
+
+  state.units.forEach((unit) => {
+    unit.classList.add("is-motion-in");
+  });
+}
+
+function resetUnits(element) {
+  const state = elementStates.get(element);
+
+  if (!state?.units) {
+    return;
+  }
+
+  stopUnits(state);
+
+  state.units.forEach((unit) => {
+    unit.classList.remove("is-motion-in");
+  });
 }
 
 function revealUnits(element) {
@@ -802,6 +943,12 @@ function revealUnits(element) {
   let startTime = null;
 
   const tick = (now) => {
+    if (!canAnimate()) {
+      completeMotionElement(element);
+
+      return;
+    }
+
     startTime ??= now;
 
     const elapsed = now - startTime;
@@ -824,30 +971,6 @@ function revealUnits(element) {
   };
 
   state.unitFrame = window.requestAnimationFrame(tick);
-}
-
-function showAllUnits(element) {
-  const state = elementStates.get(element);
-
-  if (!state?.units) {
-    return;
-  }
-
-  stopUnits(state);
-
-  state.units.forEach((unit) => unit.classList.add("is-motion-in"));
-}
-
-function resetUnits(element) {
-  const state = elementStates.get(element);
-
-  if (!state?.units) {
-    return;
-  }
-
-  stopUnits(state);
-
-  state.units.forEach((unit) => unit.classList.remove("is-motion-in"));
 }
 
 /* ==========================================================================
@@ -873,6 +996,7 @@ function finishTyping(element) {
   stopTyping(state);
 
   state.typed.data = state.text;
+
   state.typingIndex = state.graphemes.length;
 
   element.classList.add("is-motion-visible", "is-motion-complete");
@@ -885,7 +1009,7 @@ function startTyping(element) {
     return;
   }
 
-  if (prefersReducedMotion()) {
+  if (!canAnimate()) {
     finishTyping(element);
 
     return;
@@ -898,10 +1022,17 @@ function startTyping(element) {
   state.typed.data = "";
 
   element.classList.add("is-motion-visible");
+
   element.classList.remove("is-motion-complete");
 
   const step = () => {
     if (!state.typingRunning) {
+      return;
+    }
+
+    if (!canAnimate()) {
+      finishTyping(element);
+
       return;
     }
 
@@ -915,7 +1046,7 @@ function startTyping(element) {
 
     const grapheme = state.graphemes[state.typingIndex];
 
-    /* appendData keeps one text node, so joined scripts shape correctly. */
+    /* One text node, so joined scripts keep shaping while typing. */
 
     state.typed.appendData(grapheme);
 
@@ -927,7 +1058,17 @@ function startTyping(element) {
     );
   };
 
-  state.typingTimer = window.setTimeout(step, getDelay(element));
+  /* Typing owns its start timer: every later character also uses timers. */
+
+  const delay = getDelay(element);
+
+  if (delay <= 0) {
+    step();
+
+    return;
+  }
+
+  state.typingTimer = window.setTimeout(step, delay);
 }
 
 function resetTyping(element) {
@@ -950,7 +1091,7 @@ function resetTyping(element) {
    ========================================================================== */
 
 /**
- * data-motion="placeholder" types the placeholder of an <input> / <textarea>.
+ * data-motion="placeholder" types the placeholder of an <input>/<textarea>.
  *
  *   <input
  *     aria-label="Search"
@@ -960,51 +1101,46 @@ function resetTyping(element) {
  *     data-motion-loop
  *   />
  *
- * Options:
+ * Options
+ *   data-motion-placeholders  phrases separated by "|" (default: placeholder)
+ *   data-motion-loop          cycle forever (default: play once)
+ *   data-motion-speed         fast | normal | slow | ms per character
+ *   data-motion-hold          ms a finished phrase stays visible
+ *   data-motion-delay         ms before typing starts
  *
- * - data-motion-placeholders  phrases separated by "|"
- *                             (default: the placeholder attribute);
- * - data-motion-loop          cycle forever (default: play once);
- * - data-motion-speed         fast | normal | slow | ms per character;
- * - data-motion-hold          ms a finished phrase stays (default 2000);
- * - data-motion-delay         ms before typing starts.
+ * Once mode types the phrases in sequence and rests on the last one.
+ * Loop mode types → holds → deletes → next phrase → repeats.
  *
- * Once (default): types each phrase in order and stays on the last one.
- * Loop: type → hold → delete → next phrase, forever.
+ * The authored placeholder is the resting content: shown without
+ * JavaScript, with reduced motion, when the user takes over, and in static
+ * mode.
  *
- * The placeholder attribute is the resting text: it shows without
- * JavaScript, under reduced motion, and when the user takes over.
+ * Skipped (stays static):
+ *   - disabled or read-only fields;
+ *   - floating-label fields (the component owns placeholder visibility);
+ *   - fields without an accessible name, because the placeholder would be
+ *     their name and screen readers would hear it change constantly.
  *
- * Skipped automatically: disabled / read-only fields and fields inside
- * .form-floating (their placeholder is hidden until focus).
- *
- * Performance — the loop costs almost nothing:
- *
- * - one timer per input, no animation frames, no layout reads;
- * - fully paused while off screen, while the tab is hidden, and while the
- *   user is focused on the field; zero timers run in those states.
- *
- * Behavior:
- *
- * - focus stops the animation instantly and shows a complete phrase;
- * - loop mode resumes on blur only if the field is still empty;
- * - once mode never restarts after the user interacts.
- */
-
-/**
- * Fields whose placeholder is hidden by design (floating labels show it only
- * on focus, exactly when typing stops) are left untouched.
+ * Performance: one timer per active field, no animation-frame loop, no
+ * layout reads while typing; paused off screen, in hidden tabs and while
+ * the user is in the field.
  */
 
 const PLACEHOLDER_SKIP_SELECTOR = ".form-floating";
 
 const PLACEHOLDER_HOLD = 2000;
 const PLACEHOLDER_GAP = 400;
+
 const PLACEHOLDER_DELETE_RATIO = 0.45;
+
 const PLACEHOLDER_MIN_DELETE_SPEED = 18;
+
 const PLACEHOLDER_JITTER = 0.15;
 
-/* States currently animating or paused mid-animation. */
+/*
+ * Placeholders currently participating in animation, including paused
+ * looping ones, so tab visibility changes can resume them.
+ */
 
 const activePlaceholders = new Set();
 
@@ -1014,12 +1150,21 @@ function isPlaceholderLoop(element) {
   return value !== undefined && value !== "false";
 }
 
+function hasAccessibleName(element) {
+  return (
+    element.hasAttribute("aria-label") ||
+    element.hasAttribute("aria-labelledby") ||
+    element.hasAttribute("title") ||
+    (element.labels?.length ?? 0) > 0
+  );
+}
+
 function normalizePhrase(text) {
   return text.replace(/\s+/gu, " ").trim();
 }
 
 /**
- * Slight rhythm variation so typing feels human instead of mechanical.
+ * Slight timing variation makes placeholder typing feel less mechanical.
  */
 
 function withJitter(milliseconds) {
@@ -1029,8 +1174,8 @@ function withJitter(milliseconds) {
 }
 
 /**
- * An empty placeholder turns :placeholder-shown off, which moves floating
- * labels and breaks any style keyed on it. "Empty" is therefore one space.
+ * An empty placeholder changes :placeholder-shown. One space is used for
+ * empty frames so dependent component styles never flip mid-animation.
  */
 
 function setPlaceholder(state, text) {
@@ -1056,14 +1201,18 @@ function isLastPhrase(state) {
   return state.phraseIndex === state.phrases.length - 1;
 }
 
-/* ---------- Timer ---------- */
+/* --------------------------------------------------------------------------
+   Timer
+   -------------------------------------------------------------------------- */
 
 function clearPlaceholderTimer(state) {
-  if (state.timer !== null) {
-    window.clearTimeout(state.timer);
-
-    state.timer = null;
+  if (state.timer === null) {
+    return;
   }
+
+  window.clearTimeout(state.timer);
+
+  state.timer = null;
 }
 
 function schedulePlaceholder(state, milliseconds) {
@@ -1073,14 +1222,28 @@ function schedulePlaceholder(state, milliseconds) {
     return;
   }
 
+  if (!canAnimate()) {
+    finishPlaceholder(state.element);
+
+    return;
+  }
+
   state.timer = window.setTimeout(() => {
     state.timer = null;
+
+    if (!canAnimate()) {
+      finishPlaceholder(state.element);
+
+      return;
+    }
 
     stepPlaceholder(state);
   }, milliseconds);
 }
 
-/* ---------- Lifecycle ---------- */
+/* --------------------------------------------------------------------------
+   Lifecycle
+   -------------------------------------------------------------------------- */
 
 function markPlaceholderStarted(state) {
   if (state.started) {
@@ -1095,7 +1258,7 @@ function markPlaceholderStarted(state) {
 }
 
 /**
- * Natural end of once mode: the last phrase stays.
+ * Natural end of once mode: the final phrase stays visible.
  */
 
 function completePlaceholder(state) {
@@ -1109,8 +1272,7 @@ function completePlaceholder(state) {
 }
 
 /**
- * Immediate end (reduced motion, user takeover in once mode, late load):
- * show the resting text.
+ * Immediate finalization: always restores the authored resting placeholder.
  */
 
 function finishPlaceholder(element) {
@@ -1119,6 +1281,8 @@ function finishPlaceholder(element) {
   if (state?.type !== "placeholder") {
     return;
   }
+
+  clearPlaceholderTimer(state);
 
   setPlaceholder(state, state.resting);
 
@@ -1130,6 +1294,12 @@ function stepPlaceholder(state) {
     clearPlaceholderTimer(state);
 
     activePlaceholders.delete(state);
+
+    return;
+  }
+
+  if (!canAnimate()) {
+    finishPlaceholder(state.element);
 
     return;
   }
@@ -1156,7 +1326,7 @@ function stepPlaceholder(state) {
       return;
     }
 
-    /* Hold the finished phrase, then start deleting. */
+    /* Hold the completed phrase before deleting. */
 
     state.phase = "deleting";
 
@@ -1185,7 +1355,7 @@ function stepPlaceholder(state) {
 }
 
 /**
- * The right wait when continuing from the current position.
+ * The right delay when a paused placeholder continues from where it was.
  */
 
 function getResumeDelay(state) {
@@ -1202,6 +1372,10 @@ function getResumeDelay(state) {
   return state.phase === "deleting" ? state.deleteSpeed : state.speed;
 }
 
+/* --------------------------------------------------------------------------
+   Pause / Resume
+   -------------------------------------------------------------------------- */
+
 function pausePlaceholder(state, reason) {
   state.pauses.add(reason);
 
@@ -1211,7 +1385,7 @@ function pausePlaceholder(state, reason) {
 function resumePlaceholder(state, reason) {
   const wasPaused = state.pauses.delete(reason);
 
-  /* Already running: never restart the current step. */
+  /* Already running: never restart or duplicate the timer. */
 
   if (!wasPaused && state.timer !== null) {
     return;
@@ -1221,8 +1395,18 @@ function resumePlaceholder(state, reason) {
     return;
   }
 
+  if (!canAnimate()) {
+    finishPlaceholder(state.element);
+
+    return;
+  }
+
   schedulePlaceholder(state, getResumeDelay(state));
 }
+
+/* --------------------------------------------------------------------------
+   Start
+   -------------------------------------------------------------------------- */
 
 function startPlaceholder(element) {
   const state = elementStates.get(element);
@@ -1231,18 +1415,20 @@ function startPlaceholder(element) {
     return;
   }
 
-  /* Entering the viewport always clears the off-screen pause. */
+  /* Entering the viewport clears the offscreen pause. */
 
   state.pauses.delete("offscreen");
 
-  if (state.started) {
-    resumePlaceholder(state, "offscreen");
+  if (!canAnimate()) {
+    finishPlaceholder(element);
 
     return;
   }
 
-  if (prefersReducedMotion()) {
-    finishPlaceholder(element);
+  /* An already started placeholder resumes rather than restarting. */
+
+  if (state.started) {
+    resumePlaceholder(state, "offscreen");
 
     return;
   }
@@ -1258,14 +1444,50 @@ function startPlaceholder(element) {
   schedulePlaceholder(state, getDelay(element));
 }
 
-/* ---------- User takeover ---------- */
+/**
+ * Returns a finished placeholder to its starting state so it can play
+ * again. Skipped while the visitor is using the field or has typed in it.
+ */
+
+function rearmPlaceholder(element) {
+  const state = elementStates.get(element);
+
+  if (
+    state?.type !== "placeholder" ||
+    document.activeElement === element ||
+    element.value !== ""
+  ) {
+    return false;
+  }
+
+  clearPlaceholderTimer(state);
+
+  activePlaceholders.delete(state);
+
+  state.phase = "idle";
+  state.started = false;
+  state.phraseIndex = 0;
+  state.charIndex = 0;
+
+  state.pauses.clear();
+
+  element.classList.remove("is-motion-visible", "is-motion-complete");
+
+  setPlaceholder(state, "");
+
+  return true;
+}
+
+/* --------------------------------------------------------------------------
+   User Takeover
+   -------------------------------------------------------------------------- */
 
 function handlePlaceholderFocus(state) {
   if (state.phase === "done") {
     return;
   }
 
-  /* Once mode: the user took over, the animation is finished for good. */
+  /* Once mode: interaction permanently finishes the decoration. */
 
   if (!state.loop) {
     finishPlaceholder(state.element);
@@ -1273,13 +1495,17 @@ function handlePlaceholderFocus(state) {
     return;
   }
 
+  /*
+   * Loop mode: pause while the user owns the field, showing the full
+   * current phrase rather than a partially typed hint.
+   */
+
   markPlaceholderStarted(state);
 
   pausePlaceholder(state, "user");
 
-  /* Never leave a half-typed hint in a focused field. */
-
   state.charIndex = getCurrentPhrase(state).length;
+
   state.phase = "deleting";
 
   renderPlaceholder(state);
@@ -1293,7 +1519,9 @@ function handlePlaceholderBlur(state) {
   resumePlaceholder(state, "user");
 }
 
-/* ---------- Tab visibility ---------- */
+/* --------------------------------------------------------------------------
+   Page Visibility
+   -------------------------------------------------------------------------- */
 
 function handleVisibilityChange() {
   const hidden = document.visibilityState === "hidden";
@@ -1309,13 +1537,17 @@ function handleVisibilityChange() {
 
     if (hidden) {
       pausePlaceholder(state, "tab");
-    } else {
-      resumePlaceholder(state, "tab");
+
+      return;
     }
+
+    resumePlaceholder(state, "tab");
   });
 }
 
-/* ---------- Preparation ---------- */
+/* --------------------------------------------------------------------------
+   Preparation
+   -------------------------------------------------------------------------- */
 
 function initializePlaceholderElement(element) {
   if (
@@ -1325,12 +1557,11 @@ function initializePlaceholderElement(element) {
     return false;
   }
 
-  /* Disabled / read-only fields and floating labels stay static. */
-
   if (
     element.disabled ||
     element.readOnly ||
-    element.closest(PLACEHOLDER_SKIP_SELECTOR)
+    element.closest(PLACEHOLDER_SKIP_SELECTOR) ||
+    !hasAccessibleName(element)
   ) {
     return false;
   }
@@ -1358,14 +1589,19 @@ function initializePlaceholderElement(element) {
 
     phrases: texts.map((text) => segmentGraphemes(element, text)),
 
+    /* Prefer the authored placeholder; otherwise a meaningful phrase. */
+
     resting: attribute || (loop ? texts[0] : texts[texts.length - 1]),
 
     loop,
+
     speed,
+
     deleteSpeed: Math.max(
       PLACEHOLDER_MIN_DELETE_SPEED,
       Math.round(speed * PLACEHOLDER_DELETE_RATIO),
     ),
+
     hold: parseMilliseconds(element.dataset.motionHold, PLACEHOLDER_HOLD),
 
     phase: "idle",
@@ -1374,6 +1610,7 @@ function initializePlaceholderElement(element) {
 
     timer: null,
     started: false,
+
     pauses: new Set(),
 
     completionTimer: null,
@@ -1382,15 +1619,14 @@ function initializePlaceholderElement(element) {
   elementStates.set(element, state);
 
   element.addEventListener("focus", () => handlePlaceholderFocus(state));
+
   element.addEventListener("blur", () => handlePlaceholderBlur(state));
 
-  /* Start empty so the first phrase types in instead of flashing. */
+  /* Start visually empty only when motion will genuinely run. */
 
-  if (!prefersReducedMotion()) {
-    setPlaceholder(state, "");
-  }
+  setPlaceholder(state, canAnimate() ? "" : state.resting);
 
-  /* Autofocused field: the user is already there. */
+  /* Autofocused field: the user already owns it. */
 
   if (document.activeElement === element) {
     handlePlaceholderFocus(state);
@@ -1400,11 +1636,69 @@ function initializePlaceholderElement(element) {
 }
 
 /* ==========================================================================
+   Final State
+   ========================================================================== */
+
+/**
+ * Immediately places an initialized element in its final visible state.
+ * Used whenever motion must not run, and when an element is removed.
+ */
+
+function completeMotionElement(element) {
+  const type = getMotionType(element);
+
+  if (!type) {
+    return;
+  }
+
+  clearStartTimer(element);
+  clearCompletionTimer(element);
+
+  if (type === "type") {
+    finishTyping(element);
+
+    return;
+  }
+
+  if (type === "placeholder") {
+    finishPlaceholder(element);
+
+    return;
+  }
+
+  showAllUnits(element);
+
+  element.classList.add("is-motion-visible", "is-motion-complete");
+}
+
+/**
+ * Resolves every initialized element to its final visible state.
+ */
+
+function revealAll() {
+  document.querySelectorAll(MOTION_SELECTOR).forEach((element) => {
+    if (initializedElements.has(element)) {
+      completeMotionElement(element);
+    }
+  });
+}
+
+/* ==========================================================================
    Show / Hide
    ========================================================================== */
 
 function showMotionElement(element) {
   const type = getMotionType(element);
+
+  if (!type) {
+    return;
+  }
+
+  if (!canAnimate()) {
+    completeMotionElement(element);
+
+    return;
+  }
 
   if (type === "placeholder") {
     startPlaceholder(element);
@@ -1412,9 +1706,9 @@ function showMotionElement(element) {
     return;
   }
 
-  /* Already shown: never restart (prevents typing re-running mid-view). */
+  /* Never restart an element that is already visible or about to start. */
 
-  if (!type || element.classList.contains("is-motion-visible")) {
+  if (hasStarted(element)) {
     return;
   }
 
@@ -1424,22 +1718,9 @@ function showMotionElement(element) {
     return;
   }
 
-  if (prefersReducedMotion()) {
-    showAllUnits(element);
-
-    element.classList.add("is-motion-visible", "is-motion-complete");
-
-    return;
-  }
-
-  /* Pending start: already on its way in. */
-
-  if (startTimers.has(element)) {
-    return;
-  }
-
   startAfterDelay(element, () => {
     element.classList.add("is-motion-visible");
+
     element.classList.remove("is-motion-complete");
 
     if (type === "reveal") {
@@ -1453,14 +1734,20 @@ function showMotionElement(element) {
 }
 
 /**
- * Used by repeat mode only. The reset is instant (SCSS has no transition on
- * the hidden state), so re-entry never plays a reverse animation.
+ * Repeat mode only. The hidden state has no transition, so leaving the
+ * viewport resets instantly without playing in reverse.
  */
 
 function hideMotionElement(element) {
   const type = getMotionType(element);
 
   if (!type) {
+    return;
+  }
+
+  if (!canAnimate()) {
+    completeMotionElement(element);
+
     return;
   }
 
@@ -1477,7 +1764,6 @@ function hideMotionElement(element) {
   }
 
   clearStartTimer(element);
-
   clearCompletionTimer(element);
 
   if (type === "type") {
@@ -1491,26 +1777,57 @@ function hideMotionElement(element) {
   element.classList.remove("is-motion-visible", "is-motion-complete");
 }
 
-/* ==========================================================================
-   Intersection Observer
-   ========================================================================== */
+/**
+ * Returns a finished element to its hidden starting state and observes it
+ * again, so it animates the next time it enters the viewport.
+ *
+ * Only called for elements that are off screen: the reset is instant (the
+ * hidden state has no transition) and the visitor never sees it.
+ */
 
-function isInViewport(element) {
-  const rect = element.getBoundingClientRect();
+function rearmMotionElement(element) {
+  const type = getMotionType(element);
 
-  return (
-    rect.bottom > 0 &&
-    rect.right > 0 &&
-    rect.top < window.innerHeight &&
-    rect.left < window.innerWidth
-  );
+  if (!type) {
+    return;
+  }
+
+  clearStartTimer(element);
+  clearCompletionTimer(element);
+
+  if (type === "placeholder") {
+    if (!rearmPlaceholder(element)) {
+      return;
+    }
+  } else if (type === "type") {
+    resetTyping(element);
+  } else {
+    resetUnits(element);
+
+    element.classList.remove("is-motion-visible", "is-motion-complete");
+  }
+
+  observeMotionElement(element);
 }
 
+/* ==========================================================================
+   Intersection
+   ========================================================================== */
+
 /**
- * True when the element should reveal.
+ * Two observer roles:
  *
- * Elements taller than the viewport can never reach a high visibility
- * ratio, so for them simply entering is enough.
+ * - Enter observers (pooled; default 12% bottom margin) start elements.
+ * - One exit observer (no margin) resets repeat-mode elements only when
+ *   they are fully outside the real viewport.
+ *
+ * Keeping the roles separate means an element sitting in the bottom 12% of
+ * the screen is never reset while the visitor can still see it.
+ */
+
+/**
+ * Elements taller than the root cannot reach a large intersection ratio,
+ * so for them entering the viewport is enough.
  */
 
 function meetsThreshold(entry, threshold) {
@@ -1527,52 +1844,112 @@ function meetsThreshold(entry, threshold) {
   return entry.boundingClientRect.height * threshold >= rootHeight;
 }
 
-function handleIntersection(entries, observer) {
+function handleEnter(entries, observer) {
   entries.forEach((entry) => {
     const element = entry.target;
 
-    if (meetsThreshold(entry, getThreshold(element))) {
-      showMotionElement(element);
-
-      if (shouldRunOnce(element)) {
-        observer.unobserve(element);
-      }
-
+    if (!meetsThreshold(entry, getThreshold(element))) {
       return;
     }
 
-    /*
-     * Repeat mode resets only once fully out of view — never while the
-     * element is still partly visible.
-     */
+    showMotionElement(element);
 
-    if (!entry.isIntersecting && !shouldRunOnce(element)) {
-      hideMotionElement(element);
+    if (shouldRunOnce(element)) {
+      observer.unobserve(element);
     }
   });
 }
 
-function getObserver(element) {
+function handleExit(entries) {
+  entries.forEach((entry) => {
+    if (entry.isIntersecting || shouldRunOnce(entry.target)) {
+      return;
+    }
+
+    hideMotionElement(entry.target);
+  });
+}
+
+function getEnterObserver(element) {
+  if (runtimeMode !== "enabled") {
+    return null;
+  }
+
   const threshold = getThreshold(element);
+
   const rootMargin = getRootMargin(element);
 
   const key = `${threshold}|${rootMargin}`;
 
   if (!observerPool.has(key)) {
-    observerPool.set(
-      key,
-      new IntersectionObserver(handleIntersection, {
-        threshold: threshold > 0 ? [0, threshold] : [0],
-        rootMargin,
-      }),
-    );
+    try {
+      observerPool.set(
+        key,
+        new IntersectionObserver(handleEnter, {
+          threshold: threshold > 0 ? [0, threshold] : [0],
+          rootMargin,
+        }),
+      );
+    } catch {
+      /* An invalid rootMargin must never leave content hidden. */
+
+      return null;
+    }
   }
 
   return observerPool.get(key);
 }
 
+function getExitObserver() {
+  if (runtimeMode !== "enabled") {
+    return null;
+  }
+
+  exitObserver ??= new IntersectionObserver(handleExit, {
+    threshold: [0],
+  });
+
+  return exitObserver;
+}
+
+function observeMotionElement(element) {
+  const observer = getEnterObserver(element);
+
+  if (!observer) {
+    completeMotionElement(element);
+
+    return;
+  }
+
+  observer.observe(element);
+
+  if (!shouldRunOnce(element)) {
+    getExitObserver()?.observe(element);
+  }
+}
+
+function unobserveMotionElement(element) {
+  observerPool.forEach((observer) => {
+    observer.unobserve(element);
+  });
+
+  exitObserver?.unobserve(element);
+}
+
+function disconnectObservers() {
+  observerPool.forEach((observer) => {
+    observer.disconnect();
+  });
+
+  observerPool.clear();
+
+  exitObserver?.disconnect();
+
+  exitObserver = null;
+}
+
 /* ==========================================================================
-   Motion Element Initialization
+   Element Initialization
    ========================================================================== */
 
 function initializeMotionElement(element, { observe = true } = {}) {
@@ -1592,22 +1969,20 @@ function initializeMotionElement(element, { observe = true } = {}) {
     return;
   }
 
-  if (TEXT_TYPES.has(type)) {
-    if (!initializeTextElement(element, type)) {
-      return;
-    }
+  if (TEXT_TYPES.has(type) && !initializeTextElement(element, type)) {
+    return;
   }
 
   initializedElements.add(element);
 
-  if (prefersReducedMotion()) {
-    showMotionElement(element);
+  if (!canAnimate()) {
+    completeMotionElement(element);
 
     return;
   }
 
   if (observe) {
-    getObserver(element).observe(element);
+    observeMotionElement(element);
   }
 }
 
@@ -1622,23 +1997,16 @@ function initializeMotionElements(scope = document, options = {}) {
 }
 
 /* ==========================================================================
-   Initial Activation
+   Page Readiness
    ========================================================================== */
 
 /**
- * Wait until the page can actually be seen before the first sequence plays.
- *
- * While web fonts load, browsers keep text invisible for up to ~3s. Without
- * this wait, the entrance animation runs during that invisible period and
- * the visitor only sees the finished result "pop" in.
- *
- * Capped, so a slow or failing font never holds content back for long.
+ * Waits for web fonts, capped so a slow or failing font never delays
+ * Motion for long. A rejected font promise is treated as ready.
  */
 
-const PAGE_READY_MAX_WAIT = 1200;
-
 function whenPageReady() {
-  const fontsReady = document.fonts?.ready ?? Promise.resolve();
+  const fontsReady = Promise.resolve(document.fonts?.ready).catch(() => {});
 
   const timeout = new Promise((resolve) => {
     window.setTimeout(resolve, PAGE_READY_MAX_WAIT);
@@ -1648,13 +2016,29 @@ function whenPageReady() {
 }
 
 /**
- * Two animation frames guarantee the hidden starting state has been painted
- * before above-the-fold elements move to their visible state.
+ * Two frames guarantee the hidden starting state has painted before
+ * on-screen elements transition in.
+ *
+ * Elements already on screen start directly (this also covers content in
+ * the bottom 12% of a page too short to scroll). Everything else, and every
+ * repeat-mode element, is observed.
  */
 
 function activateInitialMotion() {
-  requestAnimationFrame(() => {
-    requestAnimationFrame(() => {
+  if (!canAnimate()) {
+    revealAll();
+
+    return;
+  }
+
+  window.requestAnimationFrame(() => {
+    window.requestAnimationFrame(() => {
+      if (!canAnimate()) {
+        revealAll();
+
+        return;
+      }
+
       document.querySelectorAll(MOTION_SELECTOR).forEach((element) => {
         if (!initializedElements.has(element)) {
           return;
@@ -1666,54 +2050,84 @@ function activateInitialMotion() {
           showMotionElement(element);
         }
 
-        /* Below-the-fold elements, and repeat elements, keep observing. */
-
         if (!visibleNow || !shouldRunOnce(element)) {
-          getObserver(element).observe(element);
+          observeMotionElement(element);
         }
       });
     });
   });
 }
 
+/**
+ * Late start: the visitor may already be reading. Content currently on
+ * screen is finalized as-is; everything below the fold still animates.
+ * Placeholders are excluded because typing them never hides content.
+ */
+
+function completeVisibleElements() {
+  document.querySelectorAll(MOTION_SELECTOR).forEach((element) => {
+    if (
+      initializedElements.has(element) &&
+      getMotionType(element) !== "placeholder" &&
+      isInViewport(element)
+    ) {
+      completeMotionElement(element);
+    }
+  });
+}
+
 /* ==========================================================================
-   Reveal Everything (reduced motion / late load)
+   Preference Changes
    ========================================================================== */
 
-function revealAll() {
+/**
+ * Applied live; no page refresh is needed in either direction.
+ *
+ * Reduce: stop observing, cancel running motion, show final content.
+ *
+ * Back to normal:
+ *   - elements on screen stay exactly as they are (content never
+ *     disappears in front of the visitor); repeat-mode ones are observed
+ *     again so they replay after leaving the viewport;
+ *   - elements off screen are re-armed and animate when scrolled to;
+ *   - group staggers are recalculated for the re-armed items.
+ */
+
+function handleMotionPreferenceChange() {
+  if (!canAnimate()) {
+    disconnectObservers();
+
+    revealAll();
+
+    return;
+  }
+
   document.querySelectorAll(MOTION_SELECTOR).forEach((element) => {
     if (!initializedElements.has(element)) {
       return;
     }
 
-    const type = getMotionType(element);
-
-    if (type === "type") {
-      finishTyping(element);
-
-      return;
-    }
-
-    if (type === "placeholder") {
-      finishPlaceholder(element);
+    if (isInViewport(element)) {
+      if (!shouldRunOnce(element)) {
+        observeMotionElement(element);
+      }
 
       return;
     }
 
-    clearStartTimer(element);
-
-    clearCompletionTimer(element);
-
-    showAllUnits(element);
-
-    element.classList.add("is-motion-visible", "is-motion-complete");
+    rearmMotionElement(element);
   });
+
+  document.querySelectorAll(GROUP_SELECTOR).forEach(refreshGroup);
 }
 
-function handleMotionPreferenceChange() {
-  if (prefersReducedMotion()) {
-    revealAll();
-  }
+function observeSiteMotionPreference() {
+  preferenceObserver = new MutationObserver(handleMotionPreferenceChange);
+
+  preferenceObserver.observe(document.documentElement, {
+    attributes: true,
+    attributeFilter: [PREFERENCE_ATTRIBUTE],
+  });
 }
 
 /* ==========================================================================
@@ -1721,8 +2135,10 @@ function handleMotionPreferenceChange() {
    ========================================================================== */
 
 /**
- * Initialize Motion markup inserted after page load.
- * Called automatically for DOM changes; exported for manual use.
+ * Initializes Motion markup inserted after page load.
+ *
+ * Called automatically for DOM mutations; also available to modules that
+ * render Motion markup deliberately.
  *
  * @param {Document | DocumentFragment | HTMLElement} scope
  */
@@ -1730,7 +2146,9 @@ function handleMotionPreferenceChange() {
 export function refreshMotion(scope = document) {
   initializeGroups(scope);
 
-  initializeMotionElements(scope, { observe: true });
+  initializeMotionElements(scope, {
+    observe: true,
+  });
 
   if (isElement(scope)) {
     const owningGroup = scope.closest(GROUP_SELECTOR);
@@ -1746,29 +2164,76 @@ export function refreshMotion(scope = document) {
    ========================================================================== */
 
 /**
- * Only nodes that contain Motion markup are processed. This skips the spans
- * Motion creates itself when preparing text.
+ * Only nodes that are, or contain, Motion markup are processed. The spans
+ * Motion creates while enhancing text are ignored.
  */
 
 function containsMotion(node) {
+  if (!isElement(node)) {
+    return false;
+  }
+
   return (
     node.matches(ANY_MOTION_SELECTOR) ||
     node.querySelector(ANY_MOTION_SELECTOR) !== null
   );
 }
 
+function collectMotionElements(node) {
+  const elements = Array.from(node.querySelectorAll(MOTION_SELECTOR));
+
+  if (node.matches(MOTION_SELECTOR)) {
+    elements.unshift(node);
+  }
+
+  return elements;
+}
+
+/**
+ * Removed elements stop being observed and have their timers cancelled.
+ * They are left in their final visible state, so re-inserting one later
+ * never shows hidden content.
+ *
+ * Nodes that were only moved (still connected) are left untouched.
+ */
+
+function releaseRemovedMotion(node) {
+  if (node.isConnected) {
+    return;
+  }
+
+  collectMotionElements(node).forEach((element) => {
+    if (!initializedElements.has(element)) {
+      return;
+    }
+
+    unobserveMotionElement(element);
+
+    completeMotionElement(element);
+  });
+}
+
 function handleMutations(mutations) {
+  const removedNodes = new Set();
   const groupsToRefresh = new Set();
 
   mutations.forEach((mutation) => {
+    mutation.removedNodes.forEach((node) => {
+      if (containsMotion(node)) {
+        removedNodes.add(node);
+      }
+    });
+
     mutation.addedNodes.forEach((node) => {
-      if (!isElement(node) || !containsMotion(node)) {
+      if (!containsMotion(node)) {
         return;
       }
 
       initializeGroups(node);
 
-      initializeMotionElements(node, { observe: true });
+      initializeMotionElements(node, {
+        observe: true,
+      });
 
       const owningGroup = node.closest(GROUP_SELECTOR);
 
@@ -1782,7 +2247,22 @@ function handleMutations(mutations) {
     });
   });
 
+  removedNodes.forEach(releaseRemovedMotion);
+
   groupsToRefresh.forEach(refreshGroup);
+}
+
+function observeDynamicMotion() {
+  if (!document.body) {
+    return;
+  }
+
+  mutationObserver = new MutationObserver(handleMutations);
+
+  mutationObserver.observe(document.body, {
+    childList: true,
+    subtree: true,
+  });
 }
 
 /* ==========================================================================
@@ -1798,62 +2278,67 @@ export function initMotion() {
 
   const root = document.documentElement;
 
-  /* JavaScript arrived: cancel the <head> safety timer. */
+  /* JavaScript arrived: cancel the head bootstrap's safety timer. */
 
-  window.clearTimeout(window.__motionFallback);
+  if (window.__motionFallback !== undefined) {
+    window.clearTimeout(window.__motionFallback);
+  }
 
-  motionMediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
-
-  /* Group timing first; text unit timing reads the resolved delays. */
-
-  initializeGroups(document);
-
-  /* Prepare without observing, so nothing reveals before the first paint. */
-
-  initializeMotionElements(document, { observe: false });
+  const bootedLate = window.__motionFallbackFired === true;
 
   /*
-   * If the safety timer already fired, the visitor has been reading the
-   * page. Never hide content they can already see — just finish everything.
+   * Missing infrastructure: fail open. .motion-ready is never added, so
+   * SCSS never enters hidden states that JavaScript cannot manage.
    */
 
-  if (window.__motionFallbackFired) {
-    revealAll();
+  if (!supportsMotionRuntime()) {
+    runtimeMode = "static";
+
+    initializeGroups(document);
+
+    initializeMotionElements(document, {
+      observe: false,
+    });
 
     return;
   }
 
+  runtimeMode = "enabled";
+
+  /* Group timing must exist before elements run. */
+
+  initializeGroups(document);
+
+  /*
+   * Prepare without observing, so no observer callback can reveal content
+   * before the hidden starting state receives its first paint.
+   */
+
+  initializeMotionElements(document, {
+    observe: false,
+  });
+
+  if (bootedLate) {
+    completeVisibleElements();
+  }
+
+  /* Activation gate for the reveal / text SCSS. */
+
   root.classList.add("motion-ready");
 
-  if (prefersReducedMotion()) {
-    revealAll();
-  } else {
+  if (canAnimate()) {
     whenPageReady().then(activateInitialMotion);
+  } else {
+    revealAll();
   }
 
-  if (document.body) {
-    mutationObserver = new MutationObserver(handleMutations);
+  observeDynamicMotion();
 
-    mutationObserver.observe(document.body, {
-      childList: true,
-      subtree: true,
-    });
-  }
-
-  /* React live to both the OS setting and the site's own setting. */
-
-  motionMediaQuery.addEventListener?.("change", handleMotionPreferenceChange);
+  observeSiteMotionPreference();
 
   /* Looping placeholders stop completely while the tab is hidden. */
 
   document.addEventListener("visibilitychange", handleVisibilityChange);
-
-  preferenceObserver = new MutationObserver(handleMotionPreferenceChange);
-
-  preferenceObserver.observe(root, {
-    attributes: true,
-    attributeFilter: ["data-motion"],
-  });
 }
 
 /* ==========================================================================
@@ -1861,7 +2346,9 @@ export function initMotion() {
    ========================================================================== */
 
 if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", initMotion, { once: true });
+  document.addEventListener("DOMContentLoaded", initMotion, {
+    once: true,
+  });
 } else {
   initMotion();
 }

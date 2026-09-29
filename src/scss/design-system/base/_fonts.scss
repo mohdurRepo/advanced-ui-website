@@ -1,76 +1,125 @@
-/* ==========================================================================
-   English Font Faces
-   ========================================================================== */
-
-@font-face {
-  font-family: "SEFont";
-  src:
-    url("/assets/fonts/english-avenir/Avenir-Roman.woff2") format("woff2"),
-    url("/assets/fonts/english-avenir/Avenir-Roman.woff") format("woff");
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-  unicode-range: U+0000-024F, U+1E00-1EFF, U+2000-206F, U+20A0-20CF;
-}
-
-@font-face {
-  font-family: "SEFont";
-  src:
-    url("/assets/fonts/english-avenir/Avenir-Medium.woff2") format("woff2"),
-    url("/assets/fonts/english-avenir/Avenir-Medium.woff") format("woff");
-  font-weight: 500;
-  font-style: normal;
-  font-display: swap;
-  unicode-range: U+0000-024F, U+1E00-1EFF, U+2000-206F, U+20A0-20CF;
-}
-
-@font-face {
-  font-family: "SEFont";
-  src:
-    url("/assets/fonts/english-avenir/Avenir-Black.woff2") format("woff2"),
-    url("/assets/fonts/english-avenir/Avenir-Black.woff") format("woff");
-  font-weight: 900;
-  font-style: normal;
-  font-display: swap;
-  unicode-range: U+0000-024F, U+1E00-1EFF, U+2000-206F, U+20A0-20CF;
-}
+@use "sass:list";
+@use "sass:string";
 
 /* ==========================================================================
-   Arabic Font Faces
+   Fonts
    ========================================================================== */
 
-@font-face {
-  font-family: "SEFont";
-  src: url("/assets/fonts/arabic-avenir/AvenirArabic-Book.otf")
-    format("opentype");
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-  unicode-range:
-    U+0600-06FF, U+0750-077F, U+08A0-08FF, U+FB50-FDFF, U+FE70-FEFF;
+/**
+ * One family, "SEFont", assembled from Latin and Arabic faces. Each face
+ * covers only its own script (unicode-range), so a page downloads only the
+ * files its text actually uses.
+ *
+ * Formats are listed smallest first (woff2 → woff → otf).
+ *
+ * Weight coverage:
+ *   Latin   400 · 500 · 900
+ *   Arabic  400 · 500 · 800
+ * Text set at 800 renders Black (900) in Latin and Heavy (800) in Arabic.
+ * Add a Latin 800 face here if an Avenir Heavy file is available.
+ */
+
+/* ==========================================================================
+   Configuration
+   ========================================================================== */
+
+$-family: "SEFont";
+
+$-latin-path: "/assets/fonts/english-avenir";
+$-arabic-path: "/assets/fonts/arabic-avenir";
+
+$-latin-range: string.unquote(
+  "U+0000-024F, U+1E00-1EFF, U+2000-206F, U+20A0-20CF"
+);
+
+$-arabic-range: string.unquote(
+  "U+0600-06FF, U+0750-077F, U+08A0-08FF, U+FB50-FDFF, U+FE70-FEFF"
+);
+
+/* ==========================================================================
+   Face Generator
+   ========================================================================== */
+
+/**
+ * $files: a list of (path, format) pairs, smallest format first.
+ */
+
+@mixin -face($weight, $range, $files) {
+  $sources: ();
+
+  @each $path, $format in $files {
+    $sources: list.append(
+      $sources,
+      url($path) format($format),
+      $separator: comma
+    );
+  }
+
+  @font-face {
+    font-family: $-family;
+    src: $sources;
+    font-weight: $weight;
+    font-style: normal;
+    font-display: swap;
+    unicode-range: $range;
+  }
 }
 
-@font-face {
-  font-family: "SEFont";
-  src:
-    url("/assets/fonts/arabic-avenir/AvenirArabic-Medium.woff") format("woff"),
-    url("/assets/fonts/arabic-avenir/AvenirArabic-Medium.otf")
-      format("opentype");
-  font-weight: 500;
-  font-style: normal;
-  font-display: swap;
-  unicode-range:
-    U+0600-06FF, U+0750-077F, U+08A0-08FF, U+FB50-FDFF, U+FE70-FEFF;
-}
+/* ==========================================================================
+   Latin
+   ========================================================================== */
 
-@font-face {
-  font-family: "SEFont";
-  src:
-    url("/assets/fonts/arabic-avenir/AvenirArabic-Heavy.woff") format("woff"),
-    url("/assets/fonts/arabic-avenir/AvenirArabic-Heavy.otf") format("opentype");
-  font-weight: 800;
-  font-style: normal;
-  font-display: swap;
-  unicode-range:
-    U+0600-06FF, U+0750-077F, U+08A0-08FF, U+FB50-FDFF, U+FE70-FEFF;
-}
+@include -face(
+  400,
+  $-latin-range,
+  (
+    ("#{$-latin-path}/Avenir-Roman.woff2", "woff2"),
+    ("#{$-latin-path}/Avenir-Roman.woff", "woff")
+  )
+);
+
+@include -face(
+  500,
+  $-latin-range,
+  (
+    ("#{$-latin-path}/Avenir-Medium.woff2", "woff2"),
+    ("#{$-latin-path}/Avenir-Medium.woff", "woff")
+  )
+);
+
+@include -face(
+  900,
+  $-latin-range,
+  (
+    ("#{$-latin-path}/Avenir-Black.woff2", "woff2"),
+    ("#{$-latin-path}/Avenir-Black.woff", "woff")
+  )
+);
+
+/* ==========================================================================
+   Arabic
+   ========================================================================== */
+
+@include -face(
+  400,
+  $-arabic-range,
+  (("#{$-arabic-path}/AvenirArabic-Book.otf", "opentype"))
+);
+
+@include -face(
+  500,
+  $-arabic-range,
+  (
+    ("#{$-arabic-path}/AvenirArabic-Medium.woff", "woff"),
+    ("#{$-arabic-path}/AvenirArabic-Medium.otf", "opentype")
+  )
+);
+
+@include -face(
+  800,
+  $-arabic-range,
+  (
+    ("#{$-arabic-path}/AvenirArabic-Heavy.woff", "woff"),
+    ("#{$-arabic-path}/AvenirArabic-Heavy.otf", "opentype")
+  )
+);

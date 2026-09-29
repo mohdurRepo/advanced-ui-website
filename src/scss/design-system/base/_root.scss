@@ -1,7 +1,38 @@
 @use "../abstracts" as ds;
 
 /* ==========================================================================
-   Root Tokens
+   Root
+   ========================================================================== */
+
+/**
+ * Global tokens and document-level preference hooks.
+ *
+ * Preference attributes on <html> (written by the head bootstrap and
+ * preferences.js):
+ *
+ *   data-font-size          scales text only; spacing and layout stay fixed
+ *   data-contrast           focus-ring weight (colours live in themes/)
+ *   data-motion-preference  "reduce" removes component transitions
+ *
+ * Operating-system motion settings are intentionally not read. The site
+ * setting is the single authority, so every visitor gets the same result.
+ */
+
+/* ==========================================================================
+   Configuration
+   ========================================================================== */
+
+/* Step "0" is the default scale (1) and needs no rule. */
+
+$-font-scales: (
+  "-2": 0.9,
+  "-1": 0.95,
+  "1": 1.06,
+  "2": 1.12,
+);
+
+/* ==========================================================================
+   Tokens
    ========================================================================== */
 
 :root {
@@ -9,8 +40,9 @@
   --font-sans:
     "SEFont", system-ui, -apple-system, "Segoe UI", Tahoma, Arial, sans-serif;
 
-  /* Accessibility */
   --font-scale: 1;
+
+  /* Focus */
   --focus-ring-width: 2px;
 
   /* Spacing */
@@ -19,69 +51,45 @@
   }
 
   /* Radius */
-  --radius-none: #{ds.radius("none")};
-  --radius-sm: #{ds.radius("sm")};
-  --radius-md: #{ds.radius("md")};
-  --radius-lg: #{ds.radius("lg")};
-  --radius-xl: #{ds.radius("xl")};
-  --radius-2xl: #{ds.radius("2xl")};
-  --radius-pill: #{ds.radius("pill")};
-
-  /* Motion */
-  --transition-fast: #{ds.motion("fast")};
-  --transition-normal: #{ds.motion("normal")};
-  --transition-slow: #{ds.motion("slow")};
+  @each $key, $value in ds.$radii {
+    --radius-#{$key}: #{$value};
+  }
 
   /* Shadows */
-  --shadow-sm: #{ds.shadow("sm")};
-  --shadow-md: #{ds.shadow("md")};
-  --shadow-lg: #{ds.shadow("lg")};
-  --shadow-xl: #{ds.shadow("xl")};
+  @each $key, $value in ds.$shadows {
+    --shadow-#{$key}: #{$value};
+  }
+
+  /* Transitions */
+  @each $key, $value in ds.$motions {
+    --transition-#{$key}: #{$value};
+  }
 
   /* Layering */
-  --z-base: #{ds.z("base")};
-  --z-dropdown: #{ds.z("dropdown")};
-  --z-sticky: #{ds.z("sticky")};
-  --z-fixed: #{ds.z("fixed")};
-  --z-overlay: #{ds.z("overlay")};
-  --z-modal: #{ds.z("modal")};
-  --z-popover: #{ds.z("popover")};
-  --z-tooltip: #{ds.z("tooltip")};
-  --z-toast: #{ds.z("toast")};
+  @each $key, $value in ds.$z-indexes {
+    --z-#{$key}: #{$value};
+  }
 }
 
 /* ==========================================================================
    Text-size Preference
    ========================================================================== */
 
-html[data-font-size="-2"] {
-  --font-scale: 0.9;
-}
+/**
+ * Typography tokens consume --font-scale directly. It is deliberately not
+ * applied to the root font-size, which would also resize rem-based
+ * spacing, controls and layout.
+ */
 
-html[data-font-size="-1"] {
-  --font-scale: 0.95;
-}
-
-html[data-font-size="0"] {
-  --font-scale: 1;
-}
-
-html[data-font-size="1"] {
-  --font-scale: 1.06;
-}
-
-html[data-font-size="2"] {
-  --font-scale: 1.12;
+@each $step, $scale in $-font-scales {
+  html[data-font-size="#{$step}"] {
+    --font-scale: #{$scale};
+  }
 }
 
 /* ==========================================================================
    Document
    ========================================================================== */
-
-html,
-body {
-  min-height: 100%;
-}
 
 html {
   background: var(--color-bg);
@@ -92,60 +100,37 @@ html {
   scroll-behavior: smooth;
 }
 
-/*
- * Do not apply --font-scale to the html font-size.
- *
- * Typography tokens consume --font-scale directly. Applying it here would
- * also resize rem-based spacing, controls, drawers, and layout measurements.
- */
-
 body {
-  min-height: 100vh;
-  min-height: 100dvh;
-
-  background: var(--color-bg);
-  color: var(--color-text);
-
-  font-family: inherit;
+  min-block-size: 100vh;
+  min-block-size: 100dvh;
 
   text-rendering: optimizeLegibility;
+
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 /* ==========================================================================
-   Direction
+   Motion Preference
    ========================================================================== */
 
-html[dir="rtl"] {
-  direction: rtl;
-}
+/**
+ * Removes token-based component transitions and smooth scrolling.
+ *
+ * Motion primitives (reveal / text) and the market ticker have their own
+ * rules; this only covers the shared --transition-* tokens.
+ */
 
-/* ==========================================================================
-   Reduced Motion
-   ========================================================================== */
-
-html[data-motion="reduce"] {
-  --transition-fast: 0ms;
-  --transition-normal: 0ms;
-  --transition-slow: 0ms;
+html[data-motion-preference="reduce"] {
+  @each $key, $value in ds.$motions {
+    --transition-#{$key}: 0ms;
+  }
 
   scroll-behavior: auto;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  :root {
-    --transition-fast: 0ms;
-    --transition-normal: 0ms;
-    --transition-slow: 0ms;
-  }
-
-  html {
-    scroll-behavior: auto;
-  }
-}
-
 /* ==========================================================================
-   High Contrast
+   Contrast Preference
    ========================================================================== */
 
 html[data-contrast="high"] {
@@ -165,10 +150,10 @@ html[data-contrast="high"] {
    Instant Theme Updates
    ========================================================================== */
 
-/*
- * Theme and accent changes update many CSS custom properties simultaneously.
- * The JavaScript preference controller adds this class briefly while applying
- * the new values, preventing the entire interface from animating at once.
+/**
+ * preferences.js adds this class for two frames while theme, accent,
+ * contrast or text size change, so the whole interface does not animate
+ * between the old and new token values at once.
  */
 
 html.is-theme-switching,

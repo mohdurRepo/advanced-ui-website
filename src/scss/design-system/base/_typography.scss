@@ -1,41 +1,29 @@
 @use "../abstracts" as ds;
 
 /* ==========================================================================
-   Typography Tokens
+   Typography
+   ========================================================================== */
+
+/**
+ * Type tokens are generated from the maps in abstracts/_maps.scss.
+ *
+ * --text-<key> multiplies the fluid scale by --font-scale (the visitor's
+ * text-size preference, set in base/_root.scss). ds.font-size("<key>")
+ * returns the same token, so components and base styles stay in step.
+ */
+
+/* ==========================================================================
+   Tokens
    ========================================================================== */
 
 :root {
-  /* Font sizes */
-  --text-xs: calc(
-    clamp(0.75rem, 0.72rem + 0.15vw, 0.8125rem) * var(--font-scale)
-  );
+  @each $key, $size in ds.$font-sizes {
+    --text-#{$key}: calc(#{$size} * var(--font-scale));
+  }
 
-  --text-sm: calc(
-    clamp(0.875rem, 0.84rem + 0.2vw, 0.9375rem) * var(--font-scale)
-  );
-
-  --text-base: calc(
-    clamp(1rem, 0.95rem + 0.25vw, 1.0625rem) * var(--font-scale)
-  );
-
-  --text-lg: calc(
-    clamp(1.125rem, 1.05rem + 0.35vw, 1.25rem) * var(--font-scale)
-  );
-
-  --text-xl: calc(clamp(1.25rem, 1.1rem + 0.6vw, 1.5rem) * var(--font-scale));
-
-  --text-2xl: calc(clamp(1.5rem, 1.25rem + 1vw, 2rem) * var(--font-scale));
-
-  --text-3xl: calc(
-    clamp(1.875rem, 1.45rem + 1.6vw, 2.75rem) * var(--font-scale)
-  );
-
-  --text-4xl: calc(clamp(2.25rem, 1.7rem + 2.2vw, 3.5rem) * var(--font-scale));
-
-  /* Line heights */
-  --line-height-tight: #{ds.line-height("tight")};
-  --line-height-normal: #{ds.line-height("normal")};
-  --line-height-relaxed: #{ds.line-height("relaxed")};
+  @each $key, $value in ds.$line-heights {
+    --line-height-#{$key}: #{$value};
+  }
 }
 
 /* ==========================================================================
@@ -59,7 +47,7 @@ h5,
 h6 {
   color: var(--color-heading);
 
-  font-weight: 800;
+  font-weight: ds.font-weight("heavy");
   line-height: var(--line-height-tight);
 
   overflow-wrap: anywhere;
@@ -91,17 +79,12 @@ h6 {
 }
 
 /* ==========================================================================
-   Paragraphs
+   Text
    ========================================================================== */
 
 p {
-  color: inherit;
   line-height: var(--line-height-relaxed);
 }
-
-/* ==========================================================================
-   Inline Text
-   ========================================================================== */
 
 small {
   font-size: var(--text-sm);
@@ -109,12 +92,7 @@ small {
 
 strong,
 b {
-  font-weight: 800;
-}
-
-em,
-i {
-  font-style: italic;
+  font-weight: ds.font-weight("heavy");
 }
 
 /* ==========================================================================

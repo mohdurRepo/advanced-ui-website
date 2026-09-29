@@ -1,4 +1,14 @@
 /* ==========================================================================
+   Token Maps
+   ========================================================================== */
+
+/**
+ * Every token group is defined once here. base/_root.scss and
+ * base/_typography.scss generate the matching custom properties from these
+ * maps, and _functions.scss reads them with validation.
+ */
+
+/* ==========================================================================
    Brand Colors
    ========================================================================== */
 
@@ -72,16 +82,22 @@ $font-weights: (
   "black": 900,
 ) !default;
 
+/**
+ * Fluid type scale: clamp(minimum, preferred, maximum).
+ *
+ * base/_typography.scss turns each entry into --text-<key>, multiplied by
+ * the visitor's text-size preference (--font-scale).
+ */
+
 $font-sizes: (
-  "xs": 0.75rem,
-  "sm": 0.875rem,
-  "base": 1rem,
-  "md": 1.125rem,
-  "lg": 1.25rem,
-  "xl": 1.5rem,
-  "2xl": 2rem,
-  "3xl": 2.5rem,
-  "4xl": 3rem,
+  "xs": clamp(0.75rem, 0.72rem + 0.15vw, 0.8125rem),
+  "sm": clamp(0.875rem, 0.84rem + 0.2vw, 0.9375rem),
+  "base": clamp(1rem, 0.95rem + 0.25vw, 1.0625rem),
+  "lg": clamp(1.125rem, 1.05rem + 0.35vw, 1.25rem),
+  "xl": clamp(1.25rem, 1.1rem + 0.6vw, 1.5rem),
+  "2xl": clamp(1.5rem, 1.25rem + 1vw, 2rem),
+  "3xl": clamp(1.875rem, 1.45rem + 1.6vw, 2.75rem),
+  "4xl": clamp(2.25rem, 1.7rem + 2.2vw, 3.5rem),
 ) !default;
 
 $line-heights: (
@@ -110,8 +126,16 @@ $z-indexes: (
    Motion
    ========================================================================== */
 
+/**
+ * Component transition durations, exposed as --transition-<key>.
+ *
+ * Durations only: the timing function is supplied by the transition()
+ * mixin (default `ease`, the same as the CSS default), so it can be changed
+ * per use. The site "reduce motion" setting sets these to 0ms.
+ */
+
 $motions: (
-  "fast": 150ms ease,
-  "normal": 200ms ease,
-  "slow": 300ms ease,
+  "fast": 150ms,
+  "normal": 200ms,
+  "slow": 300ms,
 ) !default;

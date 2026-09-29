@@ -3,57 +3,79 @@
    ========================================================================== */
 
 /**
- * Saudi Exchange market ticker.
+ * Saudi Exchange market ticker controller.
  *
- * Principles:
+ * Direction
+ *   - Ticker geometry (viewport, track, lists) is always physical LTR;
+ *     the stylesheet owns this.
+ *   - Page direction controls travel: LTR travels left, RTL travels right.
+ *   - Item content follows the page direction; company names resolve their
+ *     own direction (dir="auto"); financial values stay LTR.
  *
- * - Physical ticker geometry is always LTR.
- * - Page direction controls ticker travel direction:
- *     LTR -> travels left
- *     RTL -> travels right
- * - Individual ticker-item content follows the page direction:
- *     LTR -> logo, company, price, change
- *     RTL -> visually read from the right as logo, company, price, change
- * - Company names use dir="auto".
- * - Financial values remain LTR.
- * - Animation uses requestAnimationFrame.
- * - Animation stops when:
- *     - document is hidden
- *     - ticker is outside the viewport
- *     - pointer is over the ticker
- *     - ticker contains keyboard focus
- *     - reduced motion is enabled
- *     - ticker visibility preference is hidden
- * - Presentation clones are inaccessible:
- *     aria-hidden + inert + tabindex=-1.
- * - Logo fallback:
- *     company logo -> /no-image.png -> initials.
- * - Position persistence is throttled and never written every frame.
+ * Motion
+ *   Governed only by the ticker's own preferences on <html>:
+ *     data-ticker-visibility  visible | hidden
+ *     data-ticker-speed       slow | normal | fast  (via --market-ticker-speed)
+ *   The site "reduce motion" setting and OS motion settings do not stop it.
+ *
+ *   Movement uses requestAnimationFrame and an inline transform, so the
+ *   .is-theme-switching class (which disables CSS transitions/animations)
+ *   never interrupts it.
+ *
+ *   Movement pauses while:
+ *     - the tab is hidden;
+ *     - the ticker is outside the viewport;
+ *     - the pointer is over it;
+ *     - it contains keyboard focus;
+ *     - the visibility preference is "hidden".
+ *
+ * Accessibility
+ *   - Presentation clones are aria-hidden, inert and untabbable.
+ *   - A keyboard-focused item is moved into view by the ticker itself,
+ *     never by the browser scrolling the hidden-overflow viewport.
+ *
+ * Logos
+ *   company logo → FALLBACK_LOGO_URL → initials.
+ *
+ * Position
+ *   Saved to sessionStorage when the page is hidden or left, so the ticker
+ *   continues where it was on the next page.
  */
+
+/* ==========================================================================
+   Configuration
+   ========================================================================== */
+
+const ROOT_SELECTOR = "[data-market-ticker]";
+
+/* Pixels per second; the real value comes from --market-ticker-speed. */
 
 const DEFAULT_SPEED = 48;
 const MINIMUM_SPEED = 1;
+
+/* Seconds. Clamps long frames so a resumed tab never jumps. */
+
 const MAXIMUM_FRAME_TIME = 0.1;
+
+/* Space kept between a focused item and the viewport edge (edge fades). */
+
+const FOCUS_INSET = 48;
 
 const FALLBACK_LOGO_URL = "/default-Logo.png";
 
-const POSITION_SAVE_INTERVAL = 5000;
 const POSITION_STORAGE_PREFIX = "se-market-ticker-position";
 
 const controllers = new WeakMap();
 
-/* ==========================================================================
-   Shared State
-   ========================================================================== */
-
 /**
- * If /no-image.png fails once, do not keep trying it for every broken
- * company logo during the current page lifecycle.
+ * If the fallback logo fails once, stop requesting it for the rest of the
+ * page lifecycle and let initials show instead.
  */
+
 let fallbackLogoUnavailable = false;
 
 /* ==========================================================================
-   Direction / Language
+   Locale
    ========================================================================== */
 
 function getDirection() {
@@ -66,16 +88,6 @@ function getLanguage() {
 
 function isArabicLanguage(language) {
   return String(language).toLowerCase().startsWith("ar");
-}
-
-/* ==========================================================================
-   Motion
-   ========================================================================== */
-
-function hasReducedMotion(motionQuery) {
-  return (
-    document.documentElement.dataset.motion === "reduce" || motionQuery.matches
-  );
 }
 
 /* ==========================================================================
@@ -92,42 +104,28 @@ function parseNumber(value) {
   return Number.isFinite(number) ? number : null;
 }
 
-/* ==========================================================================
-   Price State
-   ========================================================================== */
-
 function getPriceState(changePercent) {
   const value = parseNumber(changePercent);
 
   if (value === null || value === 0) {
-    return {
-      className: "price-neutral",
-      iconClass: null,
-    };
+    return { className: "price-neutral", iconClass: null };
   }
 
-  if (value > 0) {
-    return {
-      className: "price-up",
-      iconClass: "icon-trending-up",
-    };
-  }
-
-  return {
-    className: "price-down",
-    iconClass: "icon-trending-down",
-  };
+  return value > 0
+    ? { className: "price-up", iconClass: "icon-trending-up" }
+    : { className: "price-down", iconClass: "icon-trending-down" };
 }
 
 /* ==========================================================================
    URLs
    ========================================================================== */
 
-function getSafeUrl(
-  value,
-  fallback = "#",
-  { allowHttp = true, allowHttps = true } = {},
-) {
+/**
+ * Only http(s) URLs are accepted, so javascript:, data: or malformed values
+ * never reach a link or an image.
+ */
+
+function getSafeUrl(value, fallback = "#") {
   if (typeof value !== "string" || value.trim() === "") {
     return fallback;
   }
@@ -135,35 +133,12 @@ function getSafeUrl(
   try {
     const url = new URL(value.trim(), window.location.origin);
 
-    const allowedProtocols = [];
-
-    if (allowHttp) {
-      allowedProtocols.push("http:");
-    }
-
-    if (allowHttps) {
-      allowedProtocols.push("https:");
-    }
-
-    if (!allowedProtocols.includes(url.protocol)) {
-      return fallback;
-    }
-
-    return url.href;
+    return url.protocol === "http:" || url.protocol === "https:"
+      ? url.href
+      : fallback;
   } catch {
     return fallback;
   }
-}
-
-/**
- * Logo URLs use the same basic URL validation as normal links.
- *
- * This prevents malformed/javascript/data URLs from being assigned to an
- * image. A syntactically valid remote hostname can still fail at the browser
- * networking layer; that failure is handled by the image fallback chain.
- */
-function getSafeLogoUrl(value) {
-  return getSafeUrl(value, "");
 }
 
 /* ==========================================================================
@@ -171,16 +146,10 @@ function getSafeLogoUrl(value) {
    ========================================================================== */
 
 function getCompanyInitials(companyName, language) {
-  const words = String(companyName || "")
+  const initials = String(companyName || "")
     .trim()
     .split(/\s+/u)
-    .filter(Boolean);
-
-  if (!words.length) {
-    return isArabicLanguage(language) ? "م ح" : "SA";
-  }
-
-  const initials = words
+    .filter(Boolean)
     .slice(0, 2)
     .map((word) => Array.from(word)[0] || "")
     .filter(Boolean)
@@ -200,11 +169,7 @@ function getCompanyInitials(companyName, language) {
 function getTickerData(root) {
   const sourceId = root.dataset.marketTickerSource;
 
-  if (!sourceId) {
-    return [];
-  }
-
-  const source = document.getElementById(sourceId);
+  const source = sourceId ? document.getElementById(sourceId) : null;
 
   if (!source) {
     return [];
@@ -239,27 +204,16 @@ function createElement(tagName, className, textContent) {
   return element;
 }
 
-/* ==========================================================================
-   Media Query Helper
-   ========================================================================== */
+function collectRoots(container) {
+  const roots = [];
 
-function addMediaQueryListener(mediaQuery, listener) {
-  if (typeof mediaQuery.addEventListener === "function") {
-    mediaQuery.addEventListener("change", listener);
-
-    return () => {
-      mediaQuery.removeEventListener("change", listener);
-    };
+  if (container instanceof Element && container.matches(ROOT_SELECTOR)) {
+    roots.push(container);
   }
 
-  /*
-   * Safari legacy fallback.
-   */
-  mediaQuery.addListener(listener);
+  roots.push(...container.querySelectorAll(ROOT_SELECTOR));
 
-  return () => {
-    mediaQuery.removeListener(listener);
-  };
+  return roots;
 }
 
 /* ==========================================================================
@@ -281,17 +235,11 @@ class MarketTicker {
     this.numberFormatter = null;
     this.signedNumberFormatter = null;
 
-    this.motionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
-
-    this.reducedMotion = hasReducedMotion(this.motionQuery);
-
     this.speed = DEFAULT_SPEED;
 
     this.sourceWidth = 0;
+    this.viewportWidth = 0;
     this.position = 0;
-
-    this.measuredViewportWidth = 0;
-    this.measuredSourceWidth = 0;
 
     this.frameId = null;
     this.resizeFrameId = null;
@@ -304,27 +252,18 @@ class MarketTicker {
     this.intersectionObserver = null;
     this.preferenceObserver = null;
 
-    this.positionSaveTimer = null;
-
     this.destroyed = false;
 
     this.handleFrame = this.handleFrame.bind(this);
-
     this.handlePointerEnter = this.handlePointerEnter.bind(this);
-
     this.handlePointerLeave = this.handlePointerLeave.bind(this);
-
     this.handleFocusIn = this.handleFocusIn.bind(this);
-
     this.handleFocusOut = this.handleFocusOut.bind(this);
-
+    this.handleViewportScroll = this.handleViewportScroll.bind(this);
     this.handleVisibilityChange = this.handleVisibilityChange.bind(this);
-
-    this.handleMotionChange = this.handleMotionChange.bind(this);
-
-    this.handleResize = this.handleResize.bind(this);
-
     this.handlePageHide = this.handlePageHide.bind(this);
+    this.handleResize = this.handleResize.bind(this);
+    this.handlePreferenceMutations = this.handlePreferenceMutations.bind(this);
 
     this.updateFormatters();
   }
@@ -346,28 +285,33 @@ class MarketTicker {
 
     this.bindEvents();
 
-    this.configureMotion();
-
     this.root.classList.add("is-ready");
 
     this.root.dataset.marketTickerInitialized = "true";
 
-    this.waitForFonts();
+    this.rebuildCopies({ restorePosition: true });
   }
 
   /* ========================================================================
      Formatting
      ======================================================================== */
 
+  /**
+   * Latin digits are pinned explicitly. Without this, the default digits
+   * for Arabic locales can differ between browsers and versions.
+   */
+
   updateFormatters() {
-    this.numberFormatter = new Intl.NumberFormat(this.language, {
+    const options = {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
-    });
+      numberingSystem: "latn",
+    };
+
+    this.numberFormatter = new Intl.NumberFormat(this.language, options);
 
     this.signedNumberFormatter = new Intl.NumberFormat(this.language, {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
+      ...options,
       signDisplay: "exceptZero",
     });
   }
@@ -388,11 +332,14 @@ class MarketTicker {
      Rendering
      ======================================================================== */
 
+  /**
+   * Builds (or rebuilds) the viewport. Direction is owned by the
+   * stylesheet, so no dir attributes are set on the geometry.
+   */
+
   render() {
-    /*
-     * Do not retain stale rendered DOM if the
-     * controller is ever re-rendered.
-     */
+    this.viewport?.removeEventListener("scroll", this.handleViewportScroll);
+
     this.viewport?.remove();
 
     this.viewport = createElement(
@@ -402,47 +349,29 @@ class MarketTicker {
 
     this.viewport.dataset.marketTickerViewport = "";
 
-    /*
-     * Physical coordinate origin must always
-     * remain LTR.
-     */
-    this.viewport.dir = "ltr";
-
     this.track = createElement("div", "market-ticker__track");
 
     this.track.dataset.marketTickerTrack = "";
 
-    /*
-     * Track geometry is always physical LTR.
-     */
-    this.track.dir = "ltr";
-
     this.sourceList = this.createList(this.data);
 
     this.sourceList.dataset.marketTickerList = "";
-
-    /*
-     * Lists also remain physical LTR.
-     *
-     * Individual links receive this.direction
-     * separately.
-     */
-    this.sourceList.dir = "ltr";
 
     this.track.append(this.sourceList);
 
     this.viewport.append(this.track);
 
     this.root.append(this.viewport);
+
+    this.viewport.addEventListener("scroll", this.handleViewportScroll, {
+      passive: true,
+    });
+
+    this.observeLayout();
   }
 
   createList(items) {
     const list = createElement("ul", "market-ticker__list");
-
-    /*
-     * Preserve physical list geometry.
-     */
-    list.dir = "ltr";
 
     const fragment = document.createDocumentFragment();
 
@@ -466,9 +395,7 @@ class MarketTicker {
         : String(item.symbol || "").trim();
 
     const price = this.formatNumber(item.price);
-
     const change = this.formatNumber(item.change, true);
-
     const changePercent = this.formatNumber(item.changePercent, true);
 
     const state = getPriceState(item.changePercent);
@@ -482,34 +409,15 @@ class MarketTicker {
         .join(", "),
     );
 
-    /* ------------------------------------------------------------------------
-       Company Logo
-       ------------------------------------------------------------------------ */
-
-    link.append(this.createLogo(item, companyName));
-
-    /* ------------------------------------------------------------------------
-       Company Name
-       ------------------------------------------------------------------------ */
+    /* Company name: resolves its own direction from its text. */
 
     const name = createElement("span", "market-ticker__name", companyName);
 
-    /*
-     * Arabic and English names resolve their own
-     * text direction independently.
-     */
     name.dir = "auto";
 
-    /* ------------------------------------------------------------------------
-       Price
-       ------------------------------------------------------------------------ */
+    /* Price */
 
     const priceElement = createElement("data", "market-ticker__price", price);
-
-    /*
-     * Financial values always use LTR semantics.
-     */
-    priceElement.dir = "ltr";
 
     const numericPrice = parseNumber(item.price);
 
@@ -517,122 +425,82 @@ class MarketTicker {
       priceElement.value = String(numericPrice);
     }
 
-    /* ------------------------------------------------------------------------
-       Change
-       ------------------------------------------------------------------------ */
+    /* Change. Neutral values intentionally receive no trend icon. */
 
     const changeElement = createElement(
       "span",
-      ["market-ticker__change", state.className].join(" "),
+      `market-ticker__change ${state.className}`,
     );
 
-    changeElement.dir = "ltr";
-
-    /*
-     * Neutral values intentionally receive no
-     * trending icon.
-     */
     if (state.iconClass) {
-      const directionIcon = createElement(
+      const icon = createElement(
         "span",
-        [
-          "market-ticker__direction",
-          "has-icon",
-          state.iconClass,
-          "icon-md",
-        ].join(" "),
+        `market-ticker__direction has-icon ${state.iconClass} icon-md`,
       );
 
-      directionIcon.setAttribute("aria-hidden", "true");
+      icon.setAttribute("aria-hidden", "true");
 
-      changeElement.append(directionIcon);
+      changeElement.append(icon);
     }
 
-    const changeValue = createElement("data", "", change);
+    changeElement.append(
+      this.createDataValue(change, item.change),
+      this.createDataValue(`(${changePercent}%)`, item.changePercent),
+    );
 
-    changeValue.dir = "ltr";
-
-    const percentageValue = createElement("data", "", `(${changePercent}%)`);
-
-    percentageValue.dir = "ltr";
-
-    const numericChange = parseNumber(item.change);
-
-    const numericPercentage = parseNumber(item.changePercent);
-
-    if (numericChange !== null) {
-      changeValue.value = String(numericChange);
-    }
-
-    if (numericPercentage !== null) {
-      percentageValue.value = String(numericPercentage);
-    }
-
-    changeElement.append(changeValue, percentageValue);
-
-    link.append(name, priceElement, changeElement);
+    link.append(
+      this.createLogo(item, companyName),
+      name,
+      priceElement,
+      changeElement,
+    );
 
     listItem.append(link);
 
     return listItem;
   }
 
-  /* ========================================================================
-     Item Direction
-     ======================================================================== */
+  createDataValue(text, rawValue) {
+    const element = createElement("data", "", text);
 
-  /**
-   * Update only ticker-item content direction.
-   *
-   * Viewport, track, source list, and cloned lists
-   * deliberately remain physical LTR.
-   */
-  updateItemDirections() {
-    if (!this.sourceList) {
-      return;
+    const number = parseNumber(rawValue);
+
+    if (number !== null) {
+      element.value = String(number);
     }
 
-    const links = this.sourceList.querySelectorAll(".market-ticker__link");
-
-    for (const link of links) {
-      link.dir = this.direction;
-    }
+    return element;
   }
 
   /* ========================================================================
      Company Logo
      ======================================================================== */
 
+  /**
+   * Initials sit underneath the image, so removing a failed image reveals
+   * them without any extra work.
+   */
+
   createLogo(item, companyName) {
     const shell = createElement("span", "market-ticker__logo");
 
     shell.setAttribute("aria-hidden", "true");
 
-    const initials = createElement(
-      "span",
-      "market-ticker__logo-initials",
-      getCompanyInitials(companyName, this.language),
+    shell.append(
+      createElement(
+        "span",
+        "market-ticker__logo-initials",
+        getCompanyInitials(companyName, this.language),
+      ),
     );
 
-    /*
-     * The initials themselves follow their language.
-     * This also preserves the visible Arabic spacing.
-     */
-    initials.dir = isArabicLanguage(this.language) ? "rtl" : "ltr";
+    const logoUrl = getSafeUrl(item.logo, "");
 
-    shell.append(initials);
-
-    const logoUrl = getSafeLogoUrl(item.logo);
-
-    if (!logoUrl) {
-      if (!fallbackLogoUnavailable) {
-        this.appendLogoImage(shell, FALLBACK_LOGO_URL, "fallback");
-      }
-
-      return shell;
+    if (logoUrl) {
+      this.appendLogoImage(shell, logoUrl, "primary");
+    } else if (!fallbackLogoUnavailable) {
+      this.appendLogoImage(shell, FALLBACK_LOGO_URL, "fallback");
     }
-
-    this.appendLogoImage(shell, logoUrl, "primary");
 
     return shell;
   }
@@ -642,10 +510,8 @@ class MarketTicker {
 
     image.alt = "";
 
-    /*
-     * Matches the 2.5rem desktop ticker logo shell.
-     * CSS remains responsible for responsive sizing.
-     */
+    /* Intrinsic size for the 2.5rem desktop shell; CSS handles responsive. */
+
     image.width = 40;
     image.height = 40;
 
@@ -654,32 +520,23 @@ class MarketTicker {
 
     image.dataset.marketTickerLogoStage = stage;
 
-    image.addEventListener(
-      "load",
-      () => {
-        image.dataset.marketTickerLogoLoaded = "true";
-      },
-      {
-        once: true,
-      },
-    );
+    this.bindLogoError(image, shell);
 
+    /* Listeners are attached before src is assigned. */
+
+    image.src = source;
+
+    shell.append(image);
+  }
+
+  bindLogoError(image, shell) {
     image.addEventListener(
       "error",
       () => {
         this.handleLogoError(image, shell);
       },
-      {
-        once: true,
-      },
+      { once: true },
     );
-
-    /*
-     * Attach listeners before assigning src.
-     */
-    image.src = source;
-
-    shell.append(image);
   }
 
   handleLogoError(image, shell) {
@@ -691,96 +548,18 @@ class MarketTicker {
 
     image.remove();
 
-    /*
-     * Primary company logo failed:
-     *
-     * company logo
-     *       ↓
-     * /no-image.png
-     */
     if (stage === "primary" && !fallbackLogoUnavailable) {
       this.appendLogoImage(shell, FALLBACK_LOGO_URL, "fallback");
 
       return;
     }
 
-    /*
-     * /no-image.png also failed.
-     *
-     * Remember this once so subsequent broken
-     * company logos can use their initials without
-     * repeatedly requesting the unavailable fallback.
-     */
     if (stage === "fallback") {
       fallbackLogoUnavailable = true;
 
-      this.removeFallbackImages();
-    }
-
-    /*
-     * Initials already exist underneath the image.
-     * Removing the failed image reveals them.
-     */
-  }
-
-  removeFallbackImages() {
-    if (!this.track) {
-      return;
-    }
-
-    const fallbackImages = this.track.querySelectorAll(
-      '[data-market-ticker-logo-stage="fallback"]',
-    );
-
-    for (const image of fallbackImages) {
-      image.remove();
-    }
-  }
-
-  /* ========================================================================
-     Clone Logo Events
-     ======================================================================== */
-
-  /**
-   * cloneNode() does not copy event listeners.
-   *
-   * Reconnect logo failure handling on every
-   * presentation clone.
-   */
-  bindCloneLogoImages(clone) {
-    const images = clone.querySelectorAll(".market-ticker__logo-image");
-
-    for (const image of images) {
-      const shell = image.closest(".market-ticker__logo");
-
-      if (!shell) {
-        image.remove();
-
-        continue;
-      }
-
-      /*
-       * If the shared fallback is already known to
-       * be unavailable, do not request it again.
-       */
-      if (
-        image.dataset.marketTickerLogoStage === "fallback" &&
-        fallbackLogoUnavailable
-      ) {
-        image.remove();
-
-        continue;
-      }
-
-      image.addEventListener(
-        "error",
-        () => {
-          this.handleLogoError(image, shell);
-        },
-        {
-          once: true,
-        },
-      );
+      this.track
+        ?.querySelectorAll('[data-market-ticker-logo-stage="fallback"]')
+        .forEach((fallbackImage) => fallbackImage.remove());
     }
   }
 
@@ -789,87 +568,81 @@ class MarketTicker {
      ======================================================================== */
 
   removeCopies() {
-    if (!this.track) {
-      return;
-    }
-
-    const copies = this.track.querySelectorAll("[data-market-ticker-clone]");
-
-    for (const copy of copies) {
-      copy.remove();
-    }
+    this.track
+      ?.querySelectorAll("[data-market-ticker-clone]")
+      .forEach((copy) => copy.remove());
   }
 
-  createCopies() {
-    if (!this.sourceList || this.sourceWidth <= 0) {
-      return;
-    }
+  /**
+   * Enough presentation copies to cover the viewport plus one full cycle.
+   * cloneNode() does not copy listeners, so logo fallbacks are re-bound.
+   */
 
+  createCopies() {
     const totalCopies = Math.max(
       2,
-      Math.ceil(this.measuredViewportWidth / this.sourceWidth) + 2,
+      Math.ceil(this.viewportWidth / this.sourceWidth) + 2,
     );
 
     const fragment = document.createDocumentFragment();
 
     for (let index = 1; index < totalCopies; index += 1) {
-      /*
-       * cloneNode(true) carries the explicit dir
-       * attribute from each source link.
-       */
       const clone = this.sourceList.cloneNode(true);
 
-      clone.dataset.marketTickerClone = "";
-
       clone.removeAttribute("data-market-ticker-list");
+
+      clone.dataset.marketTickerClone = "";
 
       clone.setAttribute("aria-hidden", "true");
 
       clone.setAttribute("inert", "");
 
-      /*
-       * Clone-list geometry remains physical LTR.
-       */
-      clone.dir = "ltr";
-
-      for (const link of clone.querySelectorAll("a")) {
+      clone.querySelectorAll("a").forEach((link) => {
         link.tabIndex = -1;
-      }
+      });
 
-      this.bindCloneLogoImages(clone);
+      clone.querySelectorAll(".market-ticker__logo-image").forEach((image) => {
+        const shell = image.closest(".market-ticker__logo");
+
+        const isDeadFallback =
+          image.dataset.marketTickerLogoStage === "fallback" &&
+          fallbackLogoUnavailable;
+
+        if (!shell || isDeadFallback) {
+          image.remove();
+
+          return;
+        }
+
+        this.bindLogoError(image, shell);
+      });
 
       fragment.append(clone);
     }
 
     this.track.append(fragment);
   }
+
+  /**
+   * Measures, rebuilds the copies and (re)starts movement.
+   */
+
   rebuildCopies({ restorePosition = false } = {}) {
     if (this.destroyed || !this.sourceList || !this.viewport) {
       return;
     }
 
     this.stopAnimation();
+
     this.removeCopies();
+
+    this.viewport.scrollLeft = 0;
 
     this.sourceWidth = this.sourceList.getBoundingClientRect().width;
 
-    this.measuredSourceWidth = this.sourceWidth;
+    this.viewportWidth = this.viewport.clientWidth;
 
-    this.measuredViewportWidth = this.viewport.clientWidth;
-
-    if (this.sourceWidth <= 0 || this.measuredViewportWidth <= 0) {
-      this.position = 0;
-
-      this.applyPosition();
-
-      return;
-    }
-
-    /*
-     * Reduced motion uses only the accessible
-     * source list and manual horizontal scrolling.
-     */
-    if (this.reducedMotion) {
+    if (this.sourceWidth <= 0 || this.viewportWidth <= 0) {
       this.position = 0;
 
       this.applyPosition();
@@ -880,22 +653,20 @@ class MarketTicker {
     this.createCopies();
 
     if (restorePosition) {
-      const restored = this.restorePosition();
-
-      if (!restored) {
-        this.setInitialPosition();
-      }
-    } else {
-      this.normalisePosition();
+      this.restorePosition();
     }
 
+    this.normalisePosition();
+
     this.applyPosition();
+
     this.startAnimation();
   }
 
-  setInitialPosition() {
-    this.position = this.direction === "rtl" ? -this.sourceWidth : 0;
-  }
+  /**
+   * Keeps the position inside one source-list cycle. RTL starts one cycle
+   * to the left so it can travel physically right.
+   */
 
   normalisePosition() {
     if (this.sourceWidth <= 0) {
@@ -904,22 +675,12 @@ class MarketTicker {
       return;
     }
 
-    /*
-     * Keep position inside one complete
-     * source-list cycle.
-     */
     let offset = this.position % this.sourceWidth;
 
     if (offset > 0) {
       offset -= this.sourceWidth;
     }
 
-    /*
-     * LTR can safely start at zero.
-     *
-     * RTL begins one source width to the left
-     * so it can travel physically right.
-     */
     if (this.direction === "rtl" && offset === 0) {
       offset = -this.sourceWidth;
     }
@@ -927,55 +688,44 @@ class MarketTicker {
     this.position = offset;
   }
 
-  /* ==========================================================================
+  /* ========================================================================
      Speed
-     ========================================================================== */
+     ======================================================================== */
 
   updateSpeed() {
-    const computedSpeed = Number.parseFloat(
+    const speed = Number.parseFloat(
       getComputedStyle(this.root).getPropertyValue("--market-ticker-speed"),
     );
 
     this.speed =
-      Number.isFinite(computedSpeed) && computedSpeed >= MINIMUM_SPEED
-        ? computedSpeed
-        : DEFAULT_SPEED;
+      Number.isFinite(speed) && speed >= MINIMUM_SPEED ? speed : DEFAULT_SPEED;
   }
 
-  /* ==========================================================================
+  /* ========================================================================
      Animation
-     ========================================================================== */
+     ======================================================================== */
+
+  canMove() {
+    return !this.destroyed && !this.pauseReasons.size && this.sourceWidth > 0;
+  }
 
   applyPosition() {
-    if (!this.track) {
-      return;
+    if (this.track) {
+      this.track.style.transform = `translate3d(${this.position}px, 0, 0)`;
     }
-
-    this.track.style.transform = `translate3d(${this.position}px, 0, 0)`;
   }
 
   handleFrame(timestamp) {
     this.frameId = null;
 
-    if (
-      this.destroyed ||
-      this.pauseReasons.size ||
-      this.reducedMotion ||
-      this.sourceWidth <= 0
-    ) {
+    if (!this.canMove()) {
       this.lastTimestamp = null;
 
       return;
     }
 
-    if (this.lastTimestamp === null) {
-      this.lastTimestamp = timestamp;
-    }
+    this.lastTimestamp ??= timestamp;
 
-    /*
-     * Clamp long frames so restoring a suspended
-     * tab cannot cause a large visual jump.
-     */
     const elapsed = Math.min(
       (timestamp - this.lastTimestamp) / 1000,
       MAXIMUM_FRAME_TIME,
@@ -983,12 +733,8 @@ class MarketTicker {
 
     const distance = this.speed * elapsed;
 
-    /*
-     * Page direction affects travel only.
-     *
-     * RTL -> right
-     * LTR -> left
-     */
+    /* Wrapping by exactly one cycle is seamless because copies match. */
+
     if (this.direction === "rtl") {
       this.position += distance;
 
@@ -1011,17 +757,9 @@ class MarketTicker {
   }
 
   startAnimation() {
-    if (
-      this.destroyed ||
-      this.frameId !== null ||
-      this.pauseReasons.size ||
-      this.reducedMotion ||
-      this.sourceWidth <= 0
-    ) {
+    if (this.frameId !== null || !this.canMove()) {
       return;
     }
-
-    this.root.classList.remove("is-paused");
 
     this.frameId = window.requestAnimationFrame(this.handleFrame);
   }
@@ -1036,9 +774,9 @@ class MarketTicker {
     this.lastTimestamp = null;
   }
 
-  /* ==========================================================================
+  /* ========================================================================
      Pause State
-     ========================================================================== */
+     ======================================================================== */
 
   setPaused(reason, paused) {
     if (paused) {
@@ -1047,22 +785,20 @@ class MarketTicker {
       this.pauseReasons.delete(reason);
     }
 
-    if (this.pauseReasons.size) {
-      this.root.classList.add("is-paused");
+    this.root.classList.toggle("is-paused", this.pauseReasons.size > 0);
 
+    if (this.pauseReasons.size) {
       this.stopAnimation();
 
       return;
     }
 
-    this.root.classList.remove("is-paused");
-
     this.startAnimation();
   }
 
-  /* ==========================================================================
+  /* ========================================================================
      Interaction
-     ========================================================================== */
+     ======================================================================== */
 
   handlePointerEnter() {
     this.setPaused("pointer", true);
@@ -1072,8 +808,10 @@ class MarketTicker {
     this.setPaused("pointer", false);
   }
 
-  handleFocusIn() {
+  handleFocusIn(event) {
     this.setPaused("focus", true);
+
+    this.revealFocusedItem(event.target);
   }
 
   handleFocusOut(event) {
@@ -1084,121 +822,204 @@ class MarketTicker {
     this.setPaused("focus", false);
   }
 
-  handleVisibilityChange() {
-    this.setPaused("document-hidden", document.hidden);
+  /**
+   * Browsers scroll even overflow:hidden containers to reveal a focused
+   * element, which would add a scroll offset on top of the transform.
+   * The scroll is undone and the ticker moves the item into view instead.
+   */
 
+  handleViewportScroll() {
+    if (!this.viewport || this.viewport.scrollLeft === 0) {
+      return;
+    }
+
+    this.viewport.scrollLeft = 0;
+
+    this.revealFocusedItem(document.activeElement);
+  }
+
+  revealFocusedItem(target) {
+    if (
+      !(target instanceof Element) ||
+      !this.viewport?.contains(target) ||
+      this.sourceWidth <= 0
+    ) {
+      return;
+    }
+
+    const link = target.closest(".market-ticker__link");
+
+    if (!link) {
+      return;
+    }
+
+    const bounds = this.viewport.getBoundingClientRect();
+
+    const item = link.getBoundingClientRect();
+
+    const inset = Math.min(FOCUS_INSET, bounds.width / 4);
+
+    let shift = 0;
+
+    if (item.left < bounds.left + inset) {
+      shift = bounds.left + inset - item.left;
+    } else if (item.right > bounds.right - inset) {
+      shift = bounds.right - inset - item.right;
+    }
+
+    if (shift === 0) {
+      return;
+    }
+
+    /* Any position within one cycle keeps the viewport fully covered. */
+
+    this.position = Math.min(
+      0,
+      Math.max(-this.sourceWidth, this.position + shift),
+    );
+
+    this.applyPosition();
+  }
+
+  handleVisibilityChange() {
     if (document.hidden) {
       this.savePosition();
     }
-  }
 
-  handleMotionChange() {
-    this.configureMotion();
+    this.setPaused("document-hidden", document.hidden);
   }
 
   handlePageHide() {
     this.savePosition();
   }
 
-  /* ==========================================================================
+  /* ========================================================================
+     Preferences and Locale
+     ======================================================================== */
+
+  handlePreferenceMutations(mutations) {
+    const attributes = new Set(
+      mutations.map((mutation) => mutation.attributeName),
+    );
+
+    if (attributes.has("data-ticker-speed")) {
+      this.updateSpeed();
+    }
+
+    if (attributes.has("data-ticker-visibility")) {
+      this.syncVisibilityPreference();
+    }
+
+    if (attributes.has("dir") || attributes.has("lang")) {
+      this.handleLocaleChange();
+    }
+  }
+
+  /**
+   * The stylesheet hides the ticker with display:none; the controller only
+   * pauses it and keeps its place for when it is shown again.
+   */
+
+  syncVisibilityPreference() {
+    const hidden =
+      document.documentElement.dataset.tickerVisibility === "hidden";
+
+    if (hidden) {
+      this.savePosition();
+    }
+
+    this.setPaused("preference-hidden", hidden);
+
+    if (!hidden) {
+      this.handleResize();
+    }
+  }
+
+  /**
+   * A runtime direction or language change re-renders the items so
+   * numbers, initials and travel direction all follow the new locale.
+   */
+
+  handleLocaleChange() {
+    const direction = getDirection();
+
+    const language = getLanguage();
+
+    if (direction === this.direction && language === this.language) {
+      return;
+    }
+
+    this.savePosition();
+
+    this.direction = direction;
+
+    this.language = language;
+
+    this.updateFormatters();
+
+    this.render();
+
+    this.position = 0;
+
+    this.rebuildCopies({ restorePosition: true });
+  }
+
+  /* ========================================================================
      Measurement
-     ========================================================================== */
+     ======================================================================== */
+
+  /**
+   * The viewport and the source list are observed, so width changes from
+   * resizing, font loading or visibility all trigger one rebuild per frame.
+   */
+
+  observeLayout() {
+    if (typeof window.ResizeObserver !== "function") {
+      return;
+    }
+
+    this.resizeObserver ??= new ResizeObserver(this.handleResize);
+
+    this.resizeObserver.disconnect();
+
+    this.resizeObserver.observe(this.viewport);
+
+    this.resizeObserver.observe(this.sourceList);
+  }
 
   handleResize() {
     if (this.destroyed || this.resizeFrameId !== null) {
       return;
     }
 
-    /*
-     * Collapse ResizeObserver notifications from the
-     * current frame into one measurement pass.
-     */
     this.resizeFrameId = window.requestAnimationFrame(() => {
       this.resizeFrameId = null;
 
-      if (this.destroyed || !this.root.isConnected) {
+      if (this.destroyed || !this.root.isConnected || !this.viewport) {
         return;
       }
-
-      const nextDirection = getDirection();
-
-      const nextViewportWidth = this.viewport.clientWidth;
-
-      const nextSourceWidth = this.sourceList.getBoundingClientRect().width;
-
-      const directionChanged = nextDirection !== this.direction;
 
       const viewportChanged =
-        Math.abs(nextViewportWidth - this.measuredViewportWidth) > 0.5;
+        Math.abs(this.viewport.clientWidth - this.viewportWidth) > 0.5;
 
       const sourceChanged =
-        Math.abs(nextSourceWidth - this.measuredSourceWidth) > 0.5;
+        Math.abs(
+          this.sourceList.getBoundingClientRect().width - this.sourceWidth,
+        ) > 0.5;
 
-      if (!directionChanged && !viewportChanged && !sourceChanged) {
+      if (!viewportChanged && !sourceChanged) {
         return;
       }
 
-      if (directionChanged) {
-        this.direction = nextDirection;
+      /* Coming back from zero size (e.g. un-hidden): continue in place. */
 
-        /*
-         * Only stock-entry content changes
-         * direction.
-         *
-         * Viewport / track / list stay LTR.
-         */
-        this.updateItemDirections();
-
-        this.setInitialPosition();
-      }
-
-      this.updateSpeed();
-
-      this.rebuildCopies();
+      this.rebuildCopies({ restorePosition: this.sourceWidth <= 0 });
     });
   }
 
-  /* ==========================================================================
-     Reduced Motion
-     ========================================================================== */
-
-  configureMotion() {
-    const wasReduced = this.reducedMotion;
-
-    this.reducedMotion = hasReducedMotion(this.motionQuery);
-
-    if (this.reducedMotion) {
-      this.pauseReasons.add("reduced-motion");
-
-      this.root.classList.add("is-paused");
-
-      this.stopAnimation();
-
-      this.removeCopies();
-
-      this.position = 0;
-
-      this.applyPosition();
-
-      this.viewport.scrollLeft = 0;
-
-      return;
-    }
-
-    this.pauseReasons.delete("reduced-motion");
-
-    /*
-     * Restore position only during initial setup
-     * or transition out of reduced-motion mode.
-     */
-    this.rebuildCopies({
-      restorePosition: wasReduced || this.sourceWidth === 0,
-    });
-  }
-
-  /* ==========================================================================
+  /* ========================================================================
      Position Persistence
-     ========================================================================== */
+     ======================================================================== */
 
   getPositionStorageKey() {
     const source =
@@ -1207,9 +1028,9 @@ class MarketTicker {
     return [POSITION_STORAGE_PREFIX, source, this.direction].join(":");
   }
 
-  getPositionProgress() {
-    if (this.sourceWidth <= 0) {
-      return null;
+  savePosition() {
+    if (this.destroyed || this.sourceWidth <= 0) {
+      return;
     }
 
     let offset = -this.position % this.sourceWidth;
@@ -1218,277 +1039,79 @@ class MarketTicker {
       offset += this.sourceWidth;
     }
 
-    return offset / this.sourceWidth;
-  }
+    const progress = offset / this.sourceWidth;
 
-  savePosition() {
-    if (this.destroyed || this.reducedMotion || this.sourceWidth <= 0) {
-      return;
-    }
-
-    const progress = this.getPositionProgress();
-
-    if (progress === null || !Number.isFinite(progress)) {
+    if (!Number.isFinite(progress)) {
       return;
     }
 
     try {
-      sessionStorage.setItem(this.getPositionStorageKey(), String(progress));
+      window.sessionStorage.setItem(
+        this.getPositionStorageKey(),
+        String(progress),
+      );
     } catch {
-      /*
-       * Storage may be unavailable.
-       * Ticker functionality must not depend on it.
-       */
+      /* Storage unavailable: the ticker simply starts from the beginning. */
     }
   }
 
   restorePosition() {
-    if (this.sourceWidth <= 0) {
-      return false;
-    }
-
     let storedValue = null;
 
     try {
-      storedValue = sessionStorage.getItem(this.getPositionStorageKey());
+      storedValue = window.sessionStorage.getItem(this.getPositionStorageKey());
     } catch {
-      return false;
-    }
-
-    if (storedValue === null) {
-      return false;
+      return;
     }
 
     const progress = Number.parseFloat(storedValue);
 
-    if (!Number.isFinite(progress) || progress < 0 || progress >= 1) {
-      return false;
+    if (Number.isFinite(progress) && progress >= 0 && progress < 1) {
+      this.position = -progress * this.sourceWidth;
     }
-
-    let position = -progress * this.sourceWidth;
-
-    if (this.direction === "rtl" && position === 0) {
-      position = -this.sourceWidth;
-    }
-
-    this.position = position;
-
-    return true;
   }
 
-  startPositionPersistence() {
-    if (this.positionSaveTimer !== null) {
-      return;
-    }
-
-    this.positionSaveTimer = window.setInterval(() => {
-      if (!document.hidden && !this.pauseReasons.size) {
-        this.savePosition();
-      }
-    }, POSITION_SAVE_INTERVAL);
-  }
-
-  stopPositionPersistence() {
-    if (this.positionSaveTimer === null) {
-      return;
-    }
-
-    window.clearInterval(this.positionSaveTimer);
-
-    this.positionSaveTimer = null;
-  }
-
-  /* ==========================================================================
-     Observers / Events
-     ========================================================================== */
+  /* ========================================================================
+     Events
+     ======================================================================== */
 
   bindEvents() {
-    this.viewport.addEventListener("pointerenter", this.handlePointerEnter);
+    const root = document.documentElement;
 
-    this.viewport.addEventListener("pointerleave", this.handlePointerLeave);
+    this.listen(this.root, "pointerenter", this.handlePointerEnter);
+    this.listen(this.root, "pointerleave", this.handlePointerLeave);
+    this.listen(this.root, "focusin", this.handleFocusIn);
+    this.listen(this.root, "focusout", this.handleFocusOut);
 
-    this.root.addEventListener("focusin", this.handleFocusIn);
+    this.listen(document, "visibilitychange", this.handleVisibilityChange);
+    this.listen(window, "pagehide", this.handlePageHide);
 
-    this.root.addEventListener("focusout", this.handleFocusOut);
-
-    document.addEventListener("visibilitychange", this.handleVisibilityChange);
-
-    window.addEventListener("pagehide", this.handlePageHide);
-
-    const removeMotionListener = addMediaQueryListener(
-      this.motionQuery,
-      this.handleMotionChange,
-    );
-
-    this.cleanups.push(() => {
-      this.viewport.removeEventListener(
-        "pointerenter",
-        this.handlePointerEnter,
-      );
-
-      this.viewport.removeEventListener(
-        "pointerleave",
-        this.handlePointerLeave,
-      );
-
-      this.root.removeEventListener("focusin", this.handleFocusIn);
-
-      this.root.removeEventListener("focusout", this.handleFocusOut);
-
-      document.removeEventListener(
-        "visibilitychange",
-        this.handleVisibilityChange,
-      );
-
-      window.removeEventListener("pagehide", this.handlePageHide);
-
-      removeMotionListener();
-    });
-
-    /*
-     * Watch only the viewport dimensions.
-     */
-    if ("ResizeObserver" in window) {
-      this.resizeObserver = new ResizeObserver(this.handleResize);
-
-      this.resizeObserver.observe(this.viewport);
-    } else {
-      window.addEventListener("resize", this.handleResize, {
-        passive: true,
-      });
-
-      this.cleanups.push(() => {
-        window.removeEventListener("resize", this.handleResize);
-      });
+    if (typeof window.ResizeObserver !== "function") {
+      this.listen(window, "resize", this.handleResize, { passive: true });
     }
 
-    /*
-     * Stop animation while outside the visible
-     * browser viewport.
-     */
-    if ("IntersectionObserver" in window) {
-      const bounds = this.root.getBoundingClientRect();
+    /* Pause while outside the browser viewport. */
 
-      const initiallyOutsideViewport =
-        bounds.bottom <= 0 || bounds.top >= window.innerHeight;
-
-      this.setPaused("outside-viewport", initiallyOutsideViewport);
-
+    if (typeof window.IntersectionObserver === "function") {
       this.intersectionObserver = new IntersectionObserver(
         ([entry]) => {
           this.setPaused("outside-viewport", !entry.isIntersecting);
         },
-        {
-          threshold: 0,
-        },
+        { threshold: 0 },
       );
 
       this.intersectionObserver.observe(this.root);
     }
 
-    /*
-     * Observe only attributes that affect ticker
-     * mechanics.
-     *
-     * Theme and accent are deliberately excluded.
-     */
-    this.preferenceObserver = new MutationObserver((mutations) => {
-      const attributes = new Set(
-        mutations.map((mutation) => mutation.attributeName),
-      );
+    /* Only attributes that affect ticker mechanics are observed. */
 
-      /* --------------------------------------------------------------
-             Speed
-             -------------------------------------------------------------- */
+    this.preferenceObserver = new MutationObserver(
+      this.handlePreferenceMutations,
+    );
 
-      if (attributes.has("data-ticker-speed")) {
-        this.updateSpeed();
-      }
-
-      /* --------------------------------------------------------------
-             Direction
-             -------------------------------------------------------------- */
-
-      if (attributes.has("dir")) {
-        const nextDirection = getDirection();
-
-        if (nextDirection !== this.direction) {
-          /*
-           * Save using the previous direction's
-           * storage key first.
-           */
-          this.savePosition();
-
-          this.direction = nextDirection;
-
-          /*
-           * Critical separation:
-           *
-           * viewport -> LTR
-           * track    -> LTR
-           * list     -> LTR
-           *
-           * item link -> page direction
-           */
-          this.updateItemDirections();
-
-          this.setInitialPosition();
-
-          /*
-           * New clones inherit the updated dir
-           * attribute from source links.
-           */
-          this.rebuildCopies({
-            restorePosition: true,
-          });
-        }
-      }
-
-      /* --------------------------------------------------------------
-             Language
-             -------------------------------------------------------------- */
-
-      if (attributes.has("lang")) {
-        this.language = getLanguage();
-
-        this.updateFormatters();
-
-        /*
-         * Company text itself remains
-         * server/localisation owned.
-         */
-        this.rebuildCopies();
-      }
-
-      /* --------------------------------------------------------------
-             Motion
-             -------------------------------------------------------------- */
-
-      if (attributes.has("data-motion")) {
-        this.configureMotion();
-      }
-
-      /* --------------------------------------------------------------
-             Visibility
-             -------------------------------------------------------------- */
-
-      if (attributes.has("data-ticker-visibility")) {
-        const hidden =
-          document.documentElement.dataset.tickerVisibility === "hidden";
-
-        this.setPaused("preference-hidden", hidden);
-
-        if (!hidden) {
-          this.handleResize();
-        }
-      }
-    });
-
-    this.preferenceObserver.observe(document.documentElement, {
+    this.preferenceObserver.observe(root, {
       attributes: true,
-
       attributeFilter: [
-        "data-motion",
         "data-ticker-speed",
         "data-ticker-visibility",
         "dir",
@@ -1498,59 +1121,33 @@ class MarketTicker {
 
     this.setPaused("document-hidden", document.hidden);
 
-    this.setPaused(
-      "preference-hidden",
-      document.documentElement.dataset.tickerVisibility === "hidden",
-    );
-
-    this.startPositionPersistence();
+    this.syncVisibilityPreference();
   }
 
-  /* ==========================================================================
-     Fonts
-     ========================================================================== */
+  listen(target, type, listener, options) {
+    target.addEventListener(type, listener, options);
 
-  waitForFonts() {
-    if (!document.fonts?.ready) {
-      return;
-    }
-
-    document.fonts.ready
-      .then(() => {
-        if (this.destroyed || !this.root.isConnected) {
-          return;
-        }
-
-        this.rebuildCopies();
-      })
-      .catch(() => {
-        /*
-         * Font loading failure must not prevent
-         * ticker operation.
-         */
-      });
+    this.cleanups.push(() => {
+      target.removeEventListener(type, listener, options);
+    });
   }
 
-  /* ==========================================================================
+  /* ========================================================================
      Cleanup
-     ========================================================================== */
+     ======================================================================== */
 
   destroy() {
     if (this.destroyed) {
       return;
     }
 
-    /*
-     * Save before setting destroyed because
-     * savePosition() ignores destroyed controllers.
-     */
+    /* Saved first: savePosition() ignores destroyed controllers. */
+
     this.savePosition();
 
     this.destroyed = true;
 
     this.stopAnimation();
-
-    this.stopPositionPersistence();
 
     if (this.resizeFrameId !== null) {
       window.cancelAnimationFrame(this.resizeFrameId);
@@ -1559,26 +1156,24 @@ class MarketTicker {
     }
 
     this.resizeObserver?.disconnect();
-
     this.intersectionObserver?.disconnect();
-
     this.preferenceObserver?.disconnect();
 
-    for (const cleanup of this.cleanups) {
-      cleanup();
-    }
+    this.cleanups.forEach((cleanup) => cleanup());
 
     this.cleanups = [];
 
-    this.root.classList.remove("is-ready", "is-paused");
-
-    this.root.removeAttribute("data-market-ticker-initialized");
+    this.viewport?.removeEventListener("scroll", this.handleViewportScroll);
 
     this.viewport?.remove();
 
     this.viewport = null;
     this.track = null;
     this.sourceList = null;
+
+    this.root.classList.remove("is-ready", "is-paused");
+
+    this.root.removeAttribute("data-market-ticker-initialized");
 
     controllers.delete(this.root);
   }
@@ -1589,25 +1184,12 @@ class MarketTicker {
    ========================================================================== */
 
 export function initMarketTicker(container = document) {
-  const roots = [];
-
-  if (
-    container instanceof Element &&
-    container.matches("[data-market-ticker]")
-  ) {
-    roots.push(container);
-  }
-
-  roots.push(...container.querySelectorAll("[data-market-ticker]"));
-
-  for (const root of roots) {
+  for (const root of collectRoots(container)) {
     if (controllers.has(root)) {
       continue;
     }
 
-    const data = getTickerData(root);
-
-    const controller = new MarketTicker(root, data);
+    const controller = new MarketTicker(root, getTickerData(root));
 
     controllers.set(root, controller);
 
@@ -1616,18 +1198,7 @@ export function initMarketTicker(container = document) {
 }
 
 export function destroyMarketTicker(container = document) {
-  const roots = [];
-
-  if (
-    container instanceof Element &&
-    container.matches("[data-market-ticker]")
-  ) {
-    roots.push(container);
-  }
-
-  roots.push(...container.querySelectorAll("[data-market-ticker]"));
-
-  for (const root of roots) {
+  for (const root of collectRoots(container)) {
     controllers.get(root)?.destroy();
   }
 }

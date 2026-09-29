@@ -1,4 +1,13 @@
 /* ==========================================================================
+   Reset
+   ========================================================================== */
+
+/**
+ * Low-specificity reset. :where() keeps element rules at zero specificity,
+ * so any component class overrides them without a fight.
+ */
+
+/* ==========================================================================
    Box Sizing
    ========================================================================== */
 
@@ -12,7 +21,10 @@
    Document
    ========================================================================== */
 
+/* Stops iOS Safari from inflating text after orientation changes. */
+
 html {
+  -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
 }
 
@@ -57,7 +69,7 @@ body {
   cursor: pointer;
 }
 
-:where(button:disabled) {
+:where(button:disabled, [aria-disabled="true"]) {
   cursor: not-allowed;
 }
 
