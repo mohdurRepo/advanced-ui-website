@@ -44,6 +44,9 @@ import {
    2. Main x-axis and navigator share one tick model per range type, so
       their labels always agree.
    3. Intraday ticks sit on clean market-time boundaries (10:00, 10:15, …).
+      When the session starts just after a boundary (first bar at 10:00:30
+      or 10:01), that boundary is labelled at the axis edge so the session
+      start is never left unlabelled.
    4. Historical ticks are evenly spaced by data index and always sit on
       real market timestamps (never on non-trading days).
    5. Navigator x-axis stays data-driven; min/max are never frozen.
@@ -146,9 +149,22 @@ const INTRADAY_TICK_INTERVALS = Object.freeze([
 const INTRADAY_TARGET_LABEL_PIXEL_GAP = 88;
 const MIN_LABEL_PIXEL_GAP = 40;
 
+/*
+ * A boundary is labelled at the axis edge only when the visible start is
+ * this close after it (and within a quarter of the tick interval). Further
+ * away, relabelling the edge would misstate the session start.
+ */
+const INTRADAY_EDGE_SNAP_MAX = 5 * MINUTE;
+
 const HISTORICAL_TICK_COUNT = 6;
 const HISTORICAL_TARGET_LABEL_PIXEL_GAP = 108;
 const HISTORICAL_MIN_LABEL_PIXEL_GAP = 72;
+
+/*
+ * Axis property holding tick-position -> displayed-time overrides, written
+ * by the tick positioners and read by the label formatters.
+ */
+const TICK_LABELS_KEY = "marketChartTickLabels";
 
 /* ==========================================================================
    Helpers
@@ -297,6 +313,18 @@ function createDateFormatter({ language, timeZone, options }) {
   };
 }
 
+/**
+ * Axis label formatter shared by the main x-axis and the navigator: shows
+ * the tick's time, or its override (session-edge boundary) when present.
+ */
+function createAxisLabelFormatter(formatDate) {
+  return function formatAxisLabel() {
+    return formatDate(
+      this.axis?.[TICK_LABELS_KEY]?.get(this.value) ?? this.value,
+    );
+  };
+}
+
 /* ==========================================================================
    Shared Tick Geometry
    ========================================================================== */
@@ -363,6 +391,12 @@ function chooseIntradayTickInterval(span, width, explicitInterval, pixelGap) {
   );
 }
 
+/**
+ * Clean market-time tick positions for [minimum, maximum].
+ *
+ * @returns {{ positions: number[], labels: Map<number, number> | null }}
+ *   `labels` maps a tick position to the time it should display.
+ */
 function buildIntradayTickPositions({
   minimum,
   maximum,
@@ -372,7 +406,7 @@ function buildIntradayTickPositions({
   minimumLabelPixelGap,
 }) {
   if (maximum <= minimum) {
-    return [minimum];
+    return { positions: [minimum], labels: null };
   }
 
   const span = maximum - minimum;
@@ -392,6 +426,22 @@ function buildIntradayTickPositions({
   const epsilon = Math.min(1_000, interval * 1e-9);
 
   const positions = [];
+  const labels = new Map();
+
+  /*
+   * Session edge: a first bar at 10:00:30 or 10:01 puts the 10:00 boundary
+   * just outside the axis, so it would be skipped and the session start left
+   * unlabelled. Label that boundary at the visible edge instead.
+   */
+  const boundary = Math.floor(minimum / interval) * interval;
+
+  if (
+    boundary < minimum &&
+    minimum - boundary <= Math.min(interval / 4, INTRADAY_EDGE_SNAP_MAX)
+  ) {
+    positions.push(minimum);
+    labels.set(minimum, boundary);
+  }
 
   for (
     let tick = Math.ceil(minimum / interval) * interval;
@@ -403,24 +453,33 @@ function buildIntradayTickPositions({
     }
   }
 
-  return positions.length ? positions : [minimum];
+  return {
+    positions: positions.length ? positions : [minimum],
+    labels: labels.size ? labels : null,
+  };
 }
 
 function createIntradayTickPositioner(model) {
   return function intradayTickPositioner() {
     const visible = getVisibleDataWindow(this);
 
+    this[TICK_LABELS_KEY] = null;
+
     if (!visible) {
       return undefined;
     }
 
-    return buildIntradayTickPositions({
+    const { positions, labels } = buildIntradayTickPositions({
       ...visible,
       width: getTickReferenceLength(this),
       tickInterval: model.tickInterval,
       pixelGap: model.pixelGap,
       minimumLabelPixelGap: model.minimumLabelPixelGap,
     });
+
+    this[TICK_LABELS_KEY] = labels;
+
+    return positions;
   };
 }
 
@@ -496,6 +555,8 @@ function buildHistoricalTickPositions({
 
 function createHistoricalTickPositioner(model) {
   return function historicalTickPositioner() {
+    this[TICK_LABELS_KEY] = null;
+
     const visible = getVisibleDataWindow(this);
 
     if (!visible) {
@@ -681,7 +742,6 @@ function createXAxisOptions({
        * render naturally; edge overflow is handled after render.
        */
       overflow: intraday ? "justify" : "allow",
-      crop: false,
 
       style: {
         color: theme.muted,
@@ -691,9 +751,7 @@ function createXAxisOptions({
         ...asPlainObject(labelStyle),
       },
 
-      formatter() {
-        return formatDate(this.value);
-      },
+      formatter: createAxisLabelFormatter(formatDate),
 
       ...labelOptions,
     },
@@ -1154,7 +1212,6 @@ function createNavigatorOptions({
         y: toFiniteNumber(configuration.labelY) ?? -5,
 
         overflow: intraday ? "justify" : "allow",
-        crop: false,
 
         style: {
           color: theme.muted,
@@ -1166,9 +1223,7 @@ function createNavigatorOptions({
           ...asPlainObject(configuration.labelStyle),
         },
 
-        formatter() {
-          return formatDate(this.value);
-        },
+        formatter: createAxisLabelFormatter(formatDate),
       },
 
       showFirstLabel: configuration.showFirstLabel !== false,
@@ -1541,7 +1596,7 @@ export function createMarketChartOptions({
 
     /*
      * Chart-level `lang` requires Highcharts 12+. On older versions these
-     * strings must be applied globally with Highcharts.setOptions().
+     * strings are applied globally by initMarketCharts().
      */
     lang: { ...resolvedStrings.highcharts },
 
