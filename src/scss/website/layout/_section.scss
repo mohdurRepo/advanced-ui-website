@@ -1,13 +1,13 @@
 .section {
-  padding-block: clamp(1.5rem, 3vw, 1.5rem);
+  padding-top: clamp(1.5rem, 3vw, 1.5rem);
 }
 
 .section-sm {
-  padding-block: clamp(1.5rem, 3vw, 3rem);
+  padding-top: clamp(1.5rem, 3vw, 3rem);
 }
 
 .section-lg {
-  padding-block: clamp(3rem, 7vw, 7rem);
+  padding-top: clamp(3rem, 7vw, 7rem);
 }
 
 .section-none {

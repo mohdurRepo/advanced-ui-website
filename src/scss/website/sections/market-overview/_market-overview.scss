@@ -480,6 +480,7 @@
 .market-overview:not([data-market-details-mode="always"]) {
   .market-overview__disclosure[open]:not(.is-closing) {
     .market-details {
+      margin-top: -0.75rem;
       animation: market-overview-curtain-open 200ms ease-out both;
     }
   }

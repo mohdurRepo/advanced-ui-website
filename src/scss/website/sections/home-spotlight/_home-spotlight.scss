@@ -5,15 +5,16 @@
    ========================================================================== */
 
 .home-spotlight {
-  --home-spotlight-bg: var(--color-bg);
   --home-spotlight-fg: var(--color-text);
   --home-spotlight-gap: clamp(1rem, 2vw, 1.5rem);
+
+  /* Added: Component border-radius tokens for standard layouts */
+  --home-spotlight-radius: var(--radius-xl);
 
   position: relative;
 
   min-inline-size: 0;
 
-  background: var(--home-spotlight-bg);
   color: var(--home-spotlight-fg);
 }
 
@@ -87,6 +88,10 @@
 .home-spotlight__activities {
   min-inline-size: 0;
   min-block-size: 0;
+
+  /* FIXED: Make edges rounded for all grid component items */
+  border-radius: var(--home-spotlight-radius);
+  overflow: hidden;
 }
 
 .home-spotlight__events {
@@ -295,7 +300,6 @@
     grid-template-areas: "events";
   }
 }
-
 /* ==========================================================================
    Mobile
    ========================================================================== */
@@ -303,5 +307,8 @@
 @include ds.respond-down(sm) {
   .home-spotlight {
     --home-spotlight-gap: 1rem;
+    
+    /* FIXED: Scale radii down slightly to clean up rendering on smaller displays */
+    --home-spotlight-radius: var(--radius-lg);
   }
 }

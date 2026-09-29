@@ -22,9 +22,15 @@
 
 .content-panel {
   --content-panel-bg: var(--color-surface-alt);
+  
+  /* UPDATED: Border color formula added here to match the ecosystem/promo modules precisely */
+  --content-panel-border: color-mix(
+    in oklab,
+    var(--color-primary),
+    var(--color-border) 72%
+  );
+  
   --content-panel-color: var(--color-text);
-
-  --content-panel-border: var(--color-border);
   --content-panel-radius: var(--radius-2xl);
 
   --content-panel-padding: clamp(#{ds.space(4)}, 2vw, #{ds.space(6)});

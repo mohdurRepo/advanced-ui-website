@@ -198,7 +198,7 @@
   min-inline-size: 0;
   min-block-size: 0;
 
-  padding-block-end: var(--market-details-after-space);
+  //padding-block-end: var(--market-details-after-space);
 
   scroll-margin-block-start: calc(
     var(--app-header-height, 0px) + var(--space-3, #{ds.space(3)})

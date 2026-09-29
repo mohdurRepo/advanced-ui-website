@@ -5,7 +5,6 @@
    ========================================================================== */
 
 .group-ecosystem {
-  --group-ecosystem-bg: var(--color-bg);
   --group-ecosystem-fg: var(--color-text);
   --group-ecosystem-heading: var(--color-heading);
   --group-ecosystem-muted: var(--color-text-muted);
@@ -46,7 +45,9 @@
 
   --group-ecosystem-link-translate: 0.15rem;
 
-  background: var(--group-ecosystem-bg);
+  /* Explicitly map surface structural variables locally */
+  --group-ecosystem-surface-radius: var(--radius-xl);
+
   color: var(--group-ecosystem-fg);
 }
 
@@ -73,49 +74,20 @@
   overflow: hidden;
 
   border: 1px solid var(--group-ecosystem-surface-border);
-
   border-top: 0;
 
-  background: linear-gradient(
-    145deg,
-    color-mix(in oklab, var(--group-ecosystem-surface-bg), #ffffff 8%) 0%,
-    var(--group-ecosystem-surface-bg) 58%,
-    color-mix(
-        in oklab,
-        var(--group-ecosystem-surface-bg),
-        var(--color-primary) 5%
-      )
-      100%
-  );
+  /* Rounded top corners are 0, bottom corners match previous block specs */
+  border-start-start-radius: 0;
+  border-start-end-radius: 0;
+  border-end-start-radius: var(--group-ecosystem-surface-radius);
+  border-end-end-radius: var(--group-ecosystem-surface-radius);
+
+  /* FIXED: Changed from linear-gradient to flat background token matching the top block */
+  background: var(--color-surface-alt);
 
   color: var(--group-ecosystem-heading);
 
   box-shadow: var(--shadow-sm);
-}
-
-/* ==========================================================================
-   Decorative Surface Detail
-   ========================================================================== */
-
-.group-ecosystem__surface::before {
-  content: "";
-
-  position: absolute;
-
-  inset-inline-end: -10rem;
-  inset-block-start: -12rem;
-  z-index: -1;
-
-  inline-size: 28rem;
-  block-size: 28rem;
-
-  background: radial-gradient(
-    circle at center,
-    color-mix(in oklab, var(--group-ecosystem-accent), transparent 74%) 0%,
-    transparent 70%
-  );
-
-  pointer-events: none;
 }
 
 /* ==========================================================================
@@ -257,9 +229,6 @@ html[dir="rtl"] {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  /*
-   * Keep the final company centered when the grid contains three items.
-   */
   .group-ecosystem__companies > :last-child:nth-child(odd) {
     grid-column: 1 / -1;
 
@@ -268,7 +237,6 @@ html[dir="rtl"] {
     justify-self: center;
   }
 }
-
 /* ==========================================================================
    Mobile
    ========================================================================== */
@@ -282,6 +250,10 @@ html[dir="rtl"] {
   .group-ecosystem__surface {
     padding: 1.5rem 1rem;
 
+    border-start-start-radius: 0;
+    border-start-end-radius: 0;
+    border-end-start-radius: var(--radius-xl);
+    border-end-end-radius: var(--radius-xl);
   }
 
   .group-ecosystem__parent {
@@ -333,17 +305,8 @@ html[data-theme="dark"] {
   }
 
   .group-ecosystem__surface {
-    background: linear-gradient(
-      145deg,
-      color-mix(in oklab, var(--group-ecosystem-surface-bg), #ffffff 3%) 0%,
-      var(--group-ecosystem-surface-bg) 62%,
-      color-mix(
-          in oklab,
-          var(--group-ecosystem-surface-bg),
-          var(--color-primary) 7%
-        )
-        100%
-    );
+    /* FIXED: Stripped out dark-mode gradient to preserve matching flat backgrounds */
+    background: var(--color-surface-alt);
   }
 }
 

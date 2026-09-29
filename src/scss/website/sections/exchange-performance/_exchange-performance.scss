@@ -5,7 +5,6 @@
    ========================================================================== */
 
 .exchange-performance {
-  --exchange-performance-bg: var(--color-bg);
   --exchange-performance-fg: var(--color-text);
   --exchange-performance-heading: var(--color-heading);
   --exchange-performance-muted: var(--color-text-muted);
@@ -20,7 +19,6 @@
   position: relative;
   isolation: isolate;
 
-  background: var(--exchange-performance-bg);
   color: var(--exchange-performance-fg);
 }
 

@@ -20,6 +20,9 @@
 
   --exchange-stat-card-pattern-position: right bottom;
 
+  /* Added: Token for standard component rounding */
+  --exchange-stat-radius: var(--radius-xl);
+
   position: relative;
   isolation: isolate;
 
@@ -36,6 +39,7 @@
 
   overflow: hidden;
 
+  /* FIXED: Added main card rounding definition */
   border: 1px solid var(--exchange-stat-card-border);
   border-block-start: 3px solid
     color-mix(
@@ -43,6 +47,11 @@
       var(--exchange-stat-card-accent),
       var(--exchange-stat-card-border) 30%
     );
+  border-radius: var(--exchange-stat-radius);
+
+  /* FIXED: Enforces custom rendering engines to curve thick top borders */
+  border-top-left-radius: inherit;
+  border-top-right-radius: inherit;
 
   background: linear-gradient(
     145deg,
@@ -308,6 +317,9 @@ html[dir="rtl"] {
     min-block-size: 11.5rem;
 
     padding: 1rem;
+
+    /* FIXED: Scales down card corner rounding cleanly on small displays */
+    --exchange-stat-radius: var(--radius-lg);
   }
 
   .exchange-stat-card__icon {
@@ -328,7 +340,6 @@ html[dir="rtl"] {
     font-size: var(--text-xl);
   }
 }
-
 /* ==========================================================================
    Dark Theme
    ========================================================================== */

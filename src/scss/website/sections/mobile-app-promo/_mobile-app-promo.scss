@@ -5,7 +5,6 @@
    ========================================================================== */
 
 .mobile-app-promo {
-  --mobile-app-bg: var(--color-bg);
   --mobile-app-fg: var(--color-text);
 
   --mobile-app-surface-bg: color-mix(
@@ -36,7 +35,6 @@
   --mobile-app-surface-radius: var(--radius-xl);
   --mobile-app-panel-radius: var(--radius-lg);
 
-  background: var(--mobile-app-bg);
   color: var(--mobile-app-fg);
 }
 
@@ -58,14 +56,15 @@
   padding: clamp(0.75rem, 2vw, 1.5rem);
 
   border: 1px solid var(--mobile-app-surface-border);
-
   border-bottom: 0;
 
-  background: linear-gradient(
-    var(--mobile-app-gradient-angle),
-    color-mix(in oklab, var(--mobile-app-surface-bg), #ffffff 18%) 0%,
-    var(--mobile-app-surface-bg) 100%
-  );
+  /* FIXED: Rounded top corners, completely flat bottom corners */
+  border-start-start-radius: var(--mobile-app-surface-radius);
+  border-start-end-radius: var(--mobile-app-surface-radius);
+  border-end-start-radius: 0;
+  border-end-end-radius: 0;
+
+  background: var(--color-surface-alt);
 
   box-shadow: var(--shadow-sm);
 }
@@ -91,7 +90,6 @@
   overflow: hidden;
 
   border: 1px solid var(--mobile-app-panel-border);
-  
 
   background:
     radial-gradient(
@@ -347,7 +345,6 @@ html[dir="rtl"] {
     --mobile-app-mockup-position: center left;
   }
 }
-
 /* ==========================================================================
    Large Tablet
    ========================================================================== */
@@ -397,6 +394,9 @@ html[dir="rtl"] {
   .mobile-app-promo__surface {
     padding: 0.625rem;
 
+    /* FIXED: Enforce flat bottom corners responsively */
+    border-end-start-radius: 0;
+    border-end-end-radius: 0;
   }
 
   .mobile-app-promo__panel {
@@ -471,11 +471,7 @@ html[data-theme="dark"] {
   }
 
   .mobile-app-promo__surface {
-    background: linear-gradient(
-      var(--mobile-app-gradient-angle),
-      color-mix(in oklab, var(--mobile-app-surface-bg), #ffffff 4%) 0%,
-      var(--mobile-app-surface-bg) 100%
-    );
+    background: var(--color-surface-alt);
   }
 }
 

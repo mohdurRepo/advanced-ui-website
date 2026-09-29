@@ -5,7 +5,6 @@
    ========================================================================== */
 
 .audience-pathways {
-  --audience-pathways-bg: var(--color-bg);
   --audience-pathways-fg: var(--color-text);
   --audience-pathways-heading: var(--color-heading);
   --audience-pathways-muted: var(--color-text-muted);
@@ -20,7 +19,6 @@
 
   min-inline-size: 0;
 
-  background: var(--audience-pathways-bg);
   color: var(--audience-pathways-fg);
 }
 

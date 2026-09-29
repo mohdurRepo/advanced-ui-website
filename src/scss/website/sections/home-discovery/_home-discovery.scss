@@ -9,7 +9,7 @@
   --home-discovery-muted: var(--color-text-muted);
   --home-discovery-accent: var(--color-primary);
 
-  --home-discovery-gap: clamp(1rem, 2vw, 2rem);
+  --home-discovery-gap: clamp(1.25rem, 1.25vw, 1.25rem);
   --home-discovery-main-gap: clamp(1rem, 2vw, 1.5rem);
 
   --home-discovery-content-width: 48rem;
@@ -197,7 +197,7 @@
 
 @media (max-width: 991.98px) {
   .home-discovery {
-    --home-discovery-gap: clamp(2rem, 4vw, 3rem);
+    --home-discovery-gap: clamp(0.5rem, 0.5vw, 0.5rem);
     --home-discovery-content-width: 42rem;
   }
 
@@ -229,8 +229,8 @@
 
 @include ds.respond-down(sm) {
   .home-discovery {
+    --home-discovery-gap: clamp(0.75rem, 0.75vw, 0.75rem);
     --home-discovery-main-gap: 1rem;
-    --home-discovery-gap: 1.5rem;
   }
 
   .home-discovery__promotion,

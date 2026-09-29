@@ -53,9 +53,9 @@
    ========================================================================== */
 
 [data-motion="reveal"] {
-  --motion-duration: 1000ms;
+  --motion-duration: 800ms;
   --motion-delay: 0ms;
-  --motion-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --motion-ease: cubic-bezier(0.22, 1, 0.3, 1);
   --motion-distance: 1.25rem;
 
   --motion-opacity: 0;
@@ -78,9 +78,6 @@
   &[data-motion-from="top"] {
     --motion-y: calc(var(--motion-distance) * -1);
   }
-
-  /* Logical start: left in LTR, right in RTL. `:dir()` also covers RTL
-     sections inside an LTR page, not only <html dir="rtl">. */
 
   &[data-motion-from="start"] {
     --motion-x: calc(var(--motion-distance) * -1);

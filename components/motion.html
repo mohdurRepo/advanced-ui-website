@@ -10,50 +10,151 @@
 
     <title>Motion | Abu Faisal Design System</title>
 
-    <!--
-      Runs before first paint:
-      1. applies saved settings (language, theme, motion…);
-      2. enables Motion so content starts hidden (no flash on load);
-      3. arms a safety timer that shows everything if JavaScript never loads.
-    -->
+        <!-- 1. RUN THE SCRIPT FIRST TO CHOOSE PREFERENCES BEFORE CSS PROCESSES -->
     <script>
       (function () {
+        "use strict";
+
         var root = document.documentElement;
+        var LANGUAGE_RESTORE_TIMEOUT = 4000;
 
-        var lang = localStorage.getItem("se-lang") || "en";
-        var themeChoice = localStorage.getItem("se-theme") || "system";
-        var accent = localStorage.getItem("se-accent") || "blue";
-        var fontSize = localStorage.getItem("se-font-size") || "0";
-        var contrast = localStorage.getItem("se-contrast") || "normal";
-        var motion = localStorage.getItem("se-motion") || "normal";
+        /* ==========================================================================
+           Application Configuration Defaults
+           ========================================================================== */
+        var DEFAULTS = {
+          theme: "system",
+          accent: "blue",
+          fontSize: "0",
+          contrast: "normal",
+          motion: "normal" 
+        };
 
-        var systemTheme =
-          window.matchMedia &&
-          window.matchMedia("(prefers-color-scheme: dark)").matches
-            ? "dark"
-            : "light";
+        var KEYS = {
+          theme: "se-theme",
+          accent: "se-accent",
+          fontSize: "se-font-size",
+          contrast: "se-contrast",
+          motion: "se-motion",
+          lang: "se-lang",
+          dir: "se-dir"
+        };
 
-        root.lang = lang === "ar" ? "ar" : "en";
-        root.dir = lang === "ar" ? "rtl" : "ltr";
+        /* ==========================================================================
+           Storage Engine Bridge
+           ========================================================================== */
+        function getStoredValue(key, fallback) {
+          try {
+            var value = window.localStorage.getItem(key);
+            return value !== null ? value : fallback;
+          } catch (error) {
+            return fallback;
+          }
+        }
 
-        root.setAttribute(
-          "data-theme",
-          themeChoice === "system" ? systemTheme : themeChoice,
-        );
+        function setInitialDefault(key, value) {
+          try {
+            if (window.localStorage.getItem(key) === null) {
+              window.localStorage.setItem(key, value);
+            }
+          } catch (error) {}
+        }
+
+        /* ==========================================================================
+           Language & Direction Resolution
+           ========================================================================== */
+        function getUrlLanguage() {
+          try {
+            var language = new URLSearchParams(window.location.search).get("locale");
+            return language === "ar" || language === "en" ? language : null;
+          } catch (error) {
+            return null;
+          }
+        }
+
+        var documentLanguage = root.getAttribute("lang") === "ar" ? "ar" : "en";
+        var storedLanguage = getStoredValue(KEYS.lang, null);
+        var urlLanguage = getUrlLanguage();
+        
+        var resolvedLanguage = urlLanguage || (storedLanguage === "ar" || storedLanguage === "en" ? storedLanguage : documentLanguage);
+        var resolvedDirection = resolvedLanguage === "ar" ? "rtl" : "ltr";
+
+        root.setAttribute("lang", resolvedLanguage);
+        root.setAttribute("dir", resolvedDirection);
+
+        setInitialDefault(KEYS.lang, resolvedLanguage);
+        setInitialDefault(KEYS.dir, resolvedDirection);
+
+        if (resolvedLanguage !== documentLanguage) {
+          root.style.visibility = "hidden";
+          root.setAttribute("data-language-restoring", "true");
+          
+          window.__languageRestoreFallback = window.setTimeout(function () {
+            root.style.removeProperty("visibility");
+            root.removeAttribute("data-language-restoring");
+            window.__languageRestoreFallback = null;
+          }, LANGUAGE_RESTORE_TIMEOUT);
+        }
+
+        /* ==========================================================================
+           Preferences Extraction & Initialization Guard
+           ========================================================================== */
+        var themeChoice = getStoredValue(KEYS.theme, DEFAULTS.theme);
+        var accent = getStoredValue(KEYS.accent, DEFAULTS.accent);
+        var fontSize = getStoredValue(KEYS.fontSize, DEFAULTS.fontSize);
+        var contrast = getStoredValue(KEYS.contrast, DEFAULTS.contrast);
+        var motionChoice = getStoredValue(KEYS.motion, null); 
+
+        /* ==========================================================================
+           System Preferences Sniffing
+           ========================================================================== */
+        var systemTheme = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+        var prefersReducedMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+        /* ==========================================================================
+           Fallback State Mapping Loop
+           ========================================================================== */
+        var resolvedTheme = themeChoice === "system" ? systemTheme : themeChoice;
+        var resolvedMotion = motionChoice ? motionChoice : (prefersReducedMotion ? "reduce" : DEFAULTS.motion);
+
+        setInitialDefault(KEYS.theme, themeChoice);
+        setInitialDefault(KEYS.accent, accent);
+        setInitialDefault(KEYS.fontSize, fontSize);
+        setInitialDefault(KEYS.contrast, contrast);
+        setInitialDefault(KEYS.motion, resolvedMotion);
+
+        /* ==========================================================================
+           Attribute Binding & Gate Control
+           ========================================================================== */
+        root.setAttribute("data-theme", resolvedTheme);
         root.setAttribute("data-theme-choice", themeChoice);
         root.setAttribute("data-accent", accent);
         root.setAttribute("data-font-size", fontSize);
         root.setAttribute("data-contrast", contrast);
-        root.setAttribute("data-motion", motion);
+        root.setAttribute("data-motion", resolvedMotion);
 
-        root.classList.add("motion-ready");
-
-        window.__motionFallback = window.setTimeout(function () {
-          window.__motionFallbackFired = true;
+        if (resolvedMotion === "normal") {
+          root.classList.add("motion-ready");
+        } else {
           root.classList.remove("motion-ready");
-        }, 3000);
+        }
       })();
     </script>
+
+    <!-- 2. NOW LINK VITE SCSS FILE AFTER CLASSES ARE ATTACHED -->
+    <link rel="stylesheet" href="/src/scss/main.scss" />
+
+    <!-- Highcharts Stock -->
+    <script src="https://code.highcharts.com/stock/highstock.js"></script>
+
+    <!-- Export support -->
+    <script src="https://code.highcharts.com/stock/modules/exporting.js"></script>
+    <script src="https://code.highcharts.com/stock/modules/export-data.js"></script>
+    <script src="https://code.highcharts.com/modules/offline-exporting.js"></script>
+
+    <!-- Accessibility -->
+    <script src="https://code.highcharts.com/modules/accessibility.js"></script>
+    <script type="module" src="/src/js/main.js"></script>
+  </head>
 
     <link rel="stylesheet" href="/src/scss/main.scss" />
     <script type="module" src="/src/js/main.js"></script>
