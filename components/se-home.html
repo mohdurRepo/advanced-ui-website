@@ -9850,6 +9850,7 @@
 
       const POLL_INTERVAL = 5_000;
       const MARKET_STEP = 60_000;
+
       /*
        * See main-market-performance.mock.js for why this needs real
        * headroom above a full session's minute-bar count, not just enough
@@ -10000,20 +10001,14 @@
         return arabic() ? market.nameAr : market.nameEn;
       }
 
-      function labels() {
+      function statusLabels() {
         return arabic()
           ? {
-              time: "الوقت",
-              date: "التاريخ",
-              value: "قيمة المؤشر",
               live: "مباشر",
               open: "مفتوح",
               closed: "مغلق",
             }
           : {
-              time: "Time",
-              date: "Date",
-              value: "Index Value",
               live: "Live",
               open: "Open",
               closed: "Closed",
@@ -10101,6 +10096,7 @@
           );
 
           const high = round(Math.max(open, close) + spread, market.decimals);
+
           const low = round(
             Math.max(0.01, Math.min(open, close) - spread),
             market.decimals,
@@ -10146,6 +10142,7 @@
 
           price +=
             (target - price) * 0.18 + (random() - 0.5) * market.noise * scale;
+
           price = round(Math.max(0.01, price), market.decimals);
 
           data.push([timestamp, price]);
@@ -10258,6 +10255,7 @@
           state.timestamp = start - MARKET_STEP;
           state.price = market.previousClose;
           state.sequence = 0;
+
           state.trend.length = 0;
           state.candles.length = 0;
 
@@ -10274,6 +10272,7 @@
           }
 
           const elapsed = Math.max(0, Date.now() - state.lastRealTickAt);
+
           const steps = Math.floor(elapsed / POLL_INTERVAL);
 
           if (!steps) {
@@ -10287,7 +10286,10 @@
           state.lastRealTickAt += steps * POLL_INTERVAL;
         }
 
-        /* Same canonical shape as history: { comparisonValue, trend, candlestick }. */
+        /*
+         * Same canonical shape as history:
+         * { comparisonValue, trend, candlestick }.
+         */
         function intraday() {
           return {
             comparisonValue: market.previousClose,
@@ -10302,20 +10304,35 @@
           /*
            * Complete snapshot used whenever a market becomes active.
            *
-           * Historical ranges stay cached in this lightweight feed, while the
-           * intraday range is synchronized immediately before chart creation.
+           * Historical ranges stay cached in this lightweight feed, while
+           * the intraday range is synchronized immediately before chart
+           * creation.
            */
           initialRanges() {
             sync();
 
-            return { "1D": intraday(), ...history };
+            return {
+              "1D": intraday(),
+              ...history,
+            };
+          },
+
+          /*
+           * Authoritative current-session snapshot for resume,
+           * range-return and other fullSnapshot requests.
+           */
+          intradaySnapshot() {
+            sync();
+
+            return intraday();
           },
 
           /*
            * Inclusive latest timestamp:
-           *   same timestamp + same value    -> noop
-           *   same timestamp + changed value -> replace
-           *   newer timestamp                -> append
+           *
+           * same timestamp + same value    -> noop
+           * same timestamp + changed value -> replace
+           * newer timestamp                -> append
            */
           pointsSince(since) {
             sync();
@@ -10358,10 +10375,12 @@
               Math.max(candle[1], candle[2], close),
               market.decimals,
             );
+
             candle[3] = round(
               Math.max(0.01, Math.min(candle[1], candle[3], close)),
               market.decimals,
             );
+
             candle[4] = close;
             trend[1] = close;
             state.price = close;
@@ -10406,7 +10425,9 @@
           return new DOMException("The operation was aborted.", "AbortError");
         } catch {
           const error = new Error("The operation was aborted.");
+
           error.name = "AbortError";
+
           return error;
         }
       }
@@ -10421,9 +10442,9 @@
          *   const payload = await response.json();
          *   return normalizePayload(payload);
          *
-         * A complete snapshot is requested on every actual market activation
-         * because inactive markets do not retain a Highstock/controller
-         * instance.
+         * A complete snapshot is requested on every actual market
+         * activation because inactive markets do not retain a
+         * Highstock/controller instance.
          */
         if (signal?.aborted) {
           throw createAbortError();
@@ -10475,12 +10496,15 @@
        ====================================================================== */
 
       function updateStatus(market, open) {
-        const text = labels();
+        const text = statusLabels();
+
         const panel = document.querySelector(market.panelSelector);
 
         for (const root of [panel, tabFor(market)].filter(Boolean)) {
           const live = root.querySelector("[data-chart-live-status]");
+
           const status = root.querySelector(".market-card__status");
+
           const icon = root.querySelector(".market-status");
 
           if (live) {
@@ -10492,6 +10516,7 @@
           }
 
           icon?.classList.toggle("market-status--open", open);
+
           icon?.classList.toggle("market-status--closed", !open);
         }
       }
@@ -10501,10 +10526,9 @@
        ====================================================================== */
 
       function chartConfiguration(market, panel, feed, ranges) {
-        const text = labels();
-
         return {
           context: "overview",
+
           symbol: market.symbol,
           name: marketName(market),
           currency: market.currency,
@@ -10513,6 +10537,8 @@
           mode: "trend",
           range: "1D",
 
+          showEmptyState: true,
+
           language: language(),
           timeZone: TIME_ZONE,
           decimals: market.decimals,
@@ -10520,16 +10546,20 @@
           maxPoints: MAX_POINTS,
           candleBucketSize: MARKET_STEP,
 
-          /* Keep the complete session visible. */
+          /*
+           * Keep the complete session visible.
+           */
           liveWindowDuration: null,
 
           /*
-           * Fresh active-market creation gets one restrained Highcharts draw.
-           * Live ticks and structural controller refreshes remain unanimated.
+           * Fresh active-market creation gets one restrained Highcharts
+           * draw. Live ticks and structural controller refreshes remain
+           * unanimated.
            */
           animation: {
             duration: 450,
           },
+
           ranges,
 
           capabilities: {
@@ -10540,50 +10570,27 @@
             intradayRange: "1D",
           },
 
-          controls: { root: panel },
+          controls: {
+            root: panel,
+          },
 
-          xAxisTitle: null,
-          yAxisTitle: text.value,
-
-          axis: {
-            x: {
-              title: { "1D": text.time, default: text.date },
-              rotation: { "1D": 0, default: -20 },
-              labels: true,
-              showFirstLabel: true,
-              showLastLabel: true,
-              minPadding: 0,
-              maxPadding: 0,
-            },
-            y: {
-              opposite: true,
-              labels: true,
-              minPadding: 0.06,
-              maxPadding: 0.06,
-              format: { decimals: market.decimals, useGrouping: true },
+          /*
+           * Component i18n owns axis titles and the overview context owns
+           * navigator geometry. This page only overrides what is specific
+           * to this integration.
+           */
+          xAxis: {
+            rotation: {
+              "1D": 0,
+              default: -20,
             },
           },
 
-          navigatorEnabled: true,
-          navigator: {
-            enabled: true,
-            height: 32,
-            margin: 12,
-            handles: true,
-            handleWidth: 7,
-            handleHeight: 14,
-
-            /*
-             * Compact navigator labels render inside the mini-chart.
-             * Edge labels are enabled now that the options module owns handle
-             * clearance and exact canonical x-axis bounds.
-             */
-            labels: true,
-            labelY: -5,
-            showFirstLabel: true,
-            showLastLabel: true,
-            tickPixelInterval: 120,
-            dataGrouping: false,
+          yAxis: {
+            format: {
+              decimals: market.decimals,
+              useGrouping: true,
+            },
           },
 
           exporting: {
@@ -10599,7 +10606,9 @@
             ? `أداء مؤشر ${marketName(market)} عبر الزمن.`
             : `${marketName(market)} market performance over time.`,
 
-          messages: messages(market),
+          strings: {
+            messages: messages(market),
+          },
 
           live: {
             enabled: true,
@@ -10610,9 +10619,30 @@
             retry: true,
             autostart: true,
 
-            async fetchUpdates({ signal, since } = {}) {
+            async fetchUpdates({
+              signal,
+              since = null,
+              fullSnapshot = false,
+            } = {}) {
               if (signal?.aborted) {
                 return null;
+              }
+
+              /*
+               * Resume / range-return / session reconciliation must use
+               * the complete authoritative current session.
+               */
+              if (fullSnapshot) {
+                const snapshot = feed.intradaySnapshot();
+
+                if (signal?.aborted) {
+                  return null;
+                }
+
+                return {
+                  points: snapshot.candlestick,
+                  previousClose: snapshot.comparisonValue,
+                };
               }
 
               const points = feed.pointsSince(since);
@@ -10621,7 +10651,9 @@
                 return null;
               }
 
-              return { points };
+              return {
+                points,
+              };
             },
 
             onError(error, metadata) {
@@ -10651,6 +10683,7 @@
 
         if (!runtime) {
           activeMarketKey = null;
+
           return false;
         }
 
@@ -10676,18 +10709,20 @@
         }
 
         /*
-         * Clicking the already-active tab should not destroy/recreate a healthy
-         * chart. It already owns the only runtime and live monitor.
+         * Clicking the already-active tab should not destroy/recreate a
+         * healthy chart. It already owns the only runtime and live monitor.
          */
         if (
           activeRuntimeState?.market?.key === market.key &&
           !activeRuntimeState.controller?.getState?.().destroyed
         ) {
           activeRuntimeState.controller.getChart()?.reflow();
+
           return activeRuntimeState;
         }
 
         const chartElement = document.querySelector(market.chartSelector);
+
         const panel = document.querySelector(market.panelSelector);
 
         if (!chartElement || !panel) {
@@ -10705,6 +10740,7 @@
           window.AbortController || globalThis.AbortController;
 
         const requestController = new ActivationAbortController();
+
         activationController = requestController;
 
         /*
@@ -10723,8 +10759,8 @@
           });
 
           /*
-           * Fast tab switching can let an older async request resolve after a
-           * newer selection. A stale request must never regain ownership.
+           * Fast tab switching can let an older async request resolve after
+           * a newer selection. A stale request must never regain ownership.
            */
           if (
             destroyed ||
@@ -10752,8 +10788,8 @@
           }
 
           /*
-           * Creation itself is synchronous, but check ownership again before
-           * publishing the runtime.
+           * Creation itself is synchronous, but check ownership again
+           * before publishing the runtime.
            */
           if (
             destroyed ||
@@ -10761,6 +10797,7 @@
             sequence !== activationSequence
           ) {
             controller.destroy();
+
             return null;
           }
 
@@ -10774,7 +10811,9 @@
           };
 
           activeRuntimeState = runtime;
+
           activeMarketKey = market.key;
+
           panel.marketChartController = controller;
 
           updateStatus(market, feed.state().open);
@@ -10826,7 +10865,10 @@
         overview.addEventListener(
           "click",
           (event) => {
-            /* Listen ONLY to actual market tabs — range/export/compare clicks are ignored. */
+            /*
+             * Listen ONLY to actual market tabs.
+             * Range/export/compare clicks are ignored.
+             */
             const tab = event.target?.closest?.(
               '[data-market-tabs] [role="tab"][aria-controls]',
             );
@@ -10847,12 +10889,14 @@
 
             /*
              * Give the existing tabs component one frame to reveal the
-             * selected panel, then destroy the previous runtime and create one
-             * fresh active runtime for the newly selected market.
+             * selected panel, then destroy the previous runtime and create
+             * one fresh active runtime for the newly selected market.
              */
             requestAnimationFrame(() => void showMarket(market, "tab-click"));
           },
-          { signal: listeners.signal },
+          {
+            signal: listeners.signal,
+          },
         );
       }
 
@@ -10885,12 +10929,14 @@
               const menu = trigger
                 .closest("[data-chart-export]")
                 ?.querySelector("[data-chart-export-menu]");
+
               const opening = menu?.hasAttribute("hidden");
 
               closeExportMenus();
 
               if (menu && opening) {
                 menu.removeAttribute("hidden");
+
                 trigger.setAttribute("aria-expanded", "true");
               }
 
@@ -10906,6 +10952,7 @@
               event.stopPropagation();
 
               const runtime = activeRuntime();
+
               const chart = runtime?.controller?.getChart();
 
               if (!chart) {
@@ -10929,15 +10976,25 @@
                 case "fullscreen":
                   chart.fullscreen?.toggle?.();
                   break;
+
                 case "print":
                   chart.print?.();
                   break;
+
                 case "png":
-                  chart.exportChart?.({ type: "image/png", filename });
+                  chart.exportChart?.({
+                    type: "image/png",
+                    filename,
+                  });
                   break;
+
                 case "pdf":
-                  chart.exportChart?.({ type: "application/pdf", filename });
+                  chart.exportChart?.({
+                    type: "application/pdf",
+                    filename,
+                  });
                   break;
+
                 default:
                   break;
               }
@@ -10949,7 +11006,9 @@
               closeExportMenus();
             }
           },
-          { signal: listeners.signal },
+          {
+            signal: listeners.signal,
+          },
         );
 
         document.addEventListener(
@@ -10959,7 +11018,9 @@
               closeExportMenus();
             }
           },
-          { signal: listeners.signal },
+          {
+            signal: listeners.signal,
+          },
         );
       }
 
@@ -10980,11 +11041,13 @@
             const pressed = button.getAttribute("aria-pressed") !== "true";
 
             button.setAttribute("aria-pressed", String(pressed));
+
             button.classList.toggle("is-active", pressed);
 
             button.dispatchEvent(
               new CustomEvent("marketperformancecomparechange", {
                 bubbles: true,
+
                 detail: {
                   active: pressed,
                   controller: activeRuntime()?.controller || null,
@@ -10992,7 +11055,9 @@
               }),
             );
           },
-          { signal: listeners.signal },
+          {
+            signal: listeners.signal,
+          },
         );
       }
 
@@ -11015,6 +11080,7 @@
 
             if (window.SEMarketCharts?.create) {
               resolve(window.SEMarketCharts);
+
               return;
             }
 
@@ -11024,6 +11090,7 @@
                   "SEMarketCharts did not become available within 10 seconds.",
                 ),
               );
+
               return;
             }
 
@@ -11049,10 +11116,13 @@
          * Invalidate and abort any pending market activation first.
          */
         activationSequence += 1;
+
         activationController?.abort();
+
         activationController = null;
 
         listeners.abort();
+
         closeExportMenus();
 
         destroyActiveRuntime("page-destroy");
@@ -11073,8 +11143,8 @@
       }
 
       /*
-       * Polls a predicate until it's true or a timeout elapses. Used
-       * because live updates and controller state changes are async.
+       * Polls a predicate until it's true or a timeout elapses. Used because
+       * live updates and controller state changes are async.
        */
       async function waitUntil(
         predicate,
@@ -11094,24 +11164,29 @@
       }
 
       function assert(condition, description) {
-        return { pass: Boolean(condition), description };
+        return {
+          pass: Boolean(condition),
+          description,
+        };
       }
 
       /* ======================================================================
        Automated Smoke Test
        ======================================================================
+
        Run from the console:
 
          await marketChartTest.runAll()
          await marketChartTest.runAll("nomu")
          await marketChartTest.runAllMarkets()
 
-       The test now also verifies the Market Overview lifecycle contract:
+       The test also verifies the Market Overview lifecycle contract:
 
        - exactly one active runtime
        - exactly one navigator series
        - previous controller destroyed on tab switch
        - newly selected market receives a fresh Highstock instance
+
        ====================================================================== */
 
       async function ensureMarketActive(market, source = "test") {
@@ -11294,6 +11369,7 @@
 
           /* 6. Market close / reopen. */
           runtime.feed.close();
+
           controller.pauseLive("market-closed");
 
           await wait(50);
@@ -11304,6 +11380,7 @@
           );
 
           runtime.feed.open();
+
           controller.resumeLiveUpdates("market-closed");
 
           await wait(50);
@@ -11313,7 +11390,9 @@
             controller.getState().live?.active === true,
           );
 
-          /* 7. Historical range automatically pauses live. */
+          /*
+           * 7. Historical range automatically pauses live.
+           */
           controller.setRange("1W", {
             redraw: true,
           });
@@ -11400,7 +11479,9 @@
             controller = returnedRuntime.controller;
           }
 
-          /* 9. Explicit destroy / recreate cleanliness. */
+          /*
+           * 9. Explicit destroy / recreate cleanliness.
+           */
           const destroyedController = controller;
 
           destroyActiveRuntime("test:explicit-destroy");
@@ -11506,12 +11587,19 @@
 
                   return {
                     market: runtime.market.symbol,
+
                     active: true,
+
                     range: state.range,
+
                     mode: state.mode,
+
                     liveState: state.live?.state ?? "off",
+
                     points: series?.data?.length ?? 0,
+
                     navigatorSeries: state.navigator.seriesCount,
+
                     navigatorInsideLabels:
                       runtime.controller.getChart()?.navigator?.xAxis?.options
                         ?.labels?.inside === true,
@@ -11542,11 +11630,16 @@
 
           return {
             activeMarketKey,
+
             hasActiveRuntime: Boolean(runtime),
+
             activeControllerDestroyed:
               runtime?.controller?.getState().destroyed ?? null,
+
             activationSequence,
+
             activationPending: Boolean(activationController),
+
             cachedFeeds: feeds.size,
           };
         },
@@ -11563,7 +11656,9 @@
           }
 
           runtime.feed.close();
+
           runtime.controller.pauseLive("market-closed");
+
           updateStatus(runtime.market, false);
 
           return true;
@@ -11577,7 +11672,9 @@
           }
 
           runtime.feed.open();
+
           runtime.controller.resumeLiveUpdates("market-closed");
+
           updateStatus(runtime.market, true);
 
           return true;
@@ -11601,7 +11698,6 @@
 
         runAll,
         runAllMarkets,
-
         destroy,
       };
 
@@ -11635,18 +11731,28 @@
           bindExport();
           bindCompare();
 
-          /* Initial TASI is resolved from aria-selected="true". */
+          /*
+           * Initial market is resolved from aria-selected="true".
+           */
           await showMarket(selectedMarket() || MARKETS[0], "initial");
 
-          window.addEventListener("pagehide", destroy, { once: true });
+          window.addEventListener("pagehide", destroy, {
+            once: true,
+          });
 
           console.info("[Market Chart] active-only Market Overview ready.", {
             runtimePolicy: "single-active",
+
             freshChartOnMarketSwitch: true,
+
             destroyOnTabSwitch: true,
+
             abortStaleActivation: true,
+
             initialAnimationDuration: 450,
+
             context: "overview",
+
             liveWindowDuration: null,
           });
         } catch (error) {

@@ -1,162 +1,137 @@
 import {
+  DEFAULT_CAPABILITIES,
+  isMarketChartIntradayRange,
+  normalizeMarketChartMode,
+  normalizeMarketChartRange,
+} from "./market-chart-data.js";
+
+import { getMarketChartStrings, isRTLLanguage } from "./market-chart-i18n.js";
+
+import {
   getMarketChartNavigatorTheme,
   getMarketChartSeriesTheme,
   getMarketChartTheme,
 } from "./market-chart-theme.js";
 
 import {
-  normalizeMarketChartMode,
-  normalizeMarketChartRange,
-} from "./market-chart-data.js";
+  DEFAULT_LANGUAGE,
+  DEFAULT_TIME_ZONE,
+  MINUTE,
+  NAVIGATOR_SERIES_ID,
+  asPlainObject,
+  clamp,
+  createDateTimeFormat,
+  createNumberFormat,
+  escapeHTML,
+  getMainSeriesId,
+  isElement,
+  isPlainObject,
+  toFiniteNumber,
+  toNonNegativeNumber,
+} from "./market-chart-utils.js";
 
 /* ==========================================================================
    Market Chart Options
    ==========================================================================
 
-   Builds the Highstock configuration object.
+   Builds the complete Highstock configuration object. Pure: it reads theme
+   tokens from the host element but never mutates chart state. Data
+   ownership stays in the controller.
 
-   Responsibilities:
+   Axis / navigator rules:
 
-   - chart layout
-   - main axes
-   - tooltip
-   - primary series presentation
-   - navigator presentation / geometry
-   - exporting
-   - accessibility
-   - responsive behavior
-
-   Data ownership remains in MarketChartController.
-
-   Important axis / navigator rules:
-
-   1. Navigator always receives trend / close-price data.
-   2. Main x-axis and navigator use one shared intraday tick model.
-   3. Historical labels use an equal visual cadence instead of independent
-      Highcharts auto-tick decisions.
-   4. Historical edge labels are inset from the plot boundary so rotated
-      labels are not clipped.
-   5. Navigator x-axis remains data-driven; never freeze live min/max.
+   1. The navigator always receives trend / close-price data.
+   2. Main x-axis and navigator share one tick model per range type, so
+      their labels always agree.
+   3. Intraday ticks sit on clean market-time boundaries (10:00, 10:15, …).
+   4. Historical ticks are evenly spaced by data index and always sit on
+      real market timestamps (never on non-trading days).
+   5. Navigator x-axis stays data-driven; min/max are never frozen.
    6. Navigator labels render inside the mini-chart.
-   7. Navigator data itself is manually synchronized by the controller.
+   7. First / last axis labels are nudged inside the chart container after
+      each render instead of being ellipsized or clipped.
+   8. The controller owns resizing (ResizeObserver), so Highcharts' own
+      reflow is disabled.
    ========================================================================== */
 
 /* ==========================================================================
    Constants
    ========================================================================== */
 
-const DEFAULT_LANGUAGE = "en";
-const DEFAULT_TIME_ZONE = "Asia/Riyadh";
 const DEFAULT_DECIMALS = 2;
-
-const DEFAULT_RANGE = "1D";
-const INTRADAY_RANGE = "1D";
 
 const DEFAULT_ANIMATION_DURATION = 250;
 const MAX_ANIMATION_DURATION = 1_000;
 
-const MINUTE = 60_000;
+/*
+ * Minimum distance (px) between an edge label and the container border.
+ */
+const EDGE_LABEL_GUTTER = 4;
 
 /* ==========================================================================
    Layout
    ========================================================================== */
 
-const CONTEXT_LAYOUT = Object.freeze({
+export const CONTEXT_LAYOUT = Object.freeze({
   overview: Object.freeze({
     spacing: 12,
     bottomSpacing: 18,
-
     yAxisTickPixelInterval: 52,
-
     navigatorHeight: 32,
     navigatorMargin: 12,
-
     navigatorLabels: true,
-
-    navigatorTickPixelInterval: 120,
   }),
 
   performance: Object.freeze({
     spacing: 16,
     bottomSpacing: 24,
-
     yAxisTickPixelInterval: 56,
-
     navigatorHeight: 40,
     navigatorMargin: 14,
-
     navigatorLabels: true,
-
-    navigatorTickPixelInterval: 110,
   }),
 });
+
+const DEFAULT_CONTEXT = "performance";
 
 /* ==========================================================================
    Date Formats
    ========================================================================== */
 
-const DEFAULT_X_AXIS_FORMATS = Object.freeze({
-  "1D": Object.freeze({
-    hour: "2-digit",
-    minute: "2-digit",
-    hourCycle: "h23",
-  }),
-
-  "1W": Object.freeze({
-    weekday: "short",
-    day: "2-digit",
-  }),
-
-  "1M": Object.freeze({
-    day: "2-digit",
-    month: "short",
-  }),
-
-  "3M": Object.freeze({
-    day: "2-digit",
-    month: "short",
-  }),
-
-  "6M": Object.freeze({
-    month: "short",
-    year: "2-digit",
-  }),
-
-  "1Y": Object.freeze({
-    month: "short",
-    year: "numeric",
-  }),
-
-  "5Y": Object.freeze({
-    year: "numeric",
-  }),
-
-  ALL: Object.freeze({
-    year: "numeric",
-  }),
+/*
+ * The "1D" entries are the intraday formats. They apply to whichever range
+ * is configured as intraday (capabilities.intradayRange).
+ */
+export const DEFAULT_X_AXIS_FORMATS = Object.freeze({
+  "1D": Object.freeze({ hour: "2-digit", minute: "2-digit", hourCycle: "h23" }),
+  "1W": Object.freeze({ weekday: "short", day: "2-digit" }),
+  "1M": Object.freeze({ day: "2-digit", month: "short" }),
+  "3M": Object.freeze({ day: "2-digit", month: "short" }),
+  "6M": Object.freeze({ month: "short", year: "2-digit" }),
+  YTD: Object.freeze({ day: "2-digit", month: "short" }),
+  "1Y": Object.freeze({ month: "short", year: "numeric" }),
+  "3Y": Object.freeze({ month: "short", year: "numeric" }),
+  "5Y": Object.freeze({ year: "numeric" }),
+  "10Y": Object.freeze({ year: "numeric" }),
+  ALL: Object.freeze({ year: "numeric" }),
+  default: Object.freeze({ year: "numeric" }),
 });
 
-const DEFAULT_TOOLTIP_DATE_FORMATS = Object.freeze({
+export const DEFAULT_TOOLTIP_DATE_FORMATS = Object.freeze({
   "1D": Object.freeze({
     day: "2-digit",
     month: "short",
     year: "numeric",
-
     hour: "2-digit",
     minute: "2-digit",
     second: "2-digit",
     hourCycle: "h23",
   }),
-
-  default: Object.freeze({
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  }),
+  default: Object.freeze({ day: "2-digit", month: "short", year: "numeric" }),
 });
 
 /* ==========================================================================
-   Intraday Tick Intervals
+   Tick Models
    ========================================================================== */
 
 const INTRADAY_TICK_INTERVALS = Object.freeze([
@@ -165,87 +140,19 @@ const INTRADAY_TICK_INTERVALS = Object.freeze([
   15 * MINUTE,
   30 * MINUTE,
   60 * MINUTE,
-  2 * 60 * MINUTE,
+  120 * MINUTE,
 ]);
 
 const INTRADAY_TARGET_LABEL_PIXEL_GAP = 88;
 const MIN_LABEL_PIXEL_GAP = 40;
 
-/* ==========================================================================
-   Historical Tick Model
-   ========================================================================== */
-
-const HISTORICAL_TICK_COUNTS = Object.freeze({
-  "1W": 6,
-  "1M": 6,
-  "3M": 6,
-  "6M": 6,
-  "1Y": 6,
-  "5Y": 6,
-  ALL: 6,
-});
-
+const HISTORICAL_TICK_COUNT = 6;
 const HISTORICAL_TARGET_LABEL_PIXEL_GAP = 108;
-
-/*
- * Keep edge labels safely inside the plotting area.
- *
- * This is intentionally a ratio rather than a fixed millisecond duration so
- * it scales from one-week charts through multi-year charts.
- */
-const HISTORICAL_EDGE_INSET_RATIO = 0.035;
+const HISTORICAL_MIN_LABEL_PIXEL_GAP = 72;
 
 /* ==========================================================================
-   Generic Helpers
+   Helpers
    ========================================================================== */
-
-function isPlainObject(value) {
-  if (!value || typeof value !== "object" || Array.isArray(value)) {
-    return false;
-  }
-
-  const prototype = Object.getPrototypeOf(value);
-
-  return prototype === Object.prototype || prototype === null;
-}
-
-function isElement(value) {
-  return Boolean(value && value.nodeType === 1 && value.ownerDocument);
-}
-
-function toFiniteNumber(value) {
-  if (
-    value === null ||
-    value === undefined ||
-    typeof value === "boolean" ||
-    (typeof value === "string" && value.trim() === "")
-  ) {
-    return null;
-  }
-
-  const number = Number(value);
-
-  return Number.isFinite(number) ? number : null;
-}
-
-function toNonNegativeNumber(value, fallback) {
-  const number = Number(value);
-
-  return Number.isFinite(number) && number >= 0 ? number : fallback;
-}
-
-function clamp(value, minimum, maximum) {
-  return Math.min(Math.max(value, minimum), maximum);
-}
-
-function escapeHTML(value) {
-  return String(value ?? "")
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
-}
 
 function resolveRangeValue(value, range, fallback) {
   if (isPlainObject(value)) {
@@ -255,44 +162,29 @@ function resolveRangeValue(value, range, fallback) {
   return value ?? fallback;
 }
 
-/* ==========================================================================
-   Context
-   ========================================================================== */
-
 function resolveContext(element, context) {
   const value = String(
-    context || element?.dataset?.chartContext || "performance",
+    context || element?.dataset?.chartContext || DEFAULT_CONTEXT,
   )
     .trim()
     .toLowerCase();
 
-  return CONTEXT_LAYOUT[value] ? value : "performance";
+  return Object.hasOwn(CONTEXT_LAYOUT, value) ? value : DEFAULT_CONTEXT;
 }
 
-/* ==========================================================================
-   Language / Direction
-   ========================================================================== */
-
-function isArabicLanguage(language) {
-  return String(language || DEFAULT_LANGUAGE)
-    .toLowerCase()
-    .startsWith("ar");
-}
-
+/**
+ * DOM direction wins; language is only a fallback.
+ */
 function resolveRTL(element, language) {
   const direction =
-    element?.closest?.("[dir]")?.getAttribute?.("dir") ||
+    element?.closest?.("[dir]")?.getAttribute("dir") ||
     element?.ownerDocument?.documentElement?.dir;
 
-  if (direction === "rtl") {
-    return true;
+  if (direction === "rtl" || direction === "ltr") {
+    return direction === "rtl";
   }
 
-  if (direction === "ltr") {
-    return false;
-  }
-
-  return isArabicLanguage(language);
+  return isRTLLanguage(language);
 }
 
 /* ==========================================================================
@@ -316,6 +208,13 @@ function prefersReducedMotion(element) {
   }
 }
 
+/**
+ * Resolves the effective animation setting.
+ *
+ * Disabled for candlesticks and when the user prefers reduced motion.
+ *
+ * @returns {false | { duration: number, easing?: string }}
+ */
 export function normalizeMarketChartAnimation(
   animation,
   { element = null, mode = "trend" } = {},
@@ -328,42 +227,25 @@ export function normalizeMarketChartAnimation(
     return false;
   }
 
-  if (isPlainObject(animation)) {
-    const duration = clamp(
-      toNonNegativeNumber(animation.duration, DEFAULT_ANIMATION_DURATION),
-      0,
-      MAX_ANIMATION_DURATION,
-    );
+  const source = isPlainObject(animation) ? animation : {};
 
-    if (!duration) {
-      return false;
-    }
+  const requested = typeof animation === "number" ? animation : source.duration;
 
-    return {
-      duration,
+  const duration = clamp(
+    toNonNegativeNumber(requested, DEFAULT_ANIMATION_DURATION),
+    0,
+    MAX_ANIMATION_DURATION,
+  );
 
-      ...(animation.easing
-        ? {
-            easing: animation.easing,
-          }
-        : {}),
-    };
+  if (!duration) {
+    return false;
   }
 
-  const duration =
-    typeof animation === "number"
-      ? clamp(animation, 0, MAX_ANIMATION_DURATION)
-      : DEFAULT_ANIMATION_DURATION;
-
-  return duration
-    ? {
-        duration,
-      }
-    : false;
+  return source.easing ? { duration, easing: source.easing } : { duration };
 }
 
 /* ==========================================================================
-   Number Formatting
+   Formatting
    ========================================================================== */
 
 function createNumberFormatter({
@@ -371,418 +253,322 @@ function createNumberFormatter({
   decimals = DEFAULT_DECIMALS,
   useGrouping = true,
 }) {
-  const parsed = Number.parseInt(decimals, 10);
-
   const precision = clamp(
-    Number.isFinite(parsed) ? parsed : DEFAULT_DECIMALS,
+    Math.trunc(toFiniteNumber(decimals) ?? DEFAULT_DECIMALS),
     0,
     8,
   );
 
-  let formatter;
-
-  try {
-    formatter = new Intl.NumberFormat(language || DEFAULT_LANGUAGE, {
-      minimumFractionDigits: precision,
-
-      maximumFractionDigits: precision,
-
-      useGrouping,
-    });
-  } catch {
-    formatter = new Intl.NumberFormat(DEFAULT_LANGUAGE, {
-      minimumFractionDigits: precision,
-
-      maximumFractionDigits: precision,
-
-      useGrouping,
-    });
-  }
+  const format = createNumberFormat(language, {
+    minimumFractionDigits: precision,
+    maximumFractionDigits: precision,
+    useGrouping,
+  });
 
   return (value) => {
     const number = toFiniteNumber(value);
 
-    return number === null ? "—" : formatter.format(number);
+    return number === null ? "—" : format.format(number);
   };
 }
 
-/* ==========================================================================
-   Date Formatting
-   ========================================================================== */
-
-function getDateFormat(range, customFormats, defaults) {
-  const normalizedRange = normalizeMarketChartRange(range);
-
+/**
+ * Picks a date format: custom per-range -> custom default -> built-in
+ * per-range -> built-in intraday (for the intraday range) -> built-in
+ * default.
+ */
+function getDateFormat({ range, intraday, custom, defaults }) {
   return (
-    customFormats?.[normalizedRange] ||
-    customFormats?.default ||
-    defaults?.[normalizedRange] ||
-    defaults?.default ||
-    DEFAULT_X_AXIS_FORMATS.ALL
+    custom?.[range] ||
+    custom?.default ||
+    defaults[range] ||
+    (intraday ? defaults["1D"] : null) ||
+    defaults.default
   );
 }
 
 function createDateFormatter({ language, timeZone, options }) {
-  let formatter;
-
-  try {
-    formatter = new Intl.DateTimeFormat(language || DEFAULT_LANGUAGE, {
-      timeZone: timeZone || DEFAULT_TIME_ZONE,
-
-      ...options,
-    });
-  } catch {
-    formatter = new Intl.DateTimeFormat(DEFAULT_LANGUAGE, {
-      timeZone: DEFAULT_TIME_ZONE,
-
-      ...options,
-    });
-  }
+  const format = createDateTimeFormat(language, timeZone, options);
 
   return (timestamp) => {
     const value = toFiniteNumber(timestamp);
 
-    if (value === null) {
-      return "";
-    }
-
-    const date = new Date(value);
-
-    return Number.isNaN(date.getTime()) ? "" : formatter.format(date);
+    return value === null ? "" : format.format(new Date(value));
   };
 }
 
 /* ==========================================================================
-   Shared Intraday Tick Model
+   Shared Tick Geometry
    ========================================================================== */
 
 /**
- * Main x-axis and navigator must not independently decide intraday tick
- * timestamps.
+ * Reference width for tick density.
  *
- * Both consume this exact model.
- *
- * Highstock still owns:
- *
- * - live dataMin/dataMax
- * - scale translation
- * - zooming
- * - navigator drag
- * - drawing
- *
- * This code controls only which timestamps become labels.
+ * The navigator axis length differs slightly from the main axis (handles,
+ * internal margins). Using the chart plot width for both makes them choose
+ * the same ticks.
  */
+function getTickReferenceLength(axis) {
+  return Math.max(
+    1,
+    toFiniteNumber(axis?.chart?.plotWidth) ?? toFiniteNumber(axis?.len) ?? 1,
+  );
+}
 
-/* ==========================================================================
-   Shared Tick Width
-   ========================================================================== */
+/**
+ * Visible data window of an axis, or null when not yet measurable.
+ */
+function getVisibleDataWindow(axis) {
+  const dataMin = toFiniteNumber(axis.dataMin);
+  const dataMax = toFiniteNumber(axis.dataMax);
+  const min = toFiniteNumber(axis.min);
+  const max = toFiniteNumber(axis.max);
 
-function getSharedIntradayAxisLength(axis) {
-  /*
-   * Prefer plotWidth.
-   *
-   * Navigator axis.len can differ slightly from the primary x-axis because of
-   * navigator handles/internal margins. Using one common reference width makes
-   * both axes select the same interval.
-   */
-  const plotWidth = toFiniteNumber(axis?.chart?.plotWidth);
+  if (
+    dataMin === null ||
+    dataMax === null ||
+    min === null ||
+    max === null ||
+    max < min
+  ) {
+    return null;
+  }
 
-  const axisLength = toFiniteNumber(axis?.len);
-
-  return Math.max(1, plotWidth ?? axisLength ?? 1);
+  return {
+    minimum: Math.max(dataMin, min),
+    maximum: Math.min(dataMax, max),
+  };
 }
 
 /* ==========================================================================
-   Interval Selection
+   Intraday Tick Model
    ========================================================================== */
 
-function chooseIntradayTickInterval(
-  span,
-  pixelLength,
-  configuredInterval,
-  targetPixelGap = INTRADAY_TARGET_LABEL_PIXEL_GAP,
-) {
-  const explicit = toFiniteNumber(configuredInterval);
+function chooseIntradayTickInterval(span, width, explicitInterval, pixelGap) {
+  const explicit = toFiniteNumber(explicitInterval);
 
   if (explicit !== null && explicit > 0) {
     return explicit;
   }
 
-  const width = Math.max(1, toFiniteNumber(pixelLength) ?? 1);
+  const gap = Math.max(MIN_LABEL_PIXEL_GAP, pixelGap);
 
-  const preferredGap = Math.max(
-    40,
-    toFiniteNumber(targetPixelGap) ?? INTRADAY_TARGET_LABEL_PIXEL_GAP,
-  );
+  const targetTicks = clamp(Math.floor(width / gap) + 1, 3, 9);
 
-  const targetTicks = clamp(Math.floor(width / preferredGap) + 1, 3, 9);
-
-  const desired = span / Math.max(1, targetTicks - 1);
+  const desired = span / (targetTicks - 1);
 
   return (
-    INTRADAY_TICK_INTERVALS.find((interval) => interval >= desired) ||
-    INTRADAY_TICK_INTERVALS[INTRADAY_TICK_INTERVALS.length - 1]
+    INTRADAY_TICK_INTERVALS.find((interval) => interval >= desired) ??
+    INTRADAY_TICK_INTERVALS.at(-1)
   );
 }
-
-/* ==========================================================================
-   Tick Construction
-   ========================================================================== */
 
 function buildIntradayTickPositions({
   minimum,
   maximum,
-  pixelLength,
-
-  tickInterval = null,
-
-  targetPixelGap = INTRADAY_TARGET_LABEL_PIXEL_GAP,
-
-  minimumLabelPixelGap = MIN_LABEL_PIXEL_GAP,
+  width,
+  tickInterval,
+  pixelGap,
+  minimumLabelPixelGap,
 }) {
-  const min = toFiniteNumber(minimum);
-
-  const max = toFiniteNumber(maximum);
-
-  const width = Math.max(1, toFiniteNumber(pixelLength) ?? 1);
-
-  if (min === null || max === null || max < min) {
-    return undefined;
+  if (maximum <= minimum) {
+    return [minimum];
   }
 
-  if (max === min) {
-    return [min];
-  }
-
-  const span = max - min;
+  const span = maximum - minimum;
 
   const interval = chooseIntradayTickInterval(
     span,
     width,
     tickInterval,
-    targetPixelGap,
+    pixelGap,
   );
-
-  const millisecondsPerPixel = span / width;
 
   const minimumGap = Math.max(
     1_000,
-
-    Math.max(0, toFiniteNumber(minimumLabelPixelGap) ?? MIN_LABEL_PIXEL_GAP) *
-      millisecondsPerPixel,
+    Math.max(0, minimumLabelPixelGap) * (span / width),
   );
-
-  const positions = [];
-
-  /*
-   * Clean market-time boundaries:
-   *
-   * 10:00
-   * 10:05
-   * 10:10
-   * 10:15
-   * ...
-   */
-  let tick = Math.ceil(min / interval) * interval;
 
   const epsilon = Math.min(1_000, interval * 1e-9);
 
-  while (tick <= max + epsilon) {
-    if (
-      !positions.length ||
-      tick - positions[positions.length - 1] >= minimumGap
-    ) {
+  const positions = [];
+
+  for (
+    let tick = Math.ceil(minimum / interval) * interval;
+    tick <= maximum + epsilon;
+    tick += interval
+  ) {
+    if (!positions.length || tick - positions.at(-1) >= minimumGap) {
       positions.push(tick);
     }
-
-    tick += interval;
   }
 
-  return positions.length ? positions : [min];
+  return positions.length ? positions : [minimum];
 }
 
-/* ==========================================================================
-   Shared Tick Positioner
-   ========================================================================== */
-
-function createIntradayTickPositioner(configuration = {}) {
+function createIntradayTickPositioner(model) {
   return function intradayTickPositioner() {
-    const dataMinimum = toFiniteNumber(this.dataMin);
+    const visible = getVisibleDataWindow(this);
 
-    const dataMaximum = toFiniteNumber(this.dataMax);
-
-    const axisMinimum = toFiniteNumber(this.min);
-
-    const axisMaximum = toFiniteNumber(this.max);
-
-    if (
-      dataMinimum === null ||
-      dataMaximum === null ||
-      axisMinimum === null ||
-      axisMaximum === null ||
-      axisMaximum < axisMinimum
-    ) {
+    if (!visible) {
       return undefined;
     }
 
-    const minimum = Math.max(dataMinimum, axisMinimum);
-
-    const maximum = Math.min(dataMaximum, axisMaximum);
-
     return buildIntradayTickPositions({
-      minimum,
-      maximum,
-
-      pixelLength: getSharedIntradayAxisLength(this),
-
-      tickInterval: configuration.tickInterval,
-
-      targetPixelGap: configuration.intradayTickPixelGap,
-
-      minimumLabelPixelGap: configuration.minimumLabelPixelGap,
+      ...visible,
+      width: getTickReferenceLength(this),
+      tickInterval: model.tickInterval,
+      pixelGap: model.pixelGap,
+      minimumLabelPixelGap: model.minimumLabelPixelGap,
     });
   };
 }
 
 /* ==========================================================================
-   Shared Historical Tick Model
+   Historical Tick Model
    ========================================================================== */
 
-/**
- * Historical axes use a deliberately even label cadence.
- *
- * Highcharts' automatic datetime ticks are calendar-correct, but when the
- * available series contains trading-day gaps or downsampled timestamps the
- * resulting labels can look visually irregular. For this component we want
- * the labels themselves to read as one calm, evenly distributed scale.
- *
- * Data remains timestamp-based; only label/tick placement is controlled here.
+/*
+ * Highcharts' automatic datetime ticks are calendar-correct, but with
+ * trading-day gaps they look irregular. Historical labels therefore use an
+ * even cadence by data index, always landing on real market timestamps.
  */
 
-function chooseHistoricalTickCount(
-  configuredCount,
-  pixelLength,
-  targetPixelGap = HISTORICAL_TARGET_LABEL_PIXEL_GAP,
-) {
-  const requested = Math.max(
-    2,
-    Math.round(toFiniteNumber(configuredCount) ?? 6),
-  );
+function getAxisTimestamps(axis, minimum, maximum) {
+  const timestamps = new Set();
 
-  const width = Math.max(1, toFiniteNumber(pixelLength) ?? 1);
+  for (const series of axis.series ?? []) {
+    /*
+     * Highcharts 12 exposes getColumn("x"); older versions xData / points.
+     */
+    const values =
+      typeof series.getColumn === "function"
+        ? series.getColumn("x")
+        : (series.xData ?? series.points?.map((point) => point?.x) ?? []);
 
-  const gap = Math.max(
-    72,
-    toFiniteNumber(targetPixelGap) ?? HISTORICAL_TARGET_LABEL_PIXEL_GAP,
-  );
+    for (const value of values) {
+      const timestamp = toFiniteNumber(value);
 
-  const capacity = Math.max(2, Math.floor(width / gap) + 1);
+      if (timestamp !== null && timestamp >= minimum && timestamp <= maximum) {
+        timestamps.add(timestamp);
+      }
+    }
+  }
 
-  return Math.min(requested, capacity);
+  return [...timestamps].sort((first, second) => first - second);
 }
 
 function buildHistoricalTickPositions({
-  minimum,
-  maximum,
-  pixelLength,
-
-  tickCount = 6,
-
-  targetPixelGap = HISTORICAL_TARGET_LABEL_PIXEL_GAP,
-
-  edgeInsetRatio = HISTORICAL_EDGE_INSET_RATIO,
+  timestamps,
+  width,
+  tickCount,
+  pixelGap,
 }) {
-  const min = toFiniteNumber(minimum);
-
-  const max = toFiniteNumber(maximum);
-
-  if (min === null || max === null || max < min) {
-    return undefined;
+  if (timestamps.length <= 1) {
+    return timestamps.length ? [timestamps[0]] : undefined;
   }
 
-  if (max === min) {
-    return [min];
-  }
-
-  const count = chooseHistoricalTickCount(
-    tickCount,
-    pixelLength,
-    targetPixelGap,
+  const capacity = Math.max(
+    2,
+    Math.floor(width / Math.max(HISTORICAL_MIN_LABEL_PIXEL_GAP, pixelGap)) + 1,
   );
 
-  const span = max - min;
-
-  const insetRatio = clamp(
-    toFiniteNumber(edgeInsetRatio) ?? HISTORICAL_EDGE_INSET_RATIO,
-    0,
-    0.1,
+  const count = Math.min(
+    timestamps.length,
+    capacity,
+    Math.max(2, Math.round(tickCount)),
   );
 
-  /*
-   * Inset first/last labels from the exact plot edges.
-   *
-   * This prevents rotated historical labels (for example "04 Sat") from
-   * being clipped while preserving a mathematically even cadence.
-   */
-  const inset = Math.min(span * insetRatio, span * 0.2);
-
-  const start = min + inset;
-  const end = max - inset;
-
-  if (end <= start || count <= 2) {
-    return [start, end].filter(
-      (value, index, values) => index === 0 || value > values[index - 1],
-    );
-  }
-
-  const step = (end - start) / (count - 1);
+  const lastIndex = timestamps.length - 1;
 
   const positions = [];
 
   for (let index = 0; index < count; index += 1) {
-    positions.push(start + step * index);
+    const timestamp = timestamps[Math.round((lastIndex * index) / (count - 1))];
+
+    if (positions.at(-1) !== timestamp) {
+      positions.push(timestamp);
+    }
   }
 
   return positions;
 }
 
-function createHistoricalTickPositioner(configuration = {}) {
+function createHistoricalTickPositioner(model) {
   return function historicalTickPositioner() {
-    const dataMinimum = toFiniteNumber(this.dataMin);
+    const visible = getVisibleDataWindow(this);
 
-    const dataMaximum = toFiniteNumber(this.dataMax);
-
-    const axisMinimum = toFiniteNumber(this.min);
-
-    const axisMaximum = toFiniteNumber(this.max);
-
-    if (
-      dataMinimum === null ||
-      dataMaximum === null ||
-      axisMinimum === null ||
-      axisMaximum === null ||
-      axisMaximum < axisMinimum
-    ) {
+    if (!visible) {
       return undefined;
     }
 
-    const minimum = Math.max(dataMinimum, axisMinimum);
-
-    const maximum = Math.min(dataMaximum, axisMaximum);
-
     return buildHistoricalTickPositions({
-      minimum,
-      maximum,
-
-      pixelLength: getSharedIntradayAxisLength(this),
-
-      tickCount: configuration.tickCount,
-
-      targetPixelGap: configuration.targetPixelGap,
-
-      edgeInsetRatio: configuration.edgeInsetRatio,
+      timestamps: getAxisTimestamps(this, visible.minimum, visible.maximum),
+      width: getTickReferenceLength(this),
+      tickCount: model.tickCount,
+      pixelGap: model.pixelGap,
     });
   };
+}
+
+function createTickPositioner({ intraday, intradayTicks, historicalTicks }) {
+  return intraday
+    ? createIntradayTickPositioner(intradayTicks)
+    : createHistoricalTickPositioner(historicalTicks);
+}
+
+/* ==========================================================================
+   Edge Label Containment
+   ========================================================================== */
+
+/**
+ * First / last ticks sit on the plot edges, so their centered (or rotated)
+ * labels can extend past the container and get ellipsized or clipped.
+ *
+ * After each render, only those two labels are shifted inward. Tick
+ * timestamps, spacing and axis geometry are untouched.
+ */
+function keepAxisEdgeLabelsInside(axis) {
+  const container = axis?.chart?.container;
+  const positions = axis?.tickPositions;
+
+  if (!container || !axis.ticks || !positions?.length) {
+    return;
+  }
+
+  const bounds = container.getBoundingClientRect();
+  const minimumX = bounds.left + EDGE_LABEL_GUTTER;
+  const maximumX = bounds.right - EDGE_LABEL_GUTTER;
+
+  for (const position of new Set([positions[0], positions.at(-1)])) {
+    const label = axis.ticks[position]?.label;
+
+    if (!label?.element) {
+      continue;
+    }
+
+    /*
+     * Reset first so shifts never accumulate across redraws.
+     */
+    label.attr({ translateX: 0 });
+
+    const rect = label.element.getBoundingClientRect();
+
+    if (!rect.width) {
+      continue;
+    }
+
+    const shift =
+      rect.left < minimumX
+        ? minimumX - rect.left
+        : rect.right > maximumX
+          ? maximumX - rect.right
+          : 0;
+
+    if (shift) {
+      label.attr({ translateX: shift });
+    }
+  }
 }
 
 /* ==========================================================================
@@ -791,134 +577,82 @@ function createHistoricalTickPositioner(configuration = {}) {
 
 function createXAxisOptions({
   range,
+  intraday,
   language,
   timeZone,
   theme,
-
-  configuration = {},
-  dateFormats = {},
-  intradayTicks = {},
-  historicalTicks = {},
+  strings,
+  configuration,
+  dateFormats,
+  tickModels,
 }) {
-  const normalizedRange = normalizeMarketChartRange(range);
-
-  const intraday = normalizedRange === INTRADAY_RANGE;
-
   const formatDate = createDateFormatter({
     language,
     timeZone,
-
-    options: getDateFormat(
-      normalizedRange,
-      dateFormats,
-      DEFAULT_X_AXIS_FORMATS,
-    ),
+    options: getDateFormat({
+      range,
+      intraday,
+      custom: dateFormats,
+      defaults: DEFAULT_X_AXIS_FORMATS,
+    }),
   });
 
   const title = resolveRangeValue(
     configuration.title,
-    normalizedRange,
-    intraday ? "Time" : "Date",
+    range,
+    intraday ? strings.axis.time : strings.axis.date,
   );
 
   const rotation =
-    Number(resolveRangeValue(configuration.rotation, normalizedRange, 0)) || 0;
+    toFiniteNumber(resolveRangeValue(configuration.rotation, range, 0)) ?? 0;
 
-  const labelOptions = isPlainObject(configuration.labelOptions)
-    ? configuration.labelOptions
-    : {};
-
-  const historicalTickCount = resolveRangeValue(
-    configuration.historicalTickCount,
-    normalizedRange,
-    historicalTicks.tickCount ?? HISTORICAL_TICK_COUNTS[normalizedRange] ?? 6,
+  /*
+   * labelOptions.style is merged into the defaults (not replacing them), so
+   * textOverflow: "none" always survives consumer styles.
+   */
+  const { style: labelStyle, ...labelOptions } = asPlainObject(
+    configuration.labelOptions,
   );
 
-  const historicalTargetPixelGap = resolveRangeValue(
-    configuration.historicalTickPixelGap,
-    normalizedRange,
-    historicalTicks.targetPixelGap ?? HISTORICAL_TARGET_LABEL_PIXEL_GAP,
-  );
-
-  const historicalEdgeInsetRatio = resolveRangeValue(
-    configuration.historicalEdgeInsetRatio,
-    normalizedRange,
-    historicalTicks.edgeInsetRatio ?? HISTORICAL_EDGE_INSET_RATIO,
-  );
-
-  const minPadding = toNonNegativeNumber(
-    resolveRangeValue(configuration.minPadding, normalizedRange, 0),
-    0,
-  );
-
-  const maxPadding = toNonNegativeNumber(
-    resolveRangeValue(configuration.maxPadding, normalizedRange, 0),
-    0,
-  );
+  const sharedTickModel = configuration.tickPositioner !== false;
 
   return {
     type: "datetime",
+    ordinal: configuration.ordinal ?? !intraday,
 
-    /*
-     * Keep true timestamp geometry by default for both intraday and
-     * historical ranges. Consumers can explicitly opt into ordinal
-     * compression if a particular chart needs it.
-     */
-    ordinal: configuration.ordinal ?? false,
-
-    minPadding,
-
-    maxPadding,
+    minPadding: toNonNegativeNumber(
+      resolveRangeValue(configuration.minPadding, range, 0),
+      0,
+    ),
+    maxPadding: toNonNegativeNumber(
+      resolveRangeValue(configuration.maxPadding, range, 0),
+      0,
+    ),
 
     startOnTick: configuration.startOnTick === true,
-
     endOnTick: configuration.endOnTick === true,
 
     lineWidth: 1,
-
     lineColor: theme.border,
 
     tickWidth: 1,
-
     tickLength: 4,
-
     tickColor: theme.border,
 
     gridLineWidth: configuration.gridLineWidth ?? 0,
-
     gridLineColor: theme.grid,
 
-    tickPixelInterval: toNonNegativeNumber(
-      configuration.tickPixelInterval,
-
-      intraday ? 88 : 100,
-    ),
-
-    tickPositioner:
-      configuration.tickPositioner === false
-        ? undefined
-        : intraday
-          ? createIntradayTickPositioner({
-              ...intradayTicks,
-
-              tickInterval:
-                configuration.tickInterval ?? intradayTicks.tickInterval,
-
-              intradayTickPixelGap:
-                configuration.intradayTickPixelGap ??
-                intradayTicks.intradayTickPixelGap,
-
-              minimumLabelPixelGap:
-                configuration.minimumLabelPixelGap ??
-                intradayTicks.minimumLabelPixelGap,
-            })
-          : createHistoricalTickPositioner({
-              tickCount: historicalTickCount,
-
-              targetPixelGap: historicalTargetPixelGap,
-
-              edgeInsetRatio: historicalEdgeInsetRatio,
-            }),
+    /*
+     * tickPixelInterval only matters when the shared tick model is off.
+     */
+    ...(sharedTickModel
+      ? { tickPositioner: createTickPositioner({ intraday, ...tickModels }) }
+      : {
+          tickPixelInterval: toNonNegativeNumber(
+            configuration.tickPixelInterval,
+            intraday ? 88 : 100,
+          ),
+        }),
 
     minRange: configuration.minRange ?? undefined,
 
@@ -927,48 +661,34 @@ function createXAxisOptions({
         ? false
         : {
             color: theme.crosshair,
-
             width: 1,
-
             dashStyle: "ShortDot",
-
             snap: true,
-
-            ...(isPlainObject(configuration.crosshair)
-              ? configuration.crosshair
-              : {}),
+            ...asPlainObject(configuration.crosshair),
           },
 
     labels: {
       enabled: configuration.labels !== false,
-
       autoRotation: false,
-
       rotation,
-
-      align: rotation === 0 ? "center" : "right",
-
+      align: "center",
       reserveSpace: true,
-
+      x: 0,
       y: rotation === 0 ? 18 : 22,
 
       /*
-       * Historical labels are already edge-inset by the tick positioner.
-       * Allow the full text to render rather than Highcharts shortening the
-       * first/last rotated label.
+       * Intraday labels may be justified by Highcharts. Historical labels
+       * render naturally; edge overflow is handled after render.
        */
       overflow: intraday ? "justify" : "allow",
-
       crop: intraday,
 
       style: {
         color: theme.muted,
-
         fontSize: "11px",
-
         textOverflow: "none",
-
-        ...(isPlainObject(labelOptions.style) ? labelOptions.style : {}),
+        whiteSpace: "nowrap",
+        ...asPlainObject(labelStyle),
       },
 
       formatter() {
@@ -979,24 +699,16 @@ function createXAxisOptions({
     },
 
     showFirstLabel: configuration.showFirstLabel !== false,
-
     showLastLabel: configuration.showLastLabel !== false,
 
     title: {
       text: title === false ? null : title,
-
       margin: toNonNegativeNumber(configuration.titleMargin, 14),
-
       style: {
         color: theme.muted,
-
         fontSize: "11px",
-
         fontWeight: "500",
-
-        ...(isPlainObject(configuration.titleStyle)
-          ? configuration.titleStyle
-          : {}),
+        ...asPlainObject(configuration.titleStyle),
       },
     },
   };
@@ -1010,44 +722,37 @@ function createYAxisOptions({
   language,
   theme,
   layout,
-
-  configuration = {},
-
+  strings,
+  configuration,
   decimals,
   rtl,
 }) {
-  const formatConfiguration = isPlainObject(configuration.format)
-    ? configuration.format
-    : {};
+  const format = asPlainObject(configuration.format);
 
   const formatNumber = createNumberFormatter({
     language,
-
-    decimals: formatConfiguration.decimals ?? decimals,
-
-    useGrouping: formatConfiguration.useGrouping !== false,
+    decimals: format.decimals ?? decimals,
+    useGrouping: format.useGrouping !== false,
   });
 
   const opposite =
     typeof configuration.opposite === "boolean" ? configuration.opposite : !rtl;
 
-  const labelOptions = isPlainObject(configuration.labelOptions)
-    ? configuration.labelOptions
-    : {};
+  const { style: labelStyle, ...labelOptions } = asPlainObject(
+    configuration.labelOptions,
+  );
 
-  const titleOptions = isPlainObject(configuration.titleOptions)
-    ? configuration.titleOptions
-    : {};
+  const { style: titleStyle, ...titleOptions } = asPlainObject(
+    configuration.titleOptions,
+  );
 
   return {
     opposite,
 
     minPadding: toNonNegativeNumber(configuration.minPadding, 0.06),
-
     maxPadding: toNonNegativeNumber(configuration.maxPadding, 0.06),
 
     startOnTick: configuration.startOnTick !== false,
-
     endOnTick: configuration.endOnTick !== false,
 
     tickPixelInterval:
@@ -1056,13 +761,10 @@ function createYAxisOptions({
     minRange: configuration.minRange ?? undefined,
 
     lineWidth: 0,
-
     tickWidth: 0,
 
     gridLineWidth: configuration.gridLineWidth ?? 1,
-
     gridLineColor: theme.grid,
-
     gridLineDashStyle: configuration.gridLineDashStyle || "ShortDot",
 
     crosshair:
@@ -1070,35 +772,24 @@ function createYAxisOptions({
         ? false
         : {
             color: theme.crosshair,
-
             width: 1,
-
             dashStyle: "ShortDot",
-
             snap: true,
-
-            ...(isPlainObject(configuration.crosshair)
-              ? configuration.crosshair
-              : {}),
+            ...asPlainObject(configuration.crosshair),
           },
 
     labels: {
       enabled: configuration.labels !== false,
-
       reserveSpace: true,
-
       align: opposite ? "left" : "right",
-
       x: opposite ? 10 : -10,
 
       style: {
         color: theme.muted,
-
         fontSize: "11px",
-
         textOverflow: "none",
-
-        ...(isPlainObject(labelOptions.style) ? labelOptions.style : {}),
+        whiteSpace: "nowrap",
+        ...asPlainObject(labelStyle),
       },
 
       formatter() {
@@ -1112,18 +803,14 @@ function createYAxisOptions({
       text:
         configuration.title === false
           ? null
-          : configuration.title || "Index Value",
-
+          : configuration.title || strings.axis.value,
       margin: toNonNegativeNumber(configuration.titleMargin, 18),
 
       style: {
         color: theme.muted,
-
         fontSize: "11px",
-
         fontWeight: "600",
-
-        ...(isPlainObject(titleOptions.style) ? titleOptions.style : {}),
+        ...asPlainObject(titleStyle),
       },
 
       ...titleOptions,
@@ -1132,34 +819,8 @@ function createYAxisOptions({
 }
 
 /* ==========================================================================
-   Tooltip Helpers
+   Tooltip
    ========================================================================== */
-
-function getTooltipLabels(language) {
-  return isArabicLanguage(language)
-    ? {
-        value: "القيمة",
-
-        open: "الافتتاح",
-
-        high: "الأعلى",
-
-        low: "الأدنى",
-
-        close: "الإغلاق",
-      }
-    : {
-        value: "Value",
-
-        open: "Open",
-
-        high: "High",
-
-        low: "Low",
-
-        close: "Close",
-      };
-}
 
 function getTooltipValues(point, mode) {
   if (!point) {
@@ -1168,217 +829,153 @@ function getTooltipValues(point, mode) {
 
   if (mode === "candlestick") {
     const open = toFiniteNumber(point.open);
-
     const high = toFiniteNumber(point.high);
-
     const low = toFiniteNumber(point.low);
-
     const close = toFiniteNumber(point.close);
 
     if (open === null || high === null || low === null || close === null) {
       return null;
     }
 
-    return {
-      open,
-      high,
-      low,
-      close,
-
-      value: close,
-    };
+    return { open, high, low, close, value: close };
   }
 
   const value = toFiniteNumber(point.y);
 
-  return value === null
-    ? null
-    : {
-        value,
-      };
+  return value === null ? null : { value };
 }
-
-/* ==========================================================================
-   Tooltip Options
-   ========================================================================== */
 
 function createTooltipOptions({
   range,
+  intraday,
   mode,
-
   seriesName,
   currency,
   previousClose,
-
   language,
   timeZone,
   decimals,
-
   theme,
-
+  strings,
   tooltipDateFormats,
-
-  configuration = {},
+  configuration,
 }) {
-  const normalizedMode = normalizeMarketChartMode(mode);
-
-  const labels = getTooltipLabels(language);
+  const labels = strings.tooltip;
 
   const formatDate = createDateFormatter({
     language,
     timeZone,
-
-    options: getDateFormat(
+    options: getDateFormat({
       range,
-      tooltipDateFormats,
-      DEFAULT_TOOLTIP_DATE_FORMATS,
-    ),
+      intraday,
+      custom: tooltipDateFormats,
+      defaults: DEFAULT_TOOLTIP_DATE_FORMATS,
+    }),
   });
 
-  const formatNumber = createNumberFormatter({
-    language,
-    decimals,
-  });
+  const formatNumber = createNumberFormatter({ language, decimals });
 
   const formatPercent = createNumberFormatter({
     language,
-
     decimals: 2,
-
     useGrouping: false,
   });
 
-  const row = (label, value) => `
-      <div class="market-chart-tooltip__row">
-        <span class="market-chart-tooltip__label">
-          ${escapeHTML(label)}
-        </span>
+  const reference = toFiniteNumber(previousClose);
 
-        <span class="market-chart-tooltip__value">
-          ${escapeHTML(formatNumber(value))}
-        </span>
-      </div>
-    `;
+  const row = (label, value) => `
+    <div class="market-chart-tooltip__row">
+      <span class="market-chart-tooltip__label">${escapeHTML(label)}</span>
+      <span class="market-chart-tooltip__value">${escapeHTML(formatNumber(value))}</span>
+    </div>`;
+
+  const renderChange = (value) => {
+    if (reference === null) {
+      return "";
+    }
+
+    const change = value - reference;
+
+    const percent =
+      reference === 0 ? null : (change / Math.abs(reference)) * 100;
+
+    const direction = change > 0 ? "up" : change < 0 ? "down" : "neutral";
+
+    const sign = change > 0 ? "+" : "";
+
+    const percentage =
+      percent === null ? "" : ` (${sign}${formatPercent(percent)}%)`;
+
+    return `
+      <div class="market-chart-tooltip__change market-chart-tooltip__change--${direction}">
+        ${escapeHTML(`${sign}${formatNumber(change)}${percentage}`)}
+      </div>`;
+  };
 
   return {
     enabled: configuration.enabled !== false,
 
     useHTML: true,
-
     shared: false,
-
     split: false,
-
     followTouchMove: true,
 
     /*
-     * Tooltip movement stays independent of chart series animation.
+     * Tooltip movement stays independent of series animation.
      */
     animation: false,
 
     borderColor: theme.tooltipBorder,
-
     backgroundColor: theme.tooltipBackground,
-
     borderWidth: 1,
-
     borderRadius: 10,
-
     padding: 0,
-
     shadow: false,
 
     style: {
       color: theme.text,
-
       fontSize: "12px",
-
-      ...(isPlainObject(configuration.style) ? configuration.style : {}),
+      ...asPlainObject(configuration.style),
     },
 
     formatter() {
-      const point = this.point || this.points?.[0]?.point || this;
+      const point = this.point ?? this.points?.[0]?.point ?? this;
 
-      const values = getTooltipValues(point, normalizedMode);
+      const values = getTooltipValues(point, mode);
 
       if (!values) {
         return false;
       }
 
       const body =
-        normalizedMode === "candlestick"
+        mode === "candlestick"
           ? [
               row(labels.open, values.open),
-
               row(labels.high, values.high),
-
               row(labels.low, values.low),
-
               row(labels.close, values.close),
             ].join("")
           : row(labels.value, values.value);
 
-      const reference = toFiniteNumber(previousClose);
-
-      let changeHTML = "";
-
-      if (reference !== null) {
-        const change = values.value - reference;
-
-        const percent =
-          reference === 0 ? null : (change / Math.abs(reference)) * 100;
-
-        const direction = change > 0 ? "up" : change < 0 ? "down" : "neutral";
-
-        const sign = change > 0 ? "+" : "";
-
-        const percentage =
-          percent === null ? "" : ` (${sign}${formatPercent(percent)}%)`;
-
-        changeHTML = `
-          <div
-            class="
-              market-chart-tooltip__change
-              market-chart-tooltip__change--${direction}
-            "
-          >
-            ${escapeHTML(`${sign}${formatNumber(change)}${percentage}`)}
-          </div>
-        `;
-      }
+      const currencyHTML = currency
+        ? `<div class="market-chart-tooltip__currency">${escapeHTML(currency)}</div>`
+        : "";
 
       return `
         <div class="market-chart-tooltip">
           <div class="market-chart-tooltip__header">
-            <strong class="market-chart-tooltip__title">
-              ${escapeHTML(seriesName)}
-            </strong>
-
-            <span class="market-chart-tooltip__date">
-              ${escapeHTML(formatDate(point.x))}
-            </span>
+            <strong class="market-chart-tooltip__title">${escapeHTML(seriesName)}</strong>
+            <span class="market-chart-tooltip__date">${escapeHTML(formatDate(point.x))}</span>
           </div>
-
           <div class="market-chart-tooltip__body">
-            ${
-              currency
-                ? `
-                  <div class="market-chart-tooltip__currency">
-                    ${escapeHTML(currency)}
-                  </div>
-                `
-                : ""
-            }
-
+            ${currencyHTML}
             ${body}
           </div>
-
-          ${changeHTML}
-        </div>
-      `;
+          ${renderChange(values.value)}
+        </div>`;
     },
 
-    ...(isPlainObject(configuration.options) ? configuration.options : {}),
+    ...asPlainObject(configuration.options),
   };
 }
 
@@ -1386,55 +983,35 @@ function createTooltipOptions({
    Main Series
    ========================================================================== */
 
+const SERIES_TYPE_BY_MODE = Object.freeze({
+  trend: "area",
+  line: "line",
+  candlestick: "candlestick",
+});
+
 function createMainSeries({
   mode,
   symbol,
   seriesName,
-
   data,
   seriesTheme,
-
   animation,
 }) {
-  const normalizedMode = normalizeMarketChartMode(mode);
-
-  const type =
-    normalizedMode === "candlestick"
-      ? "candlestick"
-      : normalizedMode === "line"
-        ? "line"
-        : "area";
-
   return {
-    id: `market-chart-${String(symbol || "series").toLowerCase()}`,
-
-    name: seriesName || symbol || "Market",
-
-    type,
-
+    id: getMainSeriesId(symbol),
+    name: seriesName,
+    type: SERIES_TYPE_BY_MODE[mode],
     data: Array.isArray(data) ? data : [],
 
-    ...(normalizedMode !== "candlestick"
-      ? {
-          threshold: null,
-        }
-      : {}),
+    ...(mode !== "candlestick" ? { threshold: null } : {}),
 
     animation,
-
     showInLegend: false,
 
     /*
-     * Navigator owns a dedicated trend series.
+     * The navigator owns a dedicated trend series.
      */
     showInNavigator: false,
-
-    /*
-     * Controller owns exact point resolution.
-     */
-    dataGrouping: {
-      enabled: false,
-    },
 
     ...seriesTheme,
   };
@@ -1446,36 +1023,22 @@ function createMainSeries({
 
 function createNavigatorOptions({
   Highcharts,
-
   enabled,
-
   range,
+  intraday,
   data,
-  hideLabels = false,
   direction,
-
   language,
   timeZone,
-
   theme,
   layout,
-
-  dateFormats = {},
-
-  intradayTicks = {},
-  historicalTicks = {},
-
-  configuration = {},
+  dateFormats,
+  tickModels,
+  configuration,
 }) {
   if (!enabled || !Array.isArray(data) || !data.length) {
-    return {
-      enabled: false,
-    };
+    return { enabled: false };
   }
-
-  const normalizedRange = normalizeMarketChartRange(range);
-
-  const intraday = normalizedRange === INTRADAY_RANGE;
 
   const navigatorTheme = getMarketChartNavigatorTheme(
     Highcharts,
@@ -1483,222 +1046,124 @@ function createNavigatorOptions({
     direction,
   );
 
-  const navigatorDateFormats = isPlainObject(configuration.formats)
-    ? configuration.formats
-    : dateFormats;
-
   const formatDate = createDateFormatter({
     language,
     timeZone,
-
-    options: getDateFormat(
-      normalizedRange,
-      navigatorDateFormats,
-      DEFAULT_X_AXIS_FORMATS,
-    ),
+    options: getDateFormat({
+      range,
+      intraday,
+      custom: isPlainObject(configuration.formats)
+        ? configuration.formats
+        : dateFormats,
+      defaults: DEFAULT_X_AXIS_FORMATS,
+    }),
   });
 
   const labelsEnabled =
     configuration.labels === true ||
-    (configuration.labels !== false && layout.navigatorLabels === true);
+    (configuration.labels !== false && layout.navigatorLabels);
 
-  /* ------------------------------------------------------------------------
-     Historical Tick Configuration
-     ------------------------------------------------------------------------ */
-
-  const historicalTickCount = resolveRangeValue(
-    configuration.historicalTickCount,
-    normalizedRange,
-    historicalTicks.tickCount ?? HISTORICAL_TICK_COUNTS[normalizedRange] ?? 6,
-  );
-
-  const historicalTargetPixelGap = resolveRangeValue(
-    configuration.historicalTickPixelGap,
-    normalizedRange,
-    historicalTicks.targetPixelGap ?? HISTORICAL_TARGET_LABEL_PIXEL_GAP,
-  );
-
-  const historicalEdgeInsetRatio = resolveRangeValue(
-    configuration.historicalEdgeInsetRatio,
-    normalizedRange,
-    historicalTicks.edgeInsetRatio ?? HISTORICAL_EDGE_INSET_RATIO,
-  );
+  /*
+   * The navigator may override the historical cadence; intraday always
+   * shares the main axis model.
+   */
+  const navigatorTickModels = {
+    intradayTicks: tickModels.intradayTicks,
+    historicalTicks: {
+      tickCount:
+        toFiniteNumber(
+          resolveRangeValue(configuration.historicalTickCount, range, null),
+        ) ?? tickModels.historicalTicks.tickCount,
+      pixelGap:
+        toFiniteNumber(
+          resolveRangeValue(configuration.historicalTickPixelGap, range, null),
+        ) ?? tickModels.historicalTicks.pixelGap,
+    },
+  };
 
   return {
     enabled: true,
 
     /*
-     * MarketChartController explicitly owns navigator data synchronization.
-     *
-     * We therefore do not ask Highstock to mirror the primary series
-     * automatically.
+     * The controller synchronizes navigator data and follow-latest
+     * behavior explicitly.
      */
     adaptToUpdatedData: false,
-
-    /*
-     * MarketChartController owns follow-latest behavior for the primary
-     * viewport.
-     */
     stickToMax: false,
 
     height: toNonNegativeNumber(configuration.height, layout.navigatorHeight),
-
     margin: toNonNegativeNumber(configuration.margin, layout.navigatorMargin),
 
     maskInside: configuration.maskInside !== false,
-
     maskFill: navigatorTheme.maskFill,
 
     outlineWidth: toNonNegativeNumber(configuration.outlineWidth, 1),
-
     outlineColor: configuration.outlineColor || navigatorTheme.outlineColor,
-
-    /* ----------------------------------------------------------------------
-       Handles
-       ---------------------------------------------------------------------- */
 
     handles: {
       enabled: configuration.handles !== false,
-
       width: toNonNegativeNumber(configuration.handleWidth, 7),
-
       height: toNonNegativeNumber(
         configuration.handleHeight,
-
         layout.navigatorHeight <= 32 ? 14 : 18,
       ),
-
       backgroundColor: navigatorTheme.handles.backgroundColor,
-
       borderColor: navigatorTheme.handles.borderColor,
-
-      ...(isPlainObject(configuration.handleOptions)
-        ? configuration.handleOptions
-        : {}),
+      ...asPlainObject(configuration.handleOptions),
     },
-
-    /* ----------------------------------------------------------------------
-       Navigator X Axis
-       ---------------------------------------------------------------------- */
 
     xAxis: {
       type: "datetime",
 
       /*
-       * Preserve true elapsed-time geometry.
+       * Same geometry as the main axis: linear intraday, ordinal historical.
        */
-      ordinal: configuration.ordinal ?? false,
+      ordinal: configuration.ordinal ?? !intraday,
 
-      /*
-       * IMPORTANT:
-       *
-       * Do NOT set hard min/max here.
-       *
-       * The navigator series is updated directly by MarketChartController.
-       * Leaving the axis data-driven allows Highstock to recalculate its
-       * dataMin/dataMax naturally after:
-       *
-       * - live append
-       * - same-timestamp replacement
-       * - hidden-tab catch-up batch
-       * - complete range replacement
-       * - structural refresh
-       *
-       * This avoids:
-       *
-       * - stale navigator time domains
-       * - per-tick Axis.update()
-       * - per-tick setExtremes()
-       * - extra redraws
-       */
       overscroll: 0,
-
       minPadding: 0,
-
       maxPadding: 0,
-
       startOnTick: false,
-
       endOnTick: false,
 
-      offset: 0,
-
       lineWidth: 0,
-
       tickWidth: 0,
-
       tickLength: 0,
-
       gridLineWidth: 0,
 
-      tickPixelInterval: toNonNegativeNumber(
-        configuration.tickPixelInterval,
-        layout.navigatorTickPixelInterval,
-      ),
-
-      /*
-       * The navigator uses the same cadence as the main axis, but keeps its
-       * first and last historical ticks on the exact data bounds. This makes
-       * the visible context unambiguous (for example 2020 through 2026) and
-       * avoids apparently missing years at the navigator edges.
-       */
-      tickPositioner:
-        configuration.tickPositioner === false
-          ? undefined
-          : intraday
-            ? createIntradayTickPositioner(intradayTicks)
-            : createHistoricalTickPositioner({
-                tickCount: historicalTickCount,
-
-                targetPixelGap: historicalTargetPixelGap,
-
-                edgeInsetRatio: 0,
-              }),
+      ...(configuration.tickPositioner === false
+        ? {}
+        : {
+            tickPositioner: createTickPositioner({
+              intraday,
+              ...navigatorTickModels,
+            }),
+          }),
 
       labels: {
-        enabled: labelsEnabled && !hideLabels,
+        enabled: labelsEnabled,
 
         /*
-         * Keep labels inside the navigator instead of reserving another row
-         * underneath it.
+         * Labels render inside the mini-chart.
          */
         inside: true,
-
         reserveSpace: false,
-
         rotation: 0,
-
         align: "center",
+        x: toFiniteNumber(configuration.labelX) ?? 0,
+        y: toFiniteNumber(configuration.labelY) ?? -5,
 
-        y: Number.isFinite(Number(configuration.labelY))
-          ? Number(configuration.labelY)
-          : -5,
-
-        x: Number.isFinite(Number(configuration.labelX))
-          ? Number(configuration.labelX)
-          : 0,
-
-        /*
-         * Historical ticks already include edge-safe positioning.
-         */
         overflow: intraday ? "justify" : "allow",
-
-        crop: intraday,
+        crop: false,
 
         style: {
           color: theme.muted,
-
           fontSize: "10px",
-
           textOutline: "none",
-
           pointerEvents: "none",
-
           textOverflow: "none",
-
-          ...(isPlainObject(configuration.labelStyle)
-            ? configuration.labelStyle
-            : {}),
+          whiteSpace: "nowrap",
+          ...asPlainObject(configuration.labelStyle),
         },
 
         formatter() {
@@ -1707,91 +1172,46 @@ function createNavigatorOptions({
       },
 
       showFirstLabel: configuration.showFirstLabel !== false,
-
       showLastLabel: configuration.showLastLabel !== false,
     },
 
-    /* ----------------------------------------------------------------------
-       Navigator Y Axis
-       ---------------------------------------------------------------------- */
-
     yAxis: {
       gridLineWidth: 0,
-
       startOnTick: false,
-
       endOnTick: false,
-
       minPadding: 0.08,
-
       maxPadding: 0.08,
-
-      labels: {
-        enabled: false,
-      },
-
-      title: {
-        text: null,
-      },
+      labels: { enabled: false },
+      title: { text: null },
     },
 
-    /* ----------------------------------------------------------------------
-       Dedicated Navigator Series
-       ---------------------------------------------------------------------- */
-
     series: {
-      id: "market-chart-navigator-series",
-
+      id: NAVIGATOR_SERIES_ID,
       name: "Navigator",
-
       type: "area",
 
       /*
-       * Always trend / close-price data.
-       *
-       * Even when the primary chart is candlestick, navigator remains a
-       * lightweight trend representation.
+       * Always trend / close-price data, even for a candlestick chart.
        */
       data,
 
-      /*
-       * Never animate live navigator updates.
-       */
       animation: false,
 
       color: navigatorTheme.color,
-
       lineColor: navigatorTheme.lineColor,
-
       lineWidth: navigatorTheme.lineWidth,
-
       fillColor: navigatorTheme.fillColor,
-
       threshold: null,
 
-      marker: {
-        enabled: false,
-      },
-
+      marker: { enabled: false },
       enableMouseTracking: false,
-
       showInLegend: false,
 
-      /*
-       * Controller owns exact data resolution.
-       */
-      dataGrouping: {
-        enabled: configuration.dataGrouping === true,
-      },
+      dataGrouping: { enabled: configuration.dataGrouping === true },
 
       states: {
-        hover: {
-          enabled: false,
-        },
-
-        inactive: {
-          opacity: 1,
-        },
+        hover: { enabled: false },
+        inactive: { opacity: 1 },
       },
     },
   };
@@ -1801,31 +1221,22 @@ function createNavigatorOptions({
    Exporting
    ========================================================================== */
 
-function createExportingOptions(exporting = {}) {
-  const configuration = isPlainObject(exporting) ? exporting : {};
+function createExportingOptions(exporting) {
+  const configuration = asPlainObject(exporting);
 
   const enabled = configuration.enabled === true;
 
-  const showContextButton = enabled && configuration.showContextButton === true;
-
   return {
     enabled,
-
     filename: configuration.filename || "market-chart",
-
     fallbackToExportServer: configuration.fallbackToExportServer ?? false,
-
     sourceWidth: toNonNegativeNumber(configuration.sourceWidth, 1_200),
-
     sourceHeight: toNonNegativeNumber(configuration.sourceHeight, 675),
-
     scale: toNonNegativeNumber(configuration.scale, 2),
-
     printMaxWidth: toNonNegativeNumber(configuration.printMaxWidth, 1_200),
-
     buttons: {
       contextButton: {
-        enabled: showContextButton,
+        enabled: enabled && configuration.showContextButton === true,
       },
     },
   };
@@ -1835,147 +1246,57 @@ function createExportingOptions(exporting = {}) {
    Responsive
    ========================================================================== */
 
+/*
+ * Tick density adapts automatically through the shared tick models, so the
+ * responsive rules only tighten spacing and type size.
+ */
 function createResponsiveOptions() {
+  const fontSize = (size) => ({ style: { fontSize: size } });
+
   return {
     rules: [
       {
-        condition: {
-          maxWidth: 640,
-        },
-
+        condition: { maxWidth: 640 },
         chartOptions: {
           chart: {
             spacingTop: 10,
-
             spacingRight: 14,
-
             spacingBottom: 20,
-
             spacingLeft: 14,
           },
-
-          xAxis: {
-            tickPixelInterval: 78,
-
-            labels: {
-              style: {
-                fontSize: "10px",
-              },
-            },
-          },
-
+          xAxis: { labels: fontSize("10px") },
           yAxis: {
             tickPixelInterval: 48,
-
-            labels: {
-              style: {
-                fontSize: "10px",
-              },
-            },
-
-            title: {
-              margin: 14,
-
-              style: {
-                fontSize: "10px",
-              },
-            },
+            labels: fontSize("10px"),
+            title: { margin: 14, ...fontSize("10px") },
           },
-
           navigator: {
             height: 34,
-
             margin: 12,
-
-            handles: {
-              width: 7,
-
-              height: 16,
-            },
-
-            xAxis: {
-              tickPixelInterval: 100,
-
-              labels: {
-                inside: true,
-
-                reserveSpace: false,
-
-                y: -5,
-
-                style: {
-                  fontSize: "9px",
-                },
-              },
-            },
+            handles: { width: 7, height: 16 },
+            xAxis: { labels: { y: -5, ...fontSize("9px") } },
           },
         },
       },
-
       {
-        condition: {
-          maxWidth: 420,
-        },
-
+        condition: { maxWidth: 420 },
         chartOptions: {
           chart: {
             spacingTop: 8,
-
             spacingRight: 12,
-
             spacingBottom: 18,
-
             spacingLeft: 12,
           },
-
-          xAxis: {
-            tickPixelInterval: 70,
-
-            labels: {
-              style: {
-                fontSize: "9px",
-              },
-            },
-          },
-
+          xAxis: { labels: fontSize("9px") },
           yAxis: {
-            labels: {
-              style: {
-                fontSize: "9px",
-              },
-            },
-
-            title: {
-              margin: 12,
-
-              style: {
-                fontSize: "9px",
-              },
-            },
+            labels: fontSize("9px"),
+            title: { margin: 12, ...fontSize("9px") },
           },
-
           navigator: {
             height: 32,
-
             margin: 10,
-
-            handles: {
-              width: 7,
-
-              height: 14,
-            },
-
-            xAxis: {
-              tickPixelInterval: 96,
-
-              labels: {
-                inside: true,
-
-                reserveSpace: false,
-
-                y: -4,
-              },
-            },
+            handles: { width: 7, height: 14 },
+            xAxis: { labels: { y: -4 } },
           },
         },
       },
@@ -1987,39 +1308,48 @@ function createResponsiveOptions() {
    Factory
    ========================================================================== */
 
+/**
+ * Builds the complete Highstock options object.
+ *
+ * `intraday` may be passed explicitly by the controller; otherwise it is
+ * derived from `range` + `capabilities.intradayRange`.
+ */
 export function createMarketChartOptions({
   Highcharts,
   element,
 
   context = null,
-  capabilities = {},
+  capabilities = DEFAULT_CAPABILITIES,
 
   mode = "trend",
-  range = DEFAULT_RANGE,
+  range = "1D",
+  intraday = null,
 
   direction = "neutral",
 
-  symbol = "TASI",
-  seriesName = symbol,
+  symbol = "",
+  seriesName = "",
 
   currency = "",
   previousClose = null,
 
   data = [],
+  showEmptyState = true,
 
-  showEmptyState = false,
   /*
-   * Trend / close-price data for the current range.
-   *
-   * Navigator always consumes this array regardless of primary mode.
+   * Trend / close-price data for the current range. The navigator always
+   * uses this array, regardless of the primary mode.
    */
   navigatorData = [],
 
   language = globalThis.document?.documentElement?.lang || DEFAULT_LANGUAGE,
-
   timeZone = DEFAULT_TIME_ZONE,
-
   decimals = DEFAULT_DECIMALS,
+
+  /*
+   * i18n overrides, same shape as getMarketChartStrings().
+   */
+  strings = null,
 
   xAxisTitle = null,
   yAxisTitle = null,
@@ -2029,7 +1359,6 @@ export function createMarketChartOptions({
   yAxis = {},
 
   dateFormats = {},
-
   tooltipDateFormats = {},
   tooltip = {},
 
@@ -2043,11 +1372,9 @@ export function createMarketChartOptions({
   accessibilityEnabled = true,
   accessibilityDescription = "",
 } = {}) {
-  /* ------------------------------------------------------------------------
-     Validation
-     ------------------------------------------------------------------------ */
+  /* Validation ----------------------------------------------------------- */
 
-  if (!Highcharts || typeof Highcharts.stockChart !== "function") {
+  if (typeof Highcharts?.stockChart !== "function") {
     throw new TypeError("createMarketChartOptions() requires Highstock.");
   }
 
@@ -2057,80 +1384,53 @@ export function createMarketChartOptions({
     );
   }
 
-  /* ------------------------------------------------------------------------
-     Normalized State
-     ------------------------------------------------------------------------ */
+  /* Normalized state ----------------------------------------------------- */
 
   const normalizedMode = normalizeMarketChartMode(mode);
-
   const normalizedRange = normalizeMarketChartRange(range);
 
+  const isIntraday =
+    typeof intraday === "boolean"
+      ? intraday
+      : isMarketChartIntradayRange(normalizedRange, capabilities);
+
+  const resolvedSeriesName = seriesName || symbol || "Market";
+
   const hasData = Array.isArray(data) && data.length > 0;
-
-  const showChartScaffold = hasData || showEmptyState === true;
-
   const isEmptyScaffold = showEmptyState === true && !hasData;
+  const showChartScaffold = hasData || isEmptyScaffold;
 
-  const emptyEnd = Date.now();
-  const emptyStart = emptyEnd - 60 * 60 * 1_000;
+  /*
+   * A flat one-hour scaffold keeps the chart frame visible while empty.
+   */
+  const scaffoldEnd = Date.now();
+  const scaffoldStart = scaffoldEnd - 60 * MINUTE;
 
-  const scaffoldData = [
-    [emptyStart, 0],
-    [emptyEnd, 0],
-  ];
-  const renderedData = isEmptyScaffold ? scaffoldData : data;
-
-  const renderedNavigatorData = isEmptyScaffold ? scaffoldData : navigatorData;
-
-  /* ------------------------------------------------------------------------
-     Context / Theme
-     ------------------------------------------------------------------------ */
+  /* Context / theme / strings -------------------------------------------- */
 
   const resolvedContext = resolveContext(element, context);
-
   const layout = CONTEXT_LAYOUT[resolvedContext];
-
   const rtl = resolveRTL(element, language);
-
   const theme = getMarketChartTheme(element);
-
-  /* ------------------------------------------------------------------------
-     Series Theme
-     ------------------------------------------------------------------------ */
-
-  const seriesTheme = getMarketChartSeriesTheme(
-    Highcharts,
-    theme,
-    normalizedMode,
-    direction,
-  );
-
-  /* ------------------------------------------------------------------------
-     Animation
-     ------------------------------------------------------------------------ */
+  const resolvedStrings = getMarketChartStrings(language, strings);
 
   const resolvedAnimation = normalizeMarketChartAnimation(animation, {
     element,
-
     mode: normalizedMode,
   });
 
-  /* ------------------------------------------------------------------------
-     Axis Configuration
-     ------------------------------------------------------------------------ */
+  /* Axis configuration --------------------------------------------------- */
 
-  const axisConfiguration = isPlainObject(axis) ? axis : {};
+  const axisConfiguration = asPlainObject(axis);
 
   const xAxisConfiguration = {
-    ...(isPlainObject(axisConfiguration.x) ? axisConfiguration.x : {}),
-
-    ...(isPlainObject(xAxis) ? xAxis : {}),
+    ...asPlainObject(axisConfiguration.x),
+    ...asPlainObject(xAxis),
   };
 
   const yAxisConfiguration = {
-    ...(isPlainObject(axisConfiguration.y) ? axisConfiguration.y : {}),
-
-    ...(isPlainObject(yAxis) ? yAxis : {}),
+    ...asPlainObject(axisConfiguration.y),
+    ...asPlainObject(yAxis),
   };
 
   if (xAxisTitle !== null && xAxisTitle !== undefined) {
@@ -2141,291 +1441,184 @@ export function createMarketChartOptions({
     yAxisConfiguration.title = yAxisTitle;
   }
 
-  /* ------------------------------------------------------------------------
-     Shared Intraday Tick Contract
-     ------------------------------------------------------------------------ */
+  /* Shared tick models (main axis + navigator) --------------------------- */
 
-  const intradayTicks = {
-    tickInterval: xAxisConfiguration.tickInterval ?? null,
-
-    intradayTickPixelGap:
-      xAxisConfiguration.intradayTickPixelGap ??
-      INTRADAY_TARGET_LABEL_PIXEL_GAP,
-
-    minimumLabelPixelGap:
-      xAxisConfiguration.minimumLabelPixelGap ?? MIN_LABEL_PIXEL_GAP,
+  const tickModels = {
+    intradayTicks: {
+      tickInterval: xAxisConfiguration.tickInterval ?? null,
+      pixelGap:
+        toFiniteNumber(xAxisConfiguration.intradayTickPixelGap) ??
+        INTRADAY_TARGET_LABEL_PIXEL_GAP,
+      minimumLabelPixelGap:
+        toFiniteNumber(xAxisConfiguration.minimumLabelPixelGap) ??
+        MIN_LABEL_PIXEL_GAP,
+    },
+    historicalTicks: {
+      tickCount:
+        toFiniteNumber(
+          resolveRangeValue(
+            xAxisConfiguration.historicalTickCount,
+            normalizedRange,
+            null,
+          ),
+        ) ?? HISTORICAL_TICK_COUNT,
+      pixelGap:
+        toFiniteNumber(
+          resolveRangeValue(
+            xAxisConfiguration.historicalTickPixelGap,
+            normalizedRange,
+            null,
+          ),
+        ) ?? HISTORICAL_TARGET_LABEL_PIXEL_GAP,
+    },
   };
 
-  /* ------------------------------------------------------------------------
-     Shared Historical Tick Contract
-     ------------------------------------------------------------------------ */
+  /* Navigator / exporting ------------------------------------------------ */
 
-  const historicalTicks = {
-    /*
-     * Primary x-axis configuration is authoritative.
-     *
-     * Navigator receives the same historical cadence contract.
-     */
-    tickCount: resolveRangeValue(
-      xAxisConfiguration.historicalTickCount,
-      normalizedRange,
-      HISTORICAL_TICK_COUNTS[normalizedRange] ?? 6,
-    ),
-
-    targetPixelGap: resolveRangeValue(
-      xAxisConfiguration.historicalTickPixelGap,
-      normalizedRange,
-      HISTORICAL_TARGET_LABEL_PIXEL_GAP,
-    ),
-
-    edgeInsetRatio: resolveRangeValue(
-      xAxisConfiguration.historicalEdgeInsetRatio,
-      normalizedRange,
-      HISTORICAL_EDGE_INSET_RATIO,
-    ),
-  };
-
-  /* ------------------------------------------------------------------------
-     Navigator
-     ------------------------------------------------------------------------ */
-
-  const navigatorConfiguration = isPlainObject(navigator) ? navigator : {};
+  const navigatorConfiguration = asPlainObject(navigator);
 
   const navigatorAllowed =
     capabilities?.navigator !== false &&
     navigatorEnabled !== false &&
     navigatorConfiguration.enabled !== false;
 
-  /* ------------------------------------------------------------------------
-     Exporting
-     ------------------------------------------------------------------------ */
-
   const exportingOptions = createExportingOptions(exporting);
 
-  const nativeChartMenuEnabled =
-    exportingOptions.buttons.contextButton.enabled === true;
-
-  /* ------------------------------------------------------------------------
-     Main Series
-     ------------------------------------------------------------------------ */
-
-  const mainSeries = createMainSeries({
-    mode: normalizedMode,
-    symbol,
-    seriesName,
-
-    data: renderedData,
-
-    seriesTheme,
-    animation: resolvedAnimation,
-  });
-  /* ------------------------------------------------------------------------
-     Accessibility
-     ------------------------------------------------------------------------ */
+  /* Accessibility -------------------------------------------------------- */
 
   const keyboardOrder = [
     "series",
-
     ...(navigatorAllowed && hasData ? ["navigator"] : []),
-
-    ...(nativeChartMenuEnabled ? ["chartMenu"] : []),
-
+    ...(exportingOptions.buttons.contextButton.enabled ? ["chartMenu"] : []),
     "zoom",
   ];
 
-  const arabic = isArabicLanguage(language);
-
-  /* ========================================================================
+  /* ======================================================================
      Highstock Options
-     ======================================================================== */
+     ====================================================================== */
 
   return {
-    /* ----------------------------------------------------------------------
-       Chart
-       ---------------------------------------------------------------------- */
-
     chart: {
       backgroundColor: theme.background,
-
       animation: resolvedAnimation,
 
       spacingTop: layout.spacing,
-
       spacingRight: layout.spacing,
-
       spacingBottom: layout.bottomSpacing,
-
       spacingLeft: layout.spacing,
 
-      reflow: true,
-
-      styledMode: false,
+      /*
+       * The controller owns resizing through its ResizeObserver.
+       */
+      reflow: false,
 
       zooming: {
         type: "x",
-
-        mouseWheel: {
-          enabled: false,
-        },
-
+        mouseWheel: { enabled: false },
         pinchType: "x",
-
-        resetButton: {
-          theme: {
-            display: "none",
-          },
-        },
+        resetButton: { theme: { display: "none" } },
       },
 
-      panning: {
-        enabled: true,
-
-        type: "x",
-      },
-
+      panning: { enabled: true, type: "x" },
       panKey: "shift",
 
-      className:
-        resolvedContext === "overview"
-          ? "market-chart-highstock market-chart-highstock--overview"
-          : "market-chart-highstock market-chart-highstock--performance",
-    },
+      events: {
+        /*
+         * Runs after every draw / redraw / resize / navigator drag.
+         */
+        render() {
+          keepAxisEdgeLabelsInside(this.xAxis?.[0]);
+          keepAxisEdgeLabelsInside(this.navigator?.xAxis);
+        },
+      },
 
-    /* ----------------------------------------------------------------------
-       Time
-       ---------------------------------------------------------------------- */
+      className: `market-chart-highstock market-chart-highstock--${resolvedContext}`,
+    },
 
     time: {
       timezone: timeZone || DEFAULT_TIME_ZONE,
     },
 
-    /* ----------------------------------------------------------------------
-       Language
-       ---------------------------------------------------------------------- */
+    /*
+     * Chart-level `lang` requires Highcharts 12+. On older versions these
+     * strings must be applied globally with Highcharts.setOptions().
+     */
+    lang: { ...resolvedStrings.highcharts },
 
-    lang: {
-      noData: arabic ? "لا تتوفر بيانات للسوق." : "No market data available.",
-
-      loading: arabic ? "جارٍ تحميل بيانات السوق…" : "Loading market data…",
-
-      resetZoom: arabic ? "إعادة ضبط التكبير" : "Reset zoom",
-
-      resetZoomTitle: arabic
-        ? "إعادة ضبط مستوى تكبير الرسم البياني"
-        : "Reset chart zoom",
-    },
-
-    /* ----------------------------------------------------------------------
-       Native Highcharts Decoration
-       ---------------------------------------------------------------------- */
-
-    title: {
-      text: null,
-    },
-
-    subtitle: {
-      text: null,
-    },
-
-    credits: {
-      enabled: false,
-    },
-
-    legend: {
-      enabled: false,
-    },
+    title: { text: null },
+    subtitle: { text: null },
+    credits: { enabled: false },
+    legend: { enabled: false },
 
     /*
-     * Application controls own backend range selection.
+     * Application controls own range selection; the navigator owns the
+     * viewport.
      */
-    rangeSelector: {
-      enabled: false,
-    },
-
-    /*
-     * Navigator is the viewport controller.
-     */
-    scrollbar: {
-      enabled: false,
-    },
-
-    /* ----------------------------------------------------------------------
-       Navigator
-       ---------------------------------------------------------------------- */
+    rangeSelector: { enabled: false },
+    scrollbar: { enabled: false },
 
     navigator: createNavigatorOptions({
       Highcharts,
-
       enabled: navigatorAllowed && showChartScaffold,
-
       range: normalizedRange,
-      hideLabels: isEmptyScaffold,
-      data: renderedNavigatorData,
-
+      intraday: isIntraday,
+      data: isEmptyScaffold ? [] : navigatorData,
       direction,
-
       language,
       timeZone,
-
       theme,
       layout,
-
       dateFormats,
-
-      intradayTicks,
-      historicalTicks,
-
+      tickModels,
       configuration: navigatorConfiguration,
     }),
-
-    /* ----------------------------------------------------------------------
-       Main X Axis
-       ---------------------------------------------------------------------- */
 
     xAxis: {
       ...createXAxisOptions({
         range: normalizedRange,
-
+        intraday: isIntraday,
         language,
         timeZone,
-
         theme,
-
+        strings: resolvedStrings,
         configuration: xAxisConfiguration,
-
         dateFormats,
-
-        intradayTicks,
-        historicalTicks,
+        tickModels,
       }),
 
+      /*
+       * Explicit tickPositions take precedence over the tick positioner.
+       */
       ...(isEmptyScaffold
         ? {
-            min: emptyStart,
-            max: emptyEnd,
-            tickPositions: [emptyStart, (emptyStart + emptyEnd) / 2, emptyEnd],
-            labels: {
-              enabled: false,
-            },
+            min: scaffoldStart,
+            max: scaffoldEnd,
+            tickPositions: [
+              scaffoldStart,
+              (scaffoldStart + scaffoldEnd) / 2,
+              scaffoldEnd,
+            ],
+            labels: { enabled: false },
           }
-        : {}),
+        : {
+            /*
+             * Release scaffold constraints when real data returns.
+             */
+            min: null,
+            max: null,
+            tickPositions: undefined,
+          }),
 
       visible: showChartScaffold,
     },
 
-    /* ----------------------------------------------------------------------
-       Main Y Axis
-       ---------------------------------------------------------------------- */
-
     yAxis: {
       ...createYAxisOptions({
         language,
-
         theme,
         layout,
-
+        strings: resolvedStrings,
         configuration: yAxisConfiguration,
-
         decimals,
         rtl,
       }),
@@ -2435,140 +1628,108 @@ export function createMarketChartOptions({
             min: 0,
             max: 1,
             tickPositions: [0, 0.25, 0.5, 0.75, 1],
-            labels: {
-              enabled: false,
-            },
+            labels: { enabled: false },
           }
-        : {}),
+        : {
+            min: null,
+            max: null,
+            tickPositions: undefined,
+          }),
 
       visible: showChartScaffold,
     },
 
-    /* ----------------------------------------------------------------------
-       Tooltip
-       ---------------------------------------------------------------------- */
-
     tooltip: {
       ...createTooltipOptions({
         range: normalizedRange,
-
+        intraday: isIntraday,
         mode: normalizedMode,
-
-        seriesName,
+        seriesName: resolvedSeriesName,
         currency,
-
         previousClose,
-
         language,
         timeZone,
         decimals,
-
         theme,
-
+        strings: resolvedStrings,
         tooltipDateFormats,
-
-        configuration: isPlainObject(tooltip) ? tooltip : {},
+        configuration: asPlainObject(tooltip),
       }),
 
       enabled: hasData && tooltip?.enabled !== false,
     },
 
-    /* ----------------------------------------------------------------------
-       Plot Options
-       ---------------------------------------------------------------------- */
-
     plotOptions: {
       series: {
         animation: resolvedAnimation,
 
-        dataGrouping: {
-          enabled: false,
-        },
+        /*
+         * The controller owns exact point resolution.
+         */
+        dataGrouping: { enabled: false },
 
-        states: {
-          inactive: {
-            opacity: 1,
-          },
-        },
+        states: { inactive: { opacity: 1 } },
+      },
+
+      area: {
+        threshold: null,
+        marker: { enabled: false },
       },
 
       line: {
-        marker: {
-          enabled: false,
-        },
-      },
-
-      areaspline: {
-        threshold: null,
-
-        marker: {
-          enabled: false,
-        },
+        marker: { enabled: false },
       },
 
       candlestick: {
         /*
-         * Candlestick transitions intentionally remain non-animated.
+         * Candlestick transitions intentionally never animate.
          */
         animation: false,
-
-        dataGrouping: {
-          enabled: false,
-        },
-
         pointPadding: 0.08,
-
         groupPadding: 0.04,
       },
     },
 
-    /* ----------------------------------------------------------------------
-       Main Series
-       ---------------------------------------------------------------------- */
-
-    series: [mainSeries],
-
-    /* ----------------------------------------------------------------------
-       Accessibility
-       ---------------------------------------------------------------------- */
+    series: [
+      createMainSeries({
+        mode: normalizedMode,
+        symbol,
+        seriesName: resolvedSeriesName,
+        data: isEmptyScaffold
+          ? [
+              [scaffoldStart, 0],
+              [scaffoldEnd, 0],
+            ]
+          : data,
+        seriesTheme: getMarketChartSeriesTheme(
+          Highcharts,
+          theme,
+          normalizedMode,
+          direction,
+        ),
+        animation: resolvedAnimation,
+      }),
+    ],
 
     accessibility: {
       enabled: accessibilityEnabled !== false,
-
-      description: accessibilityDescription || "",
-
+      description:
+        accessibilityDescription ||
+        resolvedStrings.accessibility.description(seriesName || symbol),
       landmarkVerbosity: "one",
-
       keyboardNavigation: {
         enabled: true,
-
         order: keyboardOrder,
       },
 
       /*
        * Application status UI owns live-market announcements.
        */
-      announceNewData: {
-        enabled: false,
-      },
+      announceNewData: { enabled: false },
     },
 
-    /* ----------------------------------------------------------------------
-       Exporting
-       ---------------------------------------------------------------------- */
-
     exporting: exportingOptions,
-
-    /* ----------------------------------------------------------------------
-       Responsive
-       ---------------------------------------------------------------------- */
 
     responsive: createResponsiveOptions(),
   };
 }
-
-/* ==========================================================================
-   Public Constants
-   ========================================================================== */
-
-export { CONTEXT_LAYOUT, DEFAULT_TOOLTIP_DATE_FORMATS, DEFAULT_X_AXIS_FORMATS };
