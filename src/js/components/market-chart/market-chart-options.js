@@ -681,7 +681,7 @@ function createXAxisOptions({
        * render naturally; edge overflow is handled after render.
        */
       overflow: intraday ? "justify" : "allow",
-      crop: intraday,
+      crop: false,
 
       style: {
         color: theme.muted,
