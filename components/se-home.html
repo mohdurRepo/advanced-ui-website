@@ -12,92 +12,229 @@
       (function () {
         "use strict";
 
+        /* ========================================================================
+       Head Bootstrap
+       ========================================================================
+
+       Runs synchronously in <head>, before the first paint, and:
+
+       1. hides the page briefly while language.js restores the visitor's
+          saved language (prevents a flash of the wrong language);
+       2. applies saved display preferences to <html> (prevents a flash of
+          the wrong theme, contrast or text size);
+       3. starts the Motion boot timer.
+
+       Written in ES5 so it runs in every browser, including old WebViews.
+       preferences.js and motion.js take over once they load.
+       ======================================================================== */
+
         var root = document.documentElement;
-        var RESTORE_TIMEOUT = 4000;
 
-        function getStoredValue(key, fallback) {
+        var LANGUAGE_STORAGE_KEY = "se-lang";
+
+        /* Maximum time the page stays hidden while the language is restored. */
+        var LANGUAGE_RESTORE_TIMEOUT = 2500;
+
+        /* After this, motion.js treats its start as late (see Motion below). */
+        var MOTION_BOOT_TIMEOUT = 3000;
+
+        /*
+         * Must match PREFERENCES in preferences.js:
+         * storage key, root attribute, allowed values, default.
+         */
+        var PREFERENCES = [
+          {
+            key: "se-theme",
+            attribute: "data-theme-choice",
+            options: ["light", "dark", "system"],
+            fallback: "system",
+          },
+          {
+            key: "se-accent",
+            attribute: "data-accent",
+            options: ["blue", "navy", "teal"],
+            fallback: "blue",
+          },
+          {
+            key: "se-font-size",
+            attribute: "data-font-size",
+            options: ["-2", "-1", "0", "1", "2"],
+            fallback: "0",
+          },
+          {
+            key: "se-contrast",
+            attribute: "data-contrast",
+            options: ["normal", "high"],
+            fallback: "normal",
+          },
+          {
+            key: "se-motion",
+            attribute: "data-motion-preference",
+            options: ["normal", "reduce"],
+            fallback: "normal",
+          },
+          {
+            key: "se-ticker-visibility",
+            attribute: "data-ticker-visibility",
+            options: ["visible", "hidden"],
+            fallback: "visible",
+          },
+          {
+            key: "se-ticker-speed",
+            attribute: "data-ticker-speed",
+            options: ["slow", "normal", "fast"],
+            fallback: "normal",
+          },
+        ];
+
+        /* ========================================================================
+       Storage
+       ======================================================================== */
+
+        function readStorage(key) {
           try {
-            var value = window.localStorage.getItem(key);
-
-            return value !== null ? value : fallback;
-          } catch (error) {
-            return fallback;
-          }
-        }
-
-        function getUrlLanguage() {
-          try {
-            var language = new URLSearchParams(window.location.search).get(
-              "locale",
-            );
-
-            return language === "ar" || language === "en" ? language : null;
+            return window.localStorage.getItem(key);
           } catch (error) {
             return null;
           }
         }
 
-        var pageLanguage = root.getAttribute("lang") === "ar" ? "ar" : "en";
+        function readPreference(preference) {
+          var value = readStorage(preference.key);
 
-        var storedLanguage = getStoredValue("se-lang", null);
+          return preference.options.indexOf(value) !== -1
+            ? value
+            : preference.fallback;
+        }
 
-        var urlLanguage = getUrlLanguage();
+        /* ========================================================================
+       Language
+       ======================================================================== */
 
-        var themeChoice = getStoredValue("se-theme", "system");
+        function normalizeLanguage(value) {
+          if (typeof value !== "string") {
+            return null;
+          }
 
-        var accent = getStoredValue("se-accent", "blue");
+          value = value.trim().toLowerCase().replace("_", "-").split("-")[0];
 
-        var fontSize = getStoredValue("se-font-size", "0");
+          return value === "ar" || value === "en" ? value : null;
+        }
 
-        var contrast = getStoredValue("se-contrast", "normal");
+        function getUrlLanguage() {
+          try {
+            if (typeof window.URLSearchParams !== "function") {
+              return null;
+            }
 
-        var motion = getStoredValue("se-motion", "normal");
-
-        var systemTheme =
-          window.matchMedia &&
-          window.matchMedia("(prefers-color-scheme: dark)").matches
-            ? "dark"
-            : "light";
-
-        var resolvedTheme =
-          themeChoice === "system" ? systemTheme : themeChoice;
-
-        /*
-         * Portal rendered the document using pageLanguage.
-         *
-         * If the saved language differs and the URL has no explicit locale,
-         * temporarily hide the document while language.js restores the saved
-         * language through Portal.
-         */
-        if (
-          !urlLanguage &&
-          (storedLanguage === "ar" || storedLanguage === "en") &&
-          storedLanguage !== pageLanguage
-        ) {
-          root.style.visibility = "hidden";
-          root.setAttribute("data-language-restoring", "true");
-
-          /*
-           * Safety fallback: never leave the document permanently hidden.
-           */
-          window.setTimeout(function () {
-            root.style.removeProperty("visibility");
-            root.removeAttribute("data-language-restoring");
-          }, RESTORE_TIMEOUT);
+            return normalizeLanguage(
+              new window.URLSearchParams(window.location.search).get("locale"),
+            );
+          } catch (error) {
+            return null;
+          }
         }
 
         /*
-         * Portal owns lang and dir. Do not overwrite them here.
+         * Portal owns the document language and direction. When it rendered a
+         * different language from the visitor's saved one (and the URL does not
+         * request a language explicitly), language.js navigates to Portal's URL
+         * for the saved language. The page stays hidden until then, so the
+         * wrong language never flashes.
+         *
+         * The timeout guarantees the page can never stay hidden, even if
+         * language.js or Portal fails.
          */
-        root.setAttribute("data-theme", resolvedTheme);
-        root.setAttribute("data-theme-choice", themeChoice);
-        root.setAttribute("data-accent", accent);
-        root.setAttribute("data-font-size", fontSize);
-        root.setAttribute("data-contrast", contrast);
-        root.setAttribute("data-motion", motion);
+        function prepareLanguageRestore() {
+          var pageLanguage =
+            normalizeLanguage(root.getAttribute("lang")) || "en";
+
+          var storedLanguage = normalizeLanguage(
+            readStorage(LANGUAGE_STORAGE_KEY),
+          );
+
+          if (
+            getUrlLanguage() ||
+            !storedLanguage ||
+            storedLanguage === pageLanguage
+          ) {
+            return;
+          }
+
+          root.style.visibility = "hidden";
+
+          root.setAttribute("data-language-restoring", "true");
+
+          window.setTimeout(function () {
+            root.style.removeProperty("visibility");
+
+            root.removeAttribute("data-language-restoring");
+          }, LANGUAGE_RESTORE_TIMEOUT);
+        }
+
+        /* ========================================================================
+       Display Preferences
+       ======================================================================== */
+
+        function resolveTheme(choice) {
+          if (choice !== "system") {
+            return choice;
+          }
+
+          try {
+            return typeof window.matchMedia === "function" &&
+              window.matchMedia("(prefers-color-scheme: dark)").matches
+              ? "dark"
+              : "light";
+          } catch (error) {
+            return "light";
+          }
+        }
+
+        function applyPreferences() {
+          for (var index = 0; index < PREFERENCES.length; index += 1) {
+            var preference = PREFERENCES[index];
+
+            var value = readPreference(preference);
+
+            root.setAttribute(preference.attribute, value);
+
+            if (preference.attribute === "data-theme-choice") {
+              root.setAttribute("data-theme", resolveTheme(value));
+            }
+          }
+        }
+
+        /* ========================================================================
+       Motion
+       ========================================================================
+
+       Motion SCSS never hides content until motion.js adds .motion-ready,
+       so this timer never shows or hides anything. It only records that
+       the boot window has passed.
+
+       If motion.js starts after that, it keeps content already on screen in
+       its final state and animates only what is still below the fold. */
+
+        function prepareMotionBootTimer() {
+          window.__motionFallbackFired = false;
+
+          window.__motionFallback = window.setTimeout(function () {
+            window.__motionFallbackFired = true;
+          }, MOTION_BOOT_TIMEOUT);
+        }
+
+        /* ========================================================================
+       Run
+       ======================================================================== */
+
+        prepareLanguageRestore();
+
+        applyPreferences();
+
+        prepareMotionBootTimer();
       })();
     </script>
-
     <!-- Highcharts Stock -->
     <script src="https://code.highcharts.com/stock/highstock.js"></script>
 

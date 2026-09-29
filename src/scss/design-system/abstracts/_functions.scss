@@ -1,5 +1,15 @@
 @use "sass:map";
+@use "breakpoints";
 @use "maps";
+
+/* ==========================================================================
+   Token Functions
+   ========================================================================== */
+
+/**
+ * Validated access to every token map. An unknown key stops the build
+ * with a clear message instead of emitting broken CSS.
+ */
 
 @function _get-token($tokens, $key, $token-type) {
   @if not map.has-key($tokens, $key) {
@@ -8,6 +18,10 @@
 
   @return map.get($tokens, $key);
 }
+
+/* ==========================================================================
+   Build-time Values
+   ========================================================================== */
 
 @function brand($key) {
   @return _get-token(maps.$brand-colors, $key, "brand color");
@@ -29,10 +43,6 @@
   @return _get-token(maps.$font-weights, $key, "font weight");
 }
 
-@function font-size($key) {
-  @return _get-token(maps.$font-sizes, $key, "font size");
-}
-
 @function line-height($key) {
   @return _get-token(maps.$line-heights, $key, "line height");
 }
@@ -43,4 +53,23 @@
 
 @function motion($key) {
   @return _get-token(maps.$motions, $key, "motion");
+}
+
+@function breakpoint($key) {
+  @return _get-token(breakpoints.$breakpoints, $key, "breakpoint");
+}
+
+/* ==========================================================================
+   Runtime Values
+   ========================================================================== */
+
+/**
+ * Font sizes resolve to the runtime token, so every use follows the
+ * fluid scale and the visitor's text-size preference.
+ */
+
+@function font-size($key) {
+  $validated: _get-token(maps.$font-sizes, $key, "font size");
+
+  @return var(--text-#{$key});
 }

@@ -2,80 +2,257 @@
    Display Preferences
    ========================================================================== */
 
+/**
+ * Owns the visitor's display preferences.
+ *
+ * Source of truth
+ *   In-memory state. localStorage only persists it, so every preference
+ *   keeps working for the current page even when storage is blocked.
+ *
+ * Operating-system settings
+ *   Only the "system" theme choice reads the OS (prefers-color-scheme),
+ *   because the visitor explicitly chose it. Motion is controlled by the
+ *   site setting alone.
+ *
+ * Root contract (<html>; also written early by the head bootstrap)
+ *   data-theme              resolved theme: light | dark
+ *   data-theme-choice       light | dark | system
+ *   data-accent             blue | navy | teal
+ *   data-font-size          -2 | -1 | 0 | 1 | 2
+ *   data-contrast           normal | high
+ *   data-motion-preference  normal | reduce
+ *   data-ticker-visibility  visible | hidden
+ *   data-ticker-speed       slow | normal | fast
+ *
+ * Markup contract
+ *   Choice   [data-preference="theme"][data-preference-set="dark"]
+ *   Toggle   [data-preference-toggle="contrast"]
+ *            [data-preference-on="high"][data-preference-off="normal"]
+ *   Font     [data-font-decrease] [data-font-increase] [data-font-reset]
+ *   Status   [data-font-size-status]
+ *   Reset    [data-preferences-reset]
+ *
+ *   Controls with role="radio" or role="switch" receive aria-checked;
+ *   all other controls receive aria-pressed.
+ *
+ * Events (dispatched on document)
+ *   preferencechange  { name, value, preferences }
+ *                     name and value are null after a reset.
+ *   preferencesreset  { preferences }
+ */
+
 /* ==========================================================================
    Configuration
    ========================================================================== */
 
-const STORAGE_KEYS = {
-  theme: "se-theme",
-  accent: "se-accent",
-  fontSize: "se-font-size",
-  contrast: "se-contrast",
-  motion: "se-motion",
+function definePreference(definition) {
+  return Object.freeze({
+    ...definition,
+    options: Object.freeze([...definition.options]),
+  });
+}
 
-  tickerVisibility: "se-ticker-visibility",
+/**
+ * suppressTransitions: live changes replace broad visual tokens, so
+ * component transitions are paused briefly to avoid a page-wide animation.
+ * Motion is excluded so the Motion runtime observes its change directly.
+ */
 
-  tickerSpeed: "se-ticker-speed",
-};
+const PREFERENCES = Object.freeze({
+  theme: definePreference({
+    storageKey: "se-theme",
+    attribute: "data-theme-choice",
+    options: ["light", "dark", "system"],
+    defaultValue: "system",
+    suppressTransitions: true,
+  }),
 
-const OPTIONS = {
-  theme: ["light", "dark", "system"],
+  accent: definePreference({
+    storageKey: "se-accent",
+    attribute: "data-accent",
+    options: ["blue", "navy", "teal"],
+    defaultValue: "blue",
+    suppressTransitions: true,
+  }),
 
-  accent: ["blue", "navy", "teal"],
+  fontSize: definePreference({
+    storageKey: "se-font-size",
+    attribute: "data-font-size",
+    options: ["-2", "-1", "0", "1", "2"],
+    defaultValue: "0",
+    suppressTransitions: true,
+  }),
 
-  fontSize: ["-2", "-1", "0", "1", "2"],
+  contrast: definePreference({
+    storageKey: "se-contrast",
+    attribute: "data-contrast",
+    options: ["normal", "high"],
+    defaultValue: "normal",
+    suppressTransitions: true,
+  }),
 
-  contrast: ["normal", "high"],
+  motion: definePreference({
+    storageKey: "se-motion",
+    attribute: "data-motion-preference",
+    options: ["normal", "reduce"],
+    defaultValue: "normal",
+    suppressTransitions: false,
+  }),
 
-  motion: ["normal", "reduce"],
+  tickerVisibility: definePreference({
+    storageKey: "se-ticker-visibility",
+    attribute: "data-ticker-visibility",
+    options: ["visible", "hidden"],
+    defaultValue: "visible",
+    suppressTransitions: false,
+  }),
 
-  tickerVisibility: ["visible", "hidden"],
+  tickerSpeed: definePreference({
+    storageKey: "se-ticker-speed",
+    attribute: "data-ticker-speed",
+    options: ["slow", "normal", "fast"],
+    defaultValue: "normal",
+    suppressTransitions: false,
+  }),
+});
 
-  tickerSpeed: ["slow", "normal", "fast"],
-};
+const PREFERENCE_NAMES = Object.freeze(Object.keys(PREFERENCES));
 
-const DEFAULTS = {
-  theme: "system",
-  accent: "blue",
-  fontSize: "0",
-  contrast: "normal",
-  motion: "normal",
+const STORAGE_KEYS = new Set(
+  PREFERENCE_NAMES.map((name) => PREFERENCES[name].storageKey),
+);
 
-  tickerVisibility: "visible",
+/* Short-lived marker that lets other tabs recognise a full reset. */
 
-  tickerSpeed: "normal",
-};
+const RESET_SIGNAL_KEY = "se-preferences-reset";
 
-const FONT_SIZE_LABELS = {
-  "-2": "Smallest text size",
-  "-1": "Smaller text size",
-  0: "Default text size",
-  1: "Larger text size",
-  2: "Largest text size",
-};
+const FONT_SIZE_STEPS = PREFERENCES.fontSize.options;
+
+const FONT_SIZE_LABELS = Object.freeze({
+  en: Object.freeze({
+    "-2": "Smallest text size",
+    "-1": "Smaller text size",
+    0: "Default text size",
+    1: "Larger text size",
+    2: "Largest text size",
+  }),
+
+  ar: Object.freeze({
+    "-2": "أصغر حجم للنص",
+    "-1": "حجم نص أصغر",
+    0: "حجم النص الافتراضي",
+    1: "حجم نص أكبر",
+    2: "أكبر حجم للنص",
+  }),
+});
+
+const SELECTORS = Object.freeze({
+  choice: "[data-preference][data-preference-set]",
+  toggle: "[data-preference-toggle]",
+  fontDecrease: "[data-font-decrease]",
+  fontIncrease: "[data-font-increase]",
+  fontReset: "[data-font-reset]",
+  fontStatus: "[data-font-size-status]",
+  reset: "[data-preferences-reset]",
+});
+
+const FONT_CONTROL_SELECTOR = [
+  SELECTORS.fontDecrease,
+  SELECTORS.fontIncrease,
+  SELECTORS.fontReset,
+].join(", ");
+
+const CHECKED_ROLES = new Set([
+  "radio",
+  "switch",
+  "menuitemradio",
+  "menuitemcheckbox",
+]);
 
 const root = document.documentElement;
 
-const systemThemeQuery = window.matchMedia("(prefers-color-scheme: dark)");
+const systemThemeQuery = createMediaQuery("(prefers-color-scheme: dark)");
 
-let themeSwitchFrame = null;
+/* ==========================================================================
+   State
+   ========================================================================== */
+
+let state = null;
+
+let transitionFrame = null;
+
+let storageSyncFrame = null;
+let storageResetPending = false;
+
 let isInitialized = false;
+
+/* ==========================================================================
+   General Helpers
+   ========================================================================== */
+
+function clamp(value, min, max) {
+  return Math.min(Math.max(value, min), max);
+}
+
+function createMediaQuery(query) {
+  if (typeof window.matchMedia !== "function") {
+    return null;
+  }
+
+  try {
+    return window.matchMedia(query);
+  } catch {
+    return null;
+  }
+}
+
+function onMediaQueryChange(query, listener) {
+  if (!query) {
+    return;
+  }
+
+  if (typeof query.addEventListener === "function") {
+    query.addEventListener("change", listener);
+
+    return;
+  }
+
+  /* Legacy Safari / WebView. */
+
+  query.addListener?.(listener);
+}
+
+function getDocumentLanguage() {
+  return String(root.lang).toLowerCase().startsWith("ar") ? "ar" : "en";
+}
 
 /* ==========================================================================
    Validation
    ========================================================================== */
 
+function isKnownPreference(name) {
+  return Object.prototype.hasOwnProperty.call(PREFERENCES, name);
+}
+
 function isValidPreference(name, value) {
-  return OPTIONS[name]?.includes(value) ?? false;
+  return isKnownPreference(name) && PREFERENCES[name].options.includes(value);
 }
 
 /* ==========================================================================
    Storage
    ========================================================================== */
 
+function getStorage() {
+  try {
+    return window.localStorage;
+  } catch {
+    return null;
+  }
+}
+
 function readStorage(key) {
   try {
-    return window.localStorage.getItem(key);
+    return getStorage()?.getItem(key) ?? null;
   } catch {
     return null;
   }
@@ -83,134 +260,273 @@ function readStorage(key) {
 
 function writeStorage(key, value) {
   try {
-    window.localStorage.setItem(key, value);
-
-    return true;
+    getStorage()?.setItem(key, value);
   } catch {
-    return false;
+    /* Blocked or full: the in-memory state still applies to this page. */
   }
 }
 
 function removeStorage(key) {
   try {
-    window.localStorage.removeItem(key);
+    getStorage()?.removeItem(key);
   } catch {
-    /*
-     * Preferences still work for the
-     * current page session.
-     */
+    /* Blocked: nothing persisted, nothing to remove. */
   }
 }
 
-function getStoredPreference(name) {
-  const key = STORAGE_KEYS[name];
+/* ==========================================================================
+   Preference State
+   ========================================================================== */
 
-  const value = readStorage(key);
+function readStoredPreferences() {
+  return PREFERENCE_NAMES.reduce((preferences, name) => {
+    const value = readStorage(PREFERENCES[name].storageKey);
 
-  return isValidPreference(name, value) ? value : DEFAULTS[name];
+    preferences[name] = isValidPreference(name, value)
+      ? value
+      : PREFERENCES[name].defaultValue;
+
+    return preferences;
+  }, {});
+}
+
+function getDefaultPreferences() {
+  return PREFERENCE_NAMES.reduce((preferences, name) => {
+    preferences[name] = PREFERENCES[name].defaultValue;
+
+    return preferences;
+  }, {});
+}
+
+function getState() {
+  state ??= readStoredPreferences();
+
+  return state;
 }
 
 /* ==========================================================================
    Theme Resolution
    ========================================================================== */
 
-function resolveTheme(theme) {
-  if (theme !== "system") {
-    return theme;
+function resolveTheme(choice) {
+  if (choice !== "system") {
+    return choice;
   }
 
-  return systemThemeQuery.matches ? "dark" : "light";
+  return systemThemeQuery?.matches ? "dark" : "light";
+}
+
+/* ==========================================================================
+   Root Attributes
+   ========================================================================== */
+
+/**
+ * Skips unchanged values, so attribute observers (Motion, the ticker)
+ * never receive meaningless mutations.
+ */
+
+function setRootAttribute(name, value) {
+  const normalizedValue = String(value);
+
+  if (root.getAttribute(name) === normalizedValue) {
+    return;
+  }
+
+  root.setAttribute(name, normalizedValue);
+}
+
+/* ==========================================================================
+   Transition Suppression
+   ========================================================================== */
+
+function beginTransitionSuppression() {
+  if (transitionFrame !== null) {
+    window.cancelAnimationFrame(transitionFrame);
+
+    transitionFrame = null;
+  }
+
+  root.classList.add("is-theme-switching");
+}
+
+/**
+ * Held across two frames: the first lets the new tokens reach style
+ * calculation, the second releases suppression once they have settled.
+ */
+
+function finishTransitionSuppression() {
+  transitionFrame = window.requestAnimationFrame(() => {
+    transitionFrame = window.requestAnimationFrame(() => {
+      root.classList.remove("is-theme-switching");
+
+      transitionFrame = null;
+    });
+  });
 }
 
 /* ==========================================================================
    Apply Preferences
    ========================================================================== */
 
-function finishPreferenceUpdate() {
-  if (themeSwitchFrame !== null) {
-    window.cancelAnimationFrame(themeSwitchFrame);
+function applyPreferences(preferences, { suppressTransitions = false } = {}) {
+  if (suppressTransitions) {
+    beginTransitionSuppression();
   }
 
-  themeSwitchFrame = window.requestAnimationFrame(() => {
-    themeSwitchFrame = window.requestAnimationFrame(() => {
-      root.classList.remove("is-theme-switching");
+  setRootAttribute("data-theme", resolveTheme(preferences.theme));
 
-      themeSwitchFrame = null;
-    });
+  PREFERENCE_NAMES.forEach((name) => {
+    setRootAttribute(PREFERENCES[name].attribute, preferences[name]);
+  });
+
+  if (suppressTransitions) {
+    finishTransitionSuppression();
+  }
+}
+
+/* ==========================================================================
+   UI State
+   ========================================================================== */
+
+function setSelectedState(control, isSelected) {
+  control.classList.toggle("is-active", isSelected);
+
+  const attribute = CHECKED_ROLES.has(control.getAttribute("role"))
+    ? "aria-checked"
+    : "aria-pressed";
+
+  control.setAttribute(attribute, String(isSelected));
+}
+
+/**
+ * aria-disabled rather than the disabled property: a disabled button drops
+ * keyboard focus, stranding users who press "larger" up to the limit.
+ */
+
+function setUnavailableState(control, isUnavailable) {
+  control.setAttribute("aria-disabled", String(isUnavailable));
+}
+
+function isUnavailable(control) {
+  return control.getAttribute("aria-disabled") === "true";
+}
+
+function syncChoiceControls(preferences) {
+  document.querySelectorAll(SELECTORS.choice).forEach((control) => {
+    const name = control.getAttribute("data-preference");
+
+    const value = control.getAttribute("data-preference-set");
+
+    setSelectedState(control, preferences[name] === value);
   });
 }
 
-function applyPreferences(preferences) {
-  /*
-   * Prevent theme-aware components from
-   * transitioning while semantic values
-   * are being updated.
-   */
-  root.classList.add("is-theme-switching");
+function syncToggleControls(preferences) {
+  document.querySelectorAll(SELECTORS.toggle).forEach((control) => {
+    const name = control.getAttribute("data-preference-toggle");
 
-  root.setAttribute("data-theme", resolveTheme(preferences.theme));
+    const onValue = control.getAttribute("data-preference-on");
 
-  root.setAttribute("data-theme-choice", preferences.theme);
+    setSelectedState(control, preferences[name] === onValue);
+  });
+}
 
-  root.setAttribute("data-accent", preferences.accent);
+function syncFontControls(preferences) {
+  const index = FONT_SIZE_STEPS.indexOf(preferences.fontSize);
 
-  root.setAttribute("data-font-size", preferences.fontSize);
+  const lastIndex = FONT_SIZE_STEPS.length - 1;
 
-  root.setAttribute("data-contrast", preferences.contrast);
+  const labels = FONT_SIZE_LABELS[getDocumentLanguage()];
 
-  root.setAttribute("data-motion", preferences.motion);
+  const label =
+    labels[preferences.fontSize] ?? labels[PREFERENCES.fontSize.defaultValue];
 
-  /*
-   * Market ticker preferences.
-   *
-   * The ticker controller observes these
-   * attributes directly. There is no
-   * dependency from preferences.js to the
-   * ticker module.
-   */
-  root.setAttribute("data-ticker-visibility", preferences.tickerVisibility);
+  document.querySelectorAll(SELECTORS.fontDecrease).forEach((control) => {
+    setUnavailableState(control, index <= 0);
+  });
 
-  root.setAttribute("data-ticker-speed", preferences.tickerSpeed);
+  document.querySelectorAll(SELECTORS.fontIncrease).forEach((control) => {
+    setUnavailableState(control, index >= lastIndex);
+  });
 
-  finishPreferenceUpdate();
+  document.querySelectorAll(SELECTORS.fontReset).forEach((control) => {
+    control.classList.toggle(
+      "is-active",
+      preferences.fontSize === PREFERENCES.fontSize.defaultValue,
+    );
+  });
+
+  /* Only write real changes, so the live region never repeats itself. */
+
+  document.querySelectorAll(SELECTORS.fontStatus).forEach((status) => {
+    if (status.textContent !== label) {
+      status.textContent = label;
+    }
+  });
+}
+
+function syncPreferencesUI(preferences) {
+  syncChoiceControls(preferences);
+  syncToggleControls(preferences);
+  syncFontControls(preferences);
+}
+
+/**
+ * Font-size changes are announced politely unless the markup already
+ * defines its own live-region semantics.
+ */
+
+function prepareStatusRegions() {
+  document.querySelectorAll(SELECTORS.fontStatus).forEach((status) => {
+    if (!status.hasAttribute("role") && !status.hasAttribute("aria-live")) {
+      status.setAttribute("role", "status");
+    }
+  });
+}
+
+function commit({ suppressTransitions = false } = {}) {
+  const preferences = getState();
+
+  applyPreferences(preferences, { suppressTransitions });
+
+  syncPreferencesUI(preferences);
 }
 
 /* ==========================================================================
    Events
    ========================================================================== */
 
-function emitPreferenceChange(name, value, preferences) {
-  document.dispatchEvent(
-    new CustomEvent("preferencechange", {
-      detail: {
-        name,
-        value,
-        preferences,
-      },
-    }),
-  );
+function dispatch(type, detail) {
+  document.dispatchEvent(new CustomEvent(type, { detail }));
 }
 
-function emitPreferencesReset(preferences) {
-  document.dispatchEvent(
-    new CustomEvent("preferencesreset", {
-      detail: {
-        preferences,
-      },
-    }),
-  );
+function emitPreferenceChange(name) {
+  dispatch("preferencechange", {
+    name,
+    value: name === null ? null : getState()[name],
+    preferences: getPreferences(),
+  });
+}
+
+/**
+ * A reset also emits preferencechange (name: null) so consumers that only
+ * listen for changes still react.
+ */
+
+function emitPreferencesReset() {
+  dispatch("preferencesreset", {
+    preferences: getPreferences(),
+  });
+
+  emitPreferenceChange(null);
 }
 
 /* ==========================================================================
-   Public State
+   Public API
    ========================================================================== */
 
 export function getPreferences() {
-  return Object.keys(DEFAULTS).reduce((preferences, name) => {
-    preferences[name] = getStoredPreference(name);
-
-    return preferences;
-  }, {});
+  return { ...getState() };
 }
 
 export function setPreference(name, value) {
@@ -220,161 +536,90 @@ export function setPreference(name, value) {
     return false;
   }
 
-  writeStorage(STORAGE_KEYS[name], value);
+  const current = getState();
 
-  const preferences = getPreferences();
+  if (current[name] === value) {
+    return true;
+  }
 
-  applyPreferences(preferences);
+  state = { ...current, [name]: value };
 
-  syncPreferencesUI(preferences);
+  writeStorage(PREFERENCES[name].storageKey, value);
 
-  emitPreferenceChange(name, value, preferences);
+  commit({ suppressTransitions: PREFERENCES[name].suppressTransitions });
+
+  emitPreferenceChange(name);
 
   return true;
+}
+
+export function resetPreferences() {
+  state = getDefaultPreferences();
+
+  signalResetToOtherTabs();
+
+  PREFERENCE_NAMES.forEach((name) => {
+    removeStorage(PREFERENCES[name].storageKey);
+  });
+
+  /* Theme, accent, contrast and size may all change: one visual boundary. */
+
+  commit({ suppressTransitions: true });
+
+  emitPreferencesReset();
+}
+
+/**
+ * Re-sync controls rendered after initialization (e.g. a settings panel
+ * injected on demand).
+ */
+
+export function refreshPreferencesUI() {
+  prepareStatusRegions();
+
+  syncPreferencesUI(getState());
 }
 
 /* ==========================================================================
    Font Size
    ========================================================================== */
 
-function moveFontSize(direction) {
-  const preferences = getPreferences();
+function stepFontSize(direction) {
+  const index = FONT_SIZE_STEPS.indexOf(getState().fontSize);
 
-  const currentIndex = OPTIONS.fontSize.indexOf(preferences.fontSize);
+  const nextIndex = clamp(index + direction, 0, FONT_SIZE_STEPS.length - 1);
 
-  const nextIndex = Math.min(
-    Math.max(currentIndex + direction, 0),
-    OPTIONS.fontSize.length - 1,
-  );
-
-  const nextValue = OPTIONS.fontSize[nextIndex];
-
-  if (nextValue === preferences.fontSize) {
-    return;
-  }
-
-  setPreference("fontSize", nextValue);
+  setPreference("fontSize", FONT_SIZE_STEPS[nextIndex]);
 }
 
 export function increaseFontSize() {
-  moveFontSize(1);
+  stepFontSize(1);
 }
 
 export function decreaseFontSize() {
-  moveFontSize(-1);
+  stepFontSize(-1);
 }
 
 export function resetFontSize() {
-  setPreference("fontSize", DEFAULTS.fontSize);
+  setPreference("fontSize", PREFERENCES.fontSize.defaultValue);
 }
 
 /* ==========================================================================
-   Binary Preferences
+   Toggle Controls
    ========================================================================== */
 
-function toggleBinaryPreference(button) {
-  const name = button.getAttribute("data-preference-toggle");
+function togglePreference(control) {
+  const name = control.getAttribute("data-preference-toggle");
 
-  const onValue = button.getAttribute("data-preference-on");
+  const onValue = control.getAttribute("data-preference-on");
 
-  const offValue = button.getAttribute("data-preference-off");
+  const offValue = control.getAttribute("data-preference-off");
 
-  if (
-    !name ||
-    !isValidPreference(name, onValue) ||
-    !isValidPreference(name, offValue)
-  ) {
+  if (!isValidPreference(name, onValue) || !isValidPreference(name, offValue)) {
     return;
   }
 
-  const preferences = getPreferences();
-
-  const nextValue = preferences[name] === onValue ? offValue : onValue;
-
-  setPreference(name, nextValue);
-}
-
-/* ==========================================================================
-   Reset
-   ========================================================================== */
-
-export function resetPreferences() {
-  Object.values(STORAGE_KEYS).forEach(removeStorage);
-
-  const preferences = getPreferences();
-
-  applyPreferences(preferences);
-
-  syncPreferencesUI(preferences);
-
-  emitPreferencesReset(preferences);
-
-  emitPreferenceChange(null, null, preferences);
-}
-
-/* ==========================================================================
-   UI State
-   ========================================================================== */
-
-function setPressedState(button, isPressed) {
-  button.classList.toggle("is-active", isPressed);
-
-  button.setAttribute("aria-pressed", String(isPressed));
-}
-
-function syncChoiceButtons(preferences) {
-  document
-    .querySelectorAll("[data-preference][data-preference-set]")
-    .forEach((button) => {
-      const name = button.getAttribute("data-preference");
-
-      const value = button.getAttribute("data-preference-set");
-
-      setPressedState(button, preferences[name] === value);
-    });
-}
-
-function syncToggleButtons(preferences) {
-  document.querySelectorAll("[data-preference-toggle]").forEach((button) => {
-    const name = button.getAttribute("data-preference-toggle");
-
-    const onValue = button.getAttribute("data-preference-on");
-
-    setPressedState(button, preferences[name] === onValue);
-  });
-}
-
-function syncFontControls(preferences) {
-  const currentIndex = OPTIONS.fontSize.indexOf(preferences.fontSize);
-
-  const minimumIndex = 0;
-
-  const maximumIndex = OPTIONS.fontSize.length - 1;
-
-  document.querySelectorAll("[data-font-decrease]").forEach((button) => {
-    button.disabled = currentIndex <= minimumIndex;
-  });
-
-  document.querySelectorAll("[data-font-increase]").forEach((button) => {
-    button.disabled = currentIndex >= maximumIndex;
-  });
-
-  document.querySelectorAll("[data-font-reset]").forEach((button) => {
-    setPressedState(button, preferences.fontSize === DEFAULTS.fontSize);
-  });
-
-  document.querySelectorAll("[data-font-size-status]").forEach((status) => {
-    status.textContent =
-      FONT_SIZE_LABELS[preferences.fontSize] ?? FONT_SIZE_LABELS["0"];
-  });
-}
-
-function syncPreferencesUI(preferences = getPreferences()) {
-  syncChoiceButtons(preferences);
-
-  syncToggleButtons(preferences);
-
-  syncFontControls(preferences);
+  setPreference(name, getState()[name] === onValue ? offValue : onValue);
 }
 
 /* ==========================================================================
@@ -388,45 +633,44 @@ function handlePreferenceClick(event) {
     return;
   }
 
-  const choiceButton = target.closest("[data-preference][data-preference-set]");
+  const choice = target.closest(SELECTORS.choice);
 
-  if (choiceButton) {
-    const name = choiceButton.getAttribute("data-preference");
-
-    const value = choiceButton.getAttribute("data-preference-set");
-
-    setPreference(name, value);
-
-    return;
-  }
-
-  const toggleButton = target.closest("[data-preference-toggle]");
-
-  if (toggleButton) {
-    toggleBinaryPreference(toggleButton);
+  if (choice) {
+    setPreference(
+      choice.getAttribute("data-preference"),
+      choice.getAttribute("data-preference-set"),
+    );
 
     return;
   }
 
-  if (target.closest("[data-font-decrease]")) {
-    decreaseFontSize();
+  const toggle = target.closest(SELECTORS.toggle);
+
+  if (toggle) {
+    togglePreference(toggle);
 
     return;
   }
 
-  if (target.closest("[data-font-increase]")) {
-    increaseFontSize();
+  const fontControl = target.closest(FONT_CONTROL_SELECTOR);
+
+  if (fontControl) {
+    if (isUnavailable(fontControl)) {
+      return;
+    }
+
+    if (fontControl.matches(SELECTORS.fontDecrease)) {
+      decreaseFontSize();
+    } else if (fontControl.matches(SELECTORS.fontIncrease)) {
+      increaseFontSize();
+    } else {
+      resetFontSize();
+    }
 
     return;
   }
 
-  if (target.closest("[data-font-reset]")) {
-    resetFontSize();
-
-    return;
-  }
-
-  if (target.closest("[data-preferences-reset]")) {
+  if (target.closest(SELECTORS.reset)) {
     resetPreferences();
   }
 }
@@ -435,42 +679,105 @@ function handlePreferenceClick(event) {
    System Theme
    ========================================================================== */
 
+/**
+ * The stored choice stays "system"; only its resolved light/dark value
+ * changes. Many colour tokens swap at once, so transitions are suppressed.
+ */
+
 function handleSystemThemeChange() {
-  const preferences = getPreferences();
+  const preferences = getState();
 
   if (preferences.theme !== "system") {
     return;
   }
 
-  /*
-   * Only the resolved theme changes.
-   * Do not emit a preferencechange event
-   * because the user's selected preference
-   * remains "system".
-   */
-  applyPreferences(preferences);
-
-  syncPreferencesUI(preferences);
+  applyPreferences(preferences, { suppressTransitions: true });
 }
 
 /* ==========================================================================
    Cross-tab Synchronization
    ========================================================================== */
 
+/**
+ * A reset in another tab removes every key, which arrives here as several
+ * separate storage events. The marker is written before those removals so
+ * the batch is recognised as one reset.
+ */
+
+function signalResetToOtherTabs() {
+  writeStorage(RESET_SIGNAL_KEY, String(Date.now()));
+
+  removeStorage(RESET_SIGNAL_KEY);
+}
+
 function handleStorageChange(event) {
-  if (event.storageArea !== window.localStorage) {
+  const storage = getStorage();
+
+  if (!storage || (event.storageArea && event.storageArea !== storage)) {
     return;
   }
 
-  if (event.key !== null && !Object.values(STORAGE_KEYS).includes(event.key)) {
+  /* key === null means another tab cleared localStorage entirely. */
+
+  const isReset = event.key === null || event.key === RESET_SIGNAL_KEY;
+
+  if (!isReset && !STORAGE_KEYS.has(event.key)) {
     return;
   }
 
-  const preferences = getPreferences();
+  if (isReset) {
+    storageResetPending = true;
+  }
 
-  applyPreferences(preferences);
+  scheduleStorageSync();
+}
 
-  syncPreferencesUI(preferences);
+/**
+ * Batches every storage event that arrives before the next frame into a
+ * single apply, so a multi-key change repaints once.
+ */
+
+function scheduleStorageSync() {
+  if (storageSyncFrame !== null) {
+    return;
+  }
+
+  storageSyncFrame = window.requestAnimationFrame(syncFromStorage);
+}
+
+function syncFromStorage() {
+  storageSyncFrame = null;
+
+  const isReset = storageResetPending;
+
+  storageResetPending = false;
+
+  const previous = getState();
+
+  state = readStoredPreferences();
+
+  const changed = PREFERENCE_NAMES.filter(
+    (name) => previous[name] !== state[name],
+  );
+
+  if (!isReset && changed.length === 0) {
+    return;
+  }
+
+  commit({
+    suppressTransitions:
+      isReset || changed.some((name) => PREFERENCES[name].suppressTransitions),
+  });
+
+  if (isReset) {
+    emitPreferencesReset();
+
+    return;
+  }
+
+  changed.forEach((name) => {
+    emitPreferenceChange(name);
+  });
 }
 
 /* ==========================================================================
@@ -484,15 +791,23 @@ export function initPreferences() {
 
   isInitialized = true;
 
-  const preferences = getPreferences();
+  state = readStoredPreferences();
 
-  applyPreferences(preferences);
+  /*
+   * Startup establishes state; it is not a live switch, so transitions are
+   * not suppressed. The head bootstrap has usually applied the same values
+   * already, and unchanged attributes are skipped.
+   */
 
-  syncPreferencesUI(preferences);
+  applyPreferences(state);
+
+  prepareStatusRegions();
+
+  syncPreferencesUI(state);
 
   document.addEventListener("click", handlePreferenceClick);
 
-  systemThemeQuery.addEventListener("change", handleSystemThemeChange);
+  onMediaQueryChange(systemThemeQuery, handleSystemThemeChange);
 
   window.addEventListener("storage", handleStorageChange);
 }

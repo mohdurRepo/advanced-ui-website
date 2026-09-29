@@ -1,34 +1,22 @@
 @use "sass:list";
 @use "sass:map";
-@use "breakpoints";
+@use "sass:meta";
+@use "sass:string";
+@use "functions";
 @use "maps";
-
-/* ==========================================================================
-   Private Helpers
-   ========================================================================== */
-
-@function _breakpoint($key) {
-  @if not map.has-key(breakpoints.$breakpoints, $key) {
-    @error "Unknown breakpoint `#{$key}`.";
-  }
-
-  @return map.get(breakpoints.$breakpoints, $key);
-}
 
 /* ==========================================================================
    Breakpoints
    ========================================================================== */
 
 @mixin respond-up($key) {
-  $value: _breakpoint($key);
-
-  @media (min-width: $value) {
+  @media (min-width: functions.breakpoint($key)) {
     @content;
   }
 }
 
 @mixin respond-down($key) {
-  $value: _breakpoint($key);
+  $value: functions.breakpoint($key);
 
   @if $value == 0 {
     @error "Breakpoint `#{$key}` cannot be used with respond-down().";
@@ -40,8 +28,8 @@
 }
 
 @mixin respond-between($min, $max) {
-  $min-value: _breakpoint($min);
-  $max-value: _breakpoint($max);
+  $min-value: functions.breakpoint($min);
+  $max-value: functions.breakpoint($max);
 
   @if $min-value >= $max-value {
     @error "The minimum breakpoint must be smaller than the maximum breakpoint.";
@@ -57,38 +45,70 @@
    ========================================================================== */
 
 /**
- * Generates transitions for one or more properties.
+ * Transitions one or more properties.
  *
- * The second argument may be:
- * - A motion token: "fast", "normal", or "slow"
- * - A custom CSS duration such as 250ms
+ *   @include transition((background-color, color), "fast");
+ *   @include transition(opacity, 250ms, ease-out);
  *
- * Token-based transitions use CSS custom properties so that runtime
- * reduced-motion preferences can disable them.
+ * $motion is a token ("fast" | "normal" | "slow") or a custom duration.
+ * Prefer tokens: they read --transition-*, which the site "reduce motion"
+ * setting sets to 0ms. Custom durations are not reduced.
  */
 
 @mixin transition($properties: all, $motion: "normal", $timing-function: ease) {
-  $transitions: ();
+  $duration: $motion;
 
   @if map.has-key(maps.$motions, $motion) {
-    @each $property in $properties {
-      $transitions: list.append(
-        $transitions,
-        #{$property} var(--transition-#{$motion}),
-        comma
-      );
-    }
-  } @else {
-    @each $property in $properties {
-      $transitions: list.append(
-        $transitions,
-        #{$property} #{$motion} #{$timing-function},
-        comma
-      );
-    }
+    $duration: var(--transition-#{$motion});
+  } @else if
+    meta.type-of($motion) ==
+    "string" and not
+    string.index("#{$motion}", "(")
+  {
+    /* A bare word that is not a token is a typo, e.g. "medium".
+       CSS values such as var(…) or calc(…) and plain durations pass. */
+    @error "Unknown motion token `#{$motion}`. Use fast, normal, slow or a duration.";
+  }
+
+  $transitions: ();
+
+  @each $property in $properties {
+    $transitions: list.append(
+      $transitions,
+      #{$property} $duration $timing-function,
+      $separator: comma
+    );
   }
 
   transition: $transitions;
+}
+
+/* ==========================================================================
+   Reduced Motion
+   ========================================================================== */
+
+/**
+ * Styles applied when the visitor turns on the site's "Reduce motion".
+ *
+ *   .market-status__dot {
+ *     animation: market-status-pulse 2s infinite;
+ *
+ *     @include reduced-motion {
+ *       animation: none;
+ *     }
+ *   }
+ *
+ * Use it for keyframe animations and transforms. Transitions written with
+ * the transition() mixin and a token already drop to 0ms automatically.
+ *
+ * The site setting is the single authority; OS settings are not read.
+ * This is the only place components should reference the attribute.
+ */
+
+@mixin reduced-motion {
+  html[data-motion-preference="reduce"] & {
+    @content;
+  }
 }
 
 /* ==========================================================================
@@ -141,8 +161,8 @@
 }
 
 @mixin square($size) {
-  width: $size;
-  height: $size;
+  inline-size: $size;
+  block-size: $size;
 }
 
 /* ==========================================================================
@@ -152,8 +172,8 @@
 @mixin visually-hidden {
   position: absolute;
 
-  width: 1px;
-  height: 1px;
+  inline-size: 1px;
+  block-size: 1px;
   padding: 0;
   margin: -1px;
 

@@ -1,75 +1,53 @@
+@use "config";
+
 /* ==========================================================================
    Motion Reveal
    ========================================================================== */
 
 /**
- * Viewport-reveal primitive.
+ * Viewport-reveal primitive: data-motion="reveal".
  *
- * Lifecycle (classes owned by JavaScript):
+ * Lifecycle (classes owned by motion.js):
  *
- *   hidden     → no .is-motion-visible
- *   animating  → .is-motion-visible, no .is-motion-complete
- *   complete   → .is-motion-visible.is-motion-complete
+ *   hidden     no .is-motion-visible
+ *   animating  .is-motion-visible, no .is-motion-complete
+ *   complete   .is-motion-visible.is-motion-complete
+ *
+ * Attributes:
+ *
+ *   data-motion-from      bottom | top | start | end | scale | blur
+ *                         (default: fade only; fade-scale = scale)
+ *   data-motion-distance  sm | md | lg
+ *   data-motion-speed     fast | normal | slow
+ *   data-motion-duration  custom duration, e.g. "400" (registered by JS)
+ *   data-motion-delay     extra delay in ms (scheduled by JS)
  *
  * Design rules:
  *
  * - Uses the individual `translate` / `scale` properties, never `transform`,
- *   so it composes with a component's own transform (e.g. card hover lift).
- * - The complete state declares nothing: once finished, the element is fully
- *   back to its component styles (its own transitions, hover, etc.).
- * - Hidden → animating is the only transition. Resetting (repeat mode) is
- *   instant, so re-entry never plays a reverse animation.
+ *   so it composes with a component's own transform (e.g. a hover lift).
+ * - The complete state declares nothing: the element returns fully to its
+ *   component styles, including its own transitions and hover states.
+ * - Hidden → animating is the only transition. A repeat-mode reset is
+ *   instant, so re-entry never plays in reverse.
  */
 
 /* ==========================================================================
-   Activation Gate
-   ========================================================================== */
-
-/**
- * Hidden / animating styles apply only when ALL of these are true:
- *
- * - screen media (print always shows final content);
- * - the OS does not request reduced motion;
- * - the site setting on <html> is not data-motion="reduce";
- * - <html> has .motion-ready (added in <head> before first paint).
- *
- * Otherwise content simply shows, so no reduced-motion or print overrides
- * are needed.
- *
- * The leading "-" makes the mixin private to this file, so it is not
- * forwarded and never clashes with the copy in _text.scss.
- */
-
-@mixin -motion-enabled {
-  @media screen and (prefers-reduced-motion: no-preference) {
-    html.motion-ready:not([data-motion="reduce"]) & {
-      @content;
-    }
-  }
-}
-
-/* ==========================================================================
-   Tokens
+   Tokens and Presets
    ========================================================================== */
 
 [data-motion="reveal"] {
-  --motion-duration: 800ms;
+  --motion-duration: #{config.$reveal-duration};
   --motion-delay: 0ms;
-  --motion-ease: cubic-bezier(0.22, 1, 0.3, 1);
-  --motion-distance: 1.25rem;
+  --motion-ease: #{config.$reveal-ease};
+  --motion-distance: #{config.$reveal-distance};
 
   --motion-opacity: 0;
   --motion-x: 0px;
   --motion-y: 0px;
   --motion-scale: 1;
-}
 
-/* ==========================================================================
-   Direction Presets
-   ========================================================================== */
-
-[data-motion="reveal"] {
-  /* fade: default tokens, opacity only */
+  /* Direction. start / end are logical: they flip under RTL below. */
 
   &[data-motion-from="bottom"] {
     --motion-y: var(--motion-distance);
@@ -83,72 +61,46 @@
     --motion-x: calc(var(--motion-distance) * -1);
   }
 
-  &[data-motion-from="start"]:dir(rtl) {
-    --motion-x: var(--motion-distance);
-  }
-
-  /* Logical end: right in LTR, left in RTL. */
-
   &[data-motion-from="end"] {
     --motion-x: var(--motion-distance);
   }
 
-  &[data-motion-from="end"]:dir(rtl) {
+  [dir="rtl"] &[data-motion-from="start"] {
+    --motion-x: var(--motion-distance);
+  }
+
+  [dir="rtl"] &[data-motion-from="end"] {
     --motion-x: calc(var(--motion-distance) * -1);
   }
 
-  /* Grows slightly into place while fading in. A scale without a fade was
-     visible while waiting for its stagger turn, so it looked out of order.
-     `fade-scale` is kept as an alias for existing markup. */
+  /* Grows slightly into place while fading in. */
 
   &[data-motion-from="scale"],
   &[data-motion-from="fade-scale"] {
-    --motion-scale: 0.96;
+    --motion-scale: #{config.$reveal-scale};
   }
 
-  /* Blur adds a slight scale so the focus-pull feels physical. */
+  /* A slight scale makes the focus-pull feel physical. */
 
   &[data-motion-from="blur"] {
-    --motion-scale: 0.98;
-  }
-}
-
-/* ==========================================================================
-   Distance Presets
-   ========================================================================== */
-
-[data-motion="reveal"] {
-  &[data-motion-distance="sm"] {
-    --motion-distance: 0.75rem;
+    --motion-scale: #{config.$reveal-blur-scale};
   }
 
-  &[data-motion-distance="md"] {
-    --motion-distance: 1.5rem;
+  /* Distance */
+
+  @each $name, $distance in config.$reveal-distances {
+    &[data-motion-distance="#{$name}"] {
+      --motion-distance: #{$distance};
+    }
   }
 
-  &[data-motion-distance="lg"] {
-    --motion-distance: 2.5rem;
-  }
-}
+  /* Speed. Scoped to reveal: on typing elements data-motion-speed means
+     milliseconds per character and is handled by JavaScript. */
 
-/* ==========================================================================
-   Speed Presets
-   ========================================================================== */
-
-/* Scoped to reveal so `data-motion-speed` on typing elements (ms per
-   character) never collides. */
-
-[data-motion="reveal"] {
-  &[data-motion-speed="fast"] {
-    --motion-duration: 500ms;
-  }
-
-  &[data-motion-speed="normal"] {
-    --motion-duration: 800ms;
-  }
-
-  &[data-motion-speed="slow"] {
-    --motion-duration: 1100ms;
+  @each $name, $duration in config.$reveal-durations {
+    &[data-motion-speed="#{$name}"] {
+      --motion-duration: #{$duration};
+    }
   }
 }
 
@@ -157,7 +109,7 @@
    ========================================================================== */
 
 [data-motion="reveal"]:not(.is-motion-visible) {
-  @include -motion-enabled {
+  @include config.enabled {
     opacity: var(--motion-opacity);
     translate: var(--motion-x) var(--motion-y);
     scale: var(--motion-scale);
@@ -165,8 +117,8 @@
 }
 
 [data-motion="reveal"][data-motion-from="blur"]:not(.is-motion-visible) {
-  @include -motion-enabled {
-    filter: blur(4px);
+  @include config.enabled {
+    filter: blur(#{config.$reveal-blur});
   }
 }
 
@@ -177,11 +129,11 @@
 /**
  * No target values are declared: removing the hidden state lets every
  * property fall back to the component's resting value, and this transition
- * carries it there. Removed again on completion.
+ * carries it there. Released again on completion.
  */
 
 [data-motion="reveal"].is-motion-visible:not(.is-motion-complete) {
-  @include -motion-enabled {
+  @include config.enabled {
     transition-property: opacity, translate, scale, filter;
     transition-duration: var(--motion-duration);
     transition-timing-function: var(--motion-ease);

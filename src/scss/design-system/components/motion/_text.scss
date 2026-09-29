@@ -1,11 +1,14 @@
+@use "../../abstracts" as ds;
+@use "config";
+
 /* ==========================================================================
    Motion Text
    ========================================================================== */
 
 /**
- * Text Motion: data-motion="type" | "words" | "chars".
+ * Text primitive: data-motion="type" | "words" | "chars".
  *
- * Expected DOM after JavaScript enhancement:
+ * DOM after enhancement by motion.js:
  *
  *   words / chars
  *   <h3 data-motion="words" class="is-motion-enhanced">
@@ -24,75 +27,47 @@
  *     </span>
  *   </p>
  *
- * The ghost reserves the final size, so typing never pushes the page down.
- * The sr span replaces aria-label, which screen readers ignore on <p>.
- */
-
-/* ==========================================================================
-   Activation Gate
-   ========================================================================== */
-
-/**
- * Same gate as _reveal.scss. The leading "-" makes the mixin private to
- * this file, so it never clashes when _index.scss forwards both files.
+ * Attributes (words / chars):
  *
- * Hidden / animating styles apply only on screen, without reduced motion,
- * without the site-level data-motion="reduce" setting, and once <html> has
- * .motion-ready. Otherwise text simply shows.
+ *   data-motion-speed         fast | normal | slow  (unit duration)
+ *   data-motion-text-stagger  fast | normal | slow  (gap between units)
+ *
+ * On type, data-motion-speed means milliseconds per character and is read
+ * by JavaScript only.
+ *
+ * Screen readers get the full text once, through .motion-text__sr.
+ * The ghost reserves the final size, so typing never shifts the layout.
+ * Arabic and other joined scripts fall back from chars to words in JS.
  */
 
-@mixin -motion-enabled {
-  @media screen and (prefers-reduced-motion: no-preference) {
-    html.motion-ready:not([data-motion="reduce"]) & {
-      @content;
-    }
-  }
-}
-
 /* ==========================================================================
-   Tokens
+   Tokens and Presets
    ========================================================================== */
 
 [data-motion="type"],
 [data-motion="words"],
 [data-motion="chars"] {
-  --motion-text-duration: 650ms;
-  --motion-text-stagger: 40ms;
-  --motion-text-ease: cubic-bezier(0.16, 1, 0.3, 1);
-  --motion-text-distance: 0.4em;
+  --motion-text-duration: #{config.$text-duration};
+  --motion-text-stagger: #{config.$text-stagger};
+  --motion-text-ease: #{config.$text-ease};
+  --motion-text-distance: #{config.$text-distance};
 
-  --motion-caret-width: 0.08em;
-  --motion-caret-gap: 0.06em;
+  --motion-caret-width: #{config.$caret-width};
+  --motion-caret-gap: #{config.$caret-gap};
   --motion-caret-color: currentColor;
 }
 
-/* ==========================================================================
-   Speed / Stagger Presets
-   ========================================================================== */
-
 :is([data-motion="words"], [data-motion="chars"]) {
-  &[data-motion-speed="fast"] {
-    --motion-text-duration: 450ms;
+  @each $name, $duration in config.$text-durations {
+    &[data-motion-speed="#{$name}"] {
+      --motion-text-duration: #{$duration};
+    }
   }
 
-  &[data-motion-speed="normal"] {
-    --motion-text-duration: 650ms;
-  }
-
-  &[data-motion-speed="slow"] {
-    --motion-text-duration: 900ms;
-  }
-
-  &[data-motion-text-stagger="fast"] {
-    --motion-text-stagger: 25ms;
-  }
-
-  &[data-motion-text-stagger="normal"] {
-    --motion-text-stagger: 40ms;
-  }
-
-  &[data-motion-text-stagger="slow"] {
-    --motion-text-stagger: 65ms;
+  @each $name, $stagger in config.$text-staggers {
+    &[data-motion-text-stagger="#{$name}"] {
+      --motion-text-stagger: #{$stagger};
+    }
   }
 }
 
@@ -101,21 +76,7 @@
    ========================================================================== */
 
 .motion-text__sr {
-  position: absolute;
-
-  inline-size: 1px;
-  block-size: 1px;
-
-  margin: -1px;
-  padding: 0;
-
-  overflow: hidden;
-
-  clip-path: inset(50%);
-
-  white-space: nowrap;
-
-  border: 0;
+  @include ds.visually-hidden;
 }
 
 /* ==========================================================================
@@ -147,21 +108,21 @@
    ========================================================================== */
 
 /**
- * JavaScript adds .is-motion-in to each unit in turn, so the stagger needs
- * no per-unit delay (and no inline style). The transition is released once
- * the host is complete.
+ * motion.js adds .is-motion-in to each unit in turn, so the stagger needs
+ * no per-unit delay and no inline style. The transition is released once
+ * the host completes.
  */
 
 :is([data-motion="words"], [data-motion="chars"]).is-motion-enhanced {
   .motion-text__unit:not(.is-motion-in) {
-    @include -motion-enabled {
+    @include config.enabled {
       opacity: 0;
       translate: 0 var(--motion-text-distance);
     }
   }
 
   &:not(.is-motion-complete) .motion-text__unit.is-motion-in {
-    @include -motion-enabled {
+    @include config.enabled {
       transition-property: opacity, translate;
       transition-duration: var(--motion-text-duration);
       transition-timing-function: var(--motion-text-ease);
@@ -174,8 +135,8 @@
    ========================================================================== */
 
 /**
- * Ghost and visual share one grid cell: the ghost sets the final size, the
- * visual types on top of it. Zero layout shift, correct multiline wrapping.
+ * Ghost and visual share one grid cell: the ghost sets the final size and
+ * the visual types on top of it. Zero layout shift, correct wrapping.
  */
 
 [data-motion="type"].is-motion-enhanced {
@@ -211,11 +172,11 @@
   pointer-events: none;
 }
 
-/* Solid while typing — a caret that blinks mid-typing looks jittery. */
+/* Solid while typing: a caret that blinks mid-typing looks jittery. */
 
 [data-motion="type"].is-motion-visible:not(.is-motion-complete)
   .motion-text__caret {
-  @include -motion-enabled {
+  @include config.enabled {
     display: inline-block;
   }
 }
@@ -223,7 +184,7 @@
 /* After typing: blink twice, then disappear. */
 
 [data-motion="type"].is-motion-complete .motion-text__caret {
-  @include -motion-enabled {
+  @include config.enabled {
     display: inline-block;
 
     animation: motion-text-caret-out 1.6s steps(1, end) forwards;

@@ -1,40 +1,32 @@
+@use "config";
+
 /* ==========================================================================
    Motion Group
    ========================================================================== */
 
 /**
- * Stagger timing for related Motion elements.
+ * Stagger timing for related Motion elements: [data-motion-group].
  *
- * JavaScript reads `--motion-stagger` / `--motion-group-delay` from here,
- * resolves each item's final delay, and writes it inline on the item.
+ * motion.js reads --motion-stagger and --motion-group-delay, resolves each
+ * item's start delay, and schedules the start itself. Nothing is written
+ * inline.
  *
- * No reduced-motion or print overrides are needed: under those conditions
- * the reveal / text states never apply, so delays have nothing to delay.
+ * Attributes:
+ *
+ *   data-motion-stagger      fast | normal | slow, or milliseconds
+ *   data-motion-group-delay  milliseconds before the first item
+ *
+ * No reduced-motion or print rules are needed: when the gate is closed the
+ * reveal and text states never apply, so there is nothing to delay.
  */
 
-/* ==========================================================================
-   Tokens
-   ========================================================================== */
-
 [data-motion-group] {
-  --motion-stagger: 100ms;
+  --motion-stagger: #{config.$group-stagger};
   --motion-group-delay: 0ms;
-}
 
-/* ==========================================================================
-   Stagger Presets
-   ========================================================================== */
-
-[data-motion-group] {
-  &[data-motion-stagger="fast"] {
-    --motion-stagger: 60ms;
-  }
-
-  &[data-motion-stagger="normal"] {
-    --motion-stagger: 100ms;
-  }
-
-  &[data-motion-stagger="slow"] {
-    --motion-stagger: 150ms;
+  @each $name, $stagger in config.$group-staggers {
+    &[data-motion-stagger="#{$name}"] {
+      --motion-stagger: #{$stagger};
+    }
   }
 }

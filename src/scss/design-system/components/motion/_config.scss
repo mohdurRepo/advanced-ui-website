@@ -1,0 +1,98 @@
+/* ==========================================================================
+   Motion Configuration
+   ========================================================================== */
+
+/**
+ * Shared by every motion primitive: the activation gate and all presets.
+ *
+ * This is the single source of motion values. motion.js reads the resulting
+ * custom properties at runtime; its own numbers are fallbacks only.
+ *
+ * This file emits no CSS.
+ */
+
+/* ==========================================================================
+   Activation Gate
+   ========================================================================== */
+
+/**
+ * Hidden and animating states apply only when ALL of these are true:
+ *
+ * - screen media (print always shows final content);
+ * - <html> has .motion-ready (added by motion.js once it can run);
+ * - the site preference is not data-motion-preference="reduce".
+ *
+ * Operating-system reduced-motion settings are intentionally not read.
+ * The site setting is the single authority.
+ *
+ * When the gate is closed, content simply shows, so no reduced-motion,
+ * no-JavaScript or print overrides are needed anywhere else.
+ */
+
+@mixin enabled {
+  @media screen {
+    html.motion-ready:not([data-motion-preference="reduce"]) & {
+      @content;
+    }
+  }
+}
+
+/* ==========================================================================
+   Reveal
+   ========================================================================== */
+
+$reveal-duration: 800ms;
+$reveal-ease: cubic-bezier(0.22, 1, 0.3, 1);
+$reveal-distance: 1.25rem;
+
+$reveal-durations: (
+  "fast": 500ms,
+  "normal": $reveal-duration,
+  "slow": 1100ms,
+);
+
+$reveal-distances: (
+  "sm": 0.75rem,
+  "md": 1.5rem,
+  "lg": 2.5rem,
+);
+
+$reveal-scale: 0.96;
+$reveal-blur-scale: 0.98;
+$reveal-blur: 4px;
+
+/* ==========================================================================
+   Text
+   ========================================================================== */
+
+$text-duration: 650ms;
+$text-stagger: 40ms;
+$text-ease: cubic-bezier(0.16, 1, 0.3, 1);
+$text-distance: 0.4em;
+
+$text-durations: (
+  "fast": 450ms,
+  "normal": $text-duration,
+  "slow": 900ms,
+);
+
+$text-staggers: (
+  "fast": 25ms,
+  "normal": $text-stagger,
+  "slow": 65ms,
+);
+
+$caret-width: 0.08em;
+$caret-gap: 0.06em;
+
+/* ==========================================================================
+   Group
+   ========================================================================== */
+
+$group-stagger: 100ms;
+
+$group-staggers: (
+  "fast": 60ms,
+  "normal": $group-stagger,
+  "slow": 150ms,
+);
