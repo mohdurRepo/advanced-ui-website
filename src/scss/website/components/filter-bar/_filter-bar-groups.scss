@@ -506,6 +506,6 @@ html[data-contrast="high"] .filter-bar__columns-option input {
   }
 }
 
-html[data-motion="reduce"] .filter-bar__columns-icon {
+html[data-motion-preference="reduce"] .filter-bar__columns-icon {
   transition: none;
 }

@@ -289,7 +289,7 @@ html[data-contrast="high"] {
    Reduced Motion
    ========================================================================== */
 
-html[data-motion="reduce"] {
+html[data-motion-preference="reduce"] {
   .audience-pathways-nav > .tabs-nav > .tab-link,
   .audience-pathways-nav__icon {
     transition: none;

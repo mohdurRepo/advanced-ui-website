@@ -618,7 +618,7 @@ html[data-contrast="high"] {
    Reduced Motion
    ========================================================================== */
 
-html[data-motion="reduce"] {
+html[data-motion-preference="reduce"] {
   .home-upcoming-activities .swiper-pagination-bullet {
     transition: none;
   }

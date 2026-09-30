@@ -575,7 +575,7 @@ html[data-contrast="high"] .management-team__skeleton {
   }
 }
 
-html[data-motion="reduce"] .management-team__skeleton-media,
-html[data-motion="reduce"] .management-team__skeleton-line {
+html[data-motion-preference="reduce"] .management-team__skeleton-media,
+html[data-motion-preference="reduce"] .management-team__skeleton-line {
   animation: none;
 }

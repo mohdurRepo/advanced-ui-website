@@ -276,7 +276,7 @@ html[data-contrast="high"] {
    Reduced Motion
    ========================================================================== */
 
-html[data-motion="reduce"] {
+html[data-motion-preference="reduce"] {
   .financial-side-nav__item,
   .financial-side-nav__item::before {
     transition: none;

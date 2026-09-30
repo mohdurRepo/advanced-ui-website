@@ -578,7 +578,7 @@ html[data-contrast="high"] .modal-close {
   }
 }
 
-html[data-motion="reduce"] {
+html[data-motion-preference="reduce"] {
   .modal-content,
   .modal.is-open .modal-content,
   .modal-close:active {

@@ -559,7 +559,7 @@ html[data-contrast="high"] {
   }
 }
 
-html[data-motion="reduce"] {
+html[data-motion-preference="reduce"] {
   .media-card,
   .media-card__title-link {
     transition: none;

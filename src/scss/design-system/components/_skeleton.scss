@@ -132,7 +132,7 @@ html[data-contrast="high"] .skeleton {
   }
 }
 
-html[data-motion="reduce"] .skeleton {
+html[data-motion-preference="reduce"] .skeleton {
   animation: none;
 }
 

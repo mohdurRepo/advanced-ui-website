@@ -242,11 +242,11 @@ html[data-contrast="high"] .site-footer-links__link::after {
   }
 }
 
-html[data-motion="reduce"] .site-footer-links__link,
-html[data-motion="reduce"] .site-footer-links__link::after {
+html[data-motion-preference="reduce"] .site-footer-links__link,
+html[data-motion-preference="reduce"] .site-footer-links__link::after {
   transition: none;
 }
 
-html[data-motion="reduce"] .site-footer-links__link:hover {
+html[data-motion-preference="reduce"] .site-footer-links__link:hover {
   transform: none;
 }

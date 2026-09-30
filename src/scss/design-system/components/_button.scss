@@ -356,7 +356,7 @@ html[data-contrast="high"] .btn {
   }
 }
 
-html[data-motion="reduce"] {
+html[data-motion-preference="reduce"] {
   .btn:active:not(:disabled):not(.is-disabled),
   .btn-arrow.has-icon::before,
   .btn-arrow .has-icon::before,

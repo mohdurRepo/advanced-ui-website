@@ -187,6 +187,6 @@ html[data-contrast="high"] .table-responsive[tabindex]:focus-visible {
   }
 }
 
-html[data-motion="reduce"] .table-responsive {
+html[data-motion-preference="reduce"] .table-responsive {
   scroll-behavior: auto;
 }

@@ -1,1354 +1,1576 @@
-(function (window, document, $) {
+/* ==========================================================================
+   Peer Comparison Graph
+   ========================================================================== */
+
+/**
+ * Peer comparison graph adapter.
+ *
+ * Owns:
+ *
+ * - real peer chart-data requests;
+ * - JWT retrieval;
+ * - request cancellation / stale-response protection;
+ * - comparison-series normalization;
+ * - stable peer identity colors;
+ * - percentage normalization per selected range;
+ * - comparison tooltip;
+ * - 0% baseline;
+ * - selected-chip color synchronization;
+ * - shared Market Chart integration.
+ *
+ * Does not own:
+ *
+ * - Highstock construction;
+ * - generic Market Chart lifecycle;
+ * - generic chart theme;
+ * - peer-summary API;
+ * - modal behavior;
+ * - tab behavior.
+ */
+
+(() => {
   "use strict";
+
+  /* ==========================================================================
+     Dependencies
+     ========================================================================== */
 
   const U = window.PeerComparisonUtils;
 
-  const DEFAULT_RANGE = "1W";
-  const MARKET_TIME_OFFSET_MS = 3 * 60 * 60 * 1000;
-  const DAY_MS = 24 * 60 * 60 * 1000;
+  if (!U) {
+    console.error("PeerComparisonGraph requires window.PeerComparisonUtils.");
 
-  let peerChartInstance = null;
-  let peerCompanies = [];
+    return;
+  }
 
-  /*
-   * Raw API price series.
+  /* ==========================================================================
+     Configuration
+     ========================================================================== */
+
+  const CONFIG = U.getConfig();
+
+  const TIME_ZONE = "Asia/Riyadh";
+
+  const RIYADH_OFFSET_MS = 3 * 60 * 60 * 1_000;
+
+  const DAY = 24 * 60 * 60 * 1_000;
+
+  const DEFAULT_RANGE = "6M";
+
+  const RANGES = Object.freeze(["1W", "1M", "3M", "6M", "1Y", "ALL"]);
+
+  const RANGE_WINDOWS = Object.freeze({
+    "1W": 7 * DAY,
+    "1M": 30 * DAY,
+    "3M": 90 * DAY,
+    "6M": 180 * DAY,
+    "1Y": 365 * DAY,
+    ALL: null,
+  });
+
+  const FALLBACK_COLORS = Object.freeze([
+    "#2563eb",
+    "#f97316",
+    "#8b5cf6",
+    "#0891b2",
+    "#d97706",
+    "#db2777",
+  ]);
+
+  const ZERO_LINE_ID = "peer-comparison-zero-line";
+
+  /* ==========================================================================
+     Selectors
+     ========================================================================== */
+
+  const SELECTORS = Object.freeze({
+    graph: "[data-peer-graph]",
+
+    canvas: "[data-peer-chart-canvas]",
+
+    resultPeer: "[data-peer-result-peer]",
+  });
+
+  /* ==========================================================================
+     Events
+     ========================================================================== */
+
+  const EVENTS = Object.freeze({
+    loading: "peercomparison:loading",
+
+    render: "peercomparison:render",
+
+    error: "peercomparison:error",
+
+    clear: "peercomparison:clear",
+  });
+
+  /* ==========================================================================
+     Runtime State
+     ========================================================================== */
+
+  let controller = null;
+
+  let selectedPeers = [];
+
+  let companies = [];
+
+  let comparisonSeries = [];
+
+  let chartBaseSeries = null;
+
+  let peerColors = new Map();
+
+  let requestController = null;
+
+  let requestId = 0;
+
+  let presentationObserver = null;
+
+  let presentationFrame = null;
+
+  /**
+   * Stable color assignment for the lifetime of the page.
    *
-   * Each point is:
-   * [timestamp, price]
+   * Removing one peer therefore does not recolor every remaining peer.
    */
-  let peerSeriesHistorical = [];
-  let peerSeriesIntraday = [];
 
-  /*
-   * Percentage-change series currently displayed
-   * inside Highcharts.
-   */
-  let peerSeriesOptions = [];
+  const preferredColorSlots = new Map();
 
-  let peerChartInitState = {
-    range: DEFAULT_RANGE,
-  };
+  /* ==========================================================================
+     General Helpers
+     ========================================================================== */
 
-  /*
-   * Prevent an older AJAX request from replacing
-   * data loaded by a newer renderChart call.
-   */
-  let chartRequestId = 0;
-
-  function isRTL() {
-    return document.dir === "rtl" || document.documentElement.dir === "rtl";
+  function escapeHTML(value) {
+    return String(value ?? "")
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#039;");
   }
 
-  function escapeHtml(value) {
-    return String(value == null ? "" : value)
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;")
-      .replace(/'/g, "&#039;");
+  function getLocale() {
+    return U.getLocale();
   }
 
-  function getGraphNameItems(selectedCompanies) {
-    return [
-      {
-        code: U.getBaseCompanySymbol(),
-        name: U.getBaseCompanyName(),
+  function getLabel(key, fallback) {
+    return U.getLabel(key, fallback);
+  }
+
+  function readCSSVariable(element, name) {
+    if (!element) {
+      return "";
+    }
+
+    return getComputedStyle(element).getPropertyValue(name).trim();
+  }
+
+  function escapeSelectorValue(value) {
+    const text = String(value ?? "");
+
+    if (globalThis.CSS && typeof CSS.escape === "function") {
+      return CSS.escape(text);
+    }
+
+    return text.replace(/["\\]/g, "\\$&");
+  }
+
+  function isAbortError(error) {
+    return error?.name === "AbortError";
+  }
+
+  /* ==========================================================================
+     Comparison Companies
+     ========================================================================== */
+
+  /**
+   * Build comparison identities independently of API ordering.
+   *
+   * Base company/index comes first when configured, followed by selected
+   * peers in UI order.
+   */
+
+  function buildCompanies(peers, rows) {
+    const selected = U.normalizePeers(peers);
+
+    const summaries = U.normalizeSummaryRows(rows);
+
+    const summaryBySymbol = new Map(summaries.map((row) => [row.symbol, row]));
+
+    const result = [];
+
+    const seen = new Set();
+
+    const baseSymbol = U.getBaseCompanySymbol();
+
+    if (baseSymbol) {
+      const summary = summaryBySymbol.get(baseSymbol);
+
+      result.push({
+        code: baseSymbol,
+
+        name: summary?.name || U.getBaseCompanyName() || baseSymbol,
+
         isBase: true,
-      },
-    ].concat(
-      (selectedCompanies || []).map(function (company) {
-        return {
-          code: company.code,
-          name: company.name,
-          isBase: false,
-        };
-      }),
+      });
+
+      seen.add(baseSymbol);
+    }
+
+    for (const peer of selected) {
+      if (seen.has(peer.code)) {
+        continue;
+      }
+
+      const summary = summaryBySymbol.get(peer.code);
+
+      result.push({
+        code: peer.code,
+
+        name: peer.name || summary?.name || peer.code,
+
+        isBase: false,
+      });
+
+      seen.add(peer.code);
+    }
+
+    return result;
+  }
+
+  /* ==========================================================================
+     Identity Palette
+     ========================================================================== */
+
+  function getPalette(root) {
+    return FALLBACK_COLORS.map(
+      (fallback, index) =>
+        readCSSVariable(root, `--peer-comparison-color-${index + 1}`) ||
+        fallback,
     );
   }
 
-  function getGraphCompanyName(item, headerItems) {
-    const symbol = U.getPeerSymbol(item);
+  function assignPeerColors(items, root) {
+    const palette = getPalette(root);
 
-    const matched = headerItems.find(function (company) {
-      return String(company.code) === String(symbol);
-    });
+    const usedSlots = new Set();
 
-    return matched ? matched.name : U.getPeerName(item);
-  }
+    const slotByCode = new Map();
 
-  function renderGraphSideTable(rows, selectedCompanies) {
-    const body = document.querySelector("[data-peer-graph-table-body]");
+    /*
+     * Preserve previous assignments.
+     */
 
-    const labels = U.getLabels();
+    for (const company of items) {
+      const preferred = preferredColorSlots.get(company.code);
 
-    if (!body) return;
+      if (
+        Number.isInteger(preferred) &&
+        preferred >= 0 &&
+        preferred < palette.length &&
+        !usedSlots.has(preferred)
+      ) {
+        slotByCode.set(company.code, preferred);
 
-    if (!Array.isArray(rows) || !rows.length) {
-      body.innerHTML = `
-        <tr>
-          <td colspan="4">
-            ${escapeHtml(labels.noData || "No data available.")}
-          </td>
-        </tr>
-      `;
-
-      return;
+        usedSlots.add(preferred);
+      }
     }
 
-    const headerItems = getGraphNameItems(selectedCompanies);
+    /*
+     * Assign new peers to free slots.
+     */
 
-    body.innerHTML = rows
-      .map(function (item, index) {
-        const symbol = U.getPeerSymbol(item);
-        const name = getGraphCompanyName(item, headerItems);
+    for (const company of items) {
+      if (slotByCode.has(company.code)) {
+        continue;
+      }
 
-        const isBase = U.isBaseCompany(item);
+      const freeSlot = palette.findIndex((_, index) => !usedSlots.has(index));
 
-        return `
-          <tr data-peer-row="${escapeHtml(symbol)}">
-            <td>
-              <div class="peer-graph-company">
-                <span
-                  class="peer-legend-dot"
-                  style="--peer-legend-color: ${U.getPeerChartColor(index)}"
-                  aria-hidden="true"
-                ></span>
- 
-                <div class="peer-graph-company__content">
-                  <strong class="peer-graph-company__name">
-                    ${escapeHtml(name)}
-                  </strong>
- 
-                  <span class="peer-table-symbol">
-                    ${escapeHtml(symbol || "-")}
-                  </span>
-                </div>
-              </div>
-            </td>
- 
-            <td>
-              ${U.formatNumber(item.sharePrice)}
-            </td>
- 
-            <td>
-              <span class="peer-table-return ${U.getReturnClass(item.return)}">
-                ${U.formatReturn(item.return)}
-              </span>
-            </td>
- 
-            <td class="text-end">
-              ${
-                isBase
-                  ? ""
-                  : `
-                    <button
-                      type="button"
-                      class="peer-remove-btn"
-                      aria-label="Remove ${escapeHtml(name)}"
-                      title="Remove"
-                      data-peer-remove="${escapeHtml(symbol)}"
-                    >
-                      ×
-                    </button>
-                  `
-              }
-            </td>
-          </tr>
-        `;
-      })
-      .join("");
+      const slot = freeSlot >= 0 ? freeSlot : slotByCode.size % palette.length;
+
+      slotByCode.set(company.code, slot);
+
+      usedSlots.add(slot);
+
+      preferredColorSlots.set(company.code, slot);
+    }
+
+    const colors = new Map();
+
+    for (const company of items) {
+      const slot = slotByCode.get(company.code) ?? 0;
+
+      colors.set(company.code, palette[slot]);
+    }
+
+    return colors;
   }
 
-  function renderGraphPlaceholder() {
-    const canvas = document.querySelector("[data-peer-chart-canvas]");
-
-    if (!canvas) return;
-
-    destroyPeerChart();
-    canvas.innerHTML = "";
+  function getPeerColor(code) {
+    return peerColors.get(code) || FALLBACK_COLORS[0];
   }
 
-  function renderGraphError() {
-    const body = document.querySelector("[data-peer-graph-table-body]");
+  /* ==========================================================================
+     Selected Chip Colors
+     ========================================================================== */
 
-    const labels = U.getLabels();
+  function syncPeerChipColors() {
+    for (const peer of selectedPeers) {
+      const code = escapeSelectorValue(peer.code);
 
-    if (!body) return;
+      const chip = document.querySelector(
+        `${SELECTORS.resultPeer}[data-peer-result-peer="${code}"]`,
+      );
 
-    body.innerHTML = `
-      <tr>
-        <td colspan="4">
-          ${escapeHtml(labels.error || "Unable to load peer comparison data.")}
-        </td>
-      </tr>
+      if (!chip) {
+        continue;
+      }
+
+      chip.style.setProperty("--peer-series-color", getPeerColor(peer.code));
+    }
+  }
+
+  /* ==========================================================================
+     Graph Markup
+     ========================================================================== */
+
+  function getRangeLabel(range) {
+    const labels = {
+      "1W": getLabel("range1W", "1W"),
+
+      "1M": getLabel("range1M", "1M"),
+
+      "3M": getLabel("range3M", "3M"),
+
+      "6M": getLabel("range6M", "6M"),
+
+      "1Y": getLabel("range1Y", "1Y"),
+
+      ALL: getLabel("rangeAll", "All"),
+    };
+
+    return labels[range] || range;
+  }
+
+  function getGraphMarkup() {
+    return `
+      <div class="peer-comparison-chart">
+        <div class="peer-comparison-chart__header">
+          <div>
+            <h3 class="peer-comparison-chart__title">
+              Relative performance
+            </h3>
+
+            <p class="peer-comparison-chart__description">
+              Percentage movement from the first value in the selected range.
+            </p>
+          </div>
+        </div>
+
+        <div
+          class="
+            chart-toolbar__ranges
+            peer-comparison-chart__ranges
+          "
+          data-peer-chart-controls
+          aria-label="Comparison chart range"
+        >
+          ${RANGES.map(
+            (range) => `
+              <button
+                type="button"
+                class="chart-range${
+                  range === DEFAULT_RANGE ? " is-active" : ""
+                }"
+                data-chart-range="${range}"
+              >
+                ${escapeHTML(getRangeLabel(range))}
+              </button>
+            `,
+          ).join("")}
+        </div>
+
+        <div class="peer-comparison-chart__surface">
+          <div
+            class="
+              chart-canvas
+              market-chart
+              peer-comparison-chart__canvas
+            "
+            data-peer-chart-canvas
+            aria-label="Relative performance of selected market indices"
+          ></div>
+        </div>
+      </div>
     `;
   }
 
-  function renderChart(rows, selectedCompanies) {
-    const canvas = document.getElementById("peerComparisonChart");
+  /* ==========================================================================
+     Loading / Error States
+     ========================================================================== */
 
-    const config = U.getConfig();
+  function renderLoading() {
+    destroyChart();
 
-    if (!canvas || typeof Highcharts === "undefined") {
+    const root = document.querySelector(SELECTORS.graph);
+
+    if (!root) {
       return;
     }
 
-    const nameItems = getGraphNameItems(selectedCompanies);
+    root.setAttribute("aria-busy", "true");
 
-    peerCompanies = (rows || [])
-      .map(function (item) {
-        const symbol = U.getPeerSymbol(item);
+    root.innerHTML = `
+      <div class="peer-comparison-result__placeholder">
+        ${escapeHTML(getLabel("loading", "Loading"))}...
+      </div>
+    `;
+  }
 
-        return {
-          name: getGraphCompanyName(item, nameItems),
-          symbol: symbol,
-          isBase: U.isBaseCompany(item),
-        };
-      })
-      .filter(function (company) {
-        return Boolean(company.symbol);
-      });
+  function renderError(message = "Unable to load peer comparison chart.") {
+    destroyChart();
 
-    renderPeerChartLegend(peerCompanies);
+    const root = document.querySelector(SELECTORS.graph);
 
-    if (!peerCompanies.length) {
-      showChartMessage("No data available.");
+    if (!root) {
       return;
     }
 
-    initPeerChart(
-      config.chartTypeHistorical || "SQL_CI_CV_COM",
+    root.setAttribute("aria-busy", "false");
 
-      config.chartTypeIntraday || "SQL_CI_DV",
-
-      config.pageName || "",
-
-      config.getTokenUrl || config.getToken || "",
-    );
+    root.innerHTML = `
+      <div
+        class="peer-comparison-result__placeholder"
+        role="alert"
+      >
+        ${escapeHTML(message)}
+      </div>
+    `;
   }
 
-  async function initPeerChart(
-    chartTypeHistorical,
-    chartTypeIntraday,
-    pageName,
-    getTokenUrl,
-  ) {
-    const currentRequestId = ++chartRequestId;
-
-    try {
-      if (!getTokenUrl) {
-        console.warn("Peer chart token URL missing.");
-
-        showChartMessage("Unable to load chart.");
-
-        return;
-      }
-
-      /*
-       * Clear previous data before loading
-       * a new selection.
-       */
-      peerSeriesHistorical = [];
-      peerSeriesIntraday = [];
-      peerSeriesOptions = [];
-
-      const tokenResponse = await $.ajax({
-        url: getTokenUrl,
-        type: "GET",
-        data: {
-          pageName: pageName,
-        },
-      });
-
-      /*
-       * Ignore this result if renderChart was called
-       * again while the request was loading.
-       */
-      if (currentRequestId !== chartRequestId) {
-        return;
-      }
-
-      const parsedToken =
-        typeof tokenResponse === "string"
-          ? JSON.parse(tokenResponse)
-          : tokenResponse;
-
-      const jwtToken = parsedToken && parsedToken.jwtToken;
-
-      if (!jwtToken) {
-        throw new Error("Chart JWT token is missing.");
-      }
-
-      /*
-       * Load intraday and historical data
-       * using the same token.
-       */
-      const results = await Promise.all([
-        getPeerFullSeries(chartTypeIntraday, jwtToken, pageName),
-
-        getPeerFullSeries(chartTypeHistorical, jwtToken, pageName),
-      ]);
-
-      if (currentRequestId !== chartRequestId) {
-        return;
-      }
-
-      peerSeriesIntraday = results[0];
-      peerSeriesHistorical = results[1];
-
-      peerChartInitState = {
-        range: DEFAULT_RANGE,
-      };
-
-      drawPeerChart();
-      bindPeerRangeControls();
-      activateRangeControl(DEFAULT_RANGE);
-      applyPeerRange(DEFAULT_RANGE);
-    } catch (error) {
-      console.error("Peer chart initialization failed:", error);
-
-      showChartMessage("Unable to load peer comparison data.");
-    }
+  function renderEmpty() {
+    renderError("No chart data available.");
   }
 
-  async function getPeerFullSeries(chartType, jwtToken, pageName) {
-    const requests = peerCompanies.map(function (company) {
-      return peerAjaxCall(chartType, jwtToken, company, pageName);
-    });
+  /* ==========================================================================
+     Request Configuration
+     ========================================================================== */
 
-    const responses = await Promise.all(requests);
-
-    return buildPeerSeries(responses);
+  function getChartEndpoint() {
+    return String(
+      CONFIG.chartEndpoint ??
+        CONFIG.chartApiUrl ??
+        CONFIG.chartDataUrl ??
+        "/api",
+    ).trim();
   }
 
-  function peerAjaxCall(chartType, jwtToken, company, pageName) {
-    return $.ajax({
-      url:
-        "/tadawul.eportal.charts.v2/ChartGenerator" +
-        "?chart-type=" +
-        encodeURIComponent(chartType) +
-        "&chart-parameter=" +
-        encodeURIComponent(company.symbol) +
-        "&pageName=" +
-        encodeURIComponent(pageName) +
-        "&jwtToken=" +
-        encodeURIComponent(jwtToken),
-
-      type: "GET",
-      dataType: "json",
-    });
+  function getTokenUrl() {
+    return U.getChartTokenUrl();
   }
 
-  /*
-   * Build raw price series.
-   *
-   * Percentage conversion happens later
-   * inside buildNormalizedSeries.
-   */
-
-  function buildPeerSeries(responses) {
-    return responses.map(function (data, index) {
-      const company = peerCompanies[index];
-
-      const color = U.getPeerChartColor(index);
-
-      return {
-        name: company.name,
-        symbol: company.symbol,
-        color: color,
-        data: getFormattedGraphJson(data),
-      };
-    });
+  function getPageName() {
+    return U.getChartPageName();
   }
 
-  /*
-   * Convert API data into sorted raw-price points.
-   *
-   * Result:
-   * [
-   *   [timestamp, price]
-   * ]
-   */
-  function getFormattedGraphJson(data) {
-    if (!Array.isArray(data)) {
+  function getHistoricalChartType() {
+    return U.getHistoricalChartType();
+  }
+
+  /* ==========================================================================
+     Request Lifecycle
+     ========================================================================== */
+
+  function cancelRequests() {
+    requestController?.abort();
+
+    requestController = null;
+  }
+
+  async function readResponse(response) {
+    const text = await response.text();
+
+    if (!text.trim()) {
       return [];
     }
 
-    return data
-      .map(function (point) {
-        const timestamp = parseChartDateTime(point.dateTime);
-
-        const price = Number.parseFloat(point.indexPrice);
-
-        if (!Number.isFinite(timestamp) || !Number.isFinite(price)) {
-          return null;
-        }
-
-        return [timestamp, price];
-      })
-      .filter(Boolean)
-      .sort(function (a, b) {
-        return a[0] - b[0];
-      });
+    try {
+      return JSON.parse(text);
+    } catch {
+      throw new Error("Peer chart API returned invalid JSON.");
+    }
   }
 
-  /*
-   * Convert raw prices into percentage change
-   * for the selected date range.
+  /* ==========================================================================
+     JWT
+     ========================================================================== */
+
+  async function requestToken(signal) {
+    const tokenUrl = getTokenUrl();
+
+    if (!tokenUrl) {
+      throw new Error("Peer comparison chart token URL is missing.");
+    }
+
+    const url = new URL(tokenUrl, window.location.href);
+
+    const pageName = getPageName();
+
+    if (pageName) {
+      url.searchParams.set("pageName", pageName);
+    }
+
+    const response = await fetch(url.toString(), {
+      method: "GET",
+
+      credentials: "same-origin",
+
+      headers: {
+        Accept: "application/json",
+      },
+
+      signal,
+    });
+
+    if (!response.ok) {
+      throw new Error(
+        `Peer chart token request failed with HTTP ${response.status}.`,
+      );
+    }
+
+    const payload = await readResponse(response);
+
+    const token = U.normalizeTokenResponse(payload);
+
+    if (!token) {
+      throw new Error("Peer chart JWT token is missing.");
+    }
+
+    return token;
+  }
+
+  /* ==========================================================================
+     Chart API
+     ========================================================================== */
+
+  function buildChartUrl(company, jwtToken) {
+    const url = new URL(getChartEndpoint(), window.location.href);
+
+    /*
+     * Preserve the legacy peer-chart API contract.
+     */
+
+    url.searchParams.set("chart-type", getHistoricalChartType());
+
+    url.searchParams.set("chart-parameter", company.code);
+
+    url.searchParams.set("pageName", getPageName());
+
+    url.searchParams.set("jwtToken", jwtToken);
+
+    return url;
+  }
+
+  async function requestCompanySeries(company, jwtToken, signal) {
+    const response = await fetch(buildChartUrl(company, jwtToken).toString(), {
+      method: "GET",
+
+      credentials: "same-origin",
+
+      headers: {
+        Accept: "application/json",
+      },
+
+      signal,
+    });
+
+    if (!response.ok) {
+      const error = new Error(
+        `Peer chart request for "${company.code}" failed with HTTP ${response.status}.`,
+      );
+
+      error.status = response.status;
+
+      throw error;
+    }
+
+    return readResponse(response);
+  }
+
+  /* ==========================================================================
+     Market Timestamp Parsing
+     ========================================================================== */
+
+  /**
+   * The chart API's legacy records use wall-clock market timestamps such as:
    *
-   * The first price available inside the selected
-   * range becomes the baseline.
+   * YYYY-MM-DD
+   * YYYY-MM-DD HH:mm:ss
+   * YYYY-MM-DDTHH:mm:ss
    *
-   * Formula:
-   *
-   * ((price - baselinePrice) / baselinePrice) * 100
-   *
-   * Raw price remains available in:
-   *
-   * point.custom.price
+   * They belong to the Riyadh market time zone.
    */
-  function buildNormalizedSeries(rawSeries, start, end) {
-    return rawSeries.map(function (series) {
-      const visiblePoints = series.data.filter(function (point) {
-        return point[0] >= start && point[0] <= end;
-      });
 
-      if (!visiblePoints.length) {
-        return {
-          name: series.name,
-          symbol: series.symbol,
-          color: series.color,
-          data: [],
-        };
+  function parseMarketTimestamp(value) {
+    if (value === null || value === undefined) {
+      return null;
+    }
+
+    if (typeof value !== "string") {
+      return U.toTimestamp(value);
+    }
+
+    const raw = value.trim();
+
+    if (!raw) {
+      return null;
+    }
+
+    /*
+     * Absolute timestamp with explicit zone.
+     */
+
+    if (/(?:Z|[+-]\d{2}:?\d{2})$/i.test(raw)) {
+      const parsed = Date.parse(raw);
+
+      return Number.isFinite(parsed) ? parsed : null;
+    }
+
+    const match = raw.match(
+      /^(\d{4})-(\d{2})-(\d{2})(?:[ T](\d{2}):(\d{2})(?::(\d{2})(?:\.(\d+))?)?)?$/,
+    );
+
+    if (!match) {
+      return U.toTimestamp(raw);
+    }
+
+    const year = Number(match[1]);
+
+    const month = Number(match[2]) - 1;
+
+    const day = Number(match[3]);
+
+    const hour = Number(match[4] || 0);
+
+    const minute = Number(match[5] || 0);
+
+    const second = Number(match[6] || 0);
+
+    const milliseconds = Number(
+      String(match[7] || "")
+        .padEnd(3, "0")
+        .slice(0, 3) || 0,
+    );
+
+    /*
+     * Riyadh is UTC+03:00.
+     */
+
+    return (
+      Date.UTC(year, month, day, hour, minute, second, milliseconds) -
+      RIYADH_OFFSET_MS
+    );
+  }
+
+  /* ==========================================================================
+     Chart Payload Normalization
+     ========================================================================== */
+
+  function normalizeChartPoints(payload) {
+    const rows = U.unwrapSeriesPayload(payload);
+
+    if (!rows.length) {
+      return Object.freeze([]);
+    }
+
+    const byTimestamp = new Map();
+
+    for (const point of rows) {
+      let timestamp;
+      let value;
+
+      if (Array.isArray(point)) {
+        timestamp = parseMarketTimestamp(point[0]);
+
+        value = U.toFiniteNumber(point[1]);
+      } else {
+        timestamp = parseMarketTimestamp(
+          point?.dateTime ??
+            point?.datetime ??
+            point?.timestamp ??
+            point?.time ??
+            point?.date ??
+            point?.x,
+        );
+
+        value = U.toFiniteNumber(
+          point?.indexPrice ??
+            point?.price ??
+            point?.value ??
+            point?.closePrice ??
+            point?.close ??
+            point?.y,
+        );
       }
 
-      const baselinePrice = visiblePoints[0][1];
-
-      if (!Number.isFinite(baselinePrice) || baselinePrice === 0) {
-        return {
-          name: series.name,
-          symbol: series.symbol,
-          color: series.color,
-          data: [],
-        };
+      if (timestamp === null || value === null) {
+        continue;
       }
 
-      const normalizedData = visiblePoints.map(function (point) {
-        const timestamp = point[0];
+      byTimestamp.set(timestamp, Object.freeze([timestamp, value]));
+    }
 
-        const price = point[1];
+    return Object.freeze([...byTimestamp.values()].sort((a, b) => a[0] - b[0]));
+  }
 
-        const change = ((price - baselinePrice) / baselinePrice) * 100;
+  /* ==========================================================================
+     Load Real Series
+     ========================================================================== */
+
+  async function loadComparisonSeries(items) {
+    cancelRequests();
+
+    const abortController = new AbortController();
+
+    requestController = abortController;
+
+    const currentRequestId = ++requestId;
+
+    const token = await requestToken(abortController.signal);
+
+    if (currentRequestId !== requestId) {
+      return null;
+    }
+
+    /*
+     * One failed company must not prevent the remaining comparison lines
+     * from rendering.
+     */
+
+    const results = await Promise.allSettled(
+      items.map(async (company) => {
+        const payload = await requestCompanySeries(
+          company,
+          token,
+          abortController.signal,
+        );
 
         return {
-          x: timestamp,
-          y: change,
+          ...company,
 
-          custom: {
-            price: price,
-            change: change,
-            baselinePrice: baselinePrice,
-          },
+          points: normalizeChartPoints(payload),
         };
+      }),
+    );
+
+    if (currentRequestId !== requestId) {
+      return null;
+    }
+
+    const series = [];
+
+    results.forEach((result, index) => {
+      if (result.status === "fulfilled") {
+        if (result.value.points.length) {
+          series.push(result.value);
+        }
+
+        return;
+      }
+
+      if (!isAbortError(result.reason)) {
+        console.error(
+          `Peer chart request failed for "${items[index]?.code}".`,
+          result.reason,
+        );
+      }
+    });
+
+    return series;
+  }
+
+  /* ==========================================================================
+     Range Data
+     ========================================================================== */
+
+  function sliceRange(points, range) {
+    if (!points.length) {
+      return [];
+    }
+
+    const duration = RANGE_WINDOWS[range];
+
+    if (duration === null) {
+      return [...points];
+    }
+
+    const end = points.at(-1)[0];
+
+    const start = end - duration;
+
+    return points.filter(
+      ([timestamp]) => timestamp >= start && timestamp <= end,
+    );
+  }
+
+  function normalizeRange(points, range) {
+    return U.normalizeSeriesToPercentage(sliceRange(points, range));
+  }
+
+  function buildComparisonSeries(rawSeries) {
+    return rawSeries.map((series) => {
+      const ranges = {};
+
+      for (const range of RANGES) {
+        ranges[range] = normalizeRange(series.points, range);
+      }
+
+      return Object.freeze({
+        ...series,
+
+        ranges: Object.freeze(ranges),
       });
-
-      return {
-        name: series.name,
-        symbol: series.symbol,
-        type: "area",
-        color: series.color,
-        lineColor: series.color,
-
-        fillColor: getSeriesFill(series.color),
-
-        data: normalizedData,
-      };
     });
   }
 
-  function drawPeerChart() {
-    destroyPeerChart();
+  function hasSeriesData(series) {
+    return RANGES.some((range) => series.ranges[range]?.length);
+  }
 
-    const styles = getPeerChartStyles();
+  /* ==========================================================================
+     Shared Chart Range Records
+     ========================================================================== */
 
-    peerChartInstance = Highcharts.stockChart("peerComparisonChart", {
-      chart: {
-        height: 420,
-        backgroundColor: "transparent",
-        spacing: [12, 8, 12, 8],
+  function createBaseRanges(series) {
+    const ranges = {};
+
+    for (const range of RANGES) {
+      const data = series.ranges[range];
+
+      if (!data?.length) {
+        continue;
+      }
+
+      ranges[range] = {
+        comparisonValue: 0,
+
+        trend: data,
+
+        candlestick: [],
+      };
+    }
+
+    return ranges;
+  }
+
+  /* ==========================================================================
+     Formatting
+     ========================================================================== */
+
+  function formatPerformance(value) {
+    const number = U.toFiniteNumber(value);
+
+    if (number === null) {
+      return "—";
+    }
+
+    const formatted = new Intl.NumberFormat(getLocale(), {
+      minimumFractionDigits: 2,
+
+      maximumFractionDigits: 2,
+
+      signDisplay: "never",
+    }).format(Math.abs(number));
+
+    if (number > 0) {
+      return `▲ ${formatted}%`;
+    }
+
+    if (number < 0) {
+      return `▼ ${formatted}%`;
+    }
+
+    return `${formatted}%`;
+  }
+
+  function formatAxisPerformance(value) {
+    const number = U.toFiniteNumber(value);
+
+    if (number === null) {
+      return "";
+    }
+
+    return `${new Intl.NumberFormat(getLocale(), {
+      maximumFractionDigits: 1,
+    }).format(number)}%`;
+  }
+
+  function formatTooltipDate(timestamp) {
+    return U.formatDate(timestamp, {
+      timeZone: TIME_ZONE,
+
+      year: "numeric",
+
+      month: "short",
+
+      day: "numeric",
+    });
+  }
+
+  /* ==========================================================================
+     Tooltip
+     ========================================================================== */
+
+  function comparisonTooltipFormatter() {
+    const point = this.point ?? this.points?.[0]?.point ?? this;
+
+    const series = point?.series ?? this.series;
+
+    if (!series) {
+      return false;
+    }
+
+    const value = U.toFiniteNumber(point?.y);
+
+    if (value === null) {
+      return false;
+    }
+
+    const code = series.options?.custom?.peerCode || "";
+
+    const color = getPeerColor(code);
+
+    return `
+      <div class="market-chart-tooltip">
+        <div class="market-chart-tooltip__header">
+          <strong class="market-chart-tooltip__title">
+            <span
+              aria-hidden="true"
+              style="
+                display:inline-block;
+                inline-size:0.625rem;
+                block-size:0.625rem;
+                margin-inline-end:0.375rem;
+                border-radius:999px;
+                background:${escapeHTML(color)};
+              "
+            ></span>
+
+            ${escapeHTML(series.name || code || "Index")}
+          </strong>
+
+          <span class="market-chart-tooltip__date">
+            ${escapeHTML(formatTooltipDate(point.x))}
+          </span>
+        </div>
+
+        <div class="market-chart-tooltip__body">
+          <div class="market-chart-tooltip__row">
+            <span class="market-chart-tooltip__label">
+              Performance
+            </span>
+
+            <span class="market-chart-tooltip__value">
+              ${escapeHTML(formatPerformance(value))}
+            </span>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  /* ==========================================================================
+     Shared Market Chart API
+     ========================================================================== */
+
+  function getMarketChartAPI() {
+    const api = window.SEMarketCharts;
+
+    return typeof api?.create === "function" ? api : null;
+  }
+
+  function createChartConfiguration(baseSeries, ranges, controlsRoot) {
+    return {
+      context: "performance",
+
+      symbol: baseSeries.code,
+
+      name: baseSeries.name,
+
+      currency: "",
+
+      decimals: 2,
+
+      range: DEFAULT_RANGE,
+
+      mode: "line",
+
+      language: getLocale(),
+
+      timeZone: TIME_ZONE,
+
+      showEmptyState: true,
+
+      animation: {
+        duration: 350,
       },
 
-      credits: {
-        enabled: false,
-      },
-
-      accessibility: {
-        enabled: true,
-      },
-
-      rangeSelector: {
-        enabled: false,
-      },
-
-      xAxis: {
-        type: "datetime",
-        ordinal: false,
-        reversed: isRTL(),
-        lineColor: styles.gridLine,
-        tickColor: styles.gridLine,
-
-        labels: {
-          rotation: -40,
-          align: "right",
-
-          style: {
-            color: styles.axisText,
-            fontSize: "11px",
-          },
-
-          formatter: function () {
-            const span = this.axis.max - this.axis.min;
-
-            if (span <= 2 * DAY_MS) {
-              return Highcharts.dateFormat("%H:%M", this.value);
-            }
-
-            return Highcharts.dateFormat("%d-%m-%y", this.value);
-          },
-        },
+      capabilities: {
+        intraday: false,
+        historical: true,
+        live: false,
+        navigator: false,
       },
 
       yAxis: {
-        allowDecimals: true,
+        opposite: true,
 
-        title: {
-          text: null,
+        title: "Performance (%)",
+
+        format: {
+          decimals: 1,
+          useGrouping: false,
         },
 
-        opposite: isRTL(),
-        gridLineColor: styles.gridLine,
-        gridLineWidth: 1,
-
-        /*
-         * Show a baseline at zero.
-         */
-        plotLines: [
-          {
-            value: 0,
-            color: styles.axisText,
-            width: 1,
-            zIndex: 2,
-          },
-        ],
-
-        labels: {
-          reserveSpace: true,
-
-          align: isRTL() ? "left" : "right",
-
-          style: {
-            color: styles.axisText,
-            fontSize: "12px",
-            whiteSpace: "nowrap",
-          },
-
-          
-          formatter: function () {
-            return formatAxisNumber(this.value);
+        labelOptions: {
+          formatter() {
+            return formatAxisPerformance(this.value);
           },
         },
       },
 
-     
-       
+      ranges,
+
+      controls: {
+        root: controlsRoot,
+      },
+
       tooltip: {
-        shared: true,
-        split: false,
-        useHTML: true,
-
-        backgroundColor: styles.tooltipBg,
-
-        borderColor: styles.tooltipBorder,
-
-        shadow: false,
-
-        style: {
-          color: styles.tooltipText,
-          fontSize: "12px",
-        },
-
-        formatter: function () {
-          const points = this.points || [];
-
-          const range = peerChartInitState.range;
-
-          const dateFormat = range === "1D" ? "%d-%m-%Y %H:%M" : "%d-%m-%Y";
-
-          let html = '<div class="peer-chart-tooltip">';
-
-          html +=
-            '<div class="peer-chart-tooltip__date">' +
-            Highcharts.dateFormat(dateFormat, this.x) +
-            "</div>";
-
-          points.forEach(function (tooltipPoint) {
-            const point = tooltipPoint.point;
-
-            const custom = point.custom || {};
-
-            const price = Number(custom.price);
-
-            const change = Number(custom.change);
-
-            html +=
-              '<div class="peer-chart-tooltip__item">' +
-              '<span style="' +
-              "display:inline-block;" +
-              "width:8px;" +
-              "height:8px;" +
-              "border-radius:50%;" +
-              "margin-inline-end:6px;" +
-              "background:" +
-              tooltipPoint.color +
-              '"></span>' +
-              "<strong>" +
-              escapeHtml(tooltipPoint.series.name) +
-              ":</strong> " +
-              formatPrice(price) +
-              " (" +
-              formatSignedChange(change) +
-              ")" +
-              "</div>";
-          });
-
-          html += "</div>";
-
-          return html;
+        options: {
+          formatter: comparisonTooltipFormatter,
         },
       },
 
-      plotOptions: {
-        series: {
-          animation: {
-            duration: 350,
+      exporting: {
+        enabled: false,
+      },
+
+      accessibilityDescription:
+        "Relative percentage performance of compared market indices.",
+    };
+  }
+
+  /* ==========================================================================
+     Shared Chart Access
+     ========================================================================== */
+
+  function getCurrentRange() {
+    return controller?.getState()?.range ?? DEFAULT_RANGE;
+  }
+
+  function getMainSeries(chart) {
+    return (
+      chart?.series?.find(
+        (series) =>
+          !series.options?.isInternal &&
+          series.options?.custom?.peerComparisonOverlay !== true,
+      ) ?? null
+    );
+  }
+
+  /* ==========================================================================
+     Base Series Presentation
+     ========================================================================== */
+
+  function applyBaseSeriesPresentation(chart) {
+    const series = getMainSeries(chart);
+
+    if (!series || !chartBaseSeries) {
+      return;
+    }
+
+    const color = getPeerColor(chartBaseSeries.code);
+
+    series.update(
+      {
+        name: chartBaseSeries.name,
+
+        color,
+
+        lineColor: color,
+
+        lineWidth: 2,
+
+        fillColor: "transparent",
+
+        marker: {
+          enabled: false,
+
+          states: {
+            hover: {
+              enabled: true,
+
+              radius: 4,
+
+              lineWidth: 2,
+
+              lineColor: color,
+
+              fillColor: color,
+            },
           },
+        },
+
+        custom: {
+          peerCode: chartBaseSeries.code,
+
+          peerComparisonBase: true,
+        },
+
+        states: {
+          inactive: {
+            opacity: 1,
+          },
+
+          hover: {
+            lineWidthPlus: 1,
+          },
+        },
+      },
+      false,
+    );
+  }
+
+  /* ==========================================================================
+     Overlay Series
+     ========================================================================== */
+
+  function removeOverlaySeries(chart) {
+    if (!chart) {
+      return;
+    }
+
+    const overlays = chart.series.filter(
+      (series) => series.options?.custom?.peerComparisonOverlay === true,
+    );
+
+    for (const series of overlays) {
+      series.remove(false);
+    }
+  }
+
+  function applyOverlaySeries(chart) {
+    if (!chart) {
+      return;
+    }
+
+    removeOverlaySeries(chart);
+
+    const range = getCurrentRange();
+
+    for (const peer of comparisonSeries) {
+      if (peer.code === chartBaseSeries?.code) {
+        continue;
+      }
+
+      const data = peer.ranges[range];
+
+      if (!data?.length) {
+        continue;
+      }
+
+      const color = getPeerColor(peer.code);
+
+      chart.addSeries(
+        {
+          type: "line",
+
+          name: peer.name,
+
+          data,
+
+          color,
+
+          lineColor: color,
+
+          lineWidth: 2,
 
           marker: {
             enabled: false,
+
+            states: {
+              hover: {
+                enabled: true,
+
+                radius: 4,
+
+                lineWidth: 2,
+
+                lineColor: color,
+
+                fillColor: color,
+              },
+            },
           },
 
           dataGrouping: {
             enabled: false,
           },
 
-          turboThreshold: 0,
-        },
+          showInNavigator: false,
 
-        area: {
-          lineWidth: 2,
-          threshold: null,
-        },
-      },
+          custom: {
+            peerCode: peer.code,
 
-      navigator: {
-        enabled: true,
-        height: 56,
-        margin: 12,
-        outlineWidth: 0,
+            peerComparisonOverlay: true,
+          },
 
-        maskFill: "rgba(44, 129, 255, 0.16)",
+          states: {
+            inactive: {
+              opacity: 1,
+            },
 
-        liveRedraw: true,
-
-        xAxis: {
-          reversed: isRTL(),
-
-          labels: {
-            style: {
-              color: styles.mutedText,
-              fontSize: "10px",
+            hover: {
+              lineWidthPlus: 1,
             },
           },
         },
-      },
-
-      scrollbar: {
-        enabled: true,
-        liveRedraw: true,
-        height: 0,
-      },
-
-      series: [],
-    });
-  }
-
-  function bindPeerRangeControls() {
-    document
-      .querySelectorAll('.peer-panel[data-peer-panel="graph"] .chart-range')
-      .forEach(function (button) {
-        
-        button.onclick = function () {
-          const range = this.dataset.range;
-
-          setActiveRangeButton(this);
-          applyPeerRange(range);
-        };
-      });
-  }
-
-  function activateRangeControl(range) {
-    const button = document.querySelector(
-      '.peer-panel[data-peer-panel="graph"] ' +
-        '.chart-range[data-range="' +
-        range +
-        '"]',
-    );
-
-    if (button) {
-      setActiveRangeButton(button);
-    }
-  }
-
-  function setActiveRangeButton(activeButton) {
-    const container = activeButton.closest(".chart-toolbar__ranges");
-
-    if (!container) return;
-
-    container.querySelectorAll(".chart-range").forEach(function (button) {
-      button.classList.remove("is-active");
-
-      button.setAttribute("aria-selected", "false");
-    });
-
-    activeButton.classList.add("is-active");
-
-    activeButton.setAttribute("aria-selected", "true");
-  }
-
-  function getRawSeriesForRange(range) {
-    return range === "1D" ? peerSeriesIntraday : peerSeriesHistorical;
-  }
-
-  function applyPeerRange(range) {
-    if (!peerChartInstance) {
-      return;
-    }
-
-    peerChartInitState.range = range;
-
-    const rawSeries = getRawSeriesForRange(range);
-
-    const bounds = getSeriesBounds(rawSeries);
-
-    if (!bounds) {
-      setPeerEmptyState(true, "No data available for selected range");
-
-      return;
-    }
-
-    const end = bounds.max;
-    let start;
-
-    if (range === "ALL") {
-      start = bounds.min;
-    } else {
-      const selectedRange = getSelectedRange(range, end);
-
-      start = selectedRange.start;
-
-      if (start < bounds.min) {
-        start = bounds.min;
-      }
-    }
-
-    /*
-     * Build percentage-change series using
-     * the selected range's first valid price.
-     */
-    peerSeriesOptions = buildNormalizedSeries(rawSeries, start, end);
-
-    const hasData = peerSeriesOptions.some(function (series) {
-      return Array.isArray(series.data) && series.data.length > 0;
-    });
-
-    if (!hasData) {
-      setPeerEmptyState(true, "No data available for selected range");
-
-      return;
-    }
-
-    const yAxis = calculateYAxisBounds(peerSeriesOptions);
-
-    if (!yAxis) {
-      setPeerEmptyState(true, "No data available for selected range");
-
-      return;
-    }
-
-    setPeerEmptyState(false);
-
-    /*
-     * Remove currently displayed series.
-     */
-    while (peerChartInstance.series.length) {
-      peerChartInstance.series[0].remove(false);
-    }
-
-    /*
-     * Add normalized percentage series.
-     */
-    peerSeriesOptions.forEach(function (series) {
-      peerChartInstance.addSeries(series, false);
-    });
-
-    /*
-     * Update Y-axis from percentage-change
-     * values, not raw prices.
-     */
-    peerChartInstance.yAxis[0].update(
-      {
-        min: yAxis.min,
-        max: yAxis.max,
-        tickInterval: yAxis.tickInterval,
-        startOnTick: false,
-        endOnTick: false,
-      },
-      false,
-    );
-
-    /*
-     * Apply selected date range.
-     */
-    peerChartInstance.xAxis[0].setExtremes(start, end, false, false);
-
-    peerChartInstance.redraw();
-    peerChartInstance.reflow();
-  }
-
-  function calculateYAxisBounds(series) {
-    let minValue = Infinity;
-    let maxValue = -Infinity;
-
-    series.forEach(function (item) {
-      if (!Array.isArray(item.data)) {
-        return;
-      }
-
-      item.data.forEach(function (point) {
-        const value = Number(point.y);
-
-        if (!Number.isFinite(value)) {
-          return;
-        }
-
-        minValue = Math.min(minValue, value);
-
-        maxValue = Math.max(maxValue, value);
-      });
-    });
-
-    if (!Number.isFinite(minValue) || !Number.isFinite(maxValue)) {
-      return null;
-    }
-
-    /*
-     * Zero is the percentage comparison
-     * baseline, so keep it visible.
-     */
-    minValue = Math.min(minValue, 0);
-
-    maxValue = Math.max(maxValue, 0);
-
-    if (minValue === maxValue) {
-      const equalPadding = Math.abs(minValue) * 0.1 || 1;
-
-      minValue -= equalPadding;
-      maxValue += equalPadding;
-    }
-
-    const range = maxValue - minValue;
-
-    const padding = Math.max(range * 0.1, 0.1);
-
-    const paddedMin = minValue - padding;
-
-    const paddedMax = maxValue + padding;
-
-    return {
-      min: paddedMin,
-      max: paddedMax,
-
-      tickInterval: getNiceTickInterval(paddedMax - paddedMin),
-    };
-  }
-
-  function getNiceTickInterval(range) {
-    if (!Number.isFinite(range) || range <= 0) {
-      return 1;
-    }
-
-    const roughInterval = range / 5;
-
-    const magnitude = Math.pow(10, Math.floor(Math.log10(roughInterval)));
-
-    const normalized = roughInterval / magnitude;
-
-    let niceNormalized;
-
-    if (normalized <= 1) {
-      niceNormalized = 1;
-    } else if (normalized <= 2) {
-      niceNormalized = 2;
-    } else if (normalized <= 2.5) {
-      niceNormalized = 2.5;
-    } else if (normalized <= 5) {
-      niceNormalized = 5;
-    } else {
-      niceNormalized = 10;
-    }
-
-    return niceNormalized * magnitude;
-  }
-
-  function parseChartDateTime(dateTimeString) {
-    if (!dateTimeString) {
-      return NaN;
-    }
-
-    const raw = String(dateTimeString).trim();
-
-    /*
-     * Date only:
-     * YYYY-MM-DD
-     */
-    if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) {
-      const dateParts = raw.split("-");
-
-      return new Date(
-        Number.parseInt(dateParts[0], 10),
-        Number.parseInt(dateParts[1], 10) - 1,
-        Number.parseInt(dateParts[2], 10),
-      ).getTime();
-    }
-
-    /*
-     * Date and time:
-     * YYYY-MM-DD HH:mm:ss
-     * or
-     * YYYY-MM-DDTHH:mm:ss
-     */
-
-    const match = raw.match(
-      /^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})(?::(\d{2}))?$/,
-    );
-
-    if (!match) {
-      return NaN;
-    }
-
-    const timestamp = new Date(
-      Number.parseInt(match[1], 10),
-      Number.parseInt(match[2], 10) - 1,
-      Number.parseInt(match[3], 10),
-      Number.parseInt(match[4], 10),
-      Number.parseInt(match[5], 10),
-      match[6] ? Number.parseInt(match[6], 10) : 0,
-    ).getTime();
-
-    return timestamp + MARKET_TIME_OFFSET_MS;
-  }
-
-  function getSelectedRange(range, endTime) {
-    let start;
-
-    switch (range) {
-      case "1D":
-        start = endTime - DAY_MS;
-        break;
-
-      case "5D":
-        start = endTime - 5 * DAY_MS;
-        break;
-
-      case "1W":
-        start = endTime - 7 * DAY_MS;
-        break;
-
-      case "1M":
-        start = endTime - 30 * DAY_MS;
-        break;
-
-      case "3M":
-        start = endTime - 90 * DAY_MS;
-        break;
-
-      case "1Y":
-        start = endTime - 365 * DAY_MS;
-        break;
-
-      case "3Y":
-        start = endTime - 3 * 365 * DAY_MS;
-        break;
-
-      case "ALL":
-      default:
-        start = 0;
-        break;
-    }
-
-    return {
-      start: start,
-      end: endTime,
-    };
-  }
-
-  function getSeriesBounds(seriesArray) {
-    let min = Infinity;
-    let max = -Infinity;
-
-    seriesArray.forEach(function (series) {
-      if (!series || !Array.isArray(series.data) || !series.data.length) {
-        return;
-      }
-
-      series.data.forEach(function (point) {
-        const timestamp = point[0];
-
-        if (!Number.isFinite(timestamp)) {
-          return;
-        }
-
-        min = Math.min(min, timestamp);
-
-        max = Math.max(max, timestamp);
-      });
-    });
-
-    if (!Number.isFinite(min) || !Number.isFinite(max)) {
-      return null;
-    }
-
-    return {
-      min: min,
-      max: max,
-    };
-  }
-
-  function formatAxisNumber(value) {
-    const absoluteValue = Math.abs(value);
-
-    if (absoluteValue >= 10) {
-      return Highcharts.numberFormat(value, 0, ".", ",");
-    }
-
-    if (absoluteValue >= 1) {
-      return Highcharts.numberFormat(value, 1, ".", ",").replace(/\.0$/, "");
-    }
-
-    return Highcharts.numberFormat(value, 2, ".", ",")
-      .replace(/0+$/, "")
-      .replace(/\.$/, "");
-  }
-
-  function formatPrice(value) {
-    if (!Number.isFinite(value)) {
-      return "-";
-    }
-
-    return Highcharts.numberFormat(value, 2, ".", ",");
-  }
-
-  function formatSignedChange(value) {
-    if (!Number.isFinite(value)) {
-      return "-";
-    }
-
-    const sign = value > 0 ? "+" : "";
-
-    return sign + Highcharts.numberFormat(value, 2, ".", ",") + "%";
-  }
-
-  function getPeerChartStyles() {
-    const css = getComputedStyle(document.documentElement);
-
-    function read(variableName, fallback) {
-      return css.getPropertyValue(variableName).trim() || fallback || "";
-    }
-
-    return {
-      axisText: read("--chart-axis-text", "#666666"),
-
-      gridLine: read("--chart-grid-line", "#dddddd"),
-
-      mutedText: read("--chart-muted-text", "#888888"),
-
-      tooltipBg: read("--chart-tooltip-bg", "#ffffff"),
-
-      tooltipText: read("--chart-tooltip-text", "#222222"),
-
-      tooltipBorder: read("--chart-border", "#dddddd"),
-    };
-  }
-
-  function getSeriesFill(color) {
-    return {
-      linearGradient: [0, 0, 0, 300],
-
-      stops: [
-        [0, setColorAlpha(color, 0.22)],
-        [1, setColorAlpha(color, 0.02)],
-      ],
-    };
-  }
-
-  function setColorAlpha(color, alpha) {
-    if (!color) {
-      return color;
-    }
-
-    if (/^rgba?\(/i.test(color)) {
-      const values = color
-        .replace(/^rgba?\(/i, "")
-        .replace(/\)$/, "")
-        .split(",")
-        .slice(0, 3)
-        .map(function (value) {
-          return value.trim();
-        });
-
-      if (values.length === 3) {
-        return "rgba(" + values.join(", ") + ", " + alpha + ")";
-      }
-    }
-
-    return color;
-  }
-
-  function togglePeerChartAxes(showAxes) {
-    if (!peerChartInstance) {
-      return;
-    }
-
-    const styles = getPeerChartStyles();
-
-    peerChartInstance.xAxis[0].update(
-      {
-        reversed: isRTL(),
-
-        labels: {
-          enabled: showAxes,
-          rotation: -40,
-          align: "right",
-
-          style: {
-            color: styles.axisText,
-            fontSize: "11px",
-          },
-        },
-
-        lineWidth: showAxes ? 1 : 0,
-
-        tickLength: showAxes ? 5 : 0,
-      },
-      false,
-    );
-
-    peerChartInstance.yAxis[0].update(
-      {
-        opposite: isRTL(),
-
-        labels: {
-          enabled: showAxes,
-          reserveSpace: true,
-
-          align: isRTL() ? "left" : "right",
-
-          style: {
-            color: styles.axisText,
-            fontSize: "12px",
-            whiteSpace: "nowrap",
-          },
-        },
-
-        gridLineWidth: showAxes ? 1 : 0,
-
-        lineWidth: showAxes ? 1 : 0,
-
-        tickLength: showAxes ? 5 : 0,
-      },
-      false,
-    );
-  }
-
-  function setPeerEmptyState(isEmpty, message) {
-    if (!peerChartInstance) {
-      return;
-    }
-
-    if (isEmpty) {
-      peerChartInstance.showLoading(
-        message || "No data available for selected range",
+        false,
       );
+    }
+  }
 
-      while (peerChartInstance.series.length) {
-        peerChartInstance.series[0].remove(false);
+  /* ==========================================================================
+     0% Baseline
+     ========================================================================== */
+
+  function applyZeroBaseline(chart) {
+    const axis = chart?.yAxis?.[0];
+
+    if (!axis) {
+      return;
+    }
+
+    axis.removePlotLine(ZERO_LINE_ID);
+
+    const canvas = document.querySelector(SELECTORS.canvas);
+
+    const color = readCSSVariable(canvas, "--color-border-strong") || "#64748b";
+
+    axis.addPlotLine({
+      id: ZERO_LINE_ID,
+
+      value: 0,
+
+      color,
+
+      width: 1,
+
+      dashStyle: "ShortDash",
+
+      zIndex: 3,
+    });
+  }
+
+  /* ==========================================================================
+     Comparison Presentation
+     ========================================================================== */
+
+  function applyComparisonPresentation() {
+    if (!controller) {
+      return;
+    }
+
+    const chart = controller.getChart();
+
+    if (!chart) {
+      return;
+    }
+
+    syncPeerChipColors();
+
+    applyBaseSeriesPresentation(chart);
+
+    applyOverlaySeries(chart);
+
+    applyZeroBaseline(chart);
+
+    chart.redraw(false);
+  }
+
+  function schedulePresentation() {
+    if (presentationFrame !== null) {
+      cancelAnimationFrame(presentationFrame);
+    }
+
+    /*
+     * Range/theme changes rebuild the shared Highcharts instance.
+     * Reapply comparison-only presentation afterwards.
+     */
+
+    presentationFrame = requestAnimationFrame(() => {
+      presentationFrame = requestAnimationFrame(() => {
+        presentationFrame = null;
+
+        applyComparisonPresentation();
+      });
+    });
+  }
+
+  /* ==========================================================================
+     Presentation Observation
+     ========================================================================== */
+
+  function observePresentationChanges() {
+    presentationObserver?.disconnect();
+
+    presentationObserver = new MutationObserver(schedulePresentation);
+
+    presentationObserver.observe(document.documentElement, {
+      attributes: true,
+
+      attributeFilter: ["data-theme", "data-contrast", "dir"],
+    });
+  }
+
+  /* ==========================================================================
+     Chart Destruction
+     ========================================================================== */
+
+  function destroyChart() {
+    cancelRequests();
+
+    requestId += 1;
+
+    if (presentationFrame !== null) {
+      cancelAnimationFrame(presentationFrame);
+
+      presentationFrame = null;
+    }
+
+    presentationObserver?.disconnect();
+
+    presentationObserver = null;
+
+    if (controller) {
+      try {
+        controller.destroy();
+      } catch (error) {
+        console.error("Peer comparison chart destruction failed.", error);
+      }
+    }
+
+    controller = null;
+
+    companies = [];
+
+    comparisonSeries = [];
+
+    chartBaseSeries = null;
+
+    peerColors = new Map();
+  }
+
+  /* ==========================================================================
+     Chart Creation
+     ========================================================================== */
+
+  async function createChart(peers, rows) {
+    destroyChart();
+
+    selectedPeers = U.normalizePeers(peers);
+
+    if (!selectedPeers.length) {
+      return;
+    }
+
+    const graphRoot = document.querySelector(SELECTORS.graph);
+
+    if (!graphRoot) {
+      return;
+    }
+
+    graphRoot.setAttribute("aria-busy", "true");
+
+    graphRoot.innerHTML = getGraphMarkup();
+
+    const canvas = graphRoot.querySelector(SELECTORS.canvas);
+
+    if (!canvas) {
+      return;
+    }
+
+    companies = buildCompanies(selectedPeers, rows);
+
+    if (!companies.length) {
+      renderEmpty();
+
+      return;
+    }
+
+    peerColors = assignPeerColors(companies, graphRoot);
+
+    syncPeerChipColors();
+
+    const currentRequestId = requestId;
+
+    let loaded;
+
+    try {
+      loaded = await loadComparisonSeries(companies);
+    } catch (error) {
+      if (isAbortError(error)) {
+        return;
       }
 
-      togglePeerChartAxes(false);
-    } else {
-      peerChartInstance.hideLoading();
-      togglePeerChartAxes(true);
-    }
+      console.error("Peer comparison chart loading failed.", error);
 
-    peerChartInstance.redraw();
-    peerChartInstance.reflow();
-  }
+      renderError();
 
-  function showChartMessage(message) {
-    const canvas = document.getElementById("peerComparisonChart");
-
-    destroyPeerChart();
-
-    if (!canvas) return;
-
-    canvas.innerHTML =
-      '<div class="peer-chart-message">' + escapeHtml(message) + "</div>";
-  }
-
-  function destroyPeerChart() {
-    if (!peerChartInstance) {
       return;
     }
 
-    peerChartInstance.destroy();
-    peerChartInstance = null;
-  }
-
-  function renderPeerChartLegend(companies) {
-    const legend = document.querySelector("[data-peer-chart-legend]");
-
-    if (!legend) return;
-
-    legend.innerHTML = companies
-      .map(function (company, index) {
-        return `
-          <div class="peer-chart-legend__item">
-            <span
-              class="peer-legend-dot"
-              style="--peer-legend-color: ${U.getPeerChartColor(index)}"
-              aria-hidden="true"
-            ></span>
- 
-            <span class="peer-chart-legend__name">
-              ${escapeHtml(company.name || "-")}
-            </span>
- 
-            ${
-              company.isBase
-                ? ""
-                : `
-                  <button
-                    type="button"
-                    class="peer-chart-legend__remove"
-                    aria-label="Remove ${escapeHtml(company.name)}"
-                    title="Remove"
-                    data-peer-remove="${escapeHtml(company.symbol)}"
-                  >
-                    ×
-                  </button>
-                `
-            }
-          </div>
-        `;
-      })
-      .join("");
-  }
-
-  document.addEventListener("theme:changed", function () {
-    if (!peerChartInstance) {
+    if (loaded === null || currentRequestId > requestId) {
       return;
     }
 
-    const styles = getPeerChartStyles();
+    if (!loaded.length) {
+      renderEmpty();
 
-    peerChartInstance.update(
-      {
-        xAxis: {
-          reversed: isRTL(),
-          lineColor: styles.gridLine,
-          tickColor: styles.gridLine,
+      return;
+    }
 
-          labels: {
-            style: {
-              color: styles.axisText,
-              fontSize: "11px",
-            },
-          },
-        },
+    comparisonSeries = buildComparisonSeries(loaded).filter(hasSeriesData);
 
-        yAxis: {
-          opposite: isRTL(),
-          gridLineColor: styles.gridLine,
+    if (!comparisonSeries.length) {
+      renderEmpty();
 
-          labels: {
-            align: isRTL() ? "left" : "right",
+      return;
+    }
 
-            style: {
-              color: styles.axisText,
-              fontSize: "12px",
-              whiteSpace: "nowrap",
-            },
-          },
+    /*
+     * Prefer the configured base company as the canonical shared-chart
+     * series. If its chart endpoint returned no data, use the first available
+     * peer so the remaining comparison can still render.
+     */
 
-          plotLines: [
-            {
-              value: 0,
-              color: styles.axisText,
-              width: 1,
-              zIndex: 2,
-            },
-          ],
-        },
+    const configuredBase = U.getBaseCompanySymbol();
 
-        tooltip: {
-          backgroundColor: styles.tooltipBg,
+    chartBaseSeries =
+      comparisonSeries.find((series) => series.code === configuredBase) ??
+      comparisonSeries[0];
 
-          borderColor: styles.tooltipBorder,
+    const ranges = createBaseRanges(chartBaseSeries);
 
-          style: {
-            color: styles.tooltipText,
-            fontSize: "12px",
-          },
-        },
+    if (!Object.keys(ranges).length) {
+      renderEmpty();
 
-        navigator: {
-          maskFill: "rgba(44, 129, 255, 0.16)",
+      return;
+    }
 
-          xAxis: {
-            reversed: isRTL(),
+    const api = getMarketChartAPI();
 
-            labels: {
-              style: {
-                color: styles.mutedText,
-                fontSize: "10px",
-              },
-            },
-          },
-        },
-      },
-      true,
+    if (!api) {
+      renderError("Comparison chart is unavailable.");
+
+      return;
+    }
+
+    controller = api.create(
+      canvas,
+      createChartConfiguration(chartBaseSeries, ranges, graphRoot),
     );
 
-    peerChartInstance.reflow();
-  });
+    if (!controller) {
+      renderError();
 
-  window.PeerComparisonGraph = {
-    renderGraphSideTable: renderGraphSideTable,
+      return;
+    }
 
-    renderGraphPlaceholder: renderGraphPlaceholder,
+    canvas.addEventListener("marketchartrangechange", schedulePresentation);
 
-    renderGraphError: renderGraphError,
+    applyComparisonPresentation();
 
-    renderChart: renderChart,
-  };
-})(window, document, jQuery);
+    observePresentationChanges();
+
+    graphRoot.setAttribute("aria-busy", "false");
+  }
+
+  /* ==========================================================================
+     Tab Visibility
+     ========================================================================== */
+
+  function handleTabChange(event) {
+    if (event.detail?.tabKey !== "graph") {
+      return;
+    }
+
+    requestAnimationFrame(() => {
+      controller?.reflow?.();
+
+      applyComparisonPresentation();
+    });
+  }
+
+  /* ==========================================================================
+     Feature Events
+     ========================================================================== */
+
+  function handleLoading() {
+    renderLoading();
+  }
+
+  function handleRender(event) {
+    void createChart(
+      event.detail?.peers ?? [],
+
+      event.detail?.rows ?? [],
+    );
+  }
+
+  function handleError() {
+    renderError("Unable to load peer comparison data.");
+  }
+
+  function handleClear() {
+    destroyChart();
+  }
+
+  /* ==========================================================================
+     Binding
+     ========================================================================== */
+
+  function bindEvents() {
+    document.addEventListener(EVENTS.loading, handleLoading);
+
+    document.addEventListener(EVENTS.render, handleRender);
+
+    document.addEventListener(EVENTS.error, handleError);
+
+    document.addEventListener(EVENTS.clear, handleClear);
+
+    document.addEventListener("tabs:change", handleTabChange);
+
+    window.addEventListener("pagehide", () => {
+      destroyChart();
+    });
+  }
+
+  /* ==========================================================================
+     Initialization
+     ========================================================================== */
+
+  function initialize() {
+    bindEvents();
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initialize, {
+      once: true,
+    });
+  } else {
+    initialize();
+  }
+})();

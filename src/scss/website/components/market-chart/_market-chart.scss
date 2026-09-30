@@ -1245,7 +1245,7 @@ html[data-contrast="high"] {
   }
 }
 
-html[data-motion="reduce"] {
+html[data-motion-preference="reduce"] {
   .market-chart .highcharts-point,
   .market-chart-toggle__button {
     transition: none;

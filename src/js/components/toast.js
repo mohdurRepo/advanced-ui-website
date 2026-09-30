@@ -57,10 +57,7 @@ function normalizeDuration(value, fallback = DEFAULT_DURATION) {
 }
 
 function prefersReducedMotion() {
-  return (
-    document.documentElement.dataset.motion === "reduce" ||
-    window.matchMedia("(prefers-reduced-motion: reduce)").matches
-  );
+  return document.documentElement.dataset.motionPreference === "reduce";
 }
 
 /* ==========================================================================

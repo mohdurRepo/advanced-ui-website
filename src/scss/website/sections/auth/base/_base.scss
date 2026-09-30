@@ -373,6 +373,6 @@ html[data-contrast="high"] {
   }
 }
 
-html[data-motion="reduce"] .account-verification__refresh {
+html[data-motion-preference="reduce"] .account-verification__refresh {
   transition: none;
 }

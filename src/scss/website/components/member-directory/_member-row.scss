@@ -584,11 +584,11 @@ html[data-contrast="high"] .member-row__contact-item::before {
   }
 }
 
-html[data-motion="reduce"] .member-row,
-html[data-motion="reduce"] .member-row__name-link {
+html[data-motion-preference="reduce"] .member-row,
+html[data-motion-preference="reduce"] .member-row__name-link {
   transition: none;
 }
 
-html[data-motion="reduce"] .member-row:hover {
+html[data-motion-preference="reduce"] .member-row:hover {
   transform: none;
 }

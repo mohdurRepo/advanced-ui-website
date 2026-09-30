@@ -647,16 +647,17 @@ html[data-contrast="high"] .company-directory-list-card__navigate {
   }
 }
 
-html[data-motion="reduce"] .company-directory-list-card,
-html[data-motion="reduce"] .company-directory-list-card::before,
-html[data-motion="reduce"] .company-directory-list-card__name,
-html[data-motion="reduce"] .company-directory-list-card__navigate {
+html[data-motion-preference="reduce"] .company-directory-list-card,
+html[data-motion-preference="reduce"] .company-directory-list-card::before,
+html[data-motion-preference="reduce"] .company-directory-list-card__name,
+html[data-motion-preference="reduce"] .company-directory-list-card__navigate {
   transition: none;
 }
 
-html[data-motion="reduce"] .company-directory-list-card:hover,
-html[data-motion="reduce"] .company-directory-list-card:hover::before,
-html[data-motion="reduce"]
+html[data-motion-preference="reduce"] .company-directory-list-card:hover,
+html[data-motion-preference="reduce"]
+  .company-directory-list-card:hover::before,
+html[data-motion-preference="reduce"]
   .company-directory-list-card:hover
   .company-directory-list-card__navigate {
   transform: none;

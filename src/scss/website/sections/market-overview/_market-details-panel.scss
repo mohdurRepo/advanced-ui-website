@@ -857,7 +857,7 @@ html[data-contrast="high"] {
   }
 }
 
-html[data-motion="reduce"] {
+html[data-motion-preference="reduce"] {
   .market-details-panel__toggle::before {
     transition: none;
   }

@@ -831,7 +831,7 @@ html[data-contrast="high"] {
   }
 }
 
-html[data-motion="reduce"] {
+html[data-motion-preference="reduce"] {
   .member-profile-modal__scroll,
   .member-profile-modal__layout {
     scroll-behavior: auto;

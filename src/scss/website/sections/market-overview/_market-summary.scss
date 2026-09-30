@@ -936,7 +936,7 @@
   }
 }
 
-:root[data-motion="reduce"] {
+:root[data-motion-preference="reduce"] {
   .market-summary__cards {
     scroll-behavior: auto;
   }

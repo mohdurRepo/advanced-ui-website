@@ -318,7 +318,7 @@ html[data-contrast="high"] {
   }
 }
 
-html[data-motion="reduce"] {
+html[data-motion-preference="reduce"] {
   .market-bridge,
   .market-bridge__bar {
     transition: none;

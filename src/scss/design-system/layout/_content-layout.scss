@@ -42,10 +42,20 @@
    Alignment
    ========================================================================== */
 
+/**
+ * Logical alignment.
+ *
+ * --left / --right remain as compatibility aliases for existing markup.
+ * New markup should prefer --start / --end so direction follows the
+ * document's writing direction automatically.
+ */
+
+.content-layout--start,
 .content-layout--left {
   margin-inline: 0 auto;
 }
 
+.content-layout--end,
 .content-layout--right {
   margin-inline: auto 0;
 }

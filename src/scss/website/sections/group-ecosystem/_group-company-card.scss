@@ -251,7 +251,7 @@ html[data-contrast="high"] {
    Reduced Motion
    ========================================================================== */
 
-html[data-motion="reduce"] {
+html[data-motion-preference="reduce"] {
   .ecosystem-company-card,
   .ecosystem-company-card__link .has-icon {
     transition: none;

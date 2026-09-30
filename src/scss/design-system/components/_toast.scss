@@ -356,7 +356,7 @@ html[data-contrast="high"] .toast {
   }
 }
 
-html[data-motion="reduce"] {
+html[data-motion-preference="reduce"] {
   .toast,
   .toast.is-leaving {
     animation: none;

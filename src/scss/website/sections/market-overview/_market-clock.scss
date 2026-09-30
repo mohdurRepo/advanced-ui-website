@@ -304,7 +304,6 @@
   background: transparent;
 
   box-shadow: none;
-
 }
 
 .clock-hand__brand-icon {
@@ -798,7 +797,7 @@ html[data-contrast="high"] {
   }
 }
 
-html[data-motion="reduce"] {
+html[data-motion-preference="reduce"] {
   .clock-hand {
     transition: none;
   }

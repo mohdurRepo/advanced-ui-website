@@ -6,6 +6,9 @@
 
 /**
  * Creates a fixed-width sidebar and a flexible content region.
+ *
+ * Source order remains authoritative when the layout stacks. Desktop
+ * modifiers change visual placement only.
  */
 
 .sidebar-layout {
@@ -70,6 +73,12 @@
    Reverse
    ========================================================================== */
 
+/**
+ * Reverses desktop visual placement only.
+ *
+ * The DOM remains unchanged, so reading and keyboard order stay semantic.
+ */
+
 .sidebar-layout--reverse .sidebar-layout__sidebar {
   grid-column: 2;
 }
@@ -95,16 +104,6 @@
   .sidebar-layout--reverse .sidebar-layout__sidebar,
   .sidebar-layout--reverse .sidebar-layout__content {
     grid-column: 1;
-  }
-
-  .sidebar-layout__sidebar,
-  .sidebar-layout--reverse .sidebar-layout__sidebar {
-    grid-row: 1;
-  }
-
-  .sidebar-layout__content,
-  .sidebar-layout--reverse .sidebar-layout__content {
-    grid-row: 2;
   }
 }
 

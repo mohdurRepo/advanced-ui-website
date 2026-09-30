@@ -543,7 +543,7 @@ html[data-contrast="high"] {
    Reduced Motion: Design-system Preference
    ========================================================================== */
 
-html[data-motion="reduce"] {
+html[data-motion-preference="reduce"] {
   .market-data-panel__tab,
   .market-data-panel__tab::after {
     transition: none;

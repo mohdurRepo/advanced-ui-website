@@ -300,11 +300,11 @@ html[data-contrast="high"]
   }
 }
 
-html[data-motion="reduce"] .directory-results__collection {
+html[data-motion-preference="reduce"] .directory-results__collection {
   transition: none;
 }
 
-html[data-motion="reduce"]
+html[data-motion-preference="reduce"]
   .directory-results.is-updating
   .directory-results__collection {
   transform: none;

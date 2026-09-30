@@ -349,7 +349,7 @@
 .company-updates__list {
   display: grid;
   align-content: start;
-  flex: 1 1 auto;      /* Ensures the list block stretches to occupy available vertical space */
+  flex: 1 1 auto; /* Ensures the list block stretches to occupy available vertical space */
 
   min-inline-size: 0;
 
@@ -514,7 +514,7 @@ html[data-contrast="high"] {
    Reduced Motion
    ========================================================================= */
 
-html[data-motion="reduce"] {
+html[data-motion-preference="reduce"] {
   .company-updates__tab,
   .company-updates__period-tab,
   .company-updates__period-tab::after,

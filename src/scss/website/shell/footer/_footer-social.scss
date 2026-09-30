@@ -222,12 +222,12 @@ html[data-contrast="high"] .site-footer-social__link::after {
   }
 }
 
-html[data-motion="reduce"] .site-footer-social__link,
-html[data-motion="reduce"] .site-footer-social__link::after {
+html[data-motion-preference="reduce"] .site-footer-social__link,
+html[data-motion-preference="reduce"] .site-footer-social__link::after {
   transition: none;
 }
 
-html[data-motion="reduce"] .site-footer-social__link:hover,
-html[data-motion="reduce"] .site-footer-social__link:active {
+html[data-motion-preference="reduce"] .site-footer-social__link:hover,
+html[data-motion-preference="reduce"] .site-footer-social__link:active {
   transform: none;
 }

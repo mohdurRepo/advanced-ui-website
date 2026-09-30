@@ -387,7 +387,7 @@ html[data-contrast="high"]
   }
 }
 
-html[data-motion="reduce"] .directory-view-switch__control {
+html[data-motion-preference="reduce"] .directory-view-switch__control {
   transition: none;
 }
 

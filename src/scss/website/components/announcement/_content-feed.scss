@@ -508,7 +508,7 @@ html[data-contrast="high"] {
   }
 }
 
-html[data-motion="reduce"] {
+html[data-motion-preference="reduce"] {
   .content-feed__periods {
     scroll-behavior: auto;
   }

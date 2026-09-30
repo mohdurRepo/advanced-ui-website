@@ -624,6 +624,6 @@ html[data-contrast="high"] {
   }
 }
 
-html[data-motion="reduce"] .foreign-ownership__meter-fill {
+html[data-motion-preference="reduce"] .foreign-ownership__meter-fill {
   transition: none;
 }

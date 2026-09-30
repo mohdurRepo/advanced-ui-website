@@ -669,7 +669,7 @@ html[data-contrast="high"] .card[data-selected="true"] {
   }
 }
 
-html[data-motion="reduce"] {
+html[data-motion-preference="reduce"] {
   .card--interactive:hover {
     transform: none;
   }

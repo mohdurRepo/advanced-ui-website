@@ -888,17 +888,17 @@ html[data-contrast="high"] .issuer-card__movement {
   }
 }
 
-html[data-motion="reduce"] .issuer-card,
-html[data-motion="reduce"] .issuer-card::before,
-html[data-motion="reduce"] .issuer-card__favorite,
-html[data-motion="reduce"] .issuer-card__name-link {
+html[data-motion-preference="reduce"] .issuer-card,
+html[data-motion-preference="reduce"] .issuer-card::before,
+html[data-motion-preference="reduce"] .issuer-card__favorite,
+html[data-motion-preference="reduce"] .issuer-card__name-link {
   transition: none;
 }
 
-html[data-motion="reduce"] .issuer-card:hover,
-html[data-motion="reduce"] .issuer-card:hover::before,
-html[data-motion="reduce"] .issuer-card:focus-within::before,
-html[data-motion="reduce"] .issuer-card__favorite:active {
+html[data-motion-preference="reduce"] .issuer-card:hover,
+html[data-motion-preference="reduce"] .issuer-card:hover::before,
+html[data-motion-preference="reduce"] .issuer-card:focus-within::before,
+html[data-motion-preference="reduce"] .issuer-card__favorite:active {
   transform: none;
 }
 

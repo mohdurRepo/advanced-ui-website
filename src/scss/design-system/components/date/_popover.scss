@@ -651,7 +651,7 @@ html[data-contrast="high"] {
   }
 }
 
-html[data-motion="reduce"] {
+html[data-motion-preference="reduce"] {
   .custom-date__popover,
   .custom-date__popover::backdrop,
   .custom-date__preset,

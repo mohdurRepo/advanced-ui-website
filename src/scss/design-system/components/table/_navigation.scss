@@ -337,11 +337,11 @@ html[data-contrast="high"] .table-scroll-jump {
   }
 }
 
-html[data-motion="reduce"] .table-scroll-jump {
+html[data-motion-preference="reduce"] .table-scroll-jump {
   transition: none;
 }
 
-html[data-motion="reduce"] .table-scroll-jump:hover,
-html[data-motion="reduce"] .table-scroll-jump:active {
+html[data-motion-preference="reduce"] .table-scroll-jump:hover,
+html[data-motion-preference="reduce"] .table-scroll-jump:active {
   transform: none;
 }

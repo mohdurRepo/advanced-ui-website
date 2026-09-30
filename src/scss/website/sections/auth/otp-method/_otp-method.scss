@@ -244,6 +244,6 @@ html[data-contrast="high"] {
   }
 }
 
-html[data-motion="reduce"] .auth-method {
+html[data-motion-preference="reduce"] .auth-method {
   transition: none;
 }

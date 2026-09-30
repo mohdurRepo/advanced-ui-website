@@ -24,16 +24,17 @@
    Colors
    ========================================================================== */
 
+/**
+ * Text utilities use colors that are suitable for foreground content.
+ *
+ * Surface/action colors such as --color-secondary, --color-accent and
+ * --color-attention are intentionally not exposed as text utilities because
+ * those values are designed primarily for filled surfaces and may not provide
+ * sufficient contrast as standalone text.
+ */
+
 .text-primary {
   color: var(--color-primary) !important;
-}
-
-.text-secondary {
-  color: var(--color-secondary) !important;
-}
-
-.text-accent {
-  color: var(--color-accent) !important;
 }
 
 .text-success {
@@ -44,12 +45,8 @@
   color: var(--color-info) !important;
 }
 
-.text-attention {
-  color: var(--color-attention) !important;
-}
-
 .text-warning {
-  color: var(--color-warning) !important;
+  color: var(--color-warning-text) !important;
 }
 
 .text-danger {

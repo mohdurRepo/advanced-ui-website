@@ -778,8 +778,8 @@ html[data-contrast="high"] .management-profile__header::after {
   }
 }
 
-html[data-motion="reduce"] .management-profile .modal-close,
-html[data-motion="reduce"] .management-profile__highlight {
+html[data-motion-preference="reduce"] .management-profile .modal-close,
+html[data-motion-preference="reduce"] .management-profile__highlight {
   transition: none;
 
   backdrop-filter: none;

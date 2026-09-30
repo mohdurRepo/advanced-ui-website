@@ -591,15 +591,15 @@ html[data-contrast="high"] .company-directory-card__symbol {
   }
 }
 
-html[data-motion="reduce"] .company-directory-card,
-html[data-motion="reduce"] .company-directory-card::before,
-html[data-motion="reduce"] .company-directory-card__navigate {
+html[data-motion-preference="reduce"] .company-directory-card,
+html[data-motion-preference="reduce"] .company-directory-card::before,
+html[data-motion-preference="reduce"] .company-directory-card__navigate {
   transition: none;
 }
 
-html[data-motion="reduce"] .company-directory-card:hover,
-html[data-motion="reduce"] .company-directory-card:hover::before,
-html[data-motion="reduce"]
+html[data-motion-preference="reduce"] .company-directory-card:hover,
+html[data-motion-preference="reduce"] .company-directory-card:hover::before,
+html[data-motion-preference="reduce"]
   .company-directory-card:hover
   .company-directory-card__navigate {
   transform: none;

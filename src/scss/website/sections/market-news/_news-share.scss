@@ -673,21 +673,21 @@ html[data-contrast="high"] .news-share__action {
    Explicit Reduced Motion
    ========================================================================== */
 
-html[data-motion="reduce"] .news-share__toggle,
-html[data-motion="reduce"] .news-share__toggle::before,
-html[data-motion="reduce"] .news-share__menu,
-html[data-motion="reduce"] .news-share__menu::after,
-html[data-motion="reduce"] .news-share__action {
+html[data-motion-preference="reduce"] .news-share__toggle,
+html[data-motion-preference="reduce"] .news-share__toggle::before,
+html[data-motion-preference="reduce"] .news-share__menu,
+html[data-motion-preference="reduce"] .news-share__menu::after,
+html[data-motion-preference="reduce"] .news-share__action {
   transition: none;
 }
 
-html[data-motion="reduce"] .news-share__toggle:active,
-html[data-motion="reduce"] .news-share__action:active,
-html[data-motion="reduce"] .news-share__action:hover,
-html[data-motion="reduce"]
+html[data-motion-preference="reduce"] .news-share__toggle:active,
+html[data-motion-preference="reduce"] .news-share__action:active,
+html[data-motion-preference="reduce"] .news-share__action:hover,
+html[data-motion-preference="reduce"]
   .news-share[data-share-state="closed"]
   .news-share__action,
-html[data-motion="reduce"]
+html[data-motion-preference="reduce"]
   .news-share[data-share-state="open"]
   .news-share__action {
   transform: none;

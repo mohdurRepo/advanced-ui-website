@@ -326,7 +326,7 @@ html[data-contrast="high"] .table {
   }
 }
 
-html[data-motion="reduce"] .table tbody tr,
-html[data-motion="reduce"] .table a {
+html[data-motion-preference="reduce"] .table tbody tr,
+html[data-motion-preference="reduce"] .table a {
   transition: none;
 }

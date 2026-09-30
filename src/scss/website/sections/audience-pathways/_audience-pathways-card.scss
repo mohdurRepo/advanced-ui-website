@@ -71,7 +71,7 @@
   min-inline-size: 0;
 
   border: 1px solid var(--audience-card-border);
-  
+
   /* FIXED: Added card boundary rounding and forced safety clip */
   border-radius: var(--audience-card-radius);
   overflow: hidden;
@@ -283,7 +283,7 @@ html[dir="rtl"] {
 @include ds.respond-down(sm) {
   .audience-pathways-card {
     gap: 0.75rem;
-    
+
     /* FIXED: Downscale radius step to match global display rules responsively */
     --audience-card-radius: var(--radius-lg);
   }
@@ -350,7 +350,7 @@ html[data-contrast="high"] {
    Reduced Motion
    ========================================================================== */
 
-html[data-motion="reduce"] {
+html[data-motion-preference="reduce"] {
   .audience-pathways-card__media,
   .audience-pathways-card__image,
   .audience-pathways-card__arrow,

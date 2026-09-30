@@ -536,7 +536,7 @@ html[data-contrast="high"] {
    Reduced Motion
    ========================================================================== */
 
-html[data-motion="reduce"] {
+html[data-motion-preference="reduce"] {
   .home-event-slider__image,
   .home-event-slider__action .has-icon,
   .home-event-slider__navigation,

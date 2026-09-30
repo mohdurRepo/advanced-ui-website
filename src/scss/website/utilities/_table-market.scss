@@ -1347,7 +1347,7 @@ html[data-contrast="high"] {
   }
 }
 
-html[data-motion="reduce"] {
+html[data-motion-preference="reduce"] {
   .table-market__favorite,
   .table-market__range-marker,
   .table-market__range-track::after {

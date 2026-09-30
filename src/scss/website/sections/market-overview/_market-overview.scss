@@ -708,7 +708,7 @@ html[data-contrast="high"] {
    Reduced Motion — Application
    ========================================================================== */
 
-html[data-motion="reduce"] {
+html[data-motion-preference="reduce"] {
   .market-overview__summary-icon {
     transition: none;
   }

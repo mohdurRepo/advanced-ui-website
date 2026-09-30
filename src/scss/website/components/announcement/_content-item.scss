@@ -640,10 +640,10 @@ html[data-contrast="high"] {
   }
 }
 
-html[data-motion="reduce"] .content-item {
+html[data-motion-preference="reduce"] .content-item {
   transition: none;
 }
 
-html[data-motion="reduce"] .content-item:hover {
+html[data-motion-preference="reduce"] .content-item:hover {
   transform: none;
 }

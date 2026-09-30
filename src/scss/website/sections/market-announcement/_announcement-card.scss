@@ -510,11 +510,11 @@ html[data-contrast="high"] .announcement-card__action {
   }
 }
 
-html[data-motion="reduce"] .announcement-card {
+html[data-motion-preference="reduce"] .announcement-card {
   transition: none;
 }
 
-html[data-motion="reduce"] .announcement-card:hover {
+html[data-motion-preference="reduce"] .announcement-card:hover {
   transform: none;
 }
 

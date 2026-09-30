@@ -4,14 +4,14 @@
    Container
    ========================================================================== */
 
-/*
+/**
  * Shared constrained-width containers.
  *
  * Width is calculated from:
  *
- * - viewport width
- * - responsive inline page padding
- * - the selected maximum container width
+ * - the available viewport width;
+ * - an inline gutter on each side;
+ * - the selected maximum container width.
  *
  * All variants remain horizontally centered.
  */
@@ -24,9 +24,12 @@
 .container-xxl,
 .container-xxxl,
 .container-fluid {
-  --container-padding: var(--space-8);
+  --container-gutter: var(--space-8);
 
-  width: min(100% - var(--container-padding), var(--container-max, 100%));
+  width: min(
+    calc(100% - var(--container-gutter) - var(--container-gutter)),
+    var(--container-max, 100%)
+  );
 
   margin-inline: auto;
 }
@@ -88,6 +91,6 @@
   .container-xxl,
   .container-xxxl,
   .container-fluid {
-    --container-padding: var(--space-4);
+    --container-gutter: var(--space-4);
   }
 }

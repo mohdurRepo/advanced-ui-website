@@ -646,17 +646,17 @@ html[data-contrast="high"] .watchlist__remove {
   }
 }
 
-html[data-motion="reduce"] .watchlist__item,
-html[data-motion="reduce"] .watchlist__link,
-html[data-motion="reduce"] .watchlist__remove {
+html[data-motion-preference="reduce"] .watchlist__item,
+html[data-motion-preference="reduce"] .watchlist__link,
+html[data-motion-preference="reduce"] .watchlist__remove {
   transition: none;
 }
 
-html[data-motion="reduce"] .watchlist__item:hover,
-html[data-motion="reduce"] .watchlist__item.is-removing {
+html[data-motion-preference="reduce"] .watchlist__item:hover,
+html[data-motion-preference="reduce"] .watchlist__item.is-removing {
   transform: none;
 }
 
-html[data-motion="reduce"] .watchlist__item.is-loading::before {
+html[data-motion-preference="reduce"] .watchlist__item.is-loading::before {
   animation: none;
 }

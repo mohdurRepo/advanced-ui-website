@@ -6,7 +6,9 @@
 
 /**
  * Creates a reusable two-region layout.
+ *
  * It controls structure only; child components control appearance.
+ * Source order remains authoritative when the layout stacks.
  */
 
 .split-layout {
@@ -75,14 +77,18 @@
    Reverse
    ========================================================================== */
 
+/**
+ * Reverses desktop visual placement only.
+ *
+ * Reading and keyboard order remain determined by the DOM.
+ */
+
 .split-layout--reverse .split-layout__primary {
   grid-column: 2;
-  grid-row: 1;
 }
 
 .split-layout--reverse .split-layout__secondary {
   grid-column: 1;
-  grid-row: 1;
 }
 
 /* ==========================================================================
@@ -102,16 +108,6 @@
   .split-layout--reverse .split-layout__primary,
   .split-layout--reverse .split-layout__secondary {
     grid-column: 1;
-  }
-
-  .split-layout__primary,
-  .split-layout--reverse .split-layout__primary {
-    grid-row: 1;
-  }
-
-  .split-layout__secondary,
-  .split-layout--reverse .split-layout__secondary {
-    grid-row: 2;
   }
 }
 

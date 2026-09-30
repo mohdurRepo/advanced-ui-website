@@ -229,7 +229,7 @@ html[data-contrast="high"] {
  * shared controls do not animate when motion reduction is requested.
  */
 
-html[data-motion="reduce"] {
+html[data-motion-preference="reduce"] {
   .market-index-chart {
     .market-chart-toggle__button,
     .chart-range,

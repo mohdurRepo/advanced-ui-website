@@ -483,11 +483,11 @@ html[data-contrast="high"] .related-news-card__action {
   }
 }
 
-html[data-motion="reduce"] .related-news-card {
+html[data-motion-preference="reduce"] .related-news-card {
   transition: none;
 }
 
-html[data-motion="reduce"] .related-news-card:hover {
+html[data-motion-preference="reduce"] .related-news-card:hover {
   transform: none;
 }
 

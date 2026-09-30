@@ -752,7 +752,7 @@ html[data-contrast="high"] {
    Reduced Motion
    ========================================================================== */
 
-html[data-motion="reduce"] {
+html[data-motion-preference="reduce"] {
   .market-activity-table__watchlist {
     transition: none;
   }

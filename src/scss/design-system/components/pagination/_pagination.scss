@@ -694,7 +694,7 @@ html[data-contrast="high"] .pagination__link:disabled {
   }
 }
 
-html[data-motion="reduce"] .pagination__link:active {
+html[data-motion-preference="reduce"] .pagination__link:active {
   transform: none;
 }
 

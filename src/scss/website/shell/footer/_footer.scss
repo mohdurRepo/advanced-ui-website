@@ -363,6 +363,6 @@ html[data-contrast="high"] .site-footer__social {
   }
 }
 
-html[data-motion="reduce"] .site-footer__surface::after {
+html[data-motion-preference="reduce"] .site-footer__surface::after {
   filter: none;
 }

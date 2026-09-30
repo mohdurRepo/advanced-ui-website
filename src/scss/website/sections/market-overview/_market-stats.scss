@@ -789,7 +789,7 @@ html[data-contrast="high"] {
   }
 }
 
-html[data-motion="reduce"] {
+html[data-motion-preference="reduce"] {
   .market-stats__item {
     transition: none;
   }

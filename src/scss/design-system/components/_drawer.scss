@@ -306,7 +306,7 @@ html[data-contrast="high"] .drawer-panel {
   }
 }
 
-html[data-motion="reduce"] {
+html[data-motion-preference="reduce"] {
   .drawer-backdrop,
   .drawer-panel,
   .drawer-toggle,

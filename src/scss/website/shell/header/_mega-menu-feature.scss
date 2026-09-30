@@ -251,13 +251,13 @@ html[data-contrast="high"] .mega-feature--surface {
   }
 }
 
-html[data-motion="reduce"] .mega-feature__link,
-html[data-motion="reduce"] .mega-feature__link .has-icon,
-html[data-motion="reduce"] .mega-feature__link .svg-icon {
+html[data-motion-preference="reduce"] .mega-feature__link,
+html[data-motion-preference="reduce"] .mega-feature__link .has-icon,
+html[data-motion-preference="reduce"] .mega-feature__link .svg-icon {
   transition: none;
 }
 
-html[data-motion="reduce"] .mega-feature__link:hover .has-icon,
-html[data-motion="reduce"] .mega-feature__link:hover .svg-icon {
+html[data-motion-preference="reduce"] .mega-feature__link:hover .has-icon,
+html[data-motion-preference="reduce"] .mega-feature__link:hover .svg-icon {
   transform: none;
 }

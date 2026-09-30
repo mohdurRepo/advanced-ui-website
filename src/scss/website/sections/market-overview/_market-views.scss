@@ -335,7 +335,7 @@ html[data-contrast="high"] {
   }
 }
 
-html[data-motion="reduce"] {
+html[data-motion-preference="reduce"] {
   .market-views__tab {
     transition: none;
   }

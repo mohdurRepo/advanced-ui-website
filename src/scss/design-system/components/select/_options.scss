@@ -216,7 +216,7 @@
   }
 }
 
-html[data-motion="reduce"] {
+html[data-motion-preference="reduce"] {
   .custom-select__option,
   .custom-select__option-check {
     transition: none;

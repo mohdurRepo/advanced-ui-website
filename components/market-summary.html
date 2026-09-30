@@ -5685,20 +5685,36 @@
                   ></span>
                 </a>
 
-                <a class="btn btn-outline-light btn-arrow" href="#">
+                <button
+                  class="btn btn-outline-light btn-arrow"
+                  type="button"
+                  data-modal-open="peerComparisonModal"
+                >
                   <span>Compare</span>
 
                   <span
                     class="has-icon icon-chevron-right icon-flip-rtl"
                     aria-hidden="true"
                   ></span>
-                </a>
+                </button>
               </nav>
             </aside>
           </div>
         </div>
       </section>
 
+      <!-- ==========================================================================
+     Peer Comparison Result
+     ========================================================================== -->
+
+      <section class="section peer-comparison-result" data-peer-result hidden>
+        <div class="container">
+          <div
+            class="peer-comparison-result__inner"
+            data-peer-result-inner
+          ></div>
+        </div>
+      </section>
       <!-- ==========================================================================
      Main Market Dashboard
      ========================================================================== -->
@@ -10723,7 +10739,309 @@
       aria-label="Back to top"
       title="Back to top"
     ></button>
+
+    <!-- ===============================================================
+     Peer Comparison Modal
+================================================================ -->
+
+    <div
+      id="peerComparisonModal"
+      class="modal modal-md modal-rounded modal-no-header modal-no-footer modal-visual peer-comparison-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-hidden="true"
+      aria-labelledby="peerComparisonModalTitle"
+      aria-describedby="peerComparisonModalDescription"
+    >
+      <!-- =============================================================
+       Backdrop
+  ============================================================== -->
+
+      <div class="modal-backdrop" data-modal-close aria-hidden="true"></div>
+
+      <!-- =============================================================
+       Dialog
+  ============================================================== -->
+
+      <div class="modal-dialog">
+        <div class="modal-content surface-hero">
+          <div class="modal-body">
+            <!-- =========================================================
+             Heading
+        ========================================================== -->
+
+            <div class="modal-login-heading">
+              <div>
+                <p class="modal-subtitle">Peer Comparison</p>
+
+                <h2 id="peerComparisonModalTitle" class="modal-title">
+                  Compare market indices
+                </h2>
+
+                <p id="peerComparisonModalDescription" class="modal-subtitle">
+                  Select up to 5 indices to compare with the Main Market.
+                </p>
+              </div>
+            </div>
+
+            <!-- =========================================================
+             Close
+        ========================================================== -->
+
+            <button
+              class="modal-close"
+              type="button"
+              data-modal-close
+              aria-label="Close peer comparison"
+            ></button>
+
+            <!-- =========================================================
+             Peer Comparison
+        ========================================================== -->
+
+            <div class="peer-comparison" data-peer-selection>
+              <!-- =======================================================
+               Search
+          ======================================================== -->
+
+              <form
+                id="peerComparisonSearchForm"
+                class="peer-comparison__form"
+                role="search"
+                action="#"
+                method="get"
+              >
+                <label class="visually-hidden" for="peerComparisonSearchInput">
+                  Search indices
+                </label>
+
+                <div class="peer-comparison__field">
+                  <span
+                    class="peer-comparison__search-icon has-icon icon-search"
+                    aria-hidden="true"
+                  ></span>
+
+                  <input
+                    id="peerComparisonSearchInput"
+                    class="form-control"
+                    type="text"
+                    name="peer-search"
+                    placeholder="Search by index name or symbol"
+                    autocomplete="off"
+                    inputmode="search"
+                    enterkeyhint="search"
+                    spellcheck="false"
+                    data-peer-search
+                    data-modal-initial-focus
+                  />
+                </div>
+              </form>
+
+              <!-- =======================================================
+               Options
+          ======================================================== -->
+
+              <div
+                class="peer-comparison__list"
+                data-peer-list
+                aria-label="Available comparison indices"
+              >
+                <!-- Banks -->
+
+                <label class="peer-comparison__option" data-peer-option>
+                  <input
+                    class="peer-comparison__checkbox"
+                    type="checkbox"
+                    name="peer[]"
+                    value="TBNI"
+                    data-peer-checkbox
+                  />
+
+                  <span class="peer-comparison__option-content">
+                    <span class="peer-comparison__option-name">
+                      Banks Index
+                    </span>
+
+                    <span class="peer-comparison__option-code"> TBNI </span>
+                  </span>
+                </label>
+
+                <!-- Materials -->
+
+                <label class="peer-comparison__option" data-peer-option>
+                  <input
+                    class="peer-comparison__checkbox"
+                    type="checkbox"
+                    name="peer[]"
+                    value="TMATI"
+                    data-peer-checkbox
+                  />
+
+                  <span class="peer-comparison__option-content">
+                    <span class="peer-comparison__option-name">
+                      Materials Index
+                    </span>
+
+                    <span class="peer-comparison__option-code"> TMATI </span>
+                  </span>
+                </label>
+
+                <!-- Energy -->
+
+                <label class="peer-comparison__option" data-peer-option>
+                  <input
+                    class="peer-comparison__checkbox"
+                    type="checkbox"
+                    name="peer[]"
+                    value="TENI"
+                    data-peer-checkbox
+                  />
+
+                  <span class="peer-comparison__option-content">
+                    <span class="peer-comparison__option-name">
+                      Energy Index
+                    </span>
+
+                    <span class="peer-comparison__option-code"> TENI </span>
+                  </span>
+                </label>
+
+                <!-- Telecommunication Services -->
+
+                <label class="peer-comparison__option" data-peer-option>
+                  <input
+                    class="peer-comparison__checkbox"
+                    type="checkbox"
+                    name="peer[]"
+                    value="TTSI"
+                    data-peer-checkbox
+                  />
+
+                  <span class="peer-comparison__option-content">
+                    <span class="peer-comparison__option-name">
+                      Telecommunication Services Index
+                    </span>
+
+                    <span class="peer-comparison__option-code"> TTSI </span>
+                  </span>
+                </label>
+
+                <!-- Real Estate -->
+
+                <label class="peer-comparison__option" data-peer-option>
+                  <input
+                    class="peer-comparison__checkbox"
+                    type="checkbox"
+                    name="peer[]"
+                    value="TREDI"
+                    data-peer-checkbox
+                  />
+
+                  <span class="peer-comparison__option-content">
+                    <span class="peer-comparison__option-name">
+                      Real Estate Management &amp; Development Index
+                    </span>
+
+                    <span class="peer-comparison__option-code"> TREDI </span>
+                  </span>
+                </label>
+
+                <!-- Insurance -->
+
+                <label class="peer-comparison__option" data-peer-option>
+                  <input
+                    class="peer-comparison__checkbox"
+                    type="checkbox"
+                    name="peer[]"
+                    value="TISI"
+                    data-peer-checkbox
+                  />
+
+                  <span class="peer-comparison__option-content">
+                    <span class="peer-comparison__option-name">
+                      Insurance Index
+                    </span>
+
+                    <span class="peer-comparison__option-code"> TISI </span>
+                  </span>
+                </label>
+              </div>
+
+              <!-- =======================================================
+               Empty State
+          ======================================================== -->
+
+              <p class="peer-comparison__empty" data-peer-empty hidden>
+                No matching indices found.
+              </p>
+
+              <!-- =======================================================
+               Status
+          ======================================================== -->
+
+              <div class="peer-comparison__status">
+                <p
+                  class="peer-comparison__error"
+                  data-peer-error
+                  role="alert"
+                  hidden
+                >
+                  You can select up to 5 indices.
+                </p>
+
+                <p
+                  class="peer-comparison__count"
+                  data-peer-count
+                  aria-live="polite"
+                >
+                  0 of 5 selected
+                </p>
+              </div>
+
+              <!-- =======================================================
+               Actions
+          ======================================================== -->
+
+              <div class="peer-comparison__actions">
+                <button
+                  type="button"
+                  class="btn btn-outline-light"
+                  data-modal-close
+                >
+                  Cancel
+                </button>
+
+                <button
+                  type="button"
+                  class="btn btn-light"
+                  data-peer-submit
+                  disabled
+                >
+                  Compare selected
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </body>
+
+  <script src="https://code.jquery.com/jquery-4.0.0.min.js"></script>
+  <script
+    type="module"
+    src="/src/js/peer-compare/peer-comparison-utils.js"
+  ></script>
+
+  <script
+    type="module"
+    src="/src/js/peer-compare/peer-comparison-table.js"
+  ></script>
+  <script
+    type="module"
+    src="/src/js/peer-compare/peer-comparison-graph.js"
+  ></script>
+  <script type="module" src="/src/js/peer-compare/peer-comparison.js"></script>
   <script>
     /* ==========================================================================
    Main Market Performance — Integration Test Harness

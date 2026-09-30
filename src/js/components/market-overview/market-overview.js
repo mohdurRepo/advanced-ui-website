@@ -178,7 +178,7 @@ function getLabels() {
    ========================================================================== */
 
 function prefersReducedMotion() {
-  if (document.documentElement.dataset.motion === "reduce") {
+  if (document.documentElement.dataset.motionPreference === "reduce") {
     return true;
   }
 

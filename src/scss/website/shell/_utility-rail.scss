@@ -305,7 +305,7 @@ html[data-contrast="high"] .utility-rail__action:not(:last-child) {
   }
 }
 
-html[data-motion="reduce"] {
+html[data-motion-preference="reduce"] {
   .utility-rail,
   .utility-rail__action,
   .utility-rail__label {

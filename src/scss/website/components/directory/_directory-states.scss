@@ -438,8 +438,8 @@ html[data-contrast="high"] .directory-skeleton__block::after {
   }
 }
 
-html[data-motion="reduce"] .directory-state__loader,
-html[data-motion="reduce"] .directory-skeleton__block::after {
+html[data-motion-preference="reduce"] .directory-state__loader,
+html[data-motion-preference="reduce"] .directory-skeleton__block::after {
   animation: none;
 }
 

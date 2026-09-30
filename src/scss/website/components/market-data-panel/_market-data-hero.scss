@@ -326,7 +326,7 @@ html[data-contrast="high"] {
    Reduced Motion: Design-system Preference
    ========================================================================== */
 
-html[data-motion="reduce"] {
+html[data-motion-preference="reduce"] {
   .market-data-hero__action .has-icon {
     transition: none;
   }

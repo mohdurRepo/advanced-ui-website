@@ -178,7 +178,7 @@ html[dir="rtl"] {
    Reduced Motion
    ========================================================================== */
 
-html[data-motion="reduce"] {
+html[data-motion-preference="reduce"] {
   .financial-section-panel__footer .has-icon {
     transition: none;
   }

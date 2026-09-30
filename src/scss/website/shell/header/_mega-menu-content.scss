@@ -200,6 +200,6 @@ html[data-contrast="high"] .mega-menu-panel__link[aria-current="page"] {
   }
 }
 
-html[data-motion="reduce"] .mega-menu-panel__link {
+html[data-motion-preference="reduce"] .mega-menu-panel__link {
   transition: none;
 }

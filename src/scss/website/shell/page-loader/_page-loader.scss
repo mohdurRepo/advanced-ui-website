@@ -197,6 +197,6 @@ html[data-contrast="high"] .page-loader {
   }
 }
 
-html[data-motion="reduce"] .page-loader {
+html[data-motion-preference="reduce"] .page-loader {
   transition: none;
 }

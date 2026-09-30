@@ -485,10 +485,10 @@ html[data-contrast="high"] .member-card__website {
   }
 }
 
-html[data-motion="reduce"] .member-card,
-html[data-motion="reduce"] .member-card__name-link,
-html[data-motion="reduce"] .member-card__profile,
-html[data-motion="reduce"] .member-card__website {
+html[data-motion-preference="reduce"] .member-card,
+html[data-motion-preference="reduce"] .member-card__name-link,
+html[data-motion-preference="reduce"] .member-card__profile,
+html[data-motion-preference="reduce"] .member-card__website {
   transition: none;
 }
 

@@ -798,7 +798,7 @@ html[data-contrast="high"] .resource-card--featured {
   }
 }
 
-html[data-motion="reduce"] {
+html[data-motion-preference="reduce"] {
   .resource-card:hover,
   .resource-card__icon {
     transform: none;

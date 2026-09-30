@@ -512,7 +512,7 @@ html[data-contrast="high"] {
   }
 }
 
-html[data-motion="reduce"] {
+html[data-motion-preference="reduce"] {
   .watchlist-announcement__link {
     transition: none;
   }

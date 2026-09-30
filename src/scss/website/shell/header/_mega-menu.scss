@@ -224,15 +224,15 @@ html[data-contrast="high"] .mega-menu__rail {
   }
 }
 
-html[data-motion="reduce"] .mega-menu {
+html[data-motion-preference="reduce"] .mega-menu {
   transition: none;
   transform: none;
 }
 
-html[data-motion="reduce"] .site-nav__item.is-open > .mega-menu,
-html[data-motion="reduce"]
+html[data-motion-preference="reduce"] .site-nav__item.is-open > .mega-menu,
+html[data-motion-preference="reduce"]
   .site-nav__trigger[aria-expanded="true"]
   + .mega-menu,
-html[data-motion="reduce"] .mega-menu[aria-hidden="false"] {
+html[data-motion-preference="reduce"] .mega-menu[aria-hidden="false"] {
   transform: none;
 }

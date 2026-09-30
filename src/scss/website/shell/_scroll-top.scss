@@ -243,13 +243,13 @@ html[data-contrast="high"] .scroll-top {
   }
 }
 
-html[data-motion="reduce"] .scroll-top {
+html[data-motion-preference="reduce"] .scroll-top {
   transition: none;
 }
 
-html[data-motion="reduce"] .scroll-top,
-html[data-motion="reduce"] .scroll-top:hover,
-html[data-motion="reduce"] .scroll-top:active,
-html[data-motion="reduce"] .scroll-top.is-visible {
+html[data-motion-preference="reduce"] .scroll-top,
+html[data-motion-preference="reduce"] .scroll-top:hover,
+html[data-motion-preference="reduce"] .scroll-top:active,
+html[data-motion-preference="reduce"] .scroll-top.is-visible {
   transform: none;
 }

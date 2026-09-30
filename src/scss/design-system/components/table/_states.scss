@@ -233,13 +233,13 @@ html[data-contrast="high"] .table th.is-updating::after {
   }
 }
 
-html[data-motion="reduce"] .table-skeleton,
-html[data-motion="reduce"] .table td.is-updating::after,
-html[data-motion="reduce"] .table th.is-updating::after {
+html[data-motion-preference="reduce"] .table-skeleton,
+html[data-motion-preference="reduce"] .table td.is-updating::after,
+html[data-motion-preference="reduce"] .table th.is-updating::after {
   animation: none;
 }
 
-html[data-motion="reduce"] .table td.is-updating::after,
-html[data-motion="reduce"] .table th.is-updating::after {
+html[data-motion-preference="reduce"] .table td.is-updating::after,
+html[data-motion-preference="reduce"] .table th.is-updating::after {
   opacity: 1;
 }

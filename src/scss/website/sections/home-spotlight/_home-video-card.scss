@@ -353,7 +353,7 @@ html[data-contrast="high"] {
    Reduced Motion
    ========================================================================== */
 
-html[data-motion="reduce"] {
+html[data-motion-preference="reduce"] {
   .home-video-card__thumbnail,
   .home-video-card__wrapper::after,
   .home-video-card__play {

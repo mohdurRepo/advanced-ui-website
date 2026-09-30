@@ -321,7 +321,7 @@ html[data-contrast="high"] {
    Reduced Motion
    ========================================================================== */
 
-html[data-motion="reduce"] {
+html[data-motion-preference="reduce"] {
   .financial-summary-grid__item,
   a.financial-summary-grid__value {
     transition: none;

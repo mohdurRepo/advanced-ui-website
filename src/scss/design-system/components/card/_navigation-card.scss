@@ -647,7 +647,7 @@ html[data-contrast="high"] .navigation-card__action {
   }
 }
 
-html[data-motion="reduce"] {
+html[data-motion-preference="reduce"] {
   .navigation-card:hover,
   .navigation-card:active {
     transform: none;

@@ -80,7 +80,7 @@
   border-radius: var(--radius-none);
 
   background: transparent;
-  color: #f5f6f8;//var(--color-text);
+  color: #f5f6f8; //var(--color-text);
 
   font: inherit;
   font-size: var(--text-sm);
@@ -261,10 +261,10 @@ html[data-contrast="high"] .site-nav__trigger:focus-visible {
   }
 }
 
-html[data-motion="reduce"] .site-nav__link,
-html[data-motion="reduce"] .site-nav__trigger,
-html[data-motion="reduce"] .site-nav__trigger-icon,
-html[data-motion="reduce"] .site-nav__link::after,
-html[data-motion="reduce"] .site-nav__trigger::after {
+html[data-motion-preference="reduce"] .site-nav__link,
+html[data-motion-preference="reduce"] .site-nav__trigger,
+html[data-motion-preference="reduce"] .site-nav__trigger-icon,
+html[data-motion-preference="reduce"] .site-nav__link::after,
+html[data-motion-preference="reduce"] .site-nav__trigger::after {
   transition: none;
 }

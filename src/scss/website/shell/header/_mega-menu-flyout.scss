@@ -341,15 +341,15 @@ html[data-contrast="high"] .mega-menu-flyout__link[aria-current="page"] {
   }
 }
 
-html[data-motion="reduce"] .mega-menu-flyout__trigger,
-html[data-motion="reduce"] .mega-menu-flyout__icon,
-html[data-motion="reduce"] .mega-menu-flyout__menu,
-html[data-motion="reduce"] .mega-menu-flyout__link {
+html[data-motion-preference="reduce"] .mega-menu-flyout__trigger,
+html[data-motion-preference="reduce"] .mega-menu-flyout__icon,
+html[data-motion-preference="reduce"] .mega-menu-flyout__menu,
+html[data-motion-preference="reduce"] .mega-menu-flyout__link {
   transition: none;
 }
 
-html[data-motion="reduce"] .mega-menu-flyout__menu,
-html[data-motion="reduce"]
+html[data-motion-preference="reduce"] .mega-menu-flyout__menu,
+html[data-motion-preference="reduce"]
   .mega-menu-flyout.opens-start
   > .mega-menu-flyout__menu {
   transform: none;

@@ -405,11 +405,11 @@ html[data-contrast="high"] .table-sort-active {
   }
 }
 
-html[data-motion="reduce"] .table-favorite,
-html[data-motion="reduce"] .table-sort {
+html[data-motion-preference="reduce"] .table-favorite,
+html[data-motion-preference="reduce"] .table-sort {
   transition: none;
 }
 
-html[data-motion="reduce"] .table-favorite:active:not(:disabled) {
+html[data-motion-preference="reduce"] .table-favorite:active:not(:disabled) {
   transform: none;
 }

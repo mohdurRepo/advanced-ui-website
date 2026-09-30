@@ -844,7 +844,7 @@ html[data-contrast="high"] {
    Reduced Motion
    ========================================================================== */
 
-html[data-motion="reduce"] {
+html[data-motion-preference="reduce"] {
   .company-search__search-icon,
   .company-search__result,
   .company-search__result-indicator {

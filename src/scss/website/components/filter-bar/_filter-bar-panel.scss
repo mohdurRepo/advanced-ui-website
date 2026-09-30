@@ -494,6 +494,6 @@ html[data-contrast="high"] .filter-panel--inline {
   }
 }
 
-html[data-motion="reduce"] .filter-panel__toggle .has-icon {
+html[data-motion-preference="reduce"] .filter-panel__toggle .has-icon {
   transition: none;
 }

@@ -435,7 +435,7 @@ html[data-contrast="high"] {
   }
 }
 
-html[data-motion="reduce"] {
+html[data-motion-preference="reduce"] {
   .contact-details__value a {
     transition: none;
   }

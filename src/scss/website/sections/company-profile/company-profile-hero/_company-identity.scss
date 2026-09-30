@@ -701,7 +701,7 @@ html[data-contrast="high"] {
   }
 }
 
-html[data-motion="reduce"] {
+html[data-motion-preference="reduce"] {
   .company-identity__utility,
   .company-identity__product {
     transition: none;

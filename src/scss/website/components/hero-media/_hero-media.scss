@@ -484,7 +484,7 @@ html[data-contrast="high"] {
   }
 }
 
-html[data-motion="reduce"] {
+html[data-motion-preference="reduce"] {
   .hero-media[aria-busy="true"] {
     animation: none;
   }

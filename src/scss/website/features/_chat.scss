@@ -269,16 +269,16 @@ html[data-contrast="high"] .chat-trigger__badge {
   }
 }
 
-html[data-motion="reduce"] .chat-trigger,
-html[data-motion="reduce"] .chat-trigger__icon {
+html[data-motion-preference="reduce"] .chat-trigger,
+html[data-motion-preference="reduce"] .chat-trigger__icon {
   transition: none;
 }
 
-html[data-motion="reduce"] .chat-trigger:hover,
-html[data-motion="reduce"] .chat-trigger:active,
-html[data-motion="reduce"] .chat-trigger.is-hidden,
-html[data-motion="reduce"] .chat-trigger.is-open .chat-trigger__icon,
-html[data-motion="reduce"]
+html[data-motion-preference="reduce"] .chat-trigger:hover,
+html[data-motion-preference="reduce"] .chat-trigger:active,
+html[data-motion-preference="reduce"] .chat-trigger.is-hidden,
+html[data-motion-preference="reduce"] .chat-trigger.is-open .chat-trigger__icon,
+html[data-motion-preference="reduce"]
   .chat-trigger[aria-expanded="true"]
   .chat-trigger__icon {
   transform: none;

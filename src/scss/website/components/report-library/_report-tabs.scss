@@ -257,10 +257,10 @@ html[data-contrast="high"]
   }
 }
 
-html[data-motion="reduce"] .report-library__tabs .tabs-nav {
+html[data-motion-preference="reduce"] .report-library__tabs .tabs-nav {
   scroll-behavior: auto;
 }
 
-html[data-motion="reduce"] .report-library__tabs .tab-link {
+html[data-motion-preference="reduce"] .report-library__tabs .tab-link {
   transition: none;
 }

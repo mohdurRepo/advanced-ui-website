@@ -498,7 +498,7 @@ html[data-contrast="high"] {
    Reduced Motion
    ========================================================================== */
 
-html[data-motion="reduce"] {
+html[data-motion-preference="reduce"] {
   .mobile-app-promo__store-link,
   .mobile-app-promo__mockup {
     transition: none;

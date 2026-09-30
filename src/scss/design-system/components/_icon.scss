@@ -480,6 +480,6 @@ html[dir="rtl"] .icon-list-flip-rtl {
   }
 }
 
-html[data-motion="reduce"] .has-icon::before {
+html[data-motion-preference="reduce"] .has-icon::before {
   animation: none;
 }

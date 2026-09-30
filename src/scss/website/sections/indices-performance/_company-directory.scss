@@ -566,11 +566,13 @@ html[data-contrast="high"]
   }
 }
 
-html[data-motion="reduce"] .company-directory .directory-view-switch__control {
+html[data-motion-preference="reduce"]
+  .company-directory
+  .directory-view-switch__control {
   transition: none;
 }
 
-html[data-motion="reduce"]
+html[data-motion-preference="reduce"]
   .company-directory
   .directory-view-switch__control:active {
   transform: none;

@@ -624,7 +624,7 @@ html[data-contrast="high"] .person-card__action {
   }
 }
 
-html[data-motion="reduce"] {
+html[data-motion-preference="reduce"] {
   .person-card:hover,
   .person-card:active,
   .person-card:hover .person-card__image {

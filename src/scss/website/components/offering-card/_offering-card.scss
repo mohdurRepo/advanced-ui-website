@@ -918,15 +918,15 @@ html[data-contrast="high"] .offering-card__document-action {
   }
 }
 
-html[data-motion="reduce"] .offering-card,
-html[data-motion="reduce"] .offering-card::before,
-html[data-motion="reduce"] .offering-card__logo,
-html[data-motion="reduce"] .offering-card__company-link {
+html[data-motion-preference="reduce"] .offering-card,
+html[data-motion-preference="reduce"] .offering-card::before,
+html[data-motion-preference="reduce"] .offering-card__logo,
+html[data-motion-preference="reduce"] .offering-card__company-link {
   transition: none;
 }
 
-html[data-motion="reduce"] .offering-card:hover,
-html[data-motion="reduce"] .offering-card:hover::before {
+html[data-motion-preference="reduce"] .offering-card:hover,
+html[data-motion-preference="reduce"] .offering-card:hover::before {
   transform: none;
 }
 

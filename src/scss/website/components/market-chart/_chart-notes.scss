@@ -309,7 +309,7 @@ html[data-contrast="high"] {
   }
 }
 
-html[data-motion="reduce"] {
+html[data-motion-preference="reduce"] {
   .chart-notes__info {
     transition: none;
 

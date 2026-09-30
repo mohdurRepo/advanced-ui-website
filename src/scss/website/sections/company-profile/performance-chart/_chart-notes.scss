@@ -175,7 +175,6 @@
   .chart-notes {
     margin-block-start: 0.875rem;
     padding: 0.875rem;
-
   }
 
   .chart-notes__list {
@@ -224,7 +223,7 @@ html[data-contrast="high"] {
    Reduced Motion
    ========================================================================== */
 
-html[data-motion="reduce"] {
+html[data-motion-preference="reduce"] {
   .chart-notes__info {
     transition: none;
   }

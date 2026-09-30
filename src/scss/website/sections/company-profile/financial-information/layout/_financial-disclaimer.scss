@@ -170,7 +170,7 @@ html[data-contrast="high"] {
    Reduced Motion
    ========================================================================== */
 
-html[data-motion="reduce"] {
+html[data-motion-preference="reduce"] {
   .financial-disclaimer__info {
     transition: none;
   }

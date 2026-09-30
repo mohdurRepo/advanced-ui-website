@@ -1,11 +1,6 @@
-@use "../abstracts" as ds;
-
 /* ==========================================================================
-   Shadows
+   Peer Comparison
    ========================================================================== */
 
-@each $key, $value in ds.$shadows {
-  .shadow-#{$key} {
-    box-shadow: var(--shadow-#{$key}) !important;
-  }
-}
+@forward "selection";
+@forward "result";

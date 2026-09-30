@@ -665,7 +665,7 @@ html[data-contrast="high"] {
    Reduced Motion — Application
    ========================================================================== */
 
-html[data-motion="reduce"] {
+html[data-motion-preference="reduce"] {
   .market-status {
     --market-status-dot-animation: none;
     --market-status-halo-animation: none;

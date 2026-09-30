@@ -496,12 +496,12 @@ html[data-contrast="high"] .feedback-form__types input:checked + label {
   }
 }
 
-html[data-motion="reduce"] .feedback-tab,
-html[data-motion="reduce"] .feedback-form__types label {
+html[data-motion-preference="reduce"] .feedback-tab,
+html[data-motion-preference="reduce"] .feedback-form__types label {
   transition: none;
 }
 
-html[data-motion="reduce"] .feedback-tab:hover {
+html[data-motion-preference="reduce"] .feedback-tab:hover {
   transform: translateY(-50%);
 }
 
@@ -512,7 +512,7 @@ html[data-motion="reduce"] .feedback-tab:hover {
     }
   }
 
-  html[data-motion="reduce"] .feedback-tab:hover {
+  html[data-motion-preference="reduce"] .feedback-tab:hover {
     transform: none;
   }
 }

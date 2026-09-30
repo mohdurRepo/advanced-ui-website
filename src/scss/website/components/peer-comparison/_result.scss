@@ -1,0 +1,670 @@
+@use "../../../design-system/abstracts" as ds;
+
+/* ==========================================================================
+   Peer Comparison Result
+   ========================================================================== */
+
+/**
+ * Result composition for peer comparison.
+ *
+ * Owns:
+ *
+ * - result header layout;
+ * - selected peer chips / comparison legend;
+ * - peer removal controls;
+ * - spacing around shared tabs;
+ * - table composition;
+ * - graph composition;
+ * - comparison range layout;
+ * - responsive behavior.
+ *
+ * Does not restyle:
+ *
+ * - generic tabs;
+ * - generic tables;
+ * - generic buttons;
+ * - shared Market Chart internals.
+ */
+
+.peer-comparison-result {
+  --peer-result-gap: var(--space-6);
+  --peer-result-selection-gap: var(--space-2);
+
+  --peer-result-chip-bg: var(--color-surface-alt);
+  --peer-result-chip-border: var(--color-border);
+  --peer-result-chip-color: var(--color-text);
+  --peer-result-chip-muted: var(--color-text-muted);
+
+  /*
+   * Comparison identity palette.
+   *
+   * These are consumed by peer-comparison-graph.js.
+   * They represent series identity, never positive / negative direction.
+   */
+
+  --peer-comparison-color-1: #2563eb;
+  --peer-comparison-color-2: #f97316;
+  --peer-comparison-color-3: #8b5cf6;
+  --peer-comparison-color-4: #0891b2;
+  --peer-comparison-color-5: #d97706;
+
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Inner
+   ========================================================================== */
+
+.peer-comparison-result__inner {
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Content
+   ========================================================================== */
+
+.peer-comparison-result__content {
+  display: grid;
+
+  gap: var(--peer-result-gap);
+
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Header
+   ========================================================================== */
+
+.peer-comparison-result__header {
+  display: flex;
+
+  align-items: flex-start;
+  justify-content: space-between;
+
+  gap: var(--space-6);
+
+  min-inline-size: 0;
+}
+
+.peer-comparison-result__heading {
+  display: grid;
+
+  gap: var(--space-2);
+
+  min-inline-size: 0;
+}
+
+.peer-comparison-result__eyebrow {
+  margin: 0;
+
+  color: var(--color-primary);
+
+  font-size: var(--text-sm);
+  font-weight: ds.font-weight("semibold");
+  line-height: var(--line-height-tight);
+}
+
+.peer-comparison-result__title {
+  margin: 0;
+
+  color: var(--color-heading);
+
+  font-size: clamp(var(--text-2xl), 3vw, var(--text-4xl));
+
+  font-weight: ds.font-weight("bold");
+  line-height: var(--line-height-tight);
+
+  text-wrap: balance;
+}
+
+.peer-comparison-result__description {
+  max-inline-size: 42rem;
+
+  margin: 0;
+
+  color: var(--color-text-muted);
+
+  font-size: var(--text-base);
+  line-height: var(--line-height-relaxed);
+}
+
+/* ==========================================================================
+   Selected Peers / Comparison Legend
+   ========================================================================== */
+
+/**
+ * The selected peer chips are also the chart legend.
+ *
+ * Their marker color is supplied through:
+ *
+ * --peer-series-color
+ *
+ * by the graph adapter.
+ */
+
+.peer-comparison-result__selection {
+  display: grid;
+
+  gap: var(--space-3);
+
+  min-inline-size: 0;
+}
+
+.peer-comparison-result__selection-label {
+  margin: 0;
+
+  color: var(--color-heading);
+
+  font-size: var(--text-sm);
+  font-weight: ds.font-weight("semibold");
+}
+
+.peer-comparison-result__peers {
+  display: flex;
+  flex-wrap: wrap;
+
+  gap: var(--peer-result-selection-gap);
+
+  margin: 0;
+  padding: 0;
+
+  list-style: none;
+}
+
+.peer-comparison-result__peer {
+  display: inline-flex;
+
+  align-items: center;
+
+  gap: var(--space-2);
+
+  min-inline-size: 0;
+
+  padding-block: var(--space-2);
+  padding-inline: var(--space-3);
+
+  border: 1px solid var(--peer-result-chip-border);
+  border-radius: var(--radius-pill);
+
+  background: var(--peer-result-chip-bg);
+  color: var(--peer-result-chip-color);
+}
+
+/* Series marker ---------------------------------------------------------- */
+
+.peer-comparison-result__peer::before {
+  content: "";
+
+  flex: 0 0 auto;
+
+  inline-size: 0.625rem;
+  block-size: 0.625rem;
+
+  border-radius: var(--radius-pill);
+
+  background: var(--peer-series-color, var(--color-primary));
+}
+
+/* Identity --------------------------------------------------------------- */
+
+.peer-comparison-result__peer-name {
+  min-inline-size: 0;
+
+  color: var(--peer-result-chip-color);
+
+  font-size: var(--text-sm);
+  font-weight: ds.font-weight("semibold");
+  line-height: var(--line-height-tight);
+
+  overflow-wrap: anywhere;
+}
+
+.peer-comparison-result__peer-code {
+  flex: 0 0 auto;
+
+  color: var(--peer-result-chip-muted);
+
+  font-size: var(--text-xs);
+  font-weight: ds.font-weight("medium");
+
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+
+/* ==========================================================================
+   Peer Removal
+   ========================================================================== */
+
+.peer-comparison-result__peer-remove {
+  display: inline-flex;
+
+  align-items: center;
+  justify-content: center;
+
+  flex: 0 0 auto;
+
+  inline-size: 1.5rem;
+  block-size: 1.5rem;
+
+  margin-inline-start: var(--space-1);
+
+  padding: 0;
+
+  border: 0;
+  border-radius: var(--radius-pill);
+
+  background: transparent;
+  color: var(--color-text-muted);
+
+  font: inherit;
+  line-height: 1;
+
+  cursor: pointer;
+
+  @include ds.transition((background-color, color), "fast");
+}
+
+.peer-comparison-result__peer-remove > span {
+  display: block;
+
+  font-size: 1rem;
+  line-height: 1;
+
+  transform: translateY(-0.03em);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .peer-comparison-result__peer-remove:hover {
+    background: var(--color-surface);
+    color: var(--color-heading);
+  }
+}
+
+.peer-comparison-result__peer-remove:focus-visible {
+  @include ds.focus-ring;
+}
+
+/* ==========================================================================
+   Shared Tabs Composition
+   ========================================================================== */
+
+.peer-comparison-result .tabs {
+  min-inline-size: 0;
+}
+
+.peer-comparison-result .tabs--contained {
+  overflow: hidden;
+
+  box-shadow: var(--shadow-sm);
+}
+
+.peer-comparison-result .tabs-content {
+  min-inline-size: 0;
+}
+
+.peer-comparison-result .tab-pane {
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Table
+   ========================================================================== */
+
+.peer-comparison-result__table {
+  min-inline-size: 0;
+}
+
+.peer-comparison-result__table .table-responsive {
+  margin: 0;
+}
+
+/* ==========================================================================
+   Peer Comparison Table Identity
+   ========================================================================== */
+
+.peer-comparison-table__instrument {
+  display: grid;
+
+  gap: var(--space-1);
+
+  min-inline-size: 0;
+}
+
+.peer-comparison-table__name {
+  color: var(--color-heading);
+
+  font-weight: ds.font-weight("semibold");
+  line-height: var(--line-height-tight);
+}
+
+.peer-comparison-table__code {
+  color: var(--color-text-muted);
+
+  font-size: var(--text-xs);
+  font-weight: ds.font-weight("medium");
+
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+
+/* ==========================================================================
+   Table Price Movement
+   ========================================================================== */
+
+.peer-comparison-table__change {
+  display: inline-flex;
+
+  align-items: center;
+  justify-content: flex-end;
+
+  gap: var(--space-1);
+
+  white-space: nowrap;
+}
+
+.peer-comparison-table__direction {
+  flex: 0 0 auto;
+
+  font-size: 0.7em;
+  line-height: 1;
+}
+
+.peer-comparison-table__change-value {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ==========================================================================
+   Graph
+   ========================================================================== */
+
+.peer-comparison-result__graph {
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Comparison Chart
+   ========================================================================== */
+
+.peer-comparison-chart {
+  display: grid;
+
+  gap: var(--space-4);
+
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Graph Header
+   ========================================================================== */
+
+.peer-comparison-chart__header {
+  display: flex;
+
+  align-items: flex-start;
+  justify-content: space-between;
+
+  gap: var(--space-4);
+
+  min-inline-size: 0;
+}
+
+.peer-comparison-chart__title {
+  margin: 0;
+
+  color: var(--color-heading);
+
+  font-size: var(--text-xl);
+  font-weight: ds.font-weight("bold");
+  line-height: var(--line-height-tight);
+}
+
+.peer-comparison-chart__description {
+  max-inline-size: 46rem;
+
+  margin-block: var(--space-1) 0;
+
+  color: var(--color-text-muted);
+
+  font-size: var(--text-sm);
+  line-height: var(--line-height-relaxed);
+}
+
+/* ==========================================================================
+   Graph Ranges
+   ========================================================================== */
+
+/**
+ * Keep comparison ranges above the graph.
+ *
+ * The generic chart toolbar continues to own the range button visuals.
+ */
+
+.peer-comparison-chart__ranges {
+  min-inline-size: 0;
+}
+
+/* ==========================================================================
+   Graph Surface
+   ========================================================================== */
+
+.peer-comparison-chart__surface {
+  min-inline-size: 0;
+
+  overflow: hidden;
+}
+
+.peer-comparison-chart__canvas {
+  min-inline-size: 0;
+
+  /*
+   * Comparison does not use the navigator, so the canvas can remain slightly
+   * more compact than the main market chart.
+   */
+
+  min-block-size: 20rem;
+}
+
+/* ==========================================================================
+   Temporary Placeholder
+   ========================================================================== */
+
+.peer-comparison-result__placeholder {
+  display: grid;
+
+  place-items: center;
+
+  min-block-size: 16rem;
+
+  padding: var(--space-6);
+
+  color: var(--color-text-muted);
+
+  font-size: var(--text-sm);
+
+  text-align: center;
+}
+
+/* ==========================================================================
+   Tablet
+   ========================================================================== */
+
+@include ds.respond-down("md") {
+  .peer-comparison-result {
+    --peer-result-gap: var(--space-5);
+  }
+
+  .peer-comparison-result__header {
+    gap: var(--space-4);
+  }
+
+  .peer-comparison-result__title {
+    font-size: clamp(var(--text-xl), 5vw, var(--text-3xl));
+  }
+
+  .peer-comparison-chart__canvas {
+    min-block-size: 18rem;
+  }
+}
+
+/* ==========================================================================
+   Mobile
+   ========================================================================== */
+
+@include ds.respond-down("sm") {
+  .peer-comparison-result {
+    --peer-result-gap: var(--space-4);
+  }
+
+  .peer-comparison-result__header {
+    flex-direction: column;
+  }
+
+  .peer-comparison-result__header .btn {
+    inline-size: 100%;
+  }
+
+  .peer-comparison-result__description {
+    font-size: var(--text-sm);
+  }
+
+  /*
+   * Keep chips wrapping naturally instead of making each selected peer a
+   * full-width row. This preserves their legend-like role on mobile.
+   */
+
+  .peer-comparison-result__peer {
+    max-inline-size: 100%;
+  }
+
+  .peer-comparison-result__peer-name {
+    overflow: hidden;
+
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .peer-comparison-chart {
+    gap: var(--space-3);
+  }
+
+  .peer-comparison-chart__title {
+    font-size: var(--text-lg);
+  }
+
+  .peer-comparison-chart__description {
+    font-size: var(--text-xs);
+  }
+
+  .peer-comparison-chart__canvas {
+    min-block-size: 16rem;
+  }
+
+  .peer-comparison-result__placeholder {
+    min-block-size: 12rem;
+
+    padding: var(--space-5);
+  }
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] {
+  .peer-comparison-result {
+    --peer-result-chip-bg: transparent;
+    --peer-result-chip-border: currentColor;
+    --peer-result-chip-color: currentColor;
+    --peer-result-chip-muted: currentColor;
+  }
+
+  .peer-comparison-result__peer {
+    border-width: 2px;
+  }
+
+  /*
+   * Color is not sufficient in high contrast, so the marker also gets a
+   * visible outline.
+   */
+
+  .peer-comparison-result__peer::before {
+    outline: 2px solid currentColor;
+    outline-offset: 1px;
+  }
+
+  .peer-comparison-result .tabs--contained {
+    box-shadow: none;
+  }
+}
+
+/* ==========================================================================
+   Forced Colors
+   ========================================================================== */
+
+@media (forced-colors: active) {
+  .peer-comparison-result__peer {
+    border-color: CanvasText;
+
+    background: Canvas;
+    color: CanvasText;
+  }
+
+  .peer-comparison-result__peer::before {
+    border: 1px solid CanvasText;
+
+    background: CanvasText;
+
+    forced-color-adjust: auto;
+  }
+
+  .peer-comparison-result__peer-code {
+    color: CanvasText;
+  }
+
+  .peer-comparison-result__peer-remove {
+    color: ButtonText;
+
+    forced-color-adjust: auto;
+  }
+
+  .peer-comparison-result__peer-remove:hover {
+    background: Highlight;
+    color: HighlightText;
+  }
+
+  .peer-comparison-result .tabs--contained {
+    box-shadow: none;
+  }
+}
+
+/* ==========================================================================
+   Print
+   ========================================================================== */
+
+@media print {
+  .peer-comparison-result__header .btn,
+  .peer-comparison-result__peer-remove {
+    display: none;
+  }
+
+  .peer-comparison-result__peer {
+    border-color: #000000;
+
+    background: transparent;
+    color: #000000;
+  }
+
+  .peer-comparison-result__peer::before {
+    border: 1px solid #000000;
+
+    background: #000000;
+  }
+
+  .peer-comparison-result__peer-code {
+    color: #000000;
+  }
+
+  .peer-comparison-result .tabs--contained {
+    box-shadow: none;
+  }
+}

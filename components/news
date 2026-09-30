@@ -1,160 +1,395 @@
+<!-- ==========================================================================
+     Peer Comparison Trigger
+     ========================================================================== -->
 
-<section class="peer-comparison-result" data-peer-result>
-	<div class="peer-comparison-result__inner" data-peer-result-inner></div>
+<a
+  class="btn btn-outline-light market-data-hero__action"
+  href="#peer-comparison"
+  data-modal-open="peerComparisonModal"
+  aria-controls="peerComparisonModal"
+>
+  <span>
+    <fmt:message key="peer.header.sec" />
+  </span>
+
+  <span
+    class="has-icon icon-chevron-right icon-flip-rtl"
+    aria-hidden="true"
+  ></span>
+</a>
+
+
+<!-- ==========================================================================
+     Peer Comparison Result
+     ========================================================================== -->
+
+<section
+  id="peer-comparison"
+  class="section peer-comparison-result"
+  data-peer-result
+  hidden
+>
+  <div class="container">
+    <div
+      class="peer-comparison-result__inner"
+      data-peer-result-inner
+    ></div>
+  </div>
 </section>
 
-<div id="peerModalContent" class="d-none">
 
-	<!-- Modal Body -->
-	<div data-peer-body>
+<!-- ==========================================================================
+     Peer Comparison Modal
+     ========================================================================== -->
 
-		<div class="peer-selection" data-peer-selection>
+<div
+  id="peerComparisonModal"
+  class="
+    modal
+    modal-md
+    modal-rounded
+    modal-no-header
+    modal-no-footer
+    modal-visual
+    peer-comparison-modal
+  "
+  role="dialog"
+  aria-modal="true"
+  aria-hidden="true"
+  aria-labelledby="peerComparisonModalTitle"
+  aria-describedby="peerComparisonModalDescription"
+>
+  <!-- Backdrop -->
 
-			<p class="peer-selection__intro">
-				<fmt:message key="peercomp.compareindicessubtitle" />
-			</p>
+  <div
+    class="modal-backdrop"
+    data-modal-close
+    aria-hidden="true"
+  ></div>
 
-			<div class="peer-selection__box">
+  <!-- Dialog -->
 
-				<!-- Search -->
-				<div class="peer-selection__search-wrap">
-					<div class="form-field mb-0">
-						<div class="form-control-shell">
-							<input type="text" class="form-input peer-selection__search"
-								placeholder="<fmt:message key='tasi.compare.button.text' />"
-								data-peer-search />
-						</div>
-					</div>
-				</div>
+  <div class="modal-dialog">
+    <div class="modal-content surface-hero">
+      <div class="modal-body">
 
-				<!-- Options -->
-				<div class="peer-selection__list" data-peer-list>
+        <!-- ===============================================================
+             Heading
+             =============================================================== -->
 
-					<c:forEach items="${requestScope.chartChoices}" var="chartChoice">
+        <div class="modal-login-heading">
+          <div>
+            <p class="modal-subtitle">
+              <fmt:message key="chart.peerCompare" />
+            </p>
 
-						<label class="peer-option" data-peer-option> <input
-							type="checkbox" class="peer-option__checkbox" name="peer[]"
-							value="${chartChoice.value}" data-peer-checkbox /> <span
-							class="peer-option__info"> <span class="peer-option__code">
-									${chartChoice.value} </span> <span class="peer-option__name">
-									${chartChoice.label} </span>
+            <h2
+              id="peerComparisonModalTitle"
+              class="modal-title"
+            >
+              <fmt:message key="peer.header.sec" />
+            </h2>
 
-						</span>
+            <p
+              id="peerComparisonModalDescription"
+              class="modal-subtitle"
+            >
+              <fmt:message key="peercomp.compareindicessubtitle" />
+            </p>
+          </div>
+        </div>
 
-						</label>
+        <!-- ===============================================================
+             Close
+             =============================================================== -->
 
-					</c:forEach>
+        <button
+          class="modal-close"
+          type="button"
+          data-modal-close
+          aria-label="<fmt:message key='common.cancel' />"
+        ></button>
 
-				</div>
+        <!-- ===============================================================
+             Selection
+             =============================================================== -->
 
-				<p class="peer-selection__empty" data-peer-empty hidden>
-					<fmt:message key="common.noresults" />
-				</p>
+        <div
+          class="peer-comparison"
+          data-peer-selection
+        >
+          <!-- =============================================================
+               Search
+               ============================================================= -->
 
-			</div>
+          <form
+            id="peerComparisonSearchForm"
+            class="peer-comparison__form"
+            role="search"
+            action="#"
+            method="get"
+          >
+            <label
+              class="visually-hidden"
+              for="peerComparisonSearchInput"
+            >
+              <fmt:message key="tasi.compare.button.text" />
+            </label>
 
-				<p class="peer-selection__error" data-peer-error hidden><fmt:message key='peercomp.compareindicessubtitle' /></p>
+            <div class="peer-comparison__field">
+              <span
+                class="
+                  peer-comparison__search-icon
+                  has-icon
+                  icon-search
+                "
+                aria-hidden="true"
+              ></span>
 
-			<p class="peer-selection__count" data-peer-count>0 of 6 selected
-			</p>
+              <input
+                id="peerComparisonSearchInput"
+                class="form-control"
+                type="text"
+                name="peer-search"
+                placeholder="<fmt:message key='tasi.compare.button.text' />"
+                autocomplete="off"
+                inputmode="search"
+                enterkeyhint="search"
+                spellcheck="false"
+                data-peer-search
+                data-modal-initial-focus
+              />
+            </div>
+          </form>
 
-		</div>
+          <!-- =============================================================
+               Options
+               ============================================================= -->
 
-	</div>
+          <div
+            class="peer-comparison__list"
+            data-peer-list
+          >
+            <c:forEach
+              items="${requestScope.chartChoices}"
+              var="chartChoice"
+            >
+              <label
+                class="peer-comparison__option"
+                data-peer-option
+              >
+                <input
+                  class="peer-comparison__checkbox"
+                  type="checkbox"
+                  name="peer[]"
+                  value="${chartChoice.value}"
+                  data-peer-checkbox
+                />
 
-	<!-- Modal Footer -->
-	<div data-peer-footer>
+                <span class="peer-comparison__option-content">
+                  <span class="peer-comparison__option-name">
+                    ${chartChoice.label}
+                  </span>
 
-		<div class="peer-selection-actions">
+                  <span class="peer-comparison__option-code">
+                    ${chartChoice.value}
+                  </span>
+                </span>
+              </label>
+            </c:forEach>
+          </div>
 
-			<button type="button" class="btn btn-secondary"
-				data-close-modal="modal">
-				<fmt:message key="common.cancel" />
-			</button>
+          <!-- =============================================================
+               Empty
+               ============================================================= -->
 
-			<button type="button" class="btn btn-primary" data-peer-submit>
-				<fmt:message key="peercomp.applycompany" />
-			</button>
+          <p
+            class="peer-comparison__empty"
+            data-peer-empty
+            hidden
+          >
+            <fmt:message key="common.noresults" />
+          </p>
 
-		</div>
+          <!-- =============================================================
+               Status
+               ============================================================= -->
 
-	</div>
+          <div class="peer-comparison__status">
+            <p
+              class="peer-comparison__error"
+              data-peer-error
+              role="alert"
+              hidden
+            >
+              <fmt:message key="peercomp.compareindicessubtitle" />
+            </p>
 
+            <p
+              class="peer-comparison__count"
+              data-peer-count
+              aria-live="polite"
+            >
+              0
+              <fmt:message key="peercomp.of" />
+              5
+              <fmt:message key="peercomp.selected" />
+            </p>
+          </div>
+
+          <!-- =============================================================
+               Actions
+               ============================================================= -->
+
+          <div class="peer-comparison__actions">
+            <button
+              type="button"
+              class="btn btn-outline-light"
+              data-modal-close
+            >
+              <fmt:message key="common.cancel" />
+            </button>
+
+            <button
+              type="button"
+              class="btn btn-light"
+              data-peer-submit
+              disabled
+            >
+              <fmt:message key="peercomp.applycompany" />
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 
+
+<!-- ==========================================================================
+     Peer Comparison Configuration
+     ========================================================================== -->
+
 <script>
-window.peer_of = "<fmt:message key="peercomp.of" />"
-window.peer_selected = "<fmt:message key="peercomp.selected" />" 
-window.peer_metric = "<fmt:message key="header.metric" />" 
-
   window.peerComparisonConfig = {
-    endpoint: "<portlet:resourceURL id="peerComparison"></portlet:resourceURL>",
+    endpoint: "<portlet:resourceURL id='api'></portlet:resourceURL>",
+
     ajaxMethod: "GET",
-    companySymbol: "${requestScope.companyDetailsInfo.companySymbol}",
-    companyName: "${requestScope.companyDetailsInfo.companyName}",
-    
-    getTokenUrl: '<%=getJWTTokenUrl%>',
-		pageName : "company-profile",
 
-		chartTypeHistorical : "SQL_CI_CV_COM",
-		chartTypeIntraday : "SQL_CI_DV",
+    /*
+     * Existing backend context.
+     *
+     * Keep these values aligned with the values currently expected by the
+     * peer comparison API.
+     */
+    companySymbol: "${api}",
+    companyName: "${api}",
 
-		labels : {
-			sharePrice : "<fmt:message key="header.shareprice" />",
-			marketCap : "<fmt:message key='header.marketcap' />",
-			marketCapMillion : "<fmt:message key='header.market.marketCap.million' />",
-			peRatio : "<fmt:message key='header.peratio' />",
+    getTokenUrl: "<%=getJWTTokenUrl%>",
 
-			peerCompare : "<fmt:message key='chart.peerCompare' />",
+    pageName: "company-profile",
 
-			indexName : "<fmt:message key='header.indexname' />",
-			value : "<fmt:message key='header.value' />",
-			return1D : "<fmt:message key='header.return' />",
+    chartTypeHistorical: "SQL_CI_CV_COM",
+    chartTypeIntraday: "SQL_CI_DV",
 
-			addCompany : "<fmt:message key='header.addCompany' />",
-			metric : "<fmt:message key='header.metric' />",
-			table : "<fmt:message key='header.table' />",
-			graph : "<fmt:message key='header.graph' />",
-			loading : "<fmt:message key='header.loading' />",
+    limits: {
+      min: 2,
+      max: 5
+    },
 
-			range1D : "<fmt:message key='chart.range.1D'/>",
-			range1W : "<fmt:message key='chart.range.1W'/>",
-			range1M : "<fmt:message key='chart.range.1M'/>",
-			range3M : "<fmt:message key='chart.range.3M'/>",
-			range1Y : "<fmt:message key='chart.range.1Y'/>",
-			rangeAll : "<fmt:message key='chart.range.all' />"
+    labels: {
+      sharePrice:
+        "<fmt:message key='header.shareprice' />",
 
-		}
-	};
+      marketCap:
+        "<fmt:message key='header.marketcap' />",
+
+      marketCapMillion:
+        "<fmt:message key='header.market.marketCap.million' />",
+
+      peRatio:
+        "<fmt:message key='header.peratio' />",
+
+      peerCompare:
+        "<fmt:message key='chart.peerCompare' />",
+
+      indexName:
+        "<fmt:message key='header.indexname' />",
+
+      value:
+        "<fmt:message key='header.value' />",
+
+      return1D:
+        "<fmt:message key='header.return' />",
+
+      addCompany:
+        "<fmt:message key='header.addCompany' />",
+
+      metric:
+        "<fmt:message key='header.metric' />",
+
+      table:
+        "<fmt:message key='header.table' />",
+
+      graph:
+        "<fmt:message key='header.graph' />",
+
+      loading:
+        "<fmt:message key='header.loading' />",
+
+      cancel:
+        "<fmt:message key='common.cancel' />",
+
+      noResults:
+        "<fmt:message key='common.noresults' />",
+
+      selected:
+        "<fmt:message key='peercomp.selected' />",
+
+      of:
+        "<fmt:message key='peercomp.of' />",
+
+      range1D:
+        "<fmt:message key='chart.range.1D' />",
+
+      range1W:
+        "<fmt:message key='chart.range.1W' />",
+
+      range1M:
+        "<fmt:message key='chart.range.1M' />",
+
+      range3M:
+        "<fmt:message key='chart.range.3M' />",
+
+      range6M:
+        "6M",
+
+      range1Y:
+        "<fmt:message key='chart.range.1Y' />",
+
+      rangeAll:
+        "<fmt:message key='chart.range.all' />"
+    }
+  };
 </script>
 
 
+<!-- ==========================================================================
+     Peer Comparison Scripts
+     ========================================================================== -->
+
 <script
-	src="${pageContext.request.contextPath}/js/peer-compare/peer-comparison-utils.js"></script>
+  src="${pageContext.request.contextPath}/js/peer-compare/peer-comparison-utils.js"
+></script>
+
 <script
-	src="${pageContext.request.contextPath}/js/peer-compare/peer-comparison-table.js"></script>
+  src="${pageContext.request.contextPath}/js/peer-compare/peer-comparison-table.js"
+></script>
+
 <script
-	src="${pageContext.request.contextPath}/js/peer-compare/peer-comparison-graph.js"></script>
+  src="${pageContext.request.contextPath}/js/peer-compare/peer-comparison-graph.js"
+></script>
+
 <script
-	src="${pageContext.request.contextPath}/js/peer-compare/peer-comparison.js"></script>
-
-
-
-<a
-                      class="btn btn-outline-light market-data-hero__action"
-                      href="#peer-comparison"
-                    >
-                      <span><fmt:message key="peer.header.sec" /></span>
-
-                      <span
-                        class="has-icon icon-chevron-right icon-flip-rtl"
-                        aria-hidden="true"
-                      ></span>
-                    </a>
-
-
-
-
-
-
-
+  src="${pageContext.request.contextPath}/js/peer-compare/peer-comparison.js"
+></script>

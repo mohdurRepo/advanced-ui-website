@@ -432,7 +432,6 @@
 }
 
 .market-snapshot__direction {
-
   flex: 0 0 auto;
 
   color: inherit;
@@ -724,7 +723,7 @@ html[data-contrast="high"] .market-snapshot__info {
   }
 }
 
-html[data-motion="reduce"] {
+html[data-motion-preference="reduce"] {
   .market-snapshot__tab,
   .market-snapshot__tab::after,
   .market-snapshot__info {

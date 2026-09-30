@@ -825,13 +825,13 @@ html[data-contrast="high"] .issuer-row__movement {
   }
 }
 
-html[data-motion="reduce"] .issuer-row,
-html[data-motion="reduce"] .issuer-row__name-link,
-html[data-motion="reduce"] .issuer-row__favorite {
+html[data-motion-preference="reduce"] .issuer-row,
+html[data-motion-preference="reduce"] .issuer-row__name-link,
+html[data-motion-preference="reduce"] .issuer-row__favorite {
   transition: none;
 }
 
-html[data-motion="reduce"] .issuer-row__favorite:active {
+html[data-motion-preference="reduce"] .issuer-row__favorite:active {
   transform: none;
 }
 

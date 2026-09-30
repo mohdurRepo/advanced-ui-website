@@ -10,6 +10,8 @@
  * The content column remains flexible.
  * The aside width is controlled through local custom properties so page
  * layouts can use semantic modifiers without recreating the grid.
+ *
+ * Source order remains authoritative when the layout stacks.
  */
 
 .sticky-layout {
@@ -53,7 +55,7 @@
 
 .sticky-layout__sticky {
   position: sticky;
-  top: var(--sticky-offset, var(--space-8));
+  inset-block-start: var(--sticky-offset, var(--space-8));
 }
 
 /* ==========================================================================
@@ -86,6 +88,12 @@
    Reverse
    ========================================================================== */
 
+/**
+ * Reverses desktop visual placement only.
+ *
+ * Reading and keyboard order remain determined by the DOM.
+ */
+
 .sticky-layout--reverse .sticky-layout__content {
   grid-column: 2;
 }
@@ -110,16 +118,6 @@
   .sticky-layout--reverse .sticky-layout__content,
   .sticky-layout--reverse .sticky-layout__aside {
     grid-column: 1;
-  }
-
-  .sticky-layout__content,
-  .sticky-layout--reverse .sticky-layout__content {
-    grid-row: 1;
-  }
-
-  .sticky-layout__aside,
-  .sticky-layout--reverse .sticky-layout__aside {
-    grid-row: 2;
   }
 
   .sticky-layout__sticky {

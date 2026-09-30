@@ -703,12 +703,15 @@ html[data-contrast="high"]
   }
 }
 
-html[data-motion="reduce"] .dt-container input.dt-input,
-html[data-motion="reduce"] .dt-container select.dt-input,
-html[data-motion="reduce"] .dt-container .dt-paging .dt-paging-button {
+html[data-motion-preference="reduce"] .dt-container input.dt-input,
+html[data-motion-preference="reduce"] .dt-container select.dt-input,
+html[data-motion-preference="reduce"]
+  .dt-container
+  .dt-paging
+  .dt-paging-button {
   transition: none;
 }
 
-html[data-motion="reduce"] .dt-container .dt-scroll-body {
+html[data-motion-preference="reduce"] .dt-container .dt-scroll-body {
   scroll-behavior: auto;
 }

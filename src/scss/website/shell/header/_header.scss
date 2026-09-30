@@ -223,6 +223,6 @@ html[data-contrast="high"] .site-header__brand:focus-visible {
   }
 }
 
-html[data-motion="reduce"] .site-header {
+html[data-motion-preference="reduce"] .site-header {
   transition: none;
 }

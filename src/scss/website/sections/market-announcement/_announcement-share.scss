@@ -672,21 +672,21 @@ html[data-contrast="high"] .announcement-share__action {
    Explicit Reduced Motion
    ========================================================================== */
 
-html[data-motion="reduce"] .announcement-share__toggle,
-html[data-motion="reduce"] .announcement-share__toggle::before,
-html[data-motion="reduce"] .announcement-share__menu,
-html[data-motion="reduce"] .announcement-share__menu::after,
-html[data-motion="reduce"] .announcement-share__action {
+html[data-motion-preference="reduce"] .announcement-share__toggle,
+html[data-motion-preference="reduce"] .announcement-share__toggle::before,
+html[data-motion-preference="reduce"] .announcement-share__menu,
+html[data-motion-preference="reduce"] .announcement-share__menu::after,
+html[data-motion-preference="reduce"] .announcement-share__action {
   transition: none;
 }
 
-html[data-motion="reduce"] .announcement-share__toggle:active,
-html[data-motion="reduce"] .announcement-share__action:active,
-html[data-motion="reduce"] .announcement-share__action:hover,
-html[data-motion="reduce"]
+html[data-motion-preference="reduce"] .announcement-share__toggle:active,
+html[data-motion-preference="reduce"] .announcement-share__action:active,
+html[data-motion-preference="reduce"] .announcement-share__action:hover,
+html[data-motion-preference="reduce"]
   .announcement-share[data-share-state="closed"]
   .announcement-share__action,
-html[data-motion="reduce"]
+html[data-motion-preference="reduce"]
   .announcement-share[data-share-state="open"]
   .announcement-share__action {
   transform: none;

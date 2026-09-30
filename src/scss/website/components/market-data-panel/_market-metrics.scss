@@ -640,7 +640,7 @@ html[data-contrast="high"] {
   }
 }
 
-html[data-motion="reduce"] {
+html[data-motion-preference="reduce"] {
   .market-metrics__info {
     transition: none;
   }

@@ -130,7 +130,7 @@ export function getDocumentDirection(element = document.documentElement) {
 export function prefersReducedMotion(documentReference = document) {
   const root = documentReference.documentElement;
 
-  if (root.dataset.motion === "reduce") {
+  if (root.dataset.motionPreference === "reduce") {
     return true;
   }
 

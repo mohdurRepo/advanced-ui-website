@@ -311,10 +311,10 @@ html[data-contrast="high"] .site-footer-brand__cta {
   }
 }
 
-html[data-motion="reduce"] .site-footer-brand__link {
+html[data-motion-preference="reduce"] .site-footer-brand__link {
   transition: none;
 }
 
-html[data-motion="reduce"] .site-footer-brand__link:hover {
+html[data-motion-preference="reduce"] .site-footer-brand__link:hover {
   transform: none;
 }

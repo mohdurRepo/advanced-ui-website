@@ -185,7 +185,7 @@ html[data-contrast="high"] {
    Reduced Motion
    ========================================================================== */
 
-html[data-motion="reduce"] {
+html[data-motion-preference="reduce"] {
   .financial-primary-tabs__item,
   .financial-primary-tabs__item::after {
     transition: none;

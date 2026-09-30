@@ -118,7 +118,7 @@
    Reduced Motion
    ========================================================================== */
 
-html[data-motion="reduce"] {
+html[data-motion-preference="reduce"] {
   .financial-information .tab-pane.active {
     animation: none;
   }
