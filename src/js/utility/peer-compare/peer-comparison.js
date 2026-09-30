@@ -2,33 +2,6 @@
    Peer Comparison
    ========================================================================== */
 
-/**
- * Peer comparison feature controller.
- *
- * Owns:
- *
- * - peer selection state;
- * - search filtering;
- * - minimum / maximum selection rules;
- * - selection count;
- * - restoring selection when the modal opens;
- * - result-shell rendering;
- * - selected-peer removal;
- * - peer-summary API request lifecycle;
- * - loading / ready / error feature states;
- * - coordination events consumed by table / graph modules;
- * - request cancellation and stale-response protection.
- *
- * Does not own:
- *
- * - generic modal behavior;
- * - generic tabs behavior;
- * - table rendering;
- * - chart rendering;
- * - chart historical/intraday requests;
- * - API-response field normalization beyond the summary envelope.
- */
-
 (() => {
   "use strict";
 
@@ -57,12 +30,6 @@
   const MAX_SELECTION = Number.isInteger(CONFIG.limits?.max)
     ? CONFIG.limits.max
     : 5;
-
-  const IDS = Object.freeze({
-    tablePanel: "peerComparisonTablePanel",
-
-    graphPanel: "peerComparisonGraphPanel",
-  });
 
   const SELECTORS = Object.freeze({
     modal: "#peerComparisonModal",
@@ -240,6 +207,7 @@
     return {
       code,
       name,
+      isBase: false,
     };
   }
 
@@ -252,6 +220,67 @@
       .filter((checkbox) => selectedPeerCodes.has(checkbox.value))
       .map(getPeerFromCheckbox)
       .filter(Boolean);
+  }
+
+  /* ==========================================================================
+     Comparison Roster
+     ========================================================================== */
+
+  /**
+   * The visible comparison always contains:
+   *
+   * 1. the original/base index;
+   * 2. the peers selected by the user.
+   *
+   * The base index is informational and therefore cannot be removed.
+   */
+
+  function getBasePeer() {
+    const code = U.getBaseCompanySymbol();
+
+    if (!code) {
+      return null;
+    }
+
+    return {
+      code,
+
+      name: U.getBaseCompanyName() || code,
+
+      isBase: true,
+    };
+  }
+
+  function getComparisonRoster(peers) {
+    const selected = U.normalizePeers(peers);
+
+    const roster = [];
+
+    const seen = new Set();
+
+    const base = getBasePeer();
+
+    if (base?.code) {
+      roster.push(base);
+
+      seen.add(base.code);
+    }
+
+    for (const peer of selected) {
+      if (seen.has(peer.code)) {
+        continue;
+      }
+
+      roster.push({
+        ...peer,
+
+        isBase: false,
+      });
+
+      seen.add(peer.code);
+    }
+
+    return roster;
   }
 
   /* ==========================================================================
@@ -460,55 +489,61 @@
   }
 
   /* ==========================================================================
-     Result Peer Markup
+     Comparison Roster Markup
      ========================================================================== */
 
-  function getSelectedPeerMarkup(peers) {
-    return peers
-      .map(
-        (peer) => `
-          <li
-            class="peer-comparison-result__peer"
-            data-peer-result-peer="${escapeHTML(peer.code)}"
+  function getComparisonPeerMarkup(peer) {
+    const baseClass = peer.isBase ? " peer-comparison-result__peer--base" : "";
+
+    const removeButton = peer.isBase
+      ? ""
+      : `
+          <button
+            type="button"
+            class="peer-comparison-result__peer-remove"
+            data-peer-remove="${escapeHTML(peer.code)}"
+            aria-label="Remove ${escapeHTML(peer.name)} from comparison"
+            title="Remove ${escapeHTML(peer.name)}"
           >
-            <span class="peer-comparison-result__peer-name">
-              ${escapeHTML(peer.name)}
+            <span aria-hidden="true">
+              ×
             </span>
+          </button>
+        `;
 
-            <span class="peer-comparison-result__peer-code">
-              ${escapeHTML(peer.code)}
-            </span>
+    return `
+      <li
+        class="peer-comparison-result__peer${baseClass}"
+        data-peer-result-peer="${escapeHTML(peer.code)}"
+        data-peer-base="${peer.isBase ? "true" : "false"}"
+      >
+        <span class="peer-comparison-result__peer-name">
+          ${escapeHTML(peer.name)}
+        </span>
 
-            <button
-              type="button"
-              class="peer-comparison-result__peer-remove"
-              data-peer-remove="${escapeHTML(peer.code)}"
-              aria-label="Remove ${escapeHTML(peer.name)} from comparison"
-              title="Remove ${escapeHTML(peer.name)}"
-            >
-              <span aria-hidden="true">
-                ×
-              </span>
-            </button>
-          </li>
-        `,
-      )
-      .join("");
+        <span class="peer-comparison-result__peer-code">
+          ${escapeHTML(peer.code)}
+        </span>
+
+        ${removeButton}
+      </li>
+    `;
+  }
+
+  function getComparisonRosterMarkup(peers) {
+    return getComparisonRoster(peers).map(getComparisonPeerMarkup).join("");
   }
 
   /* ==========================================================================
-     Result Shell
+     Result Dashboard
      ========================================================================== */
 
   function getResultShell(peers) {
-    const tableLabel = getLabel("table", "Table");
-
-    const graphLabel = getLabel("graph", "Graph");
-
     const loadingLabel = getLabel("loading", "Loading");
 
     return `
       <div class="peer-comparison-result__content">
+
         <!-- ===============================================================
              Header
              =============================================================== -->
@@ -528,110 +563,126 @@
             </p>
           </div>
 
-          <button
-            type="button"
-            class="btn btn-outline-primary"
-            data-peer-result-close
-          >
-            Close comparison
-          </button>
+          <div class="peer-comparison-result__header-actions">
+            <button
+              type="button"
+              class="btn btn-outline-primary"
+              data-peer-result-close
+            >
+              Close comparison
+            </button>
+          </div>
         </header>
 
         <!-- ===============================================================
-             Selected Peers
+             Comparison Roster
              =============================================================== -->
 
-        <div class="peer-comparison-result__selection">
-          <p class="peer-comparison-result__selection-label">
-            Selected indices
-          </p>
+        <section
+          class="
+            peer-comparison-result__section
+            peer-comparison-result__section--roster
+          "
+          aria-labelledby="peerComparisonRosterTitle"
+        >
+          <div class="peer-comparison-result__section-header">
+            <div>
+              <h3
+                id="peerComparisonRosterTitle"
+                class="peer-comparison-result__section-title"
+              >
+                Compared indices
+              </h3>
+
+              <p class="peer-comparison-result__section-description">
+                Main Market and the indices selected for comparison.
+              </p>
+            </div>
+          </div>
 
           <ul
             class="peer-comparison-result__peers"
-            aria-label="Selected comparison indices"
+            aria-label="Indices included in comparison"
           >
-            ${getSelectedPeerMarkup(peers)}
+            ${getComparisonRosterMarkup(peers)}
           </ul>
-        </div>
+        </section>
 
         <!-- ===============================================================
-             Views
+             Dashboard
              =============================================================== -->
 
-        <div
-          class="tabs tabs--contained"
-          data-tabs
-        >
-          <div
-            class="tabs-nav"
-            role="tablist"
-            aria-label="Peer comparison view"
+        <div class="peer-comparison-result__dashboard">
+
+          <!-- =============================================================
+               Market Snapshot
+               ============================================================= -->
+
+          <section
+            class="
+              peer-comparison-result__section
+              peer-comparison-result__section--table
+            "
+            aria-labelledby="peerComparisonTableTitle"
           >
-            <button
-              class="tab-link active"
-              type="button"
-              role="tab"
-              aria-selected="true"
-              data-tab="table"
-              data-tab-target="${IDS.tablePanel}"
-            >
-              ${escapeHTML(tableLabel)}
-            </button>
+            <div class="peer-comparison-result__section-header">
+              <div>
+                <p class="peer-comparison-result__section-eyebrow">
+                  Snapshot
+                </p>
 
-            <button
-              class="tab-link"
-              type="button"
-              role="tab"
-              aria-selected="false"
-              data-tab="graph"
-              data-tab-target="${IDS.graphPanel}"
-            >
-              ${escapeHTML(graphLabel)}
-            </button>
-          </div>
+                <h3
+                  id="peerComparisonTableTitle"
+                  class="peer-comparison-result__section-title"
+                >
+                  Market comparison
+                </h3>
 
-          <div class="tabs-content">
-            <!-- ===========================================================
-                 Table
-                 =========================================================== -->
-
-            <div
-              id="${IDS.tablePanel}"
-              class="tab-pane active"
-              role="tabpanel"
-            >
-              <div
-                class="peer-comparison-result__table"
-                data-peer-table
-                aria-busy="true"
-              >
-                <div class="peer-comparison-result__placeholder">
-                  ${escapeHTML(loadingLabel)}...
-                </div>
+                <p class="peer-comparison-result__section-description">
+                  Latest values for the indices included in this comparison.
+                </p>
               </div>
             </div>
 
-            <!-- ===========================================================
-                 Graph
-                 =========================================================== -->
-
             <div
-              id="${IDS.graphPanel}"
-              class="tab-pane"
-              role="tabpanel"
-              hidden
+              class="peer-comparison-result__table"
+              data-peer-table
+              aria-busy="true"
             >
-              <div
-                class="peer-comparison-result__graph"
-                data-peer-graph
-                aria-busy="true"
-              >
-                <div class="peer-comparison-result__placeholder">
-                  ${escapeHTML(loadingLabel)}...
-                </div>
+              <div class="peer-comparison-result__placeholder">
+                ${escapeHTML(loadingLabel)}...
               </div>
             </div>
-          </div>
+          </section>
+
+          <!-- =============================================================
+               Relative Performance
+               ============================================================= -->
+
+          <section
+            class="
+              peer-comparison-result__section
+              peer-comparison-result__section--graph
+            "
+            aria-labelledby="peerComparisonGraphTitle"
+          >
+            <div class="visually-hidden">
+              <h3 id="peerComparisonGraphTitle">
+                Relative performance
+              </h3>
+            </div>
+
+            <div
+              class="peer-comparison-result__graph"
+              data-peer-graph
+              aria-busy="true"
+            >
+              <div class="peer-comparison-result__placeholder">
+                ${escapeHTML(loadingLabel)}...
+              </div>
+            </div>
+          </section>
+
         </div>
       </div>
     `;
@@ -660,12 +711,16 @@
   function dispatchLoading(peers) {
     dispatchFeatureEvent(EVENTS.loading, {
       peers,
+
+      comparisonRoster: getComparisonRoster(peers),
     });
   }
 
   function dispatchRender(peers, rows) {
     dispatchFeatureEvent(EVENTS.render, {
       peers,
+
+      comparisonRoster: getComparisonRoster(peers),
 
       rows,
     });
@@ -675,6 +730,8 @@
     dispatchFeatureEvent(EVENTS.error, {
       peers,
 
+      comparisonRoster: getComparisonRoster(peers),
+
       error,
     });
   }
@@ -682,6 +739,9 @@
   function dispatchClear() {
     dispatchFeatureEvent(EVENTS.clear, {
       peers: [],
+
+      comparisonRoster: [],
+
       rows: [],
     });
   }
@@ -709,17 +769,13 @@
      ========================================================================== */
 
   /**
-   * Keep this intentionally narrow.
-   *
-   * Legacy API supported:
+   * Legacy API supports either:
    *
    *   [...]
    *
    * or:
    *
    *   { data: [...] }
-   *
-   * Field-level normalization belongs in PeerComparisonUtils.
    */
 
   function unwrapSummaryRows(response) {
@@ -783,7 +839,7 @@
       signal: controller.signal,
     };
 
-    let url = new URL(endpoint, window.location.href);
+    const url = new URL(endpoint, window.location.href);
 
     if (method === "GET" || method === "HEAD") {
       for (const [key, value] of Object.entries(parameters)) {
@@ -846,15 +902,17 @@
       return;
     }
 
-    dom.result.setAttribute("aria-busy", String(Boolean(busy)));
+    const value = String(Boolean(busy));
 
-    const table = dom.result.querySelector("[data-peer-table]");
+    dom.result.setAttribute("aria-busy", value);
 
-    const graph = dom.result.querySelector("[data-peer-graph]");
+    dom.result
+      .querySelector("[data-peer-table]")
+      ?.setAttribute("aria-busy", value);
 
-    table?.setAttribute("aria-busy", String(Boolean(busy)));
-
-    graph?.setAttribute("aria-busy", String(Boolean(busy)));
+    dom.result
+      .querySelector("[data-peer-graph]")
+      ?.setAttribute("aria-busy", value);
   }
 
   /* ==========================================================================
@@ -875,7 +933,8 @@
     }
 
     /*
-     * Build the UI first so the user receives immediate loading feedback.
+     * Build the full dashboard immediately.
+     * Table and graph now render together; there is no view switching.
      */
 
     dom.resultInner.innerHTML = getResultShell(peers);
@@ -900,7 +959,7 @@
       const rows = await fetchPeerSummary(peers);
 
       /*
-       * Null means the request was superseded by a newer selection.
+       * Null means a newer comparison request replaced this request.
        */
 
       if (rows === null) {
@@ -927,8 +986,7 @@
     cancelSummaryRequest();
 
     /*
-     * Invalidate any request that might have completed immediately before
-     * AbortController was observed.
+     * Invalidate anything that completed immediately before abort.
      */
 
     requestId += 1;
@@ -997,6 +1055,14 @@
       return;
     }
 
+    /*
+     * The base/original index is permanent.
+     */
+
+    if (U.normalizeCode(normalizedCode) === U.getBaseCompanySymbol()) {
+      return;
+    }
+
     removeStoredPeer(normalizedCode);
 
     restoreStoredSelection();
@@ -1007,10 +1073,9 @@
     const remainingPeers = getStoredPeers();
 
     /*
-     * A comparison requires at least two selected peers.
+     * The comparison requires at least two user-selected peers.
      *
-     * Preserve the remaining single selection in the modal so the user can
-     * reopen it and add another peer.
+     * The base index does not count toward this selection minimum.
      */
 
     if (remainingPeers.length < MIN_SELECTION) {
@@ -1022,7 +1087,7 @@
     }
 
     /*
-     * A changed selection requires a fresh summary response.
+     * Selection changed, so refresh both dashboard sections.
      */
 
     void showResult(remainingPeers, {

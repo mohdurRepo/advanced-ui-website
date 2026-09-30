@@ -2,32 +2,6 @@
    Peer Comparison Graph
    ========================================================================== */
 
-/**
- * Peer comparison graph adapter.
- *
- * Owns:
- *
- * - real peer chart-data requests;
- * - JWT retrieval;
- * - request cancellation / stale-response protection;
- * - comparison-series normalization;
- * - stable peer identity colors;
- * - percentage normalization per selected range;
- * - comparison tooltip;
- * - 0% baseline;
- * - selected-chip color synchronization;
- * - shared Market Chart integration.
- *
- * Does not own:
- *
- * - Highstock construction;
- * - generic Market Chart lifecycle;
- * - generic chart theme;
- * - peer-summary API;
- * - modal behavior;
- * - tab behavior.
- */
-
 (() => {
   "use strict";
 
@@ -61,10 +35,15 @@
 
   const RANGE_WINDOWS = Object.freeze({
     "1W": 7 * DAY,
+
     "1M": 30 * DAY,
+
     "3M": 90 * DAY,
+
     "6M": 180 * DAY,
+
     "1Y": 365 * DAY,
+
     ALL: null,
   });
 
@@ -111,8 +90,6 @@
 
   let controller = null;
 
-  let selectedPeers = [];
-
   let companies = [];
 
   let comparisonSeries = [];
@@ -123,16 +100,16 @@
 
   let requestController = null;
 
-  let requestId = 0;
-
   let presentationObserver = null;
 
   let presentationFrame = null;
 
+  let chartGeneration = 0;
+
   /**
-   * Stable color assignment for the lifetime of the page.
+   * Stable color allocation for this page lifetime.
    *
-   * Removing one peer therefore does not recolor every remaining peer.
+   * Removing a peer therefore does not recolor all remaining instruments.
    */
 
   const preferredColorSlots = new Map();
@@ -181,59 +158,78 @@
   }
 
   /* ==========================================================================
-     Comparison Companies
+     Comparison Roster
      ========================================================================== */
 
   /**
-   * Build comparison identities independently of API ordering.
+   * Prefer the canonical roster dispatched by peer-comparison.js.
    *
-   * Base company/index comes first when configured, followed by selected
-   * peers in UI order.
+   * Fallback still supports base + selected peers defensively.
    */
 
-  function buildCompanies(peers, rows) {
-    const selected = U.normalizePeers(peers);
-
+  function normalizeComparisonRoster(roster, peers, rows) {
     const summaries = U.normalizeSummaryRows(rows);
 
-    const summaryBySymbol = new Map(summaries.map((row) => [row.symbol, row]));
+    const summariesByCode = new Map(
+      summaries.map((record) => [record.symbol, record]),
+    );
 
     const result = [];
 
     const seen = new Set();
 
+    const addCompany = (item, isBase = false) => {
+      const code = U.normalizeCode(item?.code ?? item?.symbol);
+
+      if (!code || seen.has(code)) {
+        return;
+      }
+
+      const summary = summariesByCode.get(code);
+
+      result.push({
+        code,
+
+        name: String(item?.name || summary?.name || code).trim(),
+
+        isBase: Boolean(item?.isBase ?? isBase),
+      });
+
+      seen.add(code);
+    };
+
+    if (Array.isArray(roster) && roster.length) {
+      for (const item of roster) {
+        addCompany(item, item?.isBase);
+      }
+
+      return result;
+    }
+
     const baseSymbol = U.getBaseCompanySymbol();
 
     if (baseSymbol) {
-      const summary = summaryBySymbol.get(baseSymbol);
+      addCompany(
+        {
+          code: baseSymbol,
 
-      result.push({
-        code: baseSymbol,
+          name: U.getBaseCompanyName() || baseSymbol,
 
-        name: summary?.name || U.getBaseCompanyName() || baseSymbol,
-
-        isBase: true,
-      });
-
-      seen.add(baseSymbol);
+          isBase: true,
+        },
+        true,
+      );
     }
 
-    for (const peer of selected) {
-      if (seen.has(peer.code)) {
-        continue;
-      }
+    for (const peer of U.normalizePeers(peers)) {
+      addCompany(
+        {
+          ...peer,
 
-      const summary = summaryBySymbol.get(peer.code);
-
-      result.push({
-        code: peer.code,
-
-        name: peer.name || summary?.name || peer.code,
-
-        isBase: false,
-      });
-
-      seen.add(peer.code);
+          isBase: false,
+        },
+        false,
+      );
     }
 
     return result;
@@ -259,7 +255,7 @@
     const slotByCode = new Map();
 
     /*
-     * Preserve previous assignments.
+     * Preserve existing assignments first.
      */
 
     for (const company of items) {
@@ -278,7 +274,7 @@
     }
 
     /*
-     * Assign new peers to free slots.
+     * Assign free colors to new companies.
      */
 
     for (const company of items) {
@@ -309,16 +305,32 @@
   }
 
   function getPeerColor(code) {
-    return peerColors.get(code) || FALLBACK_COLORS[0];
+    const normalizedCode = U.normalizeCode(code);
+
+    return peerColors.get(normalizedCode) || FALLBACK_COLORS[0];
   }
 
   /* ==========================================================================
-     Selected Chip Colors
+     Comparison Chip Colors
      ========================================================================== */
 
-  function syncPeerChipColors() {
-    for (const peer of selectedPeers) {
-      const code = escapeSelectorValue(peer.code);
+  /**
+   * Synchronize every comparison chip:
+   *
+   * base/original index + selected peers.
+   *
+   * The exact same color is later used by:
+   *
+   * - main chart series;
+   * - overlay chart series;
+   * - hover markers;
+   * - tooltip marker;
+   * - comparison chips.
+   */
+
+  function syncComparisonChipColors() {
+    for (const company of companies) {
+      const code = escapeSelectorValue(company.code);
 
       const chip = document.querySelector(
         `${SELECTORS.resultPeer}[data-peer-result-peer="${code}"]`,
@@ -328,7 +340,7 @@
         continue;
       }
 
-      chip.style.setProperty("--peer-series-color", getPeerColor(peer.code));
+      chip.style.setProperty("--peer-series-color", getPeerColor(company.code));
     }
   }
 
@@ -357,8 +369,13 @@
   function getGraphMarkup() {
     return `
       <div class="peer-comparison-chart">
+
         <div class="peer-comparison-chart__header">
           <div>
+            <p class="peer-comparison-result__section-eyebrow">
+              Performance
+            </p>
+
             <h3 class="peer-comparison-chart__title">
               Relative performance
             </h3>
@@ -400,15 +417,16 @@
               peer-comparison-chart__canvas
             "
             data-peer-chart-canvas
-            aria-label="Relative performance of selected market indices"
+            aria-label="Relative performance of compared market indices"
           ></div>
         </div>
+
       </div>
     `;
   }
 
   /* ==========================================================================
-     Loading / Error States
+     Loading / Empty / Error States
      ========================================================================== */
 
   function renderLoading() {
@@ -423,7 +441,11 @@
     root.setAttribute("aria-busy", "true");
 
     root.innerHTML = `
-      <div class="peer-comparison-result__placeholder">
+      <div
+        class="peer-comparison-result__placeholder"
+        role="status"
+        aria-live="polite"
+      >
         ${escapeHTML(getLabel("loading", "Loading"))}...
       </div>
     `;
@@ -463,7 +485,7 @@
       CONFIG.chartEndpoint ??
         CONFIG.chartApiUrl ??
         CONFIG.chartDataUrl ??
-        "/tadawul.eportal.charts.v2/ChartGenerator",
+        "/api",
     ).trim();
   }
 
@@ -555,16 +577,23 @@
      Chart API
      ========================================================================== */
 
+  /**
+   * Identity and API parameter are deliberately separate.
+   *
+   * `company.code` always remains canonical because it is also our identity
+   * key for colors, legends, tooltips and series ownership.
+   *
+   * Only the backend chart parameter is lowercased.
+   */
+
   function buildChartUrl(company, jwtToken) {
     const url = new URL(getChartEndpoint(), window.location.href);
 
-    /*
-     * Preserve the legacy peer-chart API contract.
-     */
+    const chartParameter = String(company.code).toLowerCase();
 
     url.searchParams.set("chart-type", getHistoricalChartType());
 
-    url.searchParams.set("chart-parameter", company.code);
+    url.searchParams.set("chart-parameter", chartParameter);
 
     url.searchParams.set("pageName", getPageName());
 
@@ -604,13 +633,8 @@
      ========================================================================== */
 
   /**
-   * The chart API's legacy records use wall-clock market timestamps such as:
-   *
-   * YYYY-MM-DD
-   * YYYY-MM-DD HH:mm:ss
-   * YYYY-MM-DDTHH:mm:ss
-   *
-   * They belong to the Riyadh market time zone.
+   * Market date/time without a zone is Riyadh local wall-clock time.
+   * Explicit UTC/offset timestamps are respected as absolute timestamps.
    */
 
   function parseMarketTimestamp(value) {
@@ -627,10 +651,6 @@
     if (!raw) {
       return null;
     }
-
-    /*
-     * Absolute timestamp with explicit zone.
-     */
 
     if (/(?:Z|[+-]\d{2}:?\d{2})$/i.test(raw)) {
       const parsed = Date.parse(raw);
@@ -664,10 +684,6 @@
         .slice(0, 3) || 0,
     );
 
-    /*
-     * Riyadh is UTC+03:00.
-     */
-
     return (
       Date.UTC(year, month, day, hour, minute, second, milliseconds) -
       RIYADH_OFFSET_MS
@@ -679,134 +695,119 @@
      ========================================================================== */
 
   function normalizeChartPoints(payload) {
-	  const rows = U.unwrapSeriesPayload(payload);
+    const rows = U.unwrapSeriesPayload(payload);
 
-	  if (!rows.length) {
-	    return Object.freeze([]);
-	  }
+    if (!rows.length) {
+      return Object.freeze([]);
+    }
 
-	  const byTimestamp = new Map();
+    const byTimestamp = new Map();
 
-	  for (const point of rows) {
-	    let timestamp;
-	    let value;
+    for (const point of rows) {
+      let timestamp;
+      let value;
 
-	    if (Array.isArray(point)) {
-	      timestamp = parseMarketTimestamp(point[0]);
+      if (Array.isArray(point)) {
+        timestamp = parseMarketTimestamp(point[0]);
 
-	      value = U.toFiniteNumber(point[1]);
-	    } else {
-	      timestamp = parseMarketTimestamp(
-	        point?.dateTime ??
-	          point?.datetime ??
-	          point?.timestamp ??
-	          point?.time ??
-	          point?.date ??
-	          point?.x,
-	      );
+        value = U.toFiniteNumber(point[1]);
+      } else {
+        timestamp = parseMarketTimestamp(
+          point?.dateTime ??
+            point?.datetime ??
+            point?.timestamp ??
+            point?.time ??
+            point?.date ??
+            point?.x,
+        );
 
-	      value = U.toFiniteNumber(
-	        point?.indexPrice ??
-	          point?.price ??
-	          point?.value ??
-	          point?.closePrice ??
-	          point?.close ??
-	          point?.y,
-	      );
-	    }
+        value = U.toFiniteNumber(
+          point?.indexPrice ??
+            point?.price ??
+            point?.value ??
+            point?.closePrice ??
+            point?.close ??
+            point?.y,
+        );
+      }
 
-	    if (timestamp === null || value === null) {
-	      continue;
-	    }
+      if (timestamp === null || value === null) {
+        continue;
+      }
 
-	    byTimestamp.set(timestamp, Object.freeze([timestamp, value]));
-	  }
+      byTimestamp.set(timestamp, Object.freeze([timestamp, value]));
+    }
 
-	  return Object.freeze([...byTimestamp.values()].sort((a, b) => a[0] - b[0]));
-	}
+    return Object.freeze([...byTimestamp.values()].sort((a, b) => a[0] - b[0]));
+  }
 
-	/* ==========================================================================
-	   Load Real Series
-	   ========================================================================== */
+  /* ==========================================================================
+     Real Series Loading
+     ========================================================================== */
 
-	async function loadComparisonSeries(items) {
-	  cancelRequests();
+  async function loadComparisonSeries(items, generation) {
+    cancelRequests();
 
-	  const abortController = new AbortController();
+    const abortController = new AbortController();
 
-	  requestController = abortController;
+    requestController = abortController;
 
-	  const currentRequestId = ++requestId;
+    const token = await requestToken(abortController.signal);
 
-	  const token = await requestToken(abortController.signal);
+    if (generation !== chartGeneration) {
+      return null;
+    }
 
-	  if (currentRequestId !== requestId) {
-	    return null;
-	  }
+    /*
+     * Each company request is independent. One failed instrument must not
+     * prevent valid comparison series from rendering.
+     */
 
-	  /*
-	   * One failed company must not prevent the remaining comparison lines
-	   * from rendering.
-	   */
+    const results = await Promise.allSettled(
+      items.map(async (company) => {
+        const payload = await requestCompanySeries(
+          company,
+          token,
+          abortController.signal,
+        );
 
-	  const results = await Promise.allSettled(
-	    items.map(async (company) => {
-	      // 1. Safely normalize the code (lowercase if string, keep intact if number)
-	      const normalizedCode = typeof company?.code === 'string'
-	        ? company.code.toLowerCase()
-	        : company?.code;
+        return {
+          /*
+           * Keep canonical company identity.
+           * Never replace code with its API-normalized representation.
+           */
+          ...company,
 
-	      // 2. Build the updated company object with the normalized code
-	      const updatedCompany = {
-	        ...company,
-	        code: normalizedCode
-	      };
+          points: normalizeChartPoints(payload),
+        };
+      }),
+    );
 
-	      // 3. Pass the updated company object to your request function
-	      const payload = await requestCompanySeries(
-	        updatedCompany,
-	        token,
-	        abortController.signal,
-	      );
+    if (generation !== chartGeneration) {
+      return null;
+    }
 
-	      return {
-	        ...updatedCompany,
-	        points: normalizeChartPoints(payload),
-	      };
-	    }),
-	  );
+    const series = [];
 
-	  if (currentRequestId !== requestId) {
-	    return null;
-	  }
+    results.forEach((result, index) => {
+      if (result.status === "fulfilled") {
+        if (result.value.points.length) {
+          series.push(result.value);
+        }
 
-	  const series = [];
+        return;
+      }
 
-	  results.forEach((result, index) => {
-	    if (result.status === "fulfilled") {
-	      if (result.value.points.length) {
-	        series.push(result.value);
-	      }
+      if (!isAbortError(result.reason)) {
+        console.error(
+          `Peer chart request failed for "${items[index]?.code}".`,
+          result.reason,
+        );
+      }
+    });
 
-	      return;
-	    }
-
-	    if (!isAbortError(result.reason)) {
-	      // Safely grab the code for error logging
-	      const errorCompanyCode = typeof items[index]?.code === 'string'
-	        ? items[index].code.toLowerCase()
-	        : items[index]?.code;
-
-	      console.error(
-	        `Peer chart request failed for "${errorCompanyCode}".`,
-	        result.reason,
-	      );
-	    }
-	  });
-
-	  return series;
-	}
-
+    return series;
+  }
 
   /* ==========================================================================
      Range Data
@@ -955,12 +956,13 @@
       return false;
     }
 
-    const code = series.options?.custom?.peerCode || "";
+    const code = U.normalizeCode(series.options?.custom?.peerCode || "");
 
     const color = getPeerColor(code);
 
     return `
       <div class="market-chart-tooltip">
+
         <div class="market-chart-tooltip__header">
           <strong class="market-chart-tooltip__title">
             <span
@@ -994,6 +996,7 @@
             </span>
           </div>
         </div>
+
       </div>
     `;
   }
@@ -1036,18 +1039,25 @@
 
       capabilities: {
         intraday: false,
+
         historical: true,
+
         live: false,
+
         navigator: false,
       },
 
+      /*
+       * Comparison values now read naturally from the left edge.
+       */
       yAxis: {
-        opposite: true,
+        opposite: false,
 
         title: "Performance (%)",
 
         format: {
           decimals: 1,
+
           useGrouping: false,
         },
 
@@ -1306,7 +1316,7 @@
       return;
     }
 
-    syncPeerChipColors();
+    syncComparisonChipColors();
 
     applyBaseSeriesPresentation(chart);
 
@@ -1323,8 +1333,8 @@
     }
 
     /*
-     * Range/theme changes rebuild the shared Highcharts instance.
-     * Reapply comparison-only presentation afterwards.
+     * Shared Market Chart rebuilds on structural changes such as range/theme.
+     * Reapply comparison-only series after that rebuild completes.
      */
 
     presentationFrame = requestAnimationFrame(() => {
@@ -1359,7 +1369,7 @@
   function destroyChart() {
     cancelRequests();
 
-    requestId += 1;
+    chartGeneration += 1;
 
     if (presentationFrame !== null) {
       cancelAnimationFrame(presentationFrame);
@@ -1394,14 +1404,10 @@
      Chart Creation
      ========================================================================== */
 
-  async function createChart(peers, rows) {
+  async function createChart(peers, rows, comparisonRoster) {
     destroyChart();
 
-    selectedPeers = U.normalizePeers(peers);
-
-    if (!selectedPeers.length) {
-      return;
-    }
+    const generation = chartGeneration;
 
     const graphRoot = document.querySelector(SELECTORS.graph);
 
@@ -1419,7 +1425,7 @@
       return;
     }
 
-    companies = buildCompanies(selectedPeers, rows);
+    companies = normalizeComparisonRoster(comparisonRoster, peers, rows);
 
     if (!companies.length) {
       renderEmpty();
@@ -1427,18 +1433,20 @@
       return;
     }
 
+    /*
+     * One identity palette is established before any request is sent.
+     */
+
     peerColors = assignPeerColors(companies, graphRoot);
 
-    syncPeerChipColors();
-
-    const currentRequestId = requestId;
+    syncComparisonChipColors();
 
     let loaded;
 
     try {
-      loaded = await loadComparisonSeries(companies);
+      loaded = await loadComparisonSeries(companies, generation);
     } catch (error) {
-      if (isAbortError(error)) {
+      if (isAbortError(error) || generation !== chartGeneration) {
         return;
       }
 
@@ -1449,7 +1457,7 @@
       return;
     }
 
-    if (loaded === null || currentRequestId > requestId) {
+    if (loaded === null || generation !== chartGeneration) {
       return;
     }
 
@@ -1468,9 +1476,9 @@
     }
 
     /*
-     * Prefer the configured base company as the canonical shared-chart
-     * series. If its chart endpoint returned no data, use the first available
-     * peer so the remaining comparison can still render.
+     * Prefer the configured original/base index as the canonical shared
+     * Market Chart series. If that endpoint has no data, gracefully fall back
+     * to the first available comparison series.
      */
 
     const configuredBase = U.getBaseCompanySymbol();
@@ -1508,27 +1516,16 @@
 
     canvas.addEventListener("marketchartrangechange", schedulePresentation);
 
+    /*
+     * No tab reflow is needed anymore.
+     * Chart is visible as part of the dashboard from first render.
+     */
+
     applyComparisonPresentation();
 
     observePresentationChanges();
 
     graphRoot.setAttribute("aria-busy", "false");
-  }
-
-  /* ==========================================================================
-     Tab Visibility
-     ========================================================================== */
-
-  function handleTabChange(event) {
-    if (event.detail?.tabKey !== "graph") {
-      return;
-    }
-
-    requestAnimationFrame(() => {
-      controller?.reflow?.();
-
-      applyComparisonPresentation();
-    });
   }
 
   /* ==========================================================================
@@ -1544,6 +1541,8 @@
       event.detail?.peers ?? [],
 
       event.detail?.rows ?? [],
+
+      event.detail?.comparisonRoster ?? [],
     );
   }
 
@@ -1567,8 +1566,6 @@
     document.addEventListener(EVENTS.error, handleError);
 
     document.addEventListener(EVENTS.clear, handleClear);
-
-    document.addEventListener("tabs:change", handleTabChange);
 
     window.addEventListener("pagehide", () => {
       destroyChart();

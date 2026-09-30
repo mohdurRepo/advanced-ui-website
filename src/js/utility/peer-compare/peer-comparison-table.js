@@ -2,28 +2,6 @@
    Peer Comparison Table
    ========================================================================== */
 
-/**
- * Peer comparison summary table.
- *
- * Owns:
- *
- * - loading state;
- * - real API summary-row rendering;
- * - empty state;
- * - error state;
- * - financial movement presentation;
- * - base-company / selected-peer ordering.
- *
- * Does not own:
- *
- * - peer selection;
- * - modal behavior;
- * - tabs;
- * - network requests;
- * - chart rendering;
- * - backend-field normalization.
- */
-
 (() => {
   "use strict";
 
@@ -46,6 +24,10 @@
   const SELECTORS = Object.freeze({
     table: "[data-peer-table]",
   });
+
+  /* ==========================================================================
+     Events
+     ========================================================================== */
 
   const EVENTS = Object.freeze({
     loading: "peercomparison:loading",
@@ -79,92 +61,138 @@
   }
 
   /* ==========================================================================
-     Peer Name Resolution
+     Comparison Roster
      ========================================================================== */
 
   /**
-   * The summary API may not always return the display label used by the
-   * selection list.
+   * Prefer the canonical comparison roster dispatched by peer-comparison.js.
    *
-   * Prefer:
+   * It already contains:
    *
-   * 1. configured base-company name;
-   * 2. selected modal label;
-   * 3. API-provided name;
-   * 4. symbol.
+   *   base/original index
+   *   + selected peers
+   *
+   * The fallback exists only for defensive compatibility.
    */
 
-  function buildNameMap(peers) {
-    const map = new Map();
+  function normalizeRoster(roster, peers) {
+    const result = [];
 
-    for (const peer of U.normalizePeers(peers)) {
-      map.set(peer.code, peer.name);
+    const seen = new Set();
+
+    const add = ({ code, name, isBase = false } = {}) => {
+      const normalizedCode = U.normalizeCode(code);
+
+      if (!normalizedCode || seen.has(normalizedCode)) {
+        return;
+      }
+
+      result.push({
+        code: normalizedCode,
+
+        name: String(name || normalizedCode).trim(),
+
+        isBase: Boolean(isBase),
+      });
+
+      seen.add(normalizedCode);
+    };
+
+    if (Array.isArray(roster) && roster.length) {
+      for (const item of roster) {
+        add(item);
+      }
+
+      return result;
     }
+
+    /*
+     * Defensive fallback.
+     */
 
     const baseSymbol = U.getBaseCompanySymbol();
 
-    const baseName = U.getBaseCompanyName();
-
     if (baseSymbol) {
-      map.set(baseSymbol, baseName || baseSymbol);
+      add({
+        code: baseSymbol,
+
+        name: U.getBaseCompanyName() || baseSymbol,
+
+        isBase: true,
+      });
     }
 
-    return map;
-  }
+    for (const peer of U.normalizePeers(peers)) {
+      add({
+        ...peer,
 
-  function resolveRecordName(record, names) {
-    return names.get(record.symbol) || record.name || record.symbol;
+        isBase: false,
+      });
+    }
+
+    return result;
   }
 
   /* ==========================================================================
-     Row Ordering
+     Summary Lookup
      ========================================================================== */
 
+  function createSummaryMap(rows) {
+    const records = U.normalizeSummaryRows(rows);
+
+    return new Map(records.map((record) => [record.symbol, record]));
+  }
+
   /**
-   * Backend summary results may not arrive in UI order.
+   * The roster is authoritative for which instruments appear.
    *
-   * Desired order:
+   * The summary API is authoritative for values.
    *
-   * - base company first when returned;
-   * - selected peers in their selected order;
-   * - any unexpected extra rows last.
+   * If the API omits one roster member, we keep the instrument visible but
+   * render unavailable values as "—". We never invent financial data.
    */
 
-  function orderRecords(records, peers) {
-    const selectedOrder = U.normalizePeers(peers).map((peer) => peer.code);
+  function mergeRosterWithRows(roster, rows) {
+    const summaries = createSummaryMap(rows);
 
-    const baseSymbol = U.getBaseCompanySymbol();
+    return roster.map((instrument) => {
+      const record = summaries.get(instrument.code);
 
-    const rank = new Map();
+      if (record) {
+        return {
+          ...record,
 
-    let position = 0;
+          symbol: instrument.code,
 
-    if (baseSymbol) {
-      rank.set(baseSymbol, position);
+          code: instrument.code,
 
-      position += 1;
-    }
+          name: instrument.name || record.name || instrument.code,
 
-    for (const code of selectedOrder) {
-      if (rank.has(code)) {
-        continue;
+          isBase: instrument.isBase || record.isBase,
+        };
       }
 
-      rank.set(code, position);
+      return {
+        symbol: instrument.code,
 
-      position += 1;
-    }
+        code: instrument.code,
 
-    return [...records].sort((a, b) => {
-      const aRank = rank.has(a.symbol)
-        ? rank.get(a.symbol)
-        : Number.MAX_SAFE_INTEGER;
+        name: instrument.name || instrument.code,
 
-      const bRank = rank.has(b.symbol)
-        ? rank.get(b.symbol)
-        : Number.MAX_SAFE_INTEGER;
+        isBase: instrument.isBase,
 
-      return aRank - bRank;
+        sharePrice: null,
+
+        return: null,
+
+        marketCap: null,
+
+        peRatio: null,
+
+        raw: null,
+
+        unavailable: true,
+      };
     });
   }
 
@@ -205,7 +233,7 @@
                 class="peer-comparison-table__direction"
                 aria-hidden="true"
               >
-                ${symbol}
+                ${escapeHTML(symbol)}
               </span>
             `
             : ""
@@ -219,39 +247,27 @@
   }
 
   /* ==========================================================================
-     Market Cap
+     Instrument Presentation
      ========================================================================== */
 
-  /**
-   * The legacy config exposes a "market cap million" label.
-   *
-   * Preserve the API value as supplied here instead of silently dividing it.
-   * If the endpoint already returns millions, the label remains correct.
-   *
-   * If production confirms the raw API is in full currency units, conversion
-   * belongs in the normalization boundary rather than this renderer.
-   */
-
-  function formatMarketCap(value) {
-    return U.formatNumber(value, {
-      maximumFractionDigits: 2,
-
-      minimumFractionDigits: 2,
-    });
-  }
-
-  /* ==========================================================================
-     Instrument Markup
-     ========================================================================== */
-
-  function getInstrumentMarkup(record, names) {
-    const name = resolveRecordName(record, names);
+  function getInstrumentMarkup(record) {
+    const baseBadge = record.isBase
+      ? `
+          <span class="peer-comparison-table__base-label">
+            Main
+          </span>
+        `
+      : "";
 
     return `
       <div class="peer-comparison-table__instrument">
-        <span class="peer-comparison-table__name">
-          ${escapeHTML(name)}
-        </span>
+        <div class="peer-comparison-table__instrument-main">
+          <span class="peer-comparison-table__name">
+            ${escapeHTML(record.name || record.symbol)}
+          </span>
+
+          ${baseBadge}
+        </div>
 
         <span class="peer-comparison-table__code">
           ${escapeHTML(record.symbol)}
@@ -264,14 +280,21 @@
      Row Markup
      ========================================================================== */
 
-  function getRowMarkup(record, names) {
+  function getRowMarkup(record) {
+    const baseClass = record.isBase ? " peer-comparison-table__row--base" : "";
+
+    const unavailableClass = record.unavailable
+      ? " peer-comparison-table__row--unavailable"
+      : "";
+
     return `
       <tr
+        class="peer-comparison-table__row${baseClass}${unavailableClass}"
         data-peer-row="${escapeHTML(record.symbol)}"
+        data-peer-base="${record.isBase ? "true" : "false"}"
       >
-
         <th scope="row">
-          ${getInstrumentMarkup(record, names)}
+          ${getInstrumentMarkup(record)}
         </th>
 
         <td class="table-market__number">
@@ -279,9 +302,8 @@
         </td>
 
         <td class="table-market__number">
-          ${escapeHTML(formatMarketCap(record.marketCap))}
+          ${getMovementMarkup(record.return)}
         </td>
-
       </tr>
     `;
   }
@@ -290,10 +312,8 @@
      Table Markup
      ========================================================================== */
 
-  function getTableMarkup(records, peers) {
-    const names = buildNameMap(peers);
-
-    const rows = records.map((record) => getRowMarkup(record, names)).join("");
+  function getTableMarkup(records) {
+    const rows = records.map(getRowMarkup).join("");
 
     return `
       <div class="peer-comparison-table">
@@ -312,23 +332,22 @@
             <thead>
               <tr>
                 <th scope="col">
-                  ${escapeHTML(getLabel("indexName", "Index name"))}
+                  ${escapeHTML(getLabel("indexName", "Index Name"))}
                 </th>
 
                 <th
                   scope="col"
                   class="table-market__number"
                 >
-                  ${escapeHTML(getLabel("returnValue", "Index Value"))}
+                  ${escapeHTML(getLabel("value", "Index Value"))}
                 </th>
 
                 <th
                   scope="col"
                   class="table-market__number"
                 >
-                  ${escapeHTML(getLabel("returnValue", "1D Return"))}
+                  ${escapeHTML(getLabel("return1D", "1D Return"))}
                 </th>
-
               </tr>
             </thead>
 
@@ -355,7 +374,11 @@
     root.setAttribute("aria-busy", "true");
 
     root.innerHTML = `
-      <div class="peer-comparison-result__placeholder">
+      <div
+        class="peer-comparison-result__placeholder"
+        role="status"
+        aria-live="polite"
+      >
         ${escapeHTML(getLabel("loading", "Loading"))}...
       </div>
     `;
@@ -375,9 +398,11 @@
     root.setAttribute("aria-busy", "false");
 
     root.innerHTML = `
-      <p class="peer-comparison-table__empty">
-        ${escapeHTML(getLabel("noResults", "No data available."))}
-      </p>
+      <div class="peer-comparison-table__empty">
+        <p>
+          ${escapeHTML(getLabel("noResults", "No comparison data available."))}
+        </p>
+      </div>
     `;
   }
 
@@ -408,26 +433,26 @@
      Real Data Rendering
      ========================================================================== */
 
-  function render(rows, peers) {
+  function render(rows, comparisonRoster, peers) {
     const root = getRoot();
 
     if (!root) {
       return;
     }
 
-    const normalized = U.normalizeSummaryRows(rows);
-
-    const ordered = orderRecords(normalized, peers);
+    const roster = normalizeRoster(comparisonRoster, peers);
 
     root.setAttribute("aria-busy", "false");
 
-    if (!ordered.length) {
+    if (!roster.length) {
       renderEmpty();
 
       return;
     }
 
-    root.innerHTML = getTableMarkup(ordered, peers);
+    const records = mergeRosterWithRows(roster, rows);
+
+    root.innerHTML = getTableMarkup(records);
   }
 
   /* ==========================================================================
@@ -457,6 +482,8 @@
   function handleRender(event) {
     render(
       event.detail?.rows ?? [],
+
+      event.detail?.comparisonRoster ?? [],
 
       event.detail?.peers ?? [],
     );
