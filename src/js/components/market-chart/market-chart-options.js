@@ -947,7 +947,8 @@ function createTooltipOptions({
       <span class="market-chart-tooltip__value">${escapeHTML(formatNumber(value))}</span>
     </div>`;
 
-  const renderChange = (value) => {
+
+   const renderChange = (value) => {
     if (reference === null) {
       return "";
     }
@@ -959,16 +960,19 @@ function createTooltipOptions({
 
     const direction = change > 0 ? "up" : change < 0 ? "down" : "neutral";
 
-    const sign = change > 0 ? "+" : "";
+    const iconClass = direction === "up" ? "icon-triangle-up" : "icon-triangle-down";
 
     const percentage =
-      percent === null ? "" : ` (${sign}${formatPercent(percent)}%)`;
+      percent === null ? "" : ` (${formatPercent(percent)}%)`;
 
     return `
       <div class="market-chart-tooltip__change market-chart-tooltip__change--${direction}">
-        ${escapeHTML(`${sign}${formatNumber(change)}${percentage}`)}
+        <span class="market-change__icon has-icon ${iconClass} icon-start">
+          ${escapeHTML(`${formatNumber(change)}${percentage}`)}
+        </span>
       </div>`;
   };
+
 
   return {
     enabled: configuration.enabled !== false,
