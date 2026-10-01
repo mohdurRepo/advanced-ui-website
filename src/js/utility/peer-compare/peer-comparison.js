@@ -2,6 +2,33 @@
    Peer Comparison
    ========================================================================== */
 
+/**
+ * Peer comparison feature controller.
+ *
+ * Owns:
+ *
+ * - peer selection state;
+ * - search filtering;
+ * - minimum / maximum selection rules;
+ * - selection count;
+ * - restoring selection when the modal opens;
+ * - result dashboard rendering;
+ * - comparison identity roster;
+ * - selected-peer removal;
+ * - peer-summary API request lifecycle;
+ * - loading / ready / error feature states;
+ * - coordination events consumed by table / graph modules;
+ * - request cancellation and stale-response protection.
+ *
+ * Does not own:
+ *
+ * - generic modal behavior;
+ * - table rendering;
+ * - chart rendering;
+ * - chart historical requests;
+ * - API-response field normalization beyond the summary envelope.
+ */
+
 (() => {
   "use strict";
 
@@ -227,12 +254,15 @@
      ========================================================================== */
 
   /**
-   * The visible comparison always contains:
+   * Comparison identity is separate from summary-table records.
    *
-   * 1. the original/base index;
-   * 2. the peers selected by the user.
+   * This roster is used by:
    *
-   * The base index is informational and therefore cannot be removed.
+   * - comparison chips;
+   * - graph series;
+   * - service-row ordering.
+   *
+   * It does not manufacture API summary rows.
    */
 
   function getBasePeer() {
@@ -254,14 +284,14 @@
   function getComparisonRoster(peers) {
     const selected = U.normalizePeers(peers);
 
-    const roster = [];
+    const result = [];
 
     const seen = new Set();
 
     const base = getBasePeer();
 
     if (base?.code) {
-      roster.push(base);
+      result.push(base);
 
       seen.add(base.code);
     }
@@ -271,7 +301,7 @@
         continue;
       }
 
-      roster.push({
+      result.push({
         ...peer,
 
         isBase: false,
@@ -280,7 +310,7 @@
       seen.add(peer.code);
     }
 
-    return roster;
+    return result;
   }
 
   /* ==========================================================================
@@ -306,6 +336,7 @@
 
     for (const checkbox of getCheckboxes()) {
       checkbox.checked = false;
+
       checkbox.disabled = false;
     }
   }
@@ -319,6 +350,7 @@
 
     if (checkbox) {
       checkbox.checked = false;
+
       checkbox.disabled = false;
     }
   }
@@ -346,11 +378,10 @@
 
     const total = getCheckedCheckboxes().length;
 
-    const ofLabel = getLabel("of", "of");
-
-    const selectedLabel = getLabel("selected", "selected");
-
-    dom.count.textContent = `${total} ${ofLabel} ${MAX_SELECTION} ${selectedLabel}`;
+    dom.count.textContent = `${total} ${getLabel(
+      "of",
+      "of",
+    )} ${MAX_SELECTION} ${getLabel("selected", "selected")}`;
   }
 
   function updateSubmitState() {
@@ -375,7 +406,9 @@
 
   function updateSelectionUI() {
     updateCount();
+
     updateSubmitState();
+
     updateDisabledCheckboxes();
   }
 
@@ -403,9 +436,9 @@
     let visibleCount = 0;
 
     for (const option of getOptions()) {
-      const searchableText = normalizeText(option.textContent);
+      const searchable = normalizeText(option.textContent);
 
-      const visible = !query || searchableText.includes(query);
+      const visible = !query || searchable.includes(query);
 
       option.hidden = !visible;
 
@@ -427,7 +460,9 @@
     restoreStoredSelection();
 
     hideSelectionError();
+
     resetSearch();
+
     updateSelectionUI();
   }
 
@@ -485,6 +520,7 @@
     }
 
     storeCurrentSelection();
+
     updateSelectionUI();
   }
 
@@ -493,8 +529,6 @@
      ========================================================================== */
 
   function getComparisonPeerMarkup(peer) {
-    const baseClass = peer.isBase ? " peer-comparison-result__peer--base" : "";
-
     const removeButton = peer.isBase
       ? ""
       : `
@@ -513,7 +547,9 @@
 
     return `
       <li
-        class="peer-comparison-result__peer${baseClass}"
+        class="peer-comparison-result__peer${
+          peer.isBase ? " peer-comparison-result__peer--base" : ""
+        }"
         data-peer-result-peer="${escapeHTML(peer.code)}"
         data-peer-base="${peer.isBase ? "true" : "false"}"
       >
@@ -559,7 +595,8 @@
             </h2>
 
             <p class="peer-comparison-result__description">
-              Compare the selected indices with the Main Market.
+              Compare selected market indices across current values
+              and relative performance.
             </p>
           </div>
 
@@ -575,7 +612,7 @@
         </header>
 
         <!-- ===============================================================
-             Comparison Roster
+             Compared Indices
              =============================================================== -->
 
         <section
@@ -595,7 +632,7 @@
               </h3>
 
               <p class="peer-comparison-result__section-description">
-                Main Market and the indices selected for comparison.
+                Indices currently included in the performance comparison.
               </p>
             </div>
           </div>
@@ -609,81 +646,88 @@
         </section>
 
         <!-- ===============================================================
-             Dashboard
+             Comparison Dashboard
              =============================================================== -->
 
         <div class="peer-comparison-result__dashboard">
 
-          <!-- =============================================================
-               Market Snapshot
-               ============================================================= -->
+          <div class="peer-comparison-result__grid">
 
-          <section
-            class="
-              peer-comparison-result__section
-              peer-comparison-result__section--table
-            "
-            aria-labelledby="peerComparisonTableTitle"
-          >
-            <div class="peer-comparison-result__section-header">
-              <div>
-                <p class="peer-comparison-result__section-eyebrow">
-                  Snapshot
-                </p>
+            <!-- ===========================================================
+                 Market Comparison
+                 =========================================================== -->
 
-                <h3
-                  id="peerComparisonTableTitle"
-                  class="peer-comparison-result__section-title"
-                >
-                  Market comparison
-                </h3>
-
-                <p class="peer-comparison-result__section-description">
-                  Latest values for the indices included in this comparison.
-                </p>
-              </div>
-            </div>
-
-            <div
-              class="peer-comparison-result__table"
-              data-peer-table
-              aria-busy="true"
+            <section
+              class="
+                peer-comparison-result__primary
+                peer-comparison-result__panel
+                peer-comparison-result__panel--table
+              "
+              aria-labelledby="peerComparisonTableTitle"
             >
-              <div class="peer-comparison-result__placeholder">
-                ${escapeHTML(loadingLabel)}...
+              <header class="peer-comparison-result__panel-header">
+                <div>
+                  <p class="peer-comparison-result__section-eyebrow">
+                    Snapshot
+                  </p>
+
+                  <h3
+                    id="peerComparisonTableTitle"
+                    class="peer-comparison-result__section-title"
+                  >
+                    Market comparison
+                  </h3>
+
+                  <p class="peer-comparison-result__section-description">
+                    Latest values returned by the comparison service.
+                  </p>
+                </div>
+              </header>
+
+              <div
+                class="peer-comparison-result__table"
+                data-peer-table
+                aria-busy="true"
+              >
+                <div class="peer-comparison-result__placeholder">
+                  ${escapeHTML(loadingLabel)}...
+                </div>
               </div>
-            </div>
-          </section>
+            </section>
 
-          <!-- =============================================================
-               Relative Performance
-               ============================================================= -->
+            <!-- ===========================================================
+                 Relative Performance
+                 =========================================================== -->
 
-          <section
-            class="
-              peer-comparison-result__section
-              peer-comparison-result__section--graph
-            "
-            aria-labelledby="peerComparisonGraphTitle"
-          >
-            <div class="visually-hidden">
-              <h3 id="peerComparisonGraphTitle">
+            <section
+              class="
+                peer-comparison-result__secondary
+                peer-comparison-result__panel
+                peer-comparison-result__panel--graph
+              "
+              aria-labelledby="peerComparisonGraphTitle"
+            >
+              <h3
+                id="peerComparisonGraphTitle"
+                class="visually-hidden"
+              >
                 Relative performance
               </h3>
-            </div>
 
-            <div
-              class="peer-comparison-result__graph"
-              data-peer-graph
-              aria-busy="true"
-            >
-              <div class="peer-comparison-result__placeholder">
-                ${escapeHTML(loadingLabel)}...
+              <div
+                class="peer-comparison-result__graph"
+                data-peer-graph
+                aria-busy="true"
+              >
+                <div class="peer-comparison-result__placeholder">
+                  ${escapeHTML(loadingLabel)}...
+                </div>
               </div>
-            </div>
-          </section>
+            </section>
 
+          </div>
         </div>
+
       </div>
     `;
   }
@@ -747,7 +791,7 @@
   }
 
   /* ==========================================================================
-     API Configuration
+     Summary API Configuration
      ========================================================================== */
 
   function getEndpoint() {
@@ -765,18 +809,8 @@
   }
 
   /* ==========================================================================
-     Summary Response Envelope
+     Summary Response
      ========================================================================== */
-
-  /**
-   * Legacy API supports either:
-   *
-   *   [...]
-   *
-   * or:
-   *
-   *   { data: [...] }
-   */
 
   function unwrapSummaryRows(response) {
     if (Array.isArray(response)) {
@@ -932,11 +966,6 @@
       return;
     }
 
-    /*
-     * Build the full dashboard immediately.
-     * Table and graph now render together; there is no view switching.
-     */
-
     dom.resultInner.innerHTML = getResultShell(peers);
 
     dom.result.hidden = false;
@@ -957,10 +986,6 @@
 
     try {
       const rows = await fetchPeerSummary(peers);
-
-      /*
-       * Null means a newer comparison request replaced this request.
-       */
 
       if (rows === null) {
         return;
@@ -984,10 +1009,6 @@
 
   function clearResult({ clearSelection = true } = {}) {
     cancelSummaryRequest();
-
-    /*
-     * Invalidate anything that completed immediately before abort.
-     */
 
     requestId += 1;
 
@@ -1015,9 +1036,7 @@
      ========================================================================== */
 
   function closeModalThroughRuntime() {
-    const closeButton = dom.modal?.querySelector("[data-modal-close]");
-
-    closeButton?.click();
+    dom.modal?.querySelector("[data-modal-close]")?.click();
   }
 
   function handleSubmit() {
@@ -1049,34 +1068,29 @@
      ========================================================================== */
 
   function removePeer(code) {
-    const normalizedCode = String(code ?? "").trim();
+    const normalizedCode = U.normalizeCode(code);
 
     if (!normalizedCode) {
       return;
     }
 
     /*
-     * The base/original index is permanent.
+     * Original/base comparison series is fixed.
      */
 
-    if (U.normalizeCode(normalizedCode) === U.getBaseCompanySymbol()) {
+    if (normalizedCode === U.getBaseCompanySymbol()) {
       return;
     }
 
-    removeStoredPeer(normalizedCode);
+    removeStoredPeer(code);
 
     restoreStoredSelection();
 
     hideSelectionError();
+
     updateSelectionUI();
 
     const remainingPeers = getStoredPeers();
-
-    /*
-     * The comparison requires at least two user-selected peers.
-     *
-     * The base index does not count toward this selection minimum.
-     */
 
     if (remainingPeers.length < MIN_SELECTION) {
       clearResult({
@@ -1085,10 +1099,6 @@
 
       return;
     }
-
-    /*
-     * Selection changed, so refresh both dashboard sections.
-     */
 
     void showResult(remainingPeers, {
       scroll: false,
@@ -1148,9 +1158,7 @@
 
     dom.result?.addEventListener("click", handleResultClick);
 
-    window.addEventListener("pagehide", () => {
-      cancelSummaryRequest();
-    });
+    window.addEventListener("pagehide", cancelSummaryRequest);
   }
 
   /* ==========================================================================
@@ -1231,10 +1239,13 @@
     clearStoredSelection();
 
     hideSelectionError();
+
     resetSearch();
+
     updateSelectionUI();
 
     bindEvents();
+
     observeModalState();
   }
 
