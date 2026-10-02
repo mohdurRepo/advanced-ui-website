@@ -536,7 +536,7 @@
             type="button"
             class="peer-comparison-result__peer-remove"
             data-peer-remove="${escapeHTML(peer.code)}"
-            aria-label="Remove ${escapeHTML(peer.name)} from comparison"
+            aria-label="${getLabel("removeCompare", "Remove")} ${escapeHTML(peer.name)} from comparison"
             title="Remove ${escapeHTML(peer.name)}"
           >
             <span aria-hidden="true">
@@ -590,14 +590,6 @@
               ${escapeHTML(getLabel("peerCompare", "Peer Comparison"))}
             </p>
 
-            <h2 class="peer-comparison-result__title">
-              Market index comparison
-            </h2>
-
-            <p class="peer-comparison-result__description">
-              Compare selected market indices across current values
-              and relative performance.
-            </p>
           </div>
 
           <div class="peer-comparison-result__header-actions">
@@ -606,7 +598,7 @@
               class="btn btn-outline-primary"
               data-peer-result-close
             >
-              Close comparison
+               ${getLabel("closeCompare", "Close comparison")}
             </button>
           </div>
         </header>
@@ -622,21 +614,6 @@
           "
           aria-labelledby="peerComparisonRosterTitle"
         >
-          <div class="peer-comparison-result__section-header">
-            <div>
-              <h3
-                id="peerComparisonRosterTitle"
-                class="peer-comparison-result__section-title"
-              >
-                Compared indices
-              </h3>
-
-              <p class="peer-comparison-result__section-description">
-                Indices currently included in the performance comparison.
-              </p>
-            </div>
-          </div>
-
           <ul
             class="peer-comparison-result__peers"
             aria-label="Indices included in comparison"
@@ -668,18 +645,7 @@
               <header class="peer-comparison-result__panel-header">
                 <div>
                   <p class="peer-comparison-result__section-eyebrow">
-                    Snapshot
-                  </p>
-
-                  <h3
-                    id="peerComparisonTableTitle"
-                    class="peer-comparison-result__section-title"
-                  >
-                    Market comparison
-                  </h3>
-
-                  <p class="peer-comparison-result__section-description">
-                    Latest values returned by the comparison service.
+                    ${getLabel("snapShot", "Snapshot")}
                   </p>
                 </div>
               </header>
@@ -707,12 +673,7 @@
               "
               aria-labelledby="peerComparisonGraphTitle"
             >
-              <h3
-                id="peerComparisonGraphTitle"
-                class="visually-hidden"
-              >
-                Relative performance
-              </h3>
+              
 
               <div
                 class="peer-comparison-result__graph"
