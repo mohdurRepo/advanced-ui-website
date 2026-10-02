@@ -26,7 +26,15 @@
  * - table rendering;
  * - chart rendering;
  * - chart historical requests;
- * - API-response field normalization beyond the summary envelope.
+ * - financial-data normalization;
+ * - synthetic base/original comparison identities.
+ *
+ * Identity ownership:
+ *
+ * - selected peers come from the user's selection;
+ * - base/original comparison identity comes from the summary service;
+ * - config.companySymbol is used only as part of the legacy summary API
+ *   request contract.
  */
 
 (() => {
@@ -84,6 +92,8 @@
     resultInner: "[data-peer-result-inner]",
 
     resultClose: "[data-peer-result-close]",
+
+    resultRoster: "[data-peer-result-roster]",
 
     peerRemove: "[data-peer-remove]",
   });
@@ -143,6 +153,13 @@
   function getLabels() {
     return CONFIG.labels ?? {};
   }
+
+  /**
+   * All user-facing labels should resolve through config first.
+   *
+   * The fallback keeps the feature functional when an optional translation
+   * has not yet been supplied.
+   */
 
   function getLabel(key, fallback) {
     const value = getLabels()[key];
@@ -233,7 +250,9 @@
 
     return {
       code,
+
       name,
+
       isBase: false,
     };
   }
@@ -254,55 +273,79 @@
      ========================================================================== */
 
   /**
-   * Comparison identity is separate from summary-table records.
+   * Build the visible comparison identity roster.
    *
-   * This roster is used by:
+   * Important:
    *
-   * - comparison chips;
-   * - graph series;
-   * - service-row ordering.
+   * The controller does NOT create a base/original record from config.
    *
-   * It does not manufacture API summary rows.
+   * Instead:
+   *
+   * 1. service records that are not selected peers are treated as
+   *    service-owned comparison identities;
+   *
+   * 2. selected peers follow in the user's selection order;
+   *
+   * 3. service names override selection labels when available;
+   *
+   * 4. no financial data is manufactured here.
    */
 
-  function getBasePeer() {
-    const code = U.getBaseCompanySymbol();
-
-    if (!code) {
-      return null;
-    }
-
-    return {
-      code,
-
-      name: U.getBaseCompanyName() || code,
-
-      isBase: true,
-    };
-  }
-
-  function getComparisonRoster(peers) {
+  function getComparisonRoster(peers, rows = []) {
     const selected = U.normalizePeers(peers);
+
+    const serviceRows = U.normalizeSummaryRows(rows);
+
+    const selectedCodes = new Set(selected.map((peer) => peer.code));
+
+    const serviceByCode = new Map(
+      serviceRows.map((record) => [record.symbol, record]),
+    );
 
     const result = [];
 
     const seen = new Set();
 
-    const base = getBasePeer();
+    /**
+     * Service-owned comparison records first.
+     *
+     * Under the legacy comparison contract this is normally the original /
+     * Main Market record returned alongside the selected peers.
+     *
+     * It is non-removable because it was not selected by the user.
+     */
 
-    if (base?.code) {
-      result.push(base);
+    for (const record of serviceRows) {
+      if (selectedCodes.has(record.symbol) || seen.has(record.symbol)) {
+        continue;
+      }
 
-      seen.add(base.code);
+      result.push({
+        code: record.symbol,
+
+        name: record.name || record.symbol,
+
+        isBase: true,
+      });
+
+      seen.add(record.symbol);
     }
+
+    /**
+     * User-selected peers next, preserving selection order.
+     */
 
     for (const peer of selected) {
       if (seen.has(peer.code)) {
         continue;
       }
 
+      const serviceRecord = serviceByCode.get(peer.code);
+
       result.push({
-        ...peer,
+        code: peer.code,
+
+        name: serviceRecord?.name || peer.name || peer.code,
 
         isBase: false,
       });
@@ -529,6 +572,8 @@
      ========================================================================== */
 
   function getComparisonPeerMarkup(peer) {
+    const removeLabel = getLabel("removeCompare", "Remove");
+
     const removeButton = peer.isBase
       ? ""
       : `
@@ -536,8 +581,8 @@
             type="button"
             class="peer-comparison-result__peer-remove"
             data-peer-remove="${escapeHTML(peer.code)}"
-            aria-label="${getLabel("removeCompare", "Remove")} ${escapeHTML(peer.name)} from comparison"
-            title="Remove ${escapeHTML(peer.name)}"
+            aria-label="${escapeHTML(removeLabel)} ${escapeHTML(peer.name)}"
+            title="${escapeHTML(removeLabel)} ${escapeHTML(peer.name)}"
           >
             <span aria-hidden="true">
               ×
@@ -566,8 +611,20 @@
     `;
   }
 
-  function getComparisonRosterMarkup(peers) {
-    return getComparisonRoster(peers).map(getComparisonPeerMarkup).join("");
+  function getComparisonRosterMarkup(peers, rows = []) {
+    return getComparisonRoster(peers, rows)
+      .map(getComparisonPeerMarkup)
+      .join("");
+  }
+
+  function syncComparisonRoster(peers, rows) {
+    const roster = dom.result?.querySelector(SELECTORS.resultRoster);
+
+    if (!roster) {
+      return;
+    }
+
+    roster.innerHTML = getComparisonRosterMarkup(peers, rows);
   }
 
   /* ==========================================================================
@@ -576,6 +633,27 @@
 
   function getResultShell(peers) {
     const loadingLabel = getLabel("loading", "Loading");
+
+    const peerCompareLabel = getLabel("peerCompare", "Peer Comparison");
+
+    const closeCompareLabel = getLabel("closeCompare", "Close comparison");
+
+    const comparisonIndicesLabel = getLabel(
+      "comparisonIndices",
+      "Compared indices",
+    );
+
+    const snapshotLabel = getLabel("snapShot", "Snapshot");
+
+    const marketComparisonLabel = getLabel(
+      "marketComparison",
+      "Market comparison",
+    );
+
+    const relativePerformanceLabel = getLabel(
+      "relativePerformance",
+      "Relative performance",
+    );
 
     return `
       <div class="peer-comparison-result__content">
@@ -587,9 +665,8 @@
         <header class="peer-comparison-result__header">
           <div class="peer-comparison-result__heading">
             <p class="peer-comparison-result__eyebrow">
-              ${escapeHTML(getLabel("peerCompare", "Peer Comparison"))}
+              ${escapeHTML(peerCompareLabel)}
             </p>
-
           </div>
 
           <div class="peer-comparison-result__header-actions">
@@ -598,7 +675,7 @@
               class="btn btn-outline-primary"
               data-peer-result-close
             >
-               ${getLabel("closeCompare", "Close comparison")}
+              ${escapeHTML(closeCompareLabel)}
             </button>
           </div>
         </header>
@@ -612,11 +689,12 @@
             peer-comparison-result__section
             peer-comparison-result__section--roster
           "
-          aria-labelledby="peerComparisonRosterTitle"
+          aria-label="${escapeHTML(comparisonIndicesLabel)}"
         >
           <ul
             class="peer-comparison-result__peers"
-            aria-label="Indices included in comparison"
+            data-peer-result-roster
+            aria-label="${escapeHTML(comparisonIndicesLabel)}"
           >
             ${getComparisonRosterMarkup(peers)}
           </ul>
@@ -640,12 +718,12 @@
                 peer-comparison-result__panel
                 peer-comparison-result__panel--table
               "
-              aria-labelledby="peerComparisonTableTitle"
+              aria-label="${escapeHTML(marketComparisonLabel)}"
             >
               <header class="peer-comparison-result__panel-header">
                 <div>
                   <p class="peer-comparison-result__section-eyebrow">
-                    ${getLabel("snapShot", "Snapshot")}
+                    ${escapeHTML(snapshotLabel)}
                   </p>
                 </div>
               </header>
@@ -671,10 +749,8 @@
                 peer-comparison-result__panel
                 peer-comparison-result__panel--graph
               "
-              aria-labelledby="peerComparisonGraphTitle"
+              aria-label="${escapeHTML(relativePerformanceLabel)}"
             >
-              
-
               <div
                 class="peer-comparison-result__graph"
                 data-peer-graph
@@ -717,15 +793,22 @@
     dispatchFeatureEvent(EVENTS.loading, {
       peers,
 
+      /*
+       * Before service data arrives, only selected identities are known.
+       */
       comparisonRoster: getComparisonRoster(peers),
     });
   }
 
   function dispatchRender(peers, rows) {
+    const comparisonRoster = getComparisonRoster(peers, rows);
+
+    syncComparisonRoster(peers, rows);
+
     dispatchFeatureEvent(EVENTS.render, {
       peers,
 
-      comparisonRoster: getComparisonRoster(peers),
+      comparisonRoster,
 
       rows,
     });
@@ -765,7 +848,13 @@
       .toUpperCase();
   }
 
-  function getBaseSymbol() {
+  /**
+   * This value is part of the legacy service request contract only.
+   *
+   * It is not used to create a base comparison identity in the UI.
+   */
+
+  function getRequestCompanySymbol() {
     return String(CONFIG.companySymbol ?? "").trim();
   }
 
@@ -797,7 +886,7 @@
 
   function createSummaryParameters(peers) {
     return {
-      companySymbol: getBaseSymbol(),
+      companySymbol: getRequestCompanySymbol(),
 
       peerID: peers.map((peer) => peer.code).join(","),
     };
@@ -1035,15 +1124,14 @@
       return;
     }
 
-    /*
-     * Original/base comparison series is fixed.
+    /**
+     * Only selected peers receive data-peer-remove.
+     *
+     * Service-owned/base identities never render a removal button, therefore
+     * this function no longer needs knowledge of a configured base symbol.
      */
 
-    if (normalizedCode === U.getBaseCompanySymbol()) {
-      return;
-    }
-
-    removeStoredPeer(code);
+    removeStoredPeer(normalizedCode);
 
     restoreStoredSelection();
 
@@ -1167,8 +1255,14 @@
       console.warn("Peer comparison endpoint is not configured.");
     }
 
-    if (!getBaseSymbol()) {
-      console.warn("Peer comparison base company symbol is not configured.");
+    /**
+     * companySymbol remains required by the legacy summary-service contract.
+     *
+     * It is no longer used to create UI identity.
+     */
+
+    if (!getRequestCompanySymbol()) {
+      console.warn("Peer comparison company symbol is not configured.");
     }
 
     if (MIN_SELECTION < 1 || MAX_SELECTION < MIN_SELECTION) {
