@@ -1,1031 +1,561 @@
 /* ==========================================================================
    Header
+   ==========================================================================
+
+   Desktop
+   - Mega menus open on mouse hover (with intent delay) or on click.
+   - A click on a menu opened by hover keeps it open; a second click closes.
+   - Menus opened by click stay open until: second click, outside click,
+     Escape, focus leaving the menu, or another menu opening.
+   - Category rail (Level 2). Two supported forms:
+       * links (<a data-mega-tab>): the dynamic header. Each item is a real
+         page. Hover, focus and arrow keys preview its panel; click or Enter
+         navigates. On touch, the first tap previews and the second navigates.
+       * tabs (<button role="tab">): the static prototype; click selects.
+     Only the selected item is in the Tab order (roving tabindex), so Tab
+     moves from the rail straight into the visible panel. Hovering selects
+     only after a short delay, so a diagonal mouse path to the links does
+     not switch panels.
+
+   Mobile
+   - The drawer component (drawer.js) opens, closes, traps focus and locks
+     scroll. This module talks to it through document events only, so it
+     does not depend on where drawer.js lives:
+       listens:   drawer:open, drawer:close, drawer:closed
+       dispatches drawer:request-close
+
+   Markup hooks (see header.html)
+   - [data-site-header], [data-mega-item], [data-mega-trigger],
+     [data-mega-menu], [data-mega-tab], [data-mega-panel]
    ========================================================================== */
+
+import { collapseAccordions } from "./accordion";
+
+/* ==========================================================================
+   Configuration
+   ========================================================================== */
+
+/* Must match $nav-breakpoint ("lg" = 992px) in header/_header-config.scss. */
+const DESKTOP_QUERY = "(min-width: 992px)";
+
+const MOBILE_DRAWER = "mobile-nav";
+
+const HOVER_OPEN_DELAY = 120;
+const HOVER_CLOSE_DELAY = 250;
+const TAB_HOVER_DELAY = 150;
 
 const SELECTORS = {
   header: "[data-site-header]",
-
-  /* Desktop navigation */
-  desktopNavItem: ".site-nav__item.has-mega-menu",
-  desktopNavTrigger: ".site-nav__trigger",
-  megaMenu: ".mega-menu",
-  megaCategory: ".mega-menu-nav__item",
-  megaPanel: ".mega-menu-panel",
-
-  /* Mobile navigation */
-  mobileNav: "[data-mobile-nav]",
-  mobileOverlay: "[data-mobile-nav-overlay]",
-  mobileOpen: "[data-mobile-nav-open]",
-  mobileClose: "[data-mobile-nav-close]",
-  mobileSubmenuTrigger: "[data-mobile-submenu-trigger]",
-  mobileLink: ".mobile-nav__link",
-
-  /* Shared */
-  focusable: [
-    'a[href]:not([tabindex="-1"])',
-    'button:not([disabled]):not([tabindex="-1"])',
-    'input:not([disabled]):not([tabindex="-1"])',
-    'select:not([disabled]):not([tabindex="-1"])',
-    'textarea:not([disabled]):not([tabindex="-1"])',
-    '[tabindex]:not([tabindex="-1"])',
-  ].join(","),
+  item: "[data-mega-item]",
+  trigger: "[data-mega-trigger]",
+  menu: "[data-mega-menu]",
+  tablist: '[data-mega-tabs], [role="tablist"]',
+  tab: "[data-mega-tab]",
+  focusable: 'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])',
 };
 
 const CLASSES = {
   open: "is-open",
-  active: "is-active",
+  selected: "is-selected",
   menuOpen: "is-menu-open",
   mobileMenuOpen: "is-mobile-menu-open",
-  htmlMobileOpen: "has-mobile-nav-open",
-  bodyMobileOpen: "is-mobile-nav-open",
+  scrolled: "is-scrolled",
 };
 
-const DESKTOP_QUERY = "(min-width: 992px)";
+/* ==========================================================================
+   State
+   ========================================================================== */
 
-const OPEN_DELAY = 80;
-const CLOSE_DELAY = 220;
+const desktopQuery = window.matchMedia(DESKTOP_QUERY);
 
-const desktopMediaQuery = window.matchMedia(DESKTOP_QUERY);
+const state = {
+  header: null,
+  openItem: null,
+  openedBy: null, // "hover" | "click"
+  openTimer: 0,
+  closeTimer: 0,
+  tabTimer: 0,
+  lastPointerType: "mouse",
+};
 
-let activeDesktopItem = null;
-let openTimer = null;
-let closeTimer = null;
-let lastFocusedElement = null;
 let initialized = false;
 
 /* ==========================================================================
-   General Helpers
+   Helpers
    ========================================================================== */
 
-function getHeader() {
-  return document.querySelector(SELECTORS.header);
-}
-
 function isDesktop() {
-  return desktopMediaQuery.matches;
+  return desktopQuery.matches;
 }
 
-function clearDesktopTimers() {
-  window.clearTimeout(openTimer);
-  window.clearTimeout(closeTimer);
-
-  openTimer = null;
-  closeTimer = null;
-}
-
-function getFocusableElements(container) {
-  if (!container) {
-    return [];
-  }
-
-  return Array.from(container.querySelectorAll(SELECTORS.focusable)).filter(
-    (element) =>
-      !element.hidden &&
-      !element.hasAttribute("disabled") &&
-      element.getAttribute("aria-hidden") !== "true" &&
-      element.offsetParent !== null,
+/* Asks drawer.js to close a drawer. Does nothing if it is already closed. */
+function requestDrawerClose(name, { restoreFocus = false } = {}) {
+  document.dispatchEvent(
+    new CustomEvent("drawer:request-close", {
+      detail: { name, restoreFocus },
+    }),
   );
 }
 
+function clearTimer(name) {
+  window.clearTimeout(state[name]);
+  state[name] = 0;
+}
+
+function clearHoverTimers() {
+  clearTimer("openTimer");
+  clearTimer("closeTimer");
+}
+
 function focusElement(element) {
-  if (!(element instanceof HTMLElement)) {
-    return;
-  }
+  if (!(element instanceof HTMLElement)) return;
 
   try {
-    element.focus({
-      preventScroll: true,
-    });
+    element.focus({ preventScroll: true });
   } catch {
     element.focus();
   }
 }
 
-/* ==========================================================================
-   Desktop Mega-Menu Helpers
-   ========================================================================== */
-
-function getDesktopTrigger(item) {
-  return item?.querySelector(`:scope > ${SELECTORS.desktopNavTrigger}`) || null;
-}
-
-function getMegaMenu(item) {
-  return item?.querySelector(`:scope > ${SELECTORS.megaMenu}`) || null;
-}
-
-function getMegaCategories(container) {
-  if (!container) {
-    return [];
-  }
-
-  return Array.from(container.querySelectorAll(SELECTORS.megaCategory));
-}
-
-function getMegaPanels(container) {
-  if (!container) {
-    return [];
-  }
-
-  return Array.from(container.querySelectorAll(SELECTORS.megaPanel));
-}
-
-function setHeaderDesktopState(open) {
-  getHeader()?.classList.toggle(CLASSES.menuOpen, open);
+function getParts(item) {
+  return {
+    trigger: item.querySelector(SELECTORS.trigger),
+    menu: item.querySelector(SELECTORS.menu),
+  };
 }
 
 /* ==========================================================================
-   Mega-Menu Panels
+   Category Tabs
    ========================================================================== */
+
+function getTabs(tablist) {
+  return Array.from(tablist.querySelectorAll(SELECTORS.tab));
+}
+
+function getPanel(tab) {
+  const panelId = tab.getAttribute("aria-controls");
+
+  return panelId ? document.getElementById(panelId) : null;
+}
+
+function isSelected(tab) {
+  return tab.classList.contains(CLASSES.selected);
+}
 
 /**
- * Displays the panel associated with a level-two link.
- *
- * Level-two items are real links. JavaScript manages only the preview panel;
- * it does not replace their normal navigation behavior.
+ * Moves the roving tabindex to a tab and, if the tab has a panel, shows it.
+ * A rail link without a panel (no visible children) only takes the
+ * tabindex; the current panel stays visible.
  */
-function activateMegaPanel(category, { focus = false } = {}) {
-  if (!(category instanceof HTMLElement)) {
-    return false;
-  }
 
-  const megaMenu = category.closest(SELECTORS.megaMenu);
-  const targetId = category.getAttribute("aria-controls");
+function selectTab(tab, { focus = false } = {}) {
+  const tablist = tab.closest(SELECTORS.tablist);
 
-  if (!megaMenu || !targetId) {
-    return false;
-  }
+  if (!tablist) return;
 
-  const categories = getMegaCategories(megaMenu);
-  const panels = getMegaPanels(megaMenu);
+  const tabs = getTabs(tablist);
 
-  const targetPanel = panels.find((panel) => panel.id === targetId);
-
-  if (!targetPanel) {
-    return false;
-  }
-
-  categories.forEach((item) => {
-    item.classList.toggle(CLASSES.active, item === category);
+  tabs.forEach((candidate) => {
+    candidate.tabIndex = candidate === tab ? 0 : -1;
   });
 
-  panels.forEach((panel) => {
-    const active = panel === targetPanel;
+  if (getPanel(tab)) {
+    tabs.forEach((candidate) => {
+      const selected = candidate === tab;
+      const panel = getPanel(candidate);
 
-    panel.classList.toggle(CLASSES.active, active);
-    panel.hidden = !active;
-    panel.setAttribute("aria-hidden", String(!active));
-  });
+      candidate.classList.toggle(CLASSES.selected, selected);
+
+      if (candidate.getAttribute("role") === "tab") {
+        candidate.setAttribute("aria-selected", String(selected));
+      }
+
+      if (panel) {
+        panel.hidden = !selected;
+      }
+    });
+  }
 
   if (focus) {
-    focusElement(category);
+    focusElement(tab);
   }
-
-  return true;
 }
 
-function getDefaultMegaCategory(item) {
-  const categories = getMegaCategories(item);
+/**
+ * Restores each rail to its default: the item marked data-mega-default
+ * (the current section), else the first item with a panel, else the first.
+ */
 
-  if (!categories.length) {
-    return null;
-  }
+function resetTabs(menu) {
+  menu.querySelectorAll(SELECTORS.tablist).forEach((tablist) => {
+    const tabs = getTabs(tablist);
+    const defaultTab =
+      tabs.find(
+        (tab) => tab.hasAttribute("data-mega-default") && getPanel(tab),
+      ) ||
+      tabs.find((tab) => getPanel(tab)) ||
+      tabs[0];
 
-  return (
-    categories.find((category) => category.hasAttribute("data-mega-default")) ||
-    categories[0]
-  );
-}
-
-function activateInitialMegaPanel(item) {
-  const defaultCategory = getDefaultMegaCategory(item);
-
-  if (!defaultCategory) {
-    return;
-  }
-
-  activateMegaPanel(defaultCategory);
-}
-
-function initializeMegaPanels(item) {
-  const megaMenu = getMegaMenu(item);
-
-  if (!megaMenu) {
-    return;
-  }
-
-  const categories = getMegaCategories(megaMenu);
-  const panels = getMegaPanels(megaMenu);
-
-  categories.forEach((category) => {
-    /*
-     * Remove obsolete tab-interface attributes.
-     *
-     * Level-two entries are now ordinary links, not ARIA tabs.
-     */
-    category.removeAttribute("role");
-    category.removeAttribute("aria-selected");
-
-    if (category.getAttribute("tabindex") === "-1") {
-      category.removeAttribute("tabindex");
+    if (defaultTab) {
+      selectTab(defaultTab);
     }
   });
-
-  panels.forEach((panel) => {
-    if (panel.getAttribute("role") === "tabpanel") {
-      panel.setAttribute("role", "region");
-    }
-  });
-
-  activateInitialMegaPanel(item);
 }
 
-/* ==========================================================================
-   Desktop Menu State
-   ========================================================================== */
+function handleTabKeydown(event, tab) {
+  const tablist = tab.closest(SELECTORS.tablist);
 
-function openDesktopItem(item) {
-  if (!(item instanceof HTMLElement) || !isDesktop()) {
-    return;
-  }
+  if (!tablist) return;
 
-  clearDesktopTimers();
-
-  if (activeDesktopItem && activeDesktopItem !== item) {
-    closeDesktopItem(activeDesktopItem);
-  }
-
-  const trigger = getDesktopTrigger(item);
-  const megaMenu = getMegaMenu(item);
-
-  if (!trigger || !megaMenu) {
-    return;
-  }
-
-  /*
-   * Always restore the configured default panel when a top-level menu opens.
-   */
-  activateInitialMegaPanel(item);
-
-  activeDesktopItem = item;
-
-  item.classList.add(CLASSES.open);
-  trigger.setAttribute("aria-expanded", "true");
-  megaMenu.setAttribute("aria-hidden", "false");
-
-  setHeaderDesktopState(true);
-}
-
-function closeDesktopItem(item, { restoreFocus = false } = {}) {
-  if (!(item instanceof HTMLElement)) {
-    return;
-  }
-
-  const trigger = getDesktopTrigger(item);
-  const megaMenu = getMegaMenu(item);
-
-  item.classList.remove(CLASSES.open);
-  trigger?.setAttribute("aria-expanded", "false");
-  megaMenu?.setAttribute("aria-hidden", "true");
-
-  activateInitialMegaPanel(item);
-
-  if (restoreFocus) {
-    focusElement(trigger);
-  }
-
-  if (activeDesktopItem === item) {
-    activeDesktopItem = null;
-  }
-
-  if (!activeDesktopItem) {
-    setHeaderDesktopState(false);
-  }
-}
-
-function closeAllDesktopMenus(options = {}) {
-  clearDesktopTimers();
-
-  document
-    .querySelectorAll(`${SELECTORS.desktopNavItem}.${CLASSES.open}`)
-    .forEach((item) => {
-      closeDesktopItem(item, options);
-    });
-
-  activeDesktopItem = null;
-
-  setHeaderDesktopState(false);
-}
-
-function toggleDesktopItem(item) {
-  if (!(item instanceof HTMLElement) || !isDesktop()) {
-    return;
-  }
-
-  if (item.classList.contains(CLASSES.open)) {
-    closeDesktopItem(item);
-  } else {
-    openDesktopItem(item);
-  }
-}
-
-/* ==========================================================================
-   Desktop Hover Scheduling
-   ========================================================================== */
-
-function scheduleDesktopOpen(item) {
-  clearDesktopTimers();
-
-  openTimer = window.setTimeout(() => {
-    openDesktopItem(item);
-  }, OPEN_DELAY);
-}
-
-function scheduleDesktopClose(item) {
-  window.clearTimeout(openTimer);
-  window.clearTimeout(closeTimer);
-
-  openTimer = null;
-
-  closeTimer = window.setTimeout(() => {
-    closeDesktopItem(item);
-  }, CLOSE_DELAY);
-}
-
-/* ==========================================================================
-   Mega-Menu Keyboard Navigation
-   ========================================================================== */
-
-function handleMegaCategoryKeyboard(event, category) {
-  const megaMenu = category.closest(SELECTORS.megaMenu);
-
-  if (!megaMenu) {
-    return;
-  }
-
-  const categories = getMegaCategories(megaMenu);
-  const currentIndex = categories.indexOf(category);
-
-  if (currentIndex < 0 || !categories.length) {
-    return;
-  }
-
-  let nextIndex = currentIndex;
+  const tabs = getTabs(tablist);
+  const index = tabs.indexOf(tab);
+  let next = null;
 
   switch (event.key) {
     case "ArrowDown":
-      nextIndex = (currentIndex + 1) % categories.length;
+      next = tabs[(index + 1) % tabs.length];
       break;
-
     case "ArrowUp":
-      nextIndex = (currentIndex - 1 + categories.length) % categories.length;
+      next = tabs[(index - 1 + tabs.length) % tabs.length];
       break;
-
     case "Home":
-      nextIndex = 0;
+      next = tabs[0];
       break;
-
     case "End":
-      nextIndex = categories.length - 1;
+      next = tabs[tabs.length - 1];
       break;
-
-    case "Enter":
-      /*
-       * Level-two entries are real links. Do not prevent Enter.
-       * The browser follows the link normally.
-       */
-      return;
-
-    case " ":
-      /*
-       * Space previews the associated panel without navigating.
-       */
-      event.preventDefault();
-      activateMegaPanel(category);
-      return;
-
-    case "Escape": {
-      event.preventDefault();
-
-      const desktopItem = category.closest(SELECTORS.desktopNavItem);
-
-      closeDesktopItem(desktopItem, {
-        restoreFocus: true,
-      });
-
-      return;
-    }
-
     default:
       return;
   }
 
   event.preventDefault();
+  selectTab(next, { focus: true });
+}
 
-  activateMegaPanel(categories[nextIndex], {
-    focus: true,
+function initTabs(menu) {
+  menu.addEventListener("pointerdown", (event) => {
+    state.lastPointerType = event.pointerType || "mouse";
+  });
+
+  menu.addEventListener("click", (event) => {
+    const tab =
+      event.target instanceof Element && event.target.closest(SELECTORS.tab);
+
+    if (!tab) return;
+
+    clearTimer("tabTimer");
+
+    /* Tabs (buttons) select on click. */
+    if (tab.tagName !== "A") {
+      selectTab(tab);
+      return;
+    }
+
+    /* Links navigate, except a first tap on touch, which previews. */
+    if (
+      state.lastPointerType === "touch" &&
+      getPanel(tab) &&
+      !isSelected(tab)
+    ) {
+      event.preventDefault();
+      selectTab(tab);
+    }
+  });
+
+  menu.addEventListener("keydown", (event) => {
+    const tab =
+      event.target instanceof Element && event.target.closest(SELECTORS.tab);
+
+    if (tab) {
+      handleTabKeydown(event, tab);
+    }
+  });
+
+  menu.querySelectorAll(SELECTORS.tab).forEach((tab) => {
+    tab.addEventListener("pointerenter", (event) => {
+      if (event.pointerType === "touch") return;
+
+      clearTimer("tabTimer");
+      state.tabTimer = window.setTimeout(() => selectTab(tab), TAB_HOVER_DELAY);
+    });
+
+    tab.addEventListener("pointerleave", () => {
+      clearTimer("tabTimer");
+    });
   });
 }
 
 /* ==========================================================================
-   Desktop Initialization
+   Menu State
    ========================================================================== */
 
-function initializeDesktopItem(item) {
-  const trigger = getDesktopTrigger(item);
-  const megaMenu = getMegaMenu(item);
+function openItem(item, openedBy) {
+  if (!isDesktop()) return;
 
-  if (!trigger || !megaMenu) {
+  clearHoverTimers();
+
+  if (state.openItem === item) {
+    state.openedBy = openedBy;
     return;
   }
 
-  item.classList.remove(CLASSES.open);
+  if (state.openItem) {
+    closeItem(state.openItem);
+  }
+
+  const { trigger, menu } = getParts(item);
+
+  if (!trigger || !menu) return;
+
+  /* Reset before showing, so the closing fade never shows a panel swap. */
+  resetTabs(menu);
+
+  state.openItem = item;
+  state.openedBy = openedBy;
+
+  menu.classList.add(CLASSES.open);
+  trigger.setAttribute("aria-expanded", "true");
+
+  state.header.classList.add(CLASSES.menuOpen);
+}
+
+function closeItem(item, { restoreFocus = false } = {}) {
+  const { trigger, menu } = getParts(item);
+
+  clearTimer("tabTimer");
+
+  menu?.classList.remove(CLASSES.open);
+  trigger?.setAttribute("aria-expanded", "false");
+
+  if (state.openItem === item) {
+    state.openItem = null;
+    state.openedBy = null;
+
+    state.header.classList.remove(CLASSES.menuOpen);
+  }
+
+  if (restoreFocus) {
+    focusElement(trigger);
+  }
+}
+
+function closeOpenItem(options) {
+  clearHoverTimers();
+
+  if (state.openItem) {
+    closeItem(state.openItem, options);
+  }
+}
+
+/* Moves focus into an open menu: the selected tab, else the first link. */
+function focusMenu(menu) {
+  window.requestAnimationFrame(() => {
+    const target =
+      menu.querySelector(`${SELECTORS.tab}.${CLASSES.selected}`) ||
+      menu.querySelector(`${SELECTORS.tab}[tabindex="0"]`) ||
+      menu.querySelector(SELECTORS.focusable);
+
+    focusElement(target);
+  });
+}
+
+/* ==========================================================================
+   Menu Item
+   ========================================================================== */
+
+function initItem(item) {
+  const { trigger, menu } = getParts(item);
+
+  if (!trigger || !menu) return;
 
   trigger.setAttribute("aria-expanded", "false");
-  megaMenu.setAttribute("aria-hidden", "true");
+  menu.classList.remove(CLASSES.open);
+  resetTabs(menu);
 
-  initializeMegaPanels(item);
+  /* Hover intent. Touch is ignored: taps arrive as clicks. */
 
   item.addEventListener("pointerenter", (event) => {
-    if (event.pointerType === "touch") {
-      return;
-    }
+    if (event.pointerType === "touch" || !isDesktop()) return;
 
-    scheduleDesktopOpen(item);
+    clearTimer("closeTimer");
+
+    if (state.openItem === item) return;
+
+    clearTimer("openTimer");
+
+    /* Moving between triggers while a menu is open switches immediately. */
+    const delay = state.openItem ? 0 : HOVER_OPEN_DELAY;
+
+    state.openTimer = window.setTimeout(() => openItem(item, "hover"), delay);
   });
 
   item.addEventListener("pointerleave", (event) => {
-    if (event.pointerType === "touch") {
-      return;
-    }
+    if (event.pointerType === "touch") return;
 
-    scheduleDesktopClose(item);
+    clearTimer("openTimer");
+
+    if (state.openItem !== item || state.openedBy !== "hover") return;
+
+    state.closeTimer = window.setTimeout(
+      () => closeItem(item),
+      HOVER_CLOSE_DELAY,
+    );
   });
 
-  /*
-   * The top-level trigger remains responsible for opening and closing its
-   * mega menu.
-   */
-  trigger.addEventListener("click", (event) => {
-    if (!isDesktop()) {
-      return;
+  /* Click, tap, Enter and Space. */
+
+  trigger.addEventListener("click", () => {
+    if (!isDesktop()) return;
+
+    clearHoverTimers();
+
+    if (state.openItem !== item) {
+      openItem(item, "click");
+    } else if (state.openedBy === "hover") {
+      state.openedBy = "click";
+    } else {
+      closeItem(item);
     }
-
-    event.preventDefault();
-
-    toggleDesktopItem(item);
   });
 
   trigger.addEventListener("keydown", (event) => {
-    if (!isDesktop()) {
-      return;
-    }
+    if (event.key !== "ArrowDown" || !isDesktop()) return;
 
-    switch (event.key) {
-      case "ArrowDown": {
-        event.preventDefault();
+    event.preventDefault();
 
-        openDesktopItem(item);
-
-        const activeCategory = item.querySelector(
-          `${SELECTORS.megaCategory}.${CLASSES.active}`,
-        );
-
-        focusElement(activeCategory);
-        break;
-      }
-
-      case "Escape":
-        event.preventDefault();
-
-        closeDesktopItem(item, {
-          restoreFocus: true,
-        });
-        break;
-
-      default:
-        break;
-    }
+    openItem(item, "click");
+    focusMenu(menu);
   });
+
+  /*
+   * Close when keyboard focus leaves the item. A null relatedTarget (Safari
+   * clicks, window blur) is ignored; outside clicks are handled separately.
+   */
 
   item.addEventListener("focusout", (event) => {
-    if (!item.contains(event.relatedTarget)) {
-      scheduleDesktopClose(item);
+    const next = event.relatedTarget;
+
+    if (!(next instanceof Node) || item.contains(next)) return;
+
+    if (state.openItem === item) {
+      closeItem(item);
+    }
+  });
+
+  /* Following a link closes the menu (matters for same-page links). */
+
+  menu.addEventListener("click", (event) => {
+    if (event.target instanceof Element && event.target.closest("a[href]")) {
+      closeItem(item);
+    }
+  });
+
+  initTabs(menu);
+}
+
+/* ==========================================================================
+   Document Events
+   ========================================================================== */
+
+function handleDocumentClick(event) {
+  if (!state.openItem || !(event.target instanceof Node)) return;
+
+  if (!state.openItem.contains(event.target)) {
+    closeOpenItem();
+  }
+}
+
+function handleDocumentKeydown(event) {
+  if (event.key !== "Escape" || !state.openItem) return;
+
+  event.preventDefault();
+
+  closeOpenItem({
+    restoreFocus: state.openItem.contains(document.activeElement),
+  });
+}
+
+function handleBreakpointChange() {
+  closeOpenItem();
+
+  if (isDesktop()) {
+    requestDrawerClose(MOBILE_DRAWER);
+  }
+}
+
+/* Pages restored from the back/forward cache start with menus closed. */
+function handlePageShow(event) {
+  if (!event.persisted) return;
+
+  closeOpenItem();
+  requestDrawerClose(MOBILE_DRAWER);
+}
+
+/* ==========================================================================
+   Mobile Drawer
+   ========================================================================== */
+
+function isMobileDrawerEvent(event) {
+  return event.detail?.name === MOBILE_DRAWER;
+}
+
+function initMobileNavigation() {
+  document.addEventListener("drawer:open", (event) => {
+    if (!isMobileDrawerEvent(event)) return;
+
+    closeOpenItem();
+    state.header.classList.add(CLASSES.mobileMenuOpen);
+  });
+
+  document.addEventListener("drawer:close", (event) => {
+    if (!isMobileDrawerEvent(event)) return;
+
+    state.header.classList.remove(CLASSES.mobileMenuOpen);
+  });
+
+  /* Collapse sections after the slide-out ends, not during it. */
+  document.addEventListener("drawer:closed", (event) => {
+    if (!isMobileDrawerEvent(event)) return;
+
+    collapseAccordions(event.detail.drawer);
+  });
+
+  /* Following a link closes the drawer without moving focus to the burger. */
+  document.addEventListener("click", (event) => {
+    const link =
+      event.target instanceof Element &&
+      event.target.closest(`[data-drawer="${MOBILE_DRAWER}"] a[href]`);
+
+    if (link) {
+      requestDrawerClose(MOBILE_DRAWER);
     }
   });
 }
 
 /* ==========================================================================
-   Desktop Delegated Events
+   Scroll State
    ========================================================================== */
 
-function getMegaCategoryFromEvent(event) {
-  if (!(event.target instanceof Element)) {
-    return null;
-  }
-
-  return event.target.closest(SELECTORS.megaCategory);
-}
-
-function handleMegaCategoryPointer(event) {
-  if (!isDesktop()) {
-    return;
-  }
-
-  const category = getMegaCategoryFromEvent(event);
-
-  if (!category) {
-    return;
-  }
-
-  activateMegaPanel(category);
-}
-
-function handleMegaCategoryFocus(event) {
-  if (!isDesktop()) {
-    return;
-  }
-
-  const category = getMegaCategoryFromEvent(event);
-
-  if (!category) {
-    return;
-  }
-
-  activateMegaPanel(category);
-}
-
-function handleMegaCategoryKeydown(event) {
-  if (!isDesktop()) {
-    return;
-  }
-
-  const category = getMegaCategoryFromEvent(event);
-
-  if (!category) {
-    return;
-  }
-
-  handleMegaCategoryKeyboard(event, category);
-}
-
-function initializeDesktopMenus() {
-  document
-    .querySelectorAll(SELECTORS.desktopNavItem)
-    .forEach(initializeDesktopItem);
-
-  document.addEventListener("pointerover", handleMegaCategoryPointer);
-
-  document.addEventListener("focusin", handleMegaCategoryFocus);
-
-  document.addEventListener("keydown", handleMegaCategoryKeydown);
-}
-/* ==========================================================================
-   Mobile Navigation Helpers
-   ========================================================================== */
-
-function getMobileNav() {
-  return document.querySelector(SELECTORS.mobileNav);
-}
-
-function getMobileOverlay() {
-  return document.querySelector(SELECTORS.mobileOverlay);
-}
-
-function getMobileOpenButton() {
-  return document.querySelector(SELECTORS.mobileOpen);
-}
-
-function isMobileNavOpen() {
-  return getMobileNav()?.classList.contains(CLASSES.open) ?? false;
-}
-
-function setMobileScrollLock(locked) {
-  document.documentElement.classList.toggle(CLASSES.htmlMobileOpen, locked);
-
-  document.body.classList.toggle(CLASSES.bodyMobileOpen, locked);
-
-  getHeader()?.classList.toggle(CLASSES.mobileMenuOpen, locked);
-}
-
-/* ==========================================================================
-   Mobile Submenus
-   ========================================================================== */
-
-function getMobileSubmenu(trigger) {
-  if (!(trigger instanceof HTMLElement)) {
-    return null;
-  }
-
-  const targetId = trigger.getAttribute("aria-controls");
-
-  if (!targetId) {
-    return null;
-  }
-
-  const rootNode = trigger.getRootNode();
-
-  if (typeof rootNode.getElementById === "function") {
-    return rootNode.getElementById(targetId);
-  }
-
-  return trigger.ownerDocument.getElementById(targetId);
-}
-
-/**
- * Returns the submenu trigger owned directly by a mobile list item.
- *
- * This supports both structures:
- *
- * 1. A trigger placed directly inside the list item.
- * 2. A trigger placed inside .mobile-nav__submenu-row beside a real link.
- */
-function getDirectMobileSubmenuTrigger(listItem) {
-  if (!(listItem instanceof HTMLElement)) {
-    return null;
-  }
-
-  const directTrigger = listItem.querySelector(
-    `:scope > ${SELECTORS.mobileSubmenuTrigger}`,
-  );
-
-  if (directTrigger) {
-    return directTrigger;
-  }
-
-  return listItem.querySelector(
-    `:scope > .mobile-nav__submenu-row > ${SELECTORS.mobileSubmenuTrigger}`,
-  );
-}
-
-function setMobileSubmenu(trigger, open) {
-  if (!(trigger instanceof HTMLElement)) {
-    return;
-  }
-
-  const submenu = getMobileSubmenu(trigger);
-
-  if (!submenu) {
-    return;
-  }
-
-  trigger.setAttribute("aria-expanded", String(open));
-  trigger.classList.toggle(CLASSES.open, open);
-
-  submenu.classList.toggle(CLASSES.open, open);
-  submenu.hidden = !open;
-  submenu.setAttribute("aria-hidden", String(!open));
-}
-
-function closeNestedSubmenus(container) {
-  if (!(container instanceof HTMLElement)) {
-    return;
-  }
-
-  container
-    .querySelectorAll(SELECTORS.mobileSubmenuTrigger)
-    .forEach((trigger) => {
-      setMobileSubmenu(trigger, false);
-    });
-}
-
-function closeSiblingSubmenus(trigger) {
-  if (!(trigger instanceof HTMLElement)) {
-    return;
-  }
-
-  const currentListItem = trigger.closest("li");
-  const currentList = currentListItem?.parentElement;
-
-  if (!currentListItem || !currentList?.matches("ul")) {
-    return;
-  }
-
-  Array.from(currentList.children).forEach((listItem) => {
-    if (!(listItem instanceof HTMLElement) || listItem === currentListItem) {
-      return;
-    }
-
-    const siblingTrigger = getDirectMobileSubmenuTrigger(listItem);
-
-    if (!siblingTrigger || siblingTrigger === trigger) {
-      return;
-    }
-
-    const siblingSubmenu = getMobileSubmenu(siblingTrigger);
-
-    closeNestedSubmenus(siblingSubmenu);
-    setMobileSubmenu(siblingTrigger, false);
-  });
-}
-
-function toggleMobileSubmenu(trigger) {
-  const submenu = getMobileSubmenu(trigger);
-
-  if (!submenu) {
-    return;
-  }
-
-  const open = trigger.getAttribute("aria-expanded") === "true";
-
-  if (open) {
-    closeNestedSubmenus(submenu);
-  } else {
-    closeSiblingSubmenus(trigger);
-  }
-
-  setMobileSubmenu(trigger, !open);
-}
-
-function resetMobileSubmenus() {
-  const nav = getMobileNav();
-
-  if (!nav) {
-    return;
-  }
-
-  nav.querySelectorAll(SELECTORS.mobileSubmenuTrigger).forEach((trigger) => {
-    setMobileSubmenu(trigger, false);
-  });
-}
-
-/* ==========================================================================
-   Mobile Drawer State
-   ========================================================================== */
-
-function openMobileNav(trigger = null) {
-  const nav = getMobileNav();
-  const overlay = getMobileOverlay();
-  const openButton = trigger || getMobileOpenButton();
-
-  if (!nav || !overlay || isDesktop()) {
-    return;
-  }
-
-  lastFocusedElement =
-    document.activeElement instanceof HTMLElement
-      ? document.activeElement
-      : openButton;
-
-  nav.classList.add(CLASSES.open);
-  overlay.classList.add(CLASSES.open);
-
-  nav.setAttribute("aria-hidden", "false");
-  overlay.setAttribute("aria-hidden", "false");
-
-  openButton?.setAttribute("aria-expanded", "true");
-
-  setMobileScrollLock(true);
-
-  window.requestAnimationFrame(() => {
-    const closeButton = nav.querySelector(SELECTORS.mobileClose);
-
-    focusElement(closeButton || nav);
-  });
-}
-
-function closeMobileNav({ restoreFocus = true } = {}) {
-  const nav = getMobileNav();
-  const overlay = getMobileOverlay();
-  const openButton = getMobileOpenButton();
-
-  if (!nav || !overlay) {
-    return;
-  }
-
-  nav.classList.remove(CLASSES.open);
-  overlay.classList.remove(CLASSES.open);
-
-  nav.setAttribute("aria-hidden", "true");
-  overlay.setAttribute("aria-hidden", "true");
-
-  openButton?.setAttribute("aria-expanded", "false");
-
-  setMobileScrollLock(false);
-  resetMobileSubmenus();
-
-  if (restoreFocus) {
-    const focusTarget =
-      lastFocusedElement instanceof HTMLElement
-        ? lastFocusedElement
-        : openButton;
-
-    focusElement(focusTarget);
-  }
-
-  lastFocusedElement = null;
-}
-
-/* ==========================================================================
-   Mobile Focus Trap
-   ========================================================================== */
-
-function trapMobileFocus(event) {
-  if (event.key !== "Tab" || !isMobileNavOpen()) {
-    return;
-  }
-
-  const nav = getMobileNav();
-  const focusableElements = getFocusableElements(nav);
-
-  if (!focusableElements.length) {
-    event.preventDefault();
-    focusElement(nav);
-
-    return;
-  }
-
-  const firstElement = focusableElements[0];
-  const lastElement = focusableElements[focusableElements.length - 1];
-
-  if (event.shiftKey && document.activeElement === firstElement) {
-    event.preventDefault();
-    focusElement(lastElement);
-
-    return;
-  }
-
-  if (!event.shiftKey && document.activeElement === lastElement) {
-    event.preventDefault();
-    focusElement(firstElement);
-  }
-}
-
-/* ==========================================================================
-   Mobile Initialization
-   ========================================================================== */
-
-function initializeMobileSubmenus() {
-  const nav = getMobileNav();
-
-  if (!nav) {
-    return;
-  }
-
-  nav.querySelectorAll(SELECTORS.mobileSubmenuTrigger).forEach((trigger) => {
-    setMobileSubmenu(trigger, false);
-  });
-}
-
-function initializeMobileNavigationState() {
-  const nav = getMobileNav();
-  const overlay = getMobileOverlay();
-  const openButton = getMobileOpenButton();
-
-  nav?.classList.remove(CLASSES.open);
-  overlay?.classList.remove(CLASSES.open);
-
-  nav?.setAttribute("aria-hidden", "true");
-  overlay?.setAttribute("aria-hidden", "true");
-
-  openButton?.setAttribute("aria-expanded", "false");
-
-  setMobileScrollLock(false);
-  initializeMobileSubmenus();
-}
-
-function handleMobileNavigationClick(event) {
-  if (!(event.target instanceof Element)) {
-    return;
-  }
-
-  const openButton = event.target.closest(SELECTORS.mobileOpen);
-
-  if (openButton) {
-    event.preventDefault();
-    openMobileNav(openButton);
-
-    return;
-  }
-
-  const closeButton = event.target.closest(SELECTORS.mobileClose);
-
-  if (closeButton) {
-    event.preventDefault();
-    closeMobileNav();
-
-    return;
-  }
-
-  const overlay = event.target.closest(SELECTORS.mobileOverlay);
-
-  if (overlay) {
-    event.preventDefault();
-    closeMobileNav();
-
-    return;
-  }
-
-  /*
-   * Only the dedicated expansion button controls a nested mobile submenu.
-   *
-   * The level-two title beside it remains a normal navigable link.
-   */
-  const submenuTrigger = event.target.closest(SELECTORS.mobileSubmenuTrigger);
-
-  if (submenuTrigger) {
-    event.preventDefault();
-    toggleMobileSubmenu(submenuTrigger);
-
-    return;
-  }
-
-  /*
-   * Following an ordinary navigation link closes the drawer without moving
-   * focus back to the menu-open button.
-   */
-  const mobileLink = event.target.closest(SELECTORS.mobileLink);
-
-  if (mobileLink) {
-    closeMobileNav({
-      restoreFocus: false,
-    });
-  }
-}
-
-function initializeMobileNavigation() {
-  initializeMobileNavigationState();
-
-  document.addEventListener("click", handleMobileNavigationClick);
-
-  document.addEventListener("keydown", trapMobileFocus);
-}
-
-/* ==========================================================================
-   Global Header Events
-   ========================================================================== */
-
-function handleGlobalKeyboard(event) {
-  if (event.key !== "Escape") {
-    return;
-  }
-
-  if (isMobileNavOpen()) {
-    event.preventDefault();
-    closeMobileNav();
-
-    return;
-  }
-
-  if (activeDesktopItem) {
-    event.preventDefault();
-
-    closeDesktopItem(activeDesktopItem, {
-      restoreFocus: true,
-    });
-  }
-}
-
-function handleOutsideClick(event) {
-  if (!isDesktop() || !activeDesktopItem || !(event.target instanceof Node)) {
-    return;
-  }
-
-  if (!activeDesktopItem.contains(event.target)) {
-    closeAllDesktopMenus();
-  }
-}
-
-function handleViewportChange(event) {
-  clearDesktopTimers();
-  closeAllDesktopMenus();
-
-  if (event.matches) {
-    closeMobileNav({
-      restoreFocus: false,
-    });
-  } else {
-    resetMobileSubmenus();
-  }
-}
-
-/* ==========================================================================
-   Sticky Header State
-   ========================================================================== */
-
-function initializeHeaderScrollState(header) {
+function initScrollState(header) {
   let ticking = false;
 
-  function updateHeaderState() {
-    header.classList.toggle("is-scrolled", window.scrollY > 0);
-
+  function update() {
+    header.classList.toggle(CLASSES.scrolled, window.scrollY > 0);
     ticking = false;
   }
 
-  function handleScroll() {
-    if (ticking) {
-      return;
-    }
+  window.addEventListener(
+    "scroll",
+    () => {
+      if (ticking) return;
 
-    ticking = true;
+      ticking = true;
+      window.requestAnimationFrame(update);
+    },
+    { passive: true },
+  );
 
-    window.requestAnimationFrame(updateHeaderState);
-  }
-
-  updateHeaderState();
-
-  window.addEventListener("scroll", handleScroll, {
-    passive: true,
-  });
+  update();
 }
 
 /* ==========================================================================
@@ -1033,25 +563,28 @@ function initializeHeaderScrollState(header) {
    ========================================================================== */
 
 export function initHeader() {
-  if (initialized) {
-    return;
-  }
+  if (initialized) return;
 
-  const header = getHeader();
+  const header = document.querySelector(SELECTORS.header);
 
-  if (!header) {
-    return;
-  }
+  if (!header) return;
 
   initialized = true;
+  state.header = header;
 
-  initializeDesktopMenus();
-  initializeMobileNavigation();
-  initializeHeaderScrollState(header);
+  header.querySelectorAll(SELECTORS.item).forEach(initItem);
 
-  document.addEventListener("keydown", handleGlobalKeyboard);
+  initMobileNavigation();
+  initScrollState(header);
 
-  document.addEventListener("click", handleOutsideClick);
+  document.addEventListener("click", handleDocumentClick);
+  document.addEventListener("keydown", handleDocumentKeydown);
+  window.addEventListener("pageshow", handlePageShow);
 
-  desktopMediaQuery.addEventListener("change", handleViewportChange);
+  /* addListener: Safari before 14. */
+  if (typeof desktopQuery.addEventListener === "function") {
+    desktopQuery.addEventListener("change", handleBreakpointChange);
+  } else {
+    desktopQuery.addListener(handleBreakpointChange);
+  }
 }

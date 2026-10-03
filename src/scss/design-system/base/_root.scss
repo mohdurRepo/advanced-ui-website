@@ -45,6 +45,9 @@ $-font-scales: (
   /* Focus */
   --focus-ring-width: 2px;
 
+  /* Header (desktop value set below) */
+  --app-header-height: 4rem;
+
   /* Spacing */
   @each $key, $value in ds.$spaces {
     --space-#{$key}: #{$value};
@@ -68,6 +71,23 @@ $-font-scales: (
   /* Layering */
   @each $key, $value in ds.$z-indexes {
     --z-#{$key}: #{$value};
+  }
+}
+
+/* ==========================================================================
+   Header Height
+   ========================================================================== */
+
+/**
+ * Used by the sticky header, the mega-menu height limit, the drawer header,
+ * sticky layouts and anchor scrolling.
+ *
+ * The breakpoint must match $nav-breakpoint in header/_header-config.scss.
+ */
+
+@include ds.respond-up("lg") {
+  :root {
+    --app-header-height: 4.5rem;
   }
 }
 
@@ -98,6 +118,9 @@ html {
   font-family: var(--font-sans);
 
   scroll-behavior: smooth;
+
+  /* Anchor and skip-link targets stop below the sticky header. */
+  scroll-padding-block-start: var(--app-header-height);
 }
 
 body {

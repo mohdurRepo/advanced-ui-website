@@ -1,9 +1,13 @@
+/* ==========================================================================
+   Header
+   ========================================================================== */
+
+/* _header-config.scss is read with @use by each partial; not forwarded. */
+
 @forward "header";
 @forward "header-actions";
 @forward "navigation";
 @forward "mega-menu";
-@forward "mega-menu-nav";
-@forward "mega-menu-content";
+@forward "mega-menu-panel";
 @forward "mega-menu-feature";
-@forward "mega-menu-flyout";
-@forward "mobile-drawer";
+@forward "mobile-nav";

@@ -270,1129 +270,1156 @@
 
     <!-- =========================================================================
      Site Header
-============================================================================ -->
+     -------------------------------------------------------------------------
+     Conventions
+     - Classes are for styling. data-* attributes are the JavaScript hooks.
+     - State is set by JavaScript only: .is-open on menus, `hidden` on
+       inactive panels. No aria-hidden toggling is needed.
+     - Server-side (JSP):
+       * add aria-current="page" to the link of the current page;
+       * add .is-current to the top-level trigger or link of the current
+         section, so the section stays highlighted while its menu is closed.
+     - IDs are unique per menu: "mm-" desktop, "mn-" mobile.
+     - Desktop and mobile list the same groups and links in the same order.
+       Render both from one menu model so they cannot drift apart.
+
+     Menu levels
+       Level 1  top bar          Data & Reports
+       Level 2  category tab     Reports
+       Level 3  link             Annual Reports   (inside a titled group)
+       Level 4  sub-link         Annual Report 2025
+
+     Level 4 is an indented list directly under its parent link, always
+     visible. Keep it short (up to about 5 items); link to a landing page
+     for longer lists. Pattern (desktop):
+       <li>
+         <a class="mega-menu-link" href="#">Parent</a>
+         <ul class="mega-menu-sublist" aria-label="Parent">
+           <li><a class="mega-menu-sublink" href="#">Child</a></li>
+         </ul>
+       </li>
+     Mobile uses mobile-nav__sublist / mobile-nav__sublink.
+
+     A group title is plain text by default. When the group has its own
+     landing page, render the title as a link instead:
+       <a class="mega-menu-group__title" id="mm-market-indices" href="/indices">Indices</a>
+       (mobile: <a class="mobile-nav__group-title" id="mn-market-indices" href="/indices">Indices</a>)
+     ========================================================================= -->
+
+    <a class="skip-link visually-hidden-focusable" href="#main">
+      Skip to main content
+    </a>
 
     <header class="site-header" data-site-header>
       <div class="site-header__inner container">
-        <!-- Brand -->
-
-        <a
-          class="site-header__brand"
-          href="/"
-          aria-label="Saudi Exchange homepage"
-        >
-          <!--DARK-->
+        <!-- Brand: the header is always dark, so one light logo is enough -->
+        <a class="site-header__brand" href="/">
           <img
-            class="site-header__logo site-header__logo--light"
+            class="site-header__logo"
             src="/assets/images/saudi-exchange-logo.png"
             alt="Saudi Exchange"
-          />
-          <!--DARK-->
-          <img
-            class="site-header__logo site-header__logo--dark"
-            src="/assets/images/saudi-exchange-logo.png"
-            alt="Saudi Exchange"
+            width="176"
+            height="44"
           />
         </a>
 
-        <!-- Desktop Navigation -->
+        <!-- =====================================================================
+         Desktop Navigation
+         ===================================================================== -->
 
-        <nav class="site-nav site-header__nav" aria-label="Main navigation">
+        <nav class="site-nav site-header__nav" aria-label="Main">
           <ul class="site-nav__list">
-            <!-- ================================================================
+            <!-- ===============================================================
              Our Market
-        ================================================================= -->
+             =============================================================== -->
 
-            <li class="site-nav__item has-mega-menu">
+            <li class="site-nav__item" data-mega-item>
               <button
                 class="site-nav__trigger"
                 type="button"
                 aria-expanded="false"
-                aria-controls="mega-market"
+                aria-controls="mm-market"
+                data-mega-trigger
               >
-                <span class="site-nav__trigger-text"> Our Market </span>
-
+                <span class="site-nav__label">Our Market</span>
                 <span
-                  class="has-icon icon-chevron-down site-nav__trigger-icon"
+                  class="site-nav__chevron has-icon icon-chevron-down"
                   aria-hidden="true"
                 ></span>
               </button>
 
-              <div class="mega-menu" id="mega-market" aria-hidden="true">
-                <div class="mega-menu__container">
-                  <!-- Category rail -->
-
-                  <div class="mega-menu__rail">
+              <div class="mega-menu" id="mm-market" data-mega-menu>
+                <div class="mega-menu__inner container">
+                  <div class="mega-menu__card">
+                    <!-- Category tabs -->
                     <div
-                      class="mega-menu-nav"
+                      class="mega-menu-tabs"
                       role="tablist"
-                      aria-label="Our Market categories"
+                      aria-label="Our Market"
+                      aria-orientation="vertical"
                     >
                       <button
-                        class="mega-menu-nav__item is-active"
-                        id="mega-market-main-tab"
+                        class="mega-menu-tab"
+                        id="mm-market-main-tab"
                         type="button"
                         role="tab"
                         aria-selected="true"
-                        aria-controls="mega-market-main-panel"
-                        tabindex="0"
+                        aria-controls="mm-market-main"
+                        data-mega-tab
                       >
                         <span
-                          class="has-icon icon-chart-bar mega-menu-nav__icon"
+                          class="mega-menu-tab__icon has-icon icon-chart-bar"
                           aria-hidden="true"
                         ></span>
-
-                        <span class="mega-menu-nav__body">
-                          <span class="mega-menu-nav__heading">
-                            Main Market
-                          </span>
-
-                          <span class="mega-menu-nav__text">
-                            Prices, indices and trading activity
-                          </span>
+                        <span class="mega-menu-tab__body">
+                          <span class="mega-menu-tab__title">Main Market</span>
+                          <span class="mega-menu-tab__text"
+                            >Prices, indices and trading activity</span
+                          >
                         </span>
-
-                        <span
-                          class="has-icon icon-chevron-right icon-flip-rtl mega-menu-nav__arrow"
-                          aria-hidden="true"
-                        ></span>
                       </button>
 
                       <button
-                        class="mega-menu-nav__item"
-                        id="mega-market-products-tab"
+                        class="mega-menu-tab"
+                        id="mm-market-products-tab"
                         type="button"
                         role="tab"
                         aria-selected="false"
-                        aria-controls="mega-market-products-panel"
+                        aria-controls="mm-market-products"
                         tabindex="-1"
+                        data-mega-tab
                       >
                         <span
-                          class="has-icon icon-segment-container mega-menu-nav__icon"
+                          class="mega-menu-tab__icon has-icon icon-segment-container"
                           aria-hidden="true"
                         ></span>
-
-                        <span class="mega-menu-nav__body">
-                          <span class="mega-menu-nav__heading"> Products </span>
-
-                          <span class="mega-menu-nav__text">
-                            Equities, ETFs, REITs, sukuk and bonds
-                          </span>
+                        <span class="mega-menu-tab__body">
+                          <span class="mega-menu-tab__title">Products</span>
+                          <span class="mega-menu-tab__text"
+                            >Equities, ETFs, REITs, sukuk and bonds</span
+                          >
                         </span>
-
-                        <span
-                          class="has-icon icon-chevron-right icon-flip-rtl mega-menu-nav__arrow"
-                          aria-hidden="true"
-                        ></span>
                       </button>
                     </div>
-                  </div>
 
-                  <!-- Category content -->
-
-                  <div class="mega-menu__content">
-                    <!-- Main Market panel -->
-
-                    <section
-                      class="mega-menu-panel is-active"
-                      id="mega-market-main-panel"
+                    <!-- Panel: Main Market -->
+                    <div
+                      class="mega-menu-panel"
+                      id="mm-market-main"
                       role="tabpanel"
-                      aria-labelledby="mega-market-main-tab"
-                      aria-hidden="false"
+                      aria-labelledby="mm-market-main-tab"
+                      data-mega-panel
                     >
-                      <div class="mega-menu-panel__layout">
-                        <div class="mega-menu-panel__column">
-                          <a class="mega-menu-panel__link" href="#">
-                            Market Summary
-                          </a>
+                      <div class="mega-menu-panel__groups">
+                        <div class="mega-menu-group">
+                          <p
+                            class="mega-menu-group__title"
+                            id="mm-market-overview"
+                          >
+                            Overview
+                          </p>
+                          <ul
+                            class="mega-menu-group__list"
+                            aria-labelledby="mm-market-overview"
+                          >
+                            <li>
+                              <a class="mega-menu-link" href="#"
+                                >Market Summary</a
+                              >
+                            </li>
+                            <li>
+                              <a class="mega-menu-link" href="#"
+                                >Market Watch</a
+                              >
+                            </li>
+                            <li>
+                              <a class="mega-menu-link" href="#"
+                                >Trading Calendar</a
+                              >
+                            </li>
+                            <li>
+                              <a class="mega-menu-link" href="#"
+                                >Listed Companies</a
+                              >
+                            </li>
+                            <li>
+                              <a class="mega-menu-link" href="#">IPO Center</a>
+                            </li>
+                          </ul>
+                        </div>
 
-                          <a class="mega-menu-panel__link" href="#">
-                            Market Watch
-                          </a>
+                        <div class="mega-menu-group">
+                          <p
+                            class="mega-menu-group__title"
+                            id="mm-market-indices"
+                          >
+                            Indices
+                          </p>
+                          <ul
+                            class="mega-menu-group__list"
+                            aria-labelledby="mm-market-indices"
+                          >
+                            <li><a class="mega-menu-link" href="#">TASI</a></li>
+                            <li>
+                              <a class="mega-menu-link" href="#">Nomu Index</a>
+                            </li>
+                            <li>
+                              <a class="mega-menu-link" href="#"
+                                >Sector Indices</a
+                              >
+                            </li>
+                            <li>
+                              <a class="mega-menu-link" href="#"
+                                >MSCI Tadawul 30</a
+                              >
+                            </li>
+                          </ul>
+                        </div>
 
-                          <a class="mega-menu-panel__link" href="#">
-                            Trading Calendar
-                          </a>
+                        <div class="mega-menu-group">
+                          <p
+                            class="mega-menu-group__title"
+                            id="mm-market-activity"
+                          >
+                            Market activity
+                          </p>
+                          <ul
+                            class="mega-menu-group__list"
+                            aria-labelledby="mm-market-activity"
+                          >
+                            <li>
+                              <a class="mega-menu-link" href="#">Top Gainers</a>
+                            </li>
+                            <li>
+                              <a class="mega-menu-link" href="#">Top Losers</a>
+                            </li>
+                            <li>
+                              <a class="mega-menu-link" href="#">Most Active</a>
+                            </li>
+                            <li>
+                              <a class="mega-menu-link" href="#"
+                                >Announcements</a
+                              >
+                            </li>
+                            <li>
+                              <a class="mega-menu-link" href="#"
+                                >Historical Data</a
+                              >
+                            </li>
+                          </ul>
+                        </div>
+                      </div>
 
-                          <!-- Third-level flyout -->
-
-                          <div class="mega-menu-flyout">
-                            <button
-                              class="mega-menu-flyout__trigger"
-                              type="button"
-                              aria-expanded="false"
+                      <aside
+                        class="mega-menu-panel__feature"
+                        aria-label="Featured"
+                      >
+                        <article class="mega-feature">
+                          <img
+                            class="mega-feature__image"
+                            src="/assets/images/card-background.png"
+                            alt=""
+                            width="640"
+                            height="360"
+                            loading="lazy"
+                            decoding="async"
+                          />
+                          <div class="mega-feature__body">
+                            <p class="mega-feature__title">Market statistics</p>
+                            <p class="mega-feature__text">
+                              Daily market snapshots and historical trading
+                              data.
+                            </p>
+                            <a class="mega-feature__link" href="#"
+                              >Explore statistics</a
                             >
-                              <span class="mega-menu-flyout__text">
-                                Indices
-                              </span>
-
-                              <span
-                                class="has-icon icon-chevron-right icon-flip-rtl mega-menu-flyout__icon"
-                                aria-hidden="true"
-                              ></span>
-                            </button>
-
-                            <div class="mega-menu-flyout__menu">
-                              <a class="mega-menu-flyout__link" href="#">
-                                TASI
-                              </a>
-
-                              <a class="mega-menu-flyout__link" href="#">
-                                Nomu Index
-                              </a>
-
-                              <a class="mega-menu-flyout__link" href="#">
-                                Sector Indices
-                              </a>
-
-                              <a class="mega-menu-flyout__link" href="#">
-                                MSCI Tadawul 30
-                              </a>
-                            </div>
                           </div>
+                        </article>
+                      </aside>
+                    </div>
 
-                          <a class="mega-menu-panel__link" href="#">
-                            Listed Companies
-                          </a>
-
-                          <a class="mega-menu-panel__link" href="#">
-                            IPO Center
-                          </a>
-                        </div>
-
-                        <div class="mega-menu-panel__column">
-                          <a class="mega-menu-panel__link" href="#">
-                            Top Gainers
-                          </a>
-
-                          <a class="mega-menu-panel__link" href="#">
-                            Top Losers
-                          </a>
-
-                          <a class="mega-menu-panel__link" href="#">
-                            Most Active
-                          </a>
-
-                          <a class="mega-menu-panel__link" href="#">
-                            Announcements
-                          </a>
-
-                          <a class="mega-menu-panel__link" href="#">
-                            Historical Data
-                          </a>
-
-                          <a class="mega-menu-panel__link" href="#">
-                            Market Statistics
-                          </a>
-                        </div>
-
-                        <div class="mega-menu-panel__feature">
-                          <article class="mega-feature">
-                            <div class="mega-feature__media">
-                              <img
-                                class="mega-feature__image"
-                                src="assets/images/card-background.png"
-                                alt=""
-                                loading="lazy"
-                              />
-                            </div>
-
-                            <div class="mega-feature__body">
-                              <h3 class="mega-feature__title">
-                                Market Statistics
-                              </h3>
-
-                              <p class="mega-feature__text">
-                                Access daily market snapshots and historical
-                                trading data.
-                              </p>
-
-                              <a class="mega-feature__link" href="#">
-                                Explore statistics
-                              </a>
-                            </div>
-                          </article>
-                        </div>
-                      </div>
-                    </section>
-
-                    <!-- Products panel -->
-
-                    <section
+                    <!-- Panel: Products -->
+                    <div
                       class="mega-menu-panel"
-                      id="mega-market-products-panel"
+                      id="mm-market-products"
                       role="tabpanel"
-                      aria-labelledby="mega-market-products-tab"
-                      aria-hidden="true"
+                      aria-labelledby="mm-market-products-tab"
+                      data-mega-panel
                       hidden
                     >
-                      <h2 class="mega-menu-panel__title">Products</h2>
-
-                      <div class="mega-menu-panel__layout">
-                        <div class="mega-menu-panel__column">
-                          <a class="mega-menu-panel__link" href="#">
-                            Equities
-                          </a>
-
-                          <a class="mega-menu-panel__link" href="#"> ETFs </a>
-
-                          <a class="mega-menu-panel__link" href="#"> REITs </a>
-
-                          <a class="mega-menu-panel__link" href="#"> Funds </a>
-
-                          <a class="mega-menu-panel__link" href="#">
-                            Sukuk &amp; Bonds
-                          </a>
-
-                          <a class="mega-menu-panel__link" href="#">
-                            Derivatives
-                          </a>
+                      <div class="mega-menu-panel__groups">
+                        <div class="mega-menu-group">
+                          <p
+                            class="mega-menu-group__title"
+                            id="mm-products-instruments"
+                          >
+                            Products
+                          </p>
+                          <ul
+                            class="mega-menu-group__list"
+                            aria-labelledby="mm-products-instruments"
+                          >
+                            <li>
+                              <a class="mega-menu-link" href="#">Equities</a>
+                            </li>
+                            <li><a class="mega-menu-link" href="#">ETFs</a></li>
+                            <li>
+                              <a class="mega-menu-link" href="#">REITs</a>
+                            </li>
+                            <li>
+                              <a class="mega-menu-link" href="#">Funds</a>
+                            </li>
+                            <li>
+                              <a class="mega-menu-link" href="#"
+                                >Sukuk &amp; Bonds</a
+                              >
+                            </li>
+                            <li>
+                              <a class="mega-menu-link" href="#">Derivatives</a>
+                            </li>
+                          </ul>
                         </div>
 
-                        <div class="mega-menu-panel__column">
-                          <a class="mega-menu-panel__link" href="#">
-                            Product Overview
-                          </a>
-
-                          <a class="mega-menu-panel__link" href="#">
-                            Trading Services
-                          </a>
-
-                          <a class="mega-menu-panel__link" href="#">
-                            Clearing
-                          </a>
-
-                          <a class="mega-menu-panel__link" href="#">
-                            Settlement
-                          </a>
-
-                          <a class="mega-menu-panel__link" href="#"> Fees </a>
-
-                          <a class="mega-menu-panel__link" href="#"> Rules </a>
-                        </div>
-
-                        <div class="mega-menu-panel__feature">
-                          <article class="mega-feature">
-                            <div class="mega-feature__body">
-                              <h3 class="mega-feature__title">
-                                Product Center
-                              </h3>
-
-                              <p class="mega-feature__text">
-                                Learn about available investment products and
-                                market services.
-                              </p>
-
-                              <a class="mega-feature__link" href="#">
-                                View products
-                              </a>
-                            </div>
-                          </article>
+                        <div class="mega-menu-group">
+                          <p
+                            class="mega-menu-group__title"
+                            id="mm-products-services"
+                          >
+                            Services
+                          </p>
+                          <ul
+                            class="mega-menu-group__list"
+                            aria-labelledby="mm-products-services"
+                          >
+                            <li>
+                              <a class="mega-menu-link" href="#"
+                                >Trading Services</a
+                              >
+                            </li>
+                            <li>
+                              <a class="mega-menu-link" href="#">Clearing</a>
+                            </li>
+                            <li>
+                              <a class="mega-menu-link" href="#">Settlement</a>
+                            </li>
+                            <li><a class="mega-menu-link" href="#">Fees</a></li>
+                          </ul>
                         </div>
                       </div>
-                    </section>
+
+                      <aside
+                        class="mega-menu-panel__feature"
+                        aria-label="Featured"
+                      >
+                        <article class="mega-feature">
+                          <div class="mega-feature__body">
+                            <p class="mega-feature__title">Product center</p>
+                            <p class="mega-feature__text">
+                              Compare investment products and the services that
+                              support them.
+                            </p>
+                            <a class="mega-feature__link" href="#"
+                              >View products</a
+                            >
+                          </div>
+                        </article>
+                      </aside>
+                    </div>
                   </div>
                 </div>
               </div>
             </li>
 
-            <!-- ================================================================
-             Data and Reports
-        ================================================================= -->
+            <!-- ===============================================================
+             Data & Reports
+             =============================================================== -->
 
-            <li class="site-nav__item has-mega-menu">
+            <li class="site-nav__item" data-mega-item>
               <button
                 class="site-nav__trigger"
                 type="button"
                 aria-expanded="false"
-                aria-controls="mega-data"
+                aria-controls="mm-data"
+                data-mega-trigger
               >
-                <span class="site-nav__trigger-text"> Data &amp; Reports </span>
-
+                <span class="site-nav__label">Data &amp; Reports</span>
                 <span
-                  class="has-icon icon-chevron-down site-nav__trigger-icon"
+                  class="site-nav__chevron has-icon icon-chevron-down"
                   aria-hidden="true"
                 ></span>
               </button>
 
-              <div class="mega-menu" id="mega-data" aria-hidden="true">
-                <div class="mega-menu__container">
-                  <div class="mega-menu__rail">
+              <div class="mega-menu" id="mm-data" data-mega-menu>
+                <div class="mega-menu__inner container">
+                  <div class="mega-menu__card">
                     <div
-                      class="mega-menu-nav"
+                      class="mega-menu-tabs"
                       role="tablist"
-                      aria-label="Data and Reports categories"
+                      aria-label="Data and Reports"
+                      aria-orientation="vertical"
                     >
                       <button
-                        class="mega-menu-nav__item is-active"
-                        id="mega-data-reports-tab"
+                        class="mega-menu-tab"
+                        id="mm-data-reports-tab"
                         type="button"
                         role="tab"
                         aria-selected="true"
-                        aria-controls="mega-data-reports-panel"
-                        tabindex="0"
+                        aria-controls="mm-data-reports"
+                        data-mega-tab
                       >
                         <span
-                          class="has-icon icon-file-download mega-menu-nav__icon"
+                          class="mega-menu-tab__icon has-icon icon-file-download"
                           aria-hidden="true"
                         ></span>
-
-                        <span class="mega-menu-nav__body">
-                          <span class="mega-menu-nav__heading"> Reports </span>
-
-                          <span class="mega-menu-nav__text">
-                            Daily, monthly and annual reports
-                          </span>
+                        <span class="mega-menu-tab__body">
+                          <span class="mega-menu-tab__title">Reports</span>
+                          <span class="mega-menu-tab__text"
+                            >Daily, monthly and annual reports</span
+                          >
                         </span>
-
-                        <span
-                          class="has-icon icon-chevron-right icon-flip-rtl mega-menu-nav__arrow"
-                          aria-hidden="true"
-                        ></span>
                       </button>
 
                       <button
-                        class="mega-menu-nav__item"
-                        id="mega-data-library-tab"
+                        class="mega-menu-tab"
+                        id="mm-data-library-tab"
                         type="button"
                         role="tab"
                         aria-selected="false"
-                        aria-controls="mega-data-library-panel"
+                        aria-controls="mm-data-library"
                         tabindex="-1"
+                        data-mega-tab
                       >
                         <span
-                          class="has-icon icon-folder-import mega-menu-nav__icon"
+                          class="mega-menu-tab__icon has-icon icon-folder-import"
                           aria-hidden="true"
                         ></span>
-
-                        <span class="mega-menu-nav__body">
-                          <span class="mega-menu-nav__heading">
-                            Data Library
-                          </span>
-
-                          <span class="mega-menu-nav__text">
-                            Downloads, research and historical files
-                          </span>
+                        <span class="mega-menu-tab__body">
+                          <span class="mega-menu-tab__title">Data Library</span>
+                          <span class="mega-menu-tab__text"
+                            >Downloads, research and historical files</span
+                          >
                         </span>
-
-                        <span
-                          class="has-icon icon-chevron-right icon-flip-rtl mega-menu-nav__arrow"
-                          aria-hidden="true"
-                        ></span>
                       </button>
                     </div>
-                  </div>
 
-                  <div class="mega-menu__content">
-                    <!-- Reports panel -->
-
-                    <section
-                      class="mega-menu-panel is-active"
-                      id="mega-data-reports-panel"
+                    <!-- Panel: Reports -->
+                    <div
+                      class="mega-menu-panel"
+                      id="mm-data-reports"
                       role="tabpanel"
-                      aria-labelledby="mega-data-reports-tab"
-                      aria-hidden="false"
+                      aria-labelledby="mm-data-reports-tab"
+                      data-mega-panel
                     >
-                      <div class="mega-menu-panel__layout">
-                        <div class="mega-menu-panel__column">
-                          <a class="mega-menu-panel__link" href="#">
-                            Daily Reports
-                          </a>
-
-                          <a class="mega-menu-panel__link" href="#">
-                            Monthly Reports
-                          </a>
-
-                          <a class="mega-menu-panel__link" href="#">
-                            Annual Reports
-                          </a>
-
-                          <a class="mega-menu-panel__link" href="#">
-                            Financial Statements
-                          </a>
-
-                          <a class="mega-menu-panel__link" href="#">
-                            Market Statistics
-                          </a>
+                      <div class="mega-menu-panel__groups">
+                        <div class="mega-menu-group">
+                          <p
+                            class="mega-menu-group__title"
+                            id="mm-reports-periodic"
+                          >
+                            Periodic reports
+                          </p>
+                          <ul
+                            class="mega-menu-group__list"
+                            aria-labelledby="mm-reports-periodic"
+                          >
+                            <li>
+                              <a class="mega-menu-link" href="#"
+                                >Daily Reports</a
+                              >
+                            </li>
+                            <li>
+                              <a class="mega-menu-link" href="#"
+                                >Monthly Reports</a
+                              >
+                            </li>
+                            <li>
+                              <a class="mega-menu-link" href="#"
+                                >Annual Reports</a
+                              >
+                              <ul
+                                class="mega-menu-sublist"
+                                aria-label="Annual Reports"
+                              >
+                                <li>
+                                  <a class="mega-menu-sublink" href="#"
+                                    >Annual Report 2025</a
+                                  >
+                                </li>
+                                <li>
+                                  <a class="mega-menu-sublink" href="#"
+                                    >Annual Report 2024</a
+                                  >
+                                </li>
+                                <li>
+                                  <a class="mega-menu-sublink" href="#"
+                                    >Earlier years</a
+                                  >
+                                </li>
+                              </ul>
+                            </li>
+                            <li>
+                              <a class="mega-menu-link" href="#"
+                                >Historical Reports</a
+                              >
+                            </li>
+                          </ul>
                         </div>
 
-                        <div class="mega-menu-panel__column">
-                          <a class="mega-menu-panel__link" href="#">
-                            Factsheets
-                          </a>
-
-                          <a class="mega-menu-panel__link" href="#">
-                            Market Bulletins
-                          </a>
-
-                          <a class="mega-menu-panel__link" href="#">
-                            Historical Reports
-                          </a>
-
-                          <a class="mega-menu-panel__link" href="#">
-                            Research
-                          </a>
-
-                          <a class="mega-menu-panel__link" href="#">
-                            Archive
-                          </a>
-                        </div>
-
-                        <div class="mega-menu-panel__feature">
-                          <article class="mega-feature">
-                            <div class="mega-feature__body">
-                              <h3 class="mega-feature__title">
-                                Latest Reports
-                              </h3>
-
-                              <p class="mega-feature__text">
-                                Review the latest market reports and official
-                                publications.
-                              </p>
-
-                              <a class="mega-feature__link" href="#">
-                                Browse reports
-                              </a>
-                            </div>
-                          </article>
+                        <div class="mega-menu-group">
+                          <p
+                            class="mega-menu-group__title"
+                            id="mm-reports-publications"
+                          >
+                            Publications
+                          </p>
+                          <ul
+                            class="mega-menu-group__list"
+                            aria-labelledby="mm-reports-publications"
+                          >
+                            <li>
+                              <a class="mega-menu-link" href="#"
+                                >Financial Statements</a
+                              >
+                            </li>
+                            <li>
+                              <a class="mega-menu-link" href="#"
+                                >Market Statistics</a
+                              >
+                            </li>
+                            <li>
+                              <a class="mega-menu-link" href="#">Factsheets</a>
+                            </li>
+                            <li>
+                              <a class="mega-menu-link" href="#"
+                                >Market Bulletins</a
+                              >
+                            </li>
+                          </ul>
                         </div>
                       </div>
-                    </section>
 
-                    <!-- Data Library panel -->
+                      <aside
+                        class="mega-menu-panel__feature"
+                        aria-label="Featured"
+                      >
+                        <article class="mega-feature">
+                          <div class="mega-feature__body">
+                            <p class="mega-feature__title">Latest reports</p>
+                            <p class="mega-feature__text">
+                              The most recent market reports and official
+                              publications.
+                            </p>
+                            <a class="mega-feature__link" href="#"
+                              >Browse reports</a
+                            >
+                          </div>
+                        </article>
+                      </aside>
+                    </div>
 
-                    <section
+                    <!-- Panel: Data Library -->
+                    <div
                       class="mega-menu-panel"
-                      id="mega-data-library-panel"
+                      id="mm-data-library"
                       role="tabpanel"
-                      aria-labelledby="mega-data-library-tab"
-                      aria-hidden="true"
+                      aria-labelledby="mm-data-library-tab"
+                      data-mega-panel
                       hidden
                     >
-                      <h2 class="mega-menu-panel__title">Data Library</h2>
-
-                      <div class="mega-menu-panel__layout">
-                        <div class="mega-menu-panel__column">
-                          <a class="mega-menu-panel__link" href="#">
-                            Open Data
-                          </a>
-
-                          <a class="mega-menu-panel__link" href="#">
-                            Downloads
-                          </a>
-
-                          <a class="mega-menu-panel__link" href="#">
-                            Historical Files
-                          </a>
-
-                          <a class="mega-menu-panel__link" href="#">
-                            Market Data
-                          </a>
-
-                          <a class="mega-menu-panel__link" href="#">
-                            Index Data
-                          </a>
+                      <div class="mega-menu-panel__groups">
+                        <div class="mega-menu-group">
+                          <p
+                            class="mega-menu-group__title"
+                            id="mm-library-data"
+                          >
+                            Data
+                          </p>
+                          <ul
+                            class="mega-menu-group__list"
+                            aria-labelledby="mm-library-data"
+                          >
+                            <li>
+                              <a class="mega-menu-link" href="#">Open Data</a>
+                            </li>
+                            <li>
+                              <a class="mega-menu-link" href="#">Market Data</a>
+                            </li>
+                            <li>
+                              <a class="mega-menu-link" href="#">Index Data</a>
+                            </li>
+                            <li>
+                              <a class="mega-menu-link" href="#"
+                                >Historical Files</a
+                              >
+                            </li>
+                            <li>
+                              <a class="mega-menu-link" href="#">Downloads</a>
+                            </li>
+                          </ul>
                         </div>
 
-                        <div class="mega-menu-panel__column">
-                          <a class="mega-menu-panel__link" href="#">
+                        <div class="mega-menu-group">
+                          <p
+                            class="mega-menu-group__title"
+                            id="mm-library-research"
+                          >
                             Research
-                          </a>
-
-                          <a class="mega-menu-panel__link" href="#">
-                            Factsheets
-                          </a>
-
-                          <a class="mega-menu-panel__link" href="#">
-                            Publications
-                          </a>
-
-                          <a class="mega-menu-panel__link" href="#">
-                            Data Policies
-                          </a>
-
-                          <a class="mega-menu-panel__link" href="#">
-                            Archive
-                          </a>
-                        </div>
-
-                        <div class="mega-menu-panel__feature">
-                          <article class="mega-feature">
-                            <div class="mega-feature__body">
-                              <h3 class="mega-feature__title">Open Data</h3>
-
-                              <p class="mega-feature__text">
-                                Access downloadable data and historical market
-                                information.
-                              </p>
-
-                              <a class="mega-feature__link" href="#">
-                                Open data library
-                              </a>
-                            </div>
-                          </article>
+                          </p>
+                          <ul
+                            class="mega-menu-group__list"
+                            aria-labelledby="mm-library-research"
+                          >
+                            <li>
+                              <a class="mega-menu-link" href="#">Research</a>
+                            </li>
+                            <li>
+                              <a class="mega-menu-link" href="#"
+                                >Publications</a
+                              >
+                            </li>
+                            <li>
+                              <a class="mega-menu-link" href="#"
+                                >Data Policies</a
+                              >
+                            </li>
+                            <li>
+                              <a class="mega-menu-link" href="#">Archive</a>
+                            </li>
+                          </ul>
                         </div>
                       </div>
-                    </section>
+
+                      <aside
+                        class="mega-menu-panel__feature"
+                        aria-label="Featured"
+                      >
+                        <article class="mega-feature">
+                          <div class="mega-feature__body">
+                            <p class="mega-feature__title">Open data</p>
+                            <p class="mega-feature__text">
+                              Download market data and historical files at no
+                              cost.
+                            </p>
+                            <a class="mega-feature__link" href="#"
+                              >Open the data library</a
+                            >
+                          </div>
+                        </article>
+                      </aside>
+                    </div>
                   </div>
                 </div>
               </div>
             </li>
 
-            <!-- Standard desktop links -->
+            <!-- ===============================================================
+             Direct links
+             =============================================================== -->
 
             <li class="site-nav__item">
-              <a class="site-nav__link" href="#">
-                <span class="site-nav__link-text"> Listings </span>
-              </a>
+              <a class="site-nav__link" href="#"
+                ><span class="site-nav__label">Listings</span></a
+              >
             </li>
-
             <li class="site-nav__item">
-              <a class="site-nav__link" href="#">
-                <span class="site-nav__link-text"> Investors </span>
-              </a>
+              <a class="site-nav__link" href="#"
+                ><span class="site-nav__label">Investors</span></a
+              >
             </li>
-
             <li class="site-nav__item">
-              <a class="site-nav__link" href="#">
-                <span class="site-nav__link-text"> Issuers </span>
-              </a>
+              <a class="site-nav__link" href="#"
+                ><span class="site-nav__label">Issuers</span></a
+              >
             </li>
-
             <li class="site-nav__item">
-              <a class="site-nav__link" href="#">
-                <span class="site-nav__link-text"> Rules </span>
-              </a>
+              <a class="site-nav__link" href="#"
+                ><span class="site-nav__label">Rules</span></a
+              >
             </li>
-
             <li class="site-nav__item">
-              <a class="site-nav__link" href="#">
-                <span class="site-nav__link-text"> News </span>
-              </a>
+              <a class="site-nav__link" href="#"
+                ><span class="site-nav__label">News</span></a
+              >
             </li>
-
             <li class="site-nav__item">
-              <a class="site-nav__link" href="#">
-                <span class="site-nav__link-text"> About </span>
-              </a>
+              <a class="site-nav__link" href="#"
+                ><span class="site-nav__label">About</span></a
+              >
             </li>
           </ul>
         </nav>
 
-        <!-- Header actions -->
+        <!-- =====================================================================
+         Header Actions
+         ===================================================================== -->
 
-        <div class="site-header__actions header-actions">
-          <div class="header-actions__desktop">
-            <!--<button
-              class="header-action has-icon icon-search"
-              type="button"
-              data-search-open
-              aria-label="Open search"
-            ></button>-->
+        <div class="site-header__actions">
+          <!--
+        The only language switch, visible on desktop and mobile.
+        Behaviour comes from core/language.js through [data-lang-toggle];
+        keep the button element and the __current span it updates.
+      -->
+          <button class="header-lang-switch" type="button" data-lang-toggle>
+            <span
+              class="header-lang-switch__icon has-icon icon-globe"
+              aria-hidden="true"
+            ></span>
+            <span class="header-lang-switch__current">EN</span>
+          </button>
 
-            <button
-              class="header-lang-switch"
-              type="button"
-              data-lang-toggle
-              aria-label="Switch language"
-            >
-              <span class="header-lang-switch__current"> EN </span>
-
-              <span
-                class="has-icon icon-globe icon-accent mobile-nav__language-icon"
-                aria-hidden="true"
-              ></span>
-            </button>
-          </div>
-
-          <div class="header-actions__mobile">
-            <button
-              class="header-burger"
-              type="button"
-              data-mobile-nav-open
-              aria-label="Open menu"
-              aria-expanded="false"
-              aria-controls="mobile-nav"
-            >
-              <span class="header-burger__line"></span>
-              <span class="header-burger__line"></span>
-              <span class="header-burger__line"></span>
-            </button>
-          </div>
+          <button
+            class="header-burger"
+            type="button"
+            aria-label="Menu"
+            aria-expanded="false"
+            aria-controls="mobile-nav"
+            data-drawer-open="mobile-nav"
+          >
+            <span class="header-burger__line" aria-hidden="true"></span>
+            <span class="header-burger__line" aria-hidden="true"></span>
+            <span class="header-burger__line" aria-hidden="true"></span>
+          </button>
         </div>
       </div>
     </header>
 
     <!-- =========================================================================
-     Mobile Navigation Overlay
-============================================================================ -->
+     Mobile Navigation (drawer component)
+     ========================================================================= -->
 
-    <div
-      class="mobile-nav-overlay"
-      data-mobile-nav-overlay
-      aria-hidden="true"
-    ></div>
+    <div class="drawer mobile-nav" id="mobile-nav" data-drawer="mobile-nav">
+      <div class="drawer-backdrop" data-drawer-close></div>
 
-    <!-- =========================================================================
-     Mobile Navigation
-============================================================================ -->
-
-    <aside
-      class="mobile-nav"
-      id="mobile-nav"
-      data-mobile-nav
-      aria-hidden="true"
-      aria-label="Mobile navigation"
-    >
-      <div class="mobile-nav__layout">
-        <header class="mobile-nav__header">
-          <a
-            class="mobile-nav__brand"
-            href="/"
-            aria-label="Saudi Exchange homepage"
-          >
+      <div
+        class="drawer-panel mobile-nav__panel"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Menu"
+        tabindex="-1"
+        data-drawer-panel
+      >
+        <div class="drawer-header mobile-nav__header">
+          <a class="mobile-nav__brand" href="/">
             <img
               class="mobile-nav__logo mobile-nav__logo--light"
-              src="assets/images/se-logo-dark.png"
+              src="/assets/images/se-logo-dark.png"
               alt="Saudi Exchange"
+              width="144"
+              height="36"
             />
-
             <img
               class="mobile-nav__logo mobile-nav__logo--dark"
-              src="assets/images/se-logo-light.png"
+              src="/assets/images/se-logo-light.png"
               alt="Saudi Exchange"
+              width="144"
+              height="36"
             />
           </a>
 
           <button
-            class="mobile-nav__close has-icon icon-close-x"
+            class="drawer-close has-icon icon-close-x"
             type="button"
-            data-mobile-nav-close
             aria-label="Close menu"
+            data-drawer-close
+            data-drawer-initial-focus
           ></button>
-        </header>
-
-        <!-- Language control -->
-
-        <div class="mobile-nav__controls">
-          <button
-            class="mobile-nav__language"
-            type="button"
-            data-lang-toggle
-            aria-label="Switch language"
-          >
-            <span
-              class="has-icon icon-globe icon-accent mobile-nav__language-icon"
-              aria-hidden="true"
-            ></span>
-
-            <span class="mobile-nav__language-text"> العربية </span>
-          </button>
         </div>
 
-        <nav class="mobile-nav__body" aria-label="Mobile main navigation">
-          <ul class="mobile-nav__menu">
+        <nav
+          class="drawer-body mobile-nav__body custom-scrollbar"
+          aria-label="Main"
+        >
+          <ul class="mobile-nav__list accordion accordion--nav">
             <!-- Our Market -->
-
-            <li class="mobile-nav__item has-submenu">
+            <li class="accordion-item mobile-nav__item">
               <button
-                class="mobile-nav__trigger"
+                class="accordion-trigger mobile-nav__trigger"
                 type="button"
-                data-mobile-submenu-trigger
                 aria-expanded="false"
-                aria-controls="mobile-menu-market"
+                data-accordion-trigger
               >
-                <span class="mobile-nav__trigger-text"> Our Market </span>
-
+                <span class="accordion-trigger__label">Our Market</span>
                 <span
-                  class="has-icon icon-chevron-down mobile-nav__trigger-icon"
+                  class="accordion-icon has-icon icon-chevron-down"
                   aria-hidden="true"
                 ></span>
               </button>
 
-              <div
-                class="mobile-nav__submenu"
-                id="mobile-menu-market"
-                data-mobile-submenu
-                aria-hidden="true"
-                hidden
-              >
-                <ul class="mobile-nav__submenu-list">
-                  <!-- Main Market -->
-
-                  <li class="mobile-nav__submenu-item has-submenu">
-                    <button
-                      class="mobile-nav__subtrigger"
-                      type="button"
-                      data-mobile-submenu-trigger
-                      aria-expanded="false"
-                      aria-controls="mobile-menu-main-market"
+              <div class="accordion-panel">
+                <div class="accordion-panel-inner mobile-nav__groups">
+                  <div class="mobile-nav__group">
+                    <p class="mobile-nav__group-title" id="mn-market-overview">
+                      Overview
+                    </p>
+                    <ul
+                      class="mobile-nav__links"
+                      aria-labelledby="mn-market-overview"
                     >
-                      <span class="mobile-nav__subtrigger-text">
-                        Main Market
-                      </span>
+                      <li>
+                        <a class="mobile-nav__link" href="#">Market Summary</a>
+                      </li>
+                      <li>
+                        <a class="mobile-nav__link" href="#">Market Watch</a>
+                      </li>
+                      <li>
+                        <a class="mobile-nav__link" href="#"
+                          >Trading Calendar</a
+                        >
+                      </li>
+                      <li>
+                        <a class="mobile-nav__link" href="#"
+                          >Listed Companies</a
+                        >
+                      </li>
+                      <li>
+                        <a class="mobile-nav__link" href="#">IPO Center</a>
+                      </li>
+                    </ul>
+                  </div>
 
-                      <span
-                        class="has-icon icon-chevron-down mobile-nav__subtrigger-icon"
-                        aria-hidden="true"
-                      ></span>
-                    </button>
-
-                    <div
-                      class="mobile-nav__submenu mobile-nav__submenu--nested"
-                      id="mobile-menu-main-market"
-                      data-mobile-submenu
-                      aria-hidden="true"
-                      hidden
+                  <div class="mobile-nav__group">
+                    <p class="mobile-nav__group-title" id="mn-market-indices">
+                      Indices
+                    </p>
+                    <ul
+                      class="mobile-nav__links"
+                      aria-labelledby="mn-market-indices"
                     >
-                      <ul class="mobile-nav__submenu-list">
-                        <li class="mobile-nav__submenu-item">
-                          <a class="mobile-nav__link" href="#">
-                            Market Summary
-                          </a>
-                        </li>
+                      <li><a class="mobile-nav__link" href="#">TASI</a></li>
+                      <li>
+                        <a class="mobile-nav__link" href="#">Nomu Index</a>
+                      </li>
+                      <li>
+                        <a class="mobile-nav__link" href="#">Sector Indices</a>
+                      </li>
+                      <li>
+                        <a class="mobile-nav__link" href="#">MSCI Tadawul 30</a>
+                      </li>
+                    </ul>
+                  </div>
 
-                        <li class="mobile-nav__submenu-item">
-                          <a class="mobile-nav__link" href="#">
-                            Market Watch
-                          </a>
-                        </li>
+                  <div class="mobile-nav__group">
+                    <p class="mobile-nav__group-title" id="mn-market-activity">
+                      Market activity
+                    </p>
+                    <ul
+                      class="mobile-nav__links"
+                      aria-labelledby="mn-market-activity"
+                    >
+                      <li>
+                        <a class="mobile-nav__link" href="#">Top Gainers</a>
+                      </li>
+                      <li>
+                        <a class="mobile-nav__link" href="#">Top Losers</a>
+                      </li>
+                      <li>
+                        <a class="mobile-nav__link" href="#">Most Active</a>
+                      </li>
+                      <li>
+                        <a class="mobile-nav__link" href="#">Announcements</a>
+                      </li>
+                      <li>
+                        <a class="mobile-nav__link" href="#">Historical Data</a>
+                      </li>
+                    </ul>
+                  </div>
 
-                        <li class="mobile-nav__submenu-item">
-                          <a class="mobile-nav__link" href="#">
-                            Trading Calendar
-                          </a>
-                        </li>
-
-                        <li class="mobile-nav__submenu-item has-submenu">
-                          <button
-                            class="mobile-nav__subtrigger"
-                            type="button"
-                            data-mobile-submenu-trigger
-                            aria-expanded="false"
-                            aria-controls="mobile-menu-indices"
-                          >
-                            <span class="mobile-nav__subtrigger-text">
-                              Indices
-                            </span>
-
-                            <span
-                              class="has-icon icon-chevron-down mobile-nav__subtrigger-icon"
-                              aria-hidden="true"
-                            ></span>
-                          </button>
-
-                          <div
-                            class="mobile-nav__submenu mobile-nav__submenu--nested"
-                            id="mobile-menu-indices"
-                            data-mobile-submenu
-                            aria-hidden="true"
-                            hidden
-                          >
-                            <ul class="mobile-nav__submenu-list">
-                              <li class="mobile-nav__submenu-item">
-                                <a class="mobile-nav__link" href="#">TASI</a>
-                              </li>
-
-                              <li class="mobile-nav__submenu-item">
-                                <a class="mobile-nav__link" href="#">
-                                  Nomu Index
-                                </a>
-                              </li>
-
-                              <li class="mobile-nav__submenu-item">
-                                <a class="mobile-nav__link" href="#">
-                                  Sector Indices
-                                </a>
-                              </li>
-
-                              <li class="mobile-nav__submenu-item">
-                                <a class="mobile-nav__link" href="#">
-                                  MSCI Tadawul 30
-                                </a>
-                              </li>
-                            </ul>
-                          </div>
-                        </li>
-
-                        <li class="mobile-nav__submenu-item">
-                          <a class="mobile-nav__link" href="#">
-                            Listed Companies
-                          </a>
-                        </li>
-
-                        <li class="mobile-nav__submenu-item">
-                          <a class="mobile-nav__link" href="#"> IPO Center </a>
-                        </li>
-
-                        <li class="mobile-nav__submenu-item">
-                          <a class="mobile-nav__link" href="#"> Top Gainers </a>
-                        </li>
-
-                        <li class="mobile-nav__submenu-item">
-                          <a class="mobile-nav__link" href="#"> Top Losers </a>
-                        </li>
-
-                        <li class="mobile-nav__submenu-item">
-                          <a class="mobile-nav__link" href="#"> Most Active </a>
-                        </li>
-
-                        <li class="mobile-nav__submenu-item">
-                          <a class="mobile-nav__link" href="#">
-                            Announcements
-                          </a>
-                        </li>
-                      </ul>
-
-                      <!-- Main Market feature -->
-
-                      <div class="mobile-nav__feature">
-                        <article class="mega-feature mega-feature--compact">
-                          <div class="mega-feature__media">
-                            <img
-                              class="mega-feature__image"
-                              src="assets/images/card-background.png"
-                              alt=""
-                              loading="lazy"
-                            />
-                          </div>
-
-                          <div class="mega-feature__body">
-                            <h3 class="mega-feature__title">
-                              Market Statistics
-                            </h3>
-
-                            <p class="mega-feature__text">
-                              Access daily market snapshots and historical
-                              trading data.
-                            </p>
-
-                            <a class="mega-feature__link" href="#">
-                              Explore statistics
-                            </a>
-                          </div>
-                        </article>
+                  <aside class="mobile-nav__feature" aria-label="Featured">
+                    <article class="mega-feature mega-feature--compact">
+                      <img
+                        class="mega-feature__image"
+                        src="/assets/images/card-background.png"
+                        alt=""
+                        width="640"
+                        height="360"
+                        loading="lazy"
+                        decoding="async"
+                      />
+                      <div class="mega-feature__body">
+                        <p class="mega-feature__title">Market statistics</p>
+                        <p class="mega-feature__text">
+                          Daily market snapshots and historical trading data.
+                        </p>
+                        <a class="mega-feature__link" href="#"
+                          >Explore statistics</a
+                        >
                       </div>
-                    </div>
-                  </li>
+                    </article>
+                  </aside>
 
-                  <!-- Products -->
-
-                  <li class="mobile-nav__submenu-item has-submenu">
-                    <button
-                      class="mobile-nav__subtrigger"
-                      type="button"
-                      data-mobile-submenu-trigger
-                      aria-expanded="false"
-                      aria-controls="mobile-menu-products"
+                  <div class="mobile-nav__group">
+                    <p class="mobile-nav__group-title" id="mn-market-products">
+                      Products
+                    </p>
+                    <ul
+                      class="mobile-nav__links"
+                      aria-labelledby="mn-market-products"
                     >
-                      <span class="mobile-nav__subtrigger-text">
-                        Products
-                      </span>
+                      <li><a class="mobile-nav__link" href="#">Equities</a></li>
+                      <li><a class="mobile-nav__link" href="#">ETFs</a></li>
+                      <li><a class="mobile-nav__link" href="#">REITs</a></li>
+                      <li><a class="mobile-nav__link" href="#">Funds</a></li>
+                      <li>
+                        <a class="mobile-nav__link" href="#"
+                          >Sukuk &amp; Bonds</a
+                        >
+                      </li>
+                      <li>
+                        <a class="mobile-nav__link" href="#">Derivatives</a>
+                      </li>
+                    </ul>
+                  </div>
 
-                      <span
-                        class="has-icon icon-chevron-down mobile-nav__subtrigger-icon"
-                        aria-hidden="true"
-                      ></span>
-                    </button>
-
-                    <div
-                      class="mobile-nav__submenu mobile-nav__submenu--nested"
-                      id="mobile-menu-products"
-                      data-mobile-submenu
-                      aria-hidden="true"
-                      hidden
+                  <div class="mobile-nav__group">
+                    <p class="mobile-nav__group-title" id="mn-market-services">
+                      Services
+                    </p>
+                    <ul
+                      class="mobile-nav__links"
+                      aria-labelledby="mn-market-services"
                     >
-                      <ul class="mobile-nav__submenu-list">
-                        <li class="mobile-nav__submenu-item">
-                          <a class="mobile-nav__link" href="#">Equities</a>
-                        </li>
+                      <li>
+                        <a class="mobile-nav__link" href="#"
+                          >Trading Services</a
+                        >
+                      </li>
+                      <li><a class="mobile-nav__link" href="#">Clearing</a></li>
+                      <li>
+                        <a class="mobile-nav__link" href="#">Settlement</a>
+                      </li>
+                      <li><a class="mobile-nav__link" href="#">Fees</a></li>
+                    </ul>
+                  </div>
 
-                        <li class="mobile-nav__submenu-item">
-                          <a class="mobile-nav__link" href="#">ETFs</a>
-                        </li>
-
-                        <li class="mobile-nav__submenu-item">
-                          <a class="mobile-nav__link" href="#">REITs</a>
-                        </li>
-
-                        <li class="mobile-nav__submenu-item">
-                          <a class="mobile-nav__link" href="#">Funds</a>
-                        </li>
-
-                        <li class="mobile-nav__submenu-item">
-                          <a class="mobile-nav__link" href="#">
-                            Sukuk &amp; Bonds
-                          </a>
-                        </li>
-
-                        <li class="mobile-nav__submenu-item">
-                          <a class="mobile-nav__link" href="#"> Derivatives </a>
-                        </li>
-
-                        <li class="mobile-nav__submenu-item">
-                          <a class="mobile-nav__link" href="#">
-                            Trading Services
-                          </a>
-                        </li>
-
-                        <li class="mobile-nav__submenu-item">
-                          <a class="mobile-nav__link" href="#">Clearing</a>
-                        </li>
-
-                        <li class="mobile-nav__submenu-item">
-                          <a class="mobile-nav__link" href="#">Settlement</a>
-                        </li>
-
-                        <li class="mobile-nav__submenu-item">
-                          <a class="mobile-nav__link" href="#">Fees</a>
-                        </li>
-                      </ul>
-
-                      <!-- Products feature -->
-
-                      <div class="mobile-nav__feature">
-                        <article class="mega-feature mega-feature--compact">
-                          <div class="mega-feature__body">
-                            <h3 class="mega-feature__title">Product Center</h3>
-
-                            <p class="mega-feature__text">
-                              Explore available investment products and market
-                              services.
-                            </p>
-
-                            <a class="mega-feature__link" href="#">
-                              View products
-                            </a>
-                          </div>
-                        </article>
+                  <aside class="mobile-nav__feature" aria-label="Featured">
+                    <article class="mega-feature mega-feature--compact">
+                      <div class="mega-feature__body">
+                        <p class="mega-feature__title">Product center</p>
+                        <p class="mega-feature__text">
+                          Compare investment products and the services that
+                          support them.
+                        </p>
+                        <a class="mega-feature__link" href="#">View products</a>
                       </div>
-                    </div>
-                  </li>
-                </ul>
+                    </article>
+                  </aside>
+                </div>
               </div>
             </li>
 
             <!-- Data & Reports -->
-
-            <li class="mobile-nav__item has-submenu">
+            <li class="accordion-item mobile-nav__item">
               <button
-                class="mobile-nav__trigger"
+                class="accordion-trigger mobile-nav__trigger"
                 type="button"
-                data-mobile-submenu-trigger
                 aria-expanded="false"
-                aria-controls="mobile-menu-data"
+                data-accordion-trigger
               >
-                <span class="mobile-nav__trigger-text">
-                  Data &amp; Reports
-                </span>
-
+                <span class="accordion-trigger__label">Data &amp; Reports</span>
                 <span
-                  class="has-icon icon-chevron-down mobile-nav__trigger-icon"
+                  class="accordion-icon has-icon icon-chevron-down"
                   aria-hidden="true"
                 ></span>
               </button>
 
-              <div
-                class="mobile-nav__submenu"
-                id="mobile-menu-data"
-                data-mobile-submenu
-                aria-hidden="true"
-                hidden
-              >
-                <ul class="mobile-nav__submenu-list">
-                  <li class="mobile-nav__submenu-item">
-                    <a class="mobile-nav__link" href="#">Daily Reports</a>
-                  </li>
+              <div class="accordion-panel">
+                <div class="accordion-panel-inner mobile-nav__groups">
+                  <div class="mobile-nav__group">
+                    <p class="mobile-nav__group-title" id="mn-reports-periodic">
+                      Periodic reports
+                    </p>
+                    <ul
+                      class="mobile-nav__links"
+                      aria-labelledby="mn-reports-periodic"
+                    >
+                      <li>
+                        <a class="mobile-nav__link" href="#">Daily Reports</a>
+                      </li>
+                      <li>
+                        <a class="mobile-nav__link" href="#">Monthly Reports</a>
+                      </li>
+                      <li>
+                        <a class="mobile-nav__link" href="#">Annual Reports</a>
+                        <ul
+                          class="mobile-nav__sublist"
+                          aria-label="Annual Reports"
+                        >
+                          <li>
+                            <a class="mobile-nav__sublink" href="#"
+                              >Annual Report 2025</a
+                            >
+                          </li>
+                          <li>
+                            <a class="mobile-nav__sublink" href="#"
+                              >Annual Report 2024</a
+                            >
+                          </li>
+                          <li>
+                            <a class="mobile-nav__sublink" href="#"
+                              >Earlier years</a
+                            >
+                          </li>
+                        </ul>
+                      </li>
+                      <li>
+                        <a class="mobile-nav__link" href="#"
+                          >Historical Reports</a
+                        >
+                      </li>
+                    </ul>
+                  </div>
 
-                  <li class="mobile-nav__submenu-item">
-                    <a class="mobile-nav__link" href="#">Monthly Reports</a>
-                  </li>
+                  <div class="mobile-nav__group">
+                    <p
+                      class="mobile-nav__group-title"
+                      id="mn-reports-publications"
+                    >
+                      Publications
+                    </p>
+                    <ul
+                      class="mobile-nav__links"
+                      aria-labelledby="mn-reports-publications"
+                    >
+                      <li>
+                        <a class="mobile-nav__link" href="#"
+                          >Financial Statements</a
+                        >
+                      </li>
+                      <li>
+                        <a class="mobile-nav__link" href="#"
+                          >Market Statistics</a
+                        >
+                      </li>
+                      <li>
+                        <a class="mobile-nav__link" href="#">Factsheets</a>
+                      </li>
+                      <li>
+                        <a class="mobile-nav__link" href="#"
+                          >Market Bulletins</a
+                        >
+                      </li>
+                    </ul>
+                  </div>
 
-                  <li class="mobile-nav__submenu-item">
-                    <a class="mobile-nav__link" href="#">Annual Reports</a>
-                  </li>
+                  <aside class="mobile-nav__feature" aria-label="Featured">
+                    <article class="mega-feature mega-feature--compact">
+                      <div class="mega-feature__body">
+                        <p class="mega-feature__title">Latest reports</p>
+                        <p class="mega-feature__text">
+                          The most recent market reports and official
+                          publications.
+                        </p>
+                        <a class="mega-feature__link" href="#"
+                          >Browse reports</a
+                        >
+                      </div>
+                    </article>
+                  </aside>
 
-                  <li class="mobile-nav__submenu-item">
-                    <a class="mobile-nav__link" href="#">
-                      Financial Statements
-                    </a>
-                  </li>
+                  <div class="mobile-nav__group">
+                    <p class="mobile-nav__group-title" id="mn-library-data">
+                      Data
+                    </p>
+                    <ul
+                      class="mobile-nav__links"
+                      aria-labelledby="mn-library-data"
+                    >
+                      <li>
+                        <a class="mobile-nav__link" href="#">Open Data</a>
+                      </li>
+                      <li>
+                        <a class="mobile-nav__link" href="#">Market Data</a>
+                      </li>
+                      <li>
+                        <a class="mobile-nav__link" href="#">Index Data</a>
+                      </li>
+                      <li>
+                        <a class="mobile-nav__link" href="#"
+                          >Historical Files</a
+                        >
+                      </li>
+                      <li>
+                        <a class="mobile-nav__link" href="#">Downloads</a>
+                      </li>
+                    </ul>
+                  </div>
 
-                  <li class="mobile-nav__submenu-item">
-                    <a class="mobile-nav__link" href="#">Statistics</a>
-                  </li>
+                  <div class="mobile-nav__group">
+                    <p class="mobile-nav__group-title" id="mn-library-research">
+                      Research
+                    </p>
+                    <ul
+                      class="mobile-nav__links"
+                      aria-labelledby="mn-library-research"
+                    >
+                      <li><a class="mobile-nav__link" href="#">Research</a></li>
+                      <li>
+                        <a class="mobile-nav__link" href="#">Publications</a>
+                      </li>
+                      <li>
+                        <a class="mobile-nav__link" href="#">Data Policies</a>
+                      </li>
+                      <li><a class="mobile-nav__link" href="#">Archive</a></li>
+                    </ul>
+                  </div>
 
-                  <li class="mobile-nav__submenu-item">
-                    <a class="mobile-nav__link" href="#">Open Data</a>
-                  </li>
-
-                  <li class="mobile-nav__submenu-item">
-                    <a class="mobile-nav__link" href="#">Downloads</a>
-                  </li>
-
-                  <li class="mobile-nav__submenu-item">
-                    <a class="mobile-nav__link" href="#">Research</a>
-                  </li>
-
-                  <li class="mobile-nav__submenu-item">
-                    <a class="mobile-nav__link" href="#">Factsheets</a>
-                  </li>
-
-                  <li class="mobile-nav__submenu-item">
-                    <a class="mobile-nav__link" href="#">Archive</a>
-                  </li>
-                </ul>
+                  <aside class="mobile-nav__feature" aria-label="Featured">
+                    <article class="mega-feature mega-feature--compact">
+                      <div class="mega-feature__body">
+                        <p class="mega-feature__title">Open data</p>
+                        <p class="mega-feature__text">
+                          Download market data and historical files at no cost.
+                        </p>
+                        <a class="mega-feature__link" href="#"
+                          >Open the data library</a
+                        >
+                      </div>
+                    </article>
+                  </aside>
+                </div>
               </div>
             </li>
 
-            <!-- Main links -->
-
+            <!-- Direct links -->
             <li class="mobile-nav__item">
-              <a class="mobile-nav__link mobile-nav__link--primary" href="#">
-                Listings
-              </a>
+              <a class="mobile-nav__link mobile-nav__link--primary" href="#"
+                >Listings</a
+              >
             </li>
-
             <li class="mobile-nav__item">
-              <a class="mobile-nav__link mobile-nav__link--primary" href="#">
-                Investors
-              </a>
+              <a class="mobile-nav__link mobile-nav__link--primary" href="#"
+                >Investors</a
+              >
             </li>
-
             <li class="mobile-nav__item">
-              <a class="mobile-nav__link mobile-nav__link--primary" href="#">
-                Issuers
-              </a>
+              <a class="mobile-nav__link mobile-nav__link--primary" href="#"
+                >Issuers</a
+              >
             </li>
-
             <li class="mobile-nav__item">
-              <a class="mobile-nav__link mobile-nav__link--primary" href="#">
-                Rules
-              </a>
+              <a class="mobile-nav__link mobile-nav__link--primary" href="#"
+                >Rules</a
+              >
             </li>
-
             <li class="mobile-nav__item">
-              <a class="mobile-nav__link mobile-nav__link--primary" href="#">
-                News
-              </a>
+              <a class="mobile-nav__link mobile-nav__link--primary" href="#"
+                >News</a
+              >
             </li>
-
             <li class="mobile-nav__item">
-              <a class="mobile-nav__link mobile-nav__link--primary" href="#">
-                About
-              </a>
+              <a class="mobile-nav__link mobile-nav__link--primary" href="#"
+                >About</a
+              >
             </li>
           </ul>
         </nav>
 
-        <footer class="mobile-nav__footer">
-          <a class="mobile-nav__footer-link" href="#"> Contact Us </a>
-
-          <a class="mobile-nav__footer-link" href="#"> Help Center </a>
-        </footer>
+        <div class="drawer-footer mobile-nav__footer">
+          <a class="mobile-nav__footer-link" href="#">Contact us</a>
+          <a class="mobile-nav__footer-link" href="#">Help center</a>
+        </div>
       </div>
-    </aside>
+    </div>
 
     <aside
       class="market-ticker"

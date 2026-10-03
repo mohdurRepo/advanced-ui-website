@@ -1,8 +1,15 @@
 @use "../../../design-system/abstracts" as ds;
+@use "header-config" as config;
 
 /* ==========================================================================
    Mega Menu
    ========================================================================== */
+
+/**
+ * The full-width wrapper is a positioning box only and never receives the
+ * pointer. Only the visible card is interactive, so moving the pointer to
+ * either side of the card leaves the menu and closes it.
+ */
 
 .mega-menu {
   position: absolute;
@@ -11,79 +18,47 @@
   inset-block-start: 100%;
   inset-inline: 0;
 
-  inline-size: 100%;
-  min-inline-size: 0;
+  padding-block-start: var(--space-2);
 
   opacity: 0;
   visibility: hidden;
-
   pointer-events: none;
 
-  transform: translateY(0.5rem);
+  transform: translateY(-0.25rem);
 
-  @include ds.transition(
-    (opacity, visibility, transform),
-    var(--transition-fast)
-  );
+  @include ds.transition((opacity, visibility, transform), "fast");
+
+  @include ds.reduced-motion {
+    transform: none;
+  }
 }
 
-/* ==========================================================================
-   Hover Bridge
-   ========================================================================== */
-
-/*
- * This invisible bridge closes the small gap between the Header and the menu.
- * It prevents the menu from closing while the pointer moves into the panel.
- */
-
-.mega-menu::before {
-  content: "";
-
-  position: absolute;
-
-  inset-inline: 0;
-  inset-block-start: -0.75rem;
-
-  block-size: 0.75rem;
-
-  pointer-events: auto;
-}
-
-/* ==========================================================================
-   Open State
-   ========================================================================== */
-
-.site-nav__item.is-open > .mega-menu,
-.site-nav__trigger[aria-expanded="true"] + .mega-menu,
-.mega-menu[aria-hidden="false"] {
+.mega-menu.is-open {
   opacity: 1;
   visibility: visible;
 
-  pointer-events: auto;
+  transform: none;
+}
 
-  transform: translateY(0);
+@include ds.respond-down(config.$nav-breakpoint) {
+  .mega-menu {
+    display: none;
+  }
 }
 
 /* ==========================================================================
-   Container
+   Card
    ========================================================================== */
 
-.mega-menu__container {
+.mega-menu__card {
   display: grid;
-  grid-template-columns:
-    minmax(14rem, 18rem)
-    minmax(0, 1fr);
-  align-items: stretch;
-  gap: clamp(1rem, 2vw, 2rem);
+  grid-template-columns: minmax(15rem, 18rem) minmax(0, 1fr);
 
-  inline-size: min(100% - 2rem, 82.5rem);
-  max-inline-size: 100%;
-  min-inline-size: 0;
+  max-block-size: calc(100vh - var(--app-header-height) - var(--space-8));
+  max-block-size: calc(100dvh - var(--app-header-height) - var(--space-8));
 
-  max-block-size: calc(100vh - var(--app-header-height) - 1rem);
-
-  margin-inline: auto;
-  padding: clamp(1rem, 2vw, 1.5rem);
+  overflow-y: auto;
+  overscroll-behavior: contain;
 
   border: 1px solid var(--color-border);
   border-radius: var(--radius-xl);
@@ -93,104 +68,138 @@
 
   box-shadow: var(--shadow-lg);
 
-  overflow-x: visible;
-  overflow-y: auto;
+  pointer-events: auto;
 
-  overscroll-behavior: contain;
-  scrollbar-width: thin;
   scrollbar-color: var(--color-border-strong) transparent;
+  scrollbar-width: thin;
 }
 
 /* ==========================================================================
-   Scrollbar
+   Category Tabs
    ========================================================================== */
 
-.mega-menu__container::-webkit-scrollbar {
-  inline-size: 0.5rem;
+/* A <ul> of links (dynamic header) or a role="tablist" <div> (prototype). */
+
+.mega-menu-tabs {
+  display: grid;
+  align-content: start;
+  gap: var(--space-1);
+
+  margin: 0;
+  padding: var(--space-4);
+
+  list-style: none;
+
+  border-inline-end: 1px solid var(--color-border);
+
+  background: var(--color-surface-alt);
 }
 
-.mega-menu__container::-webkit-scrollbar-track {
+.mega-menu-tab {
+  --icon-size: 1.125rem;
+
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+
+  inline-size: 100%;
+  padding: var(--space-3);
+
+  border: 1px solid transparent;
+  border-radius: var(--radius-lg);
+
   background: transparent;
+  color: var(--color-text);
+
+  text-align: start;
+  text-decoration: none;
+
+  @include ds.transition((background-color, border-color, box-shadow), "fast");
 }
 
-.mega-menu__container::-webkit-scrollbar-thumb {
-  border-radius: var(--radius-pill);
-  background: var(--color-border-strong);
+.mega-menu-tab:hover {
+  background: var(--color-surface);
 }
 
-.mega-menu__container::-webkit-scrollbar-thumb:hover {
-  background: var(--color-text-muted);
+.mega-menu-tab:focus-visible {
+  @include ds.focus-ring($offset: -2px);
+}
+
+/* The selected tab lifts onto the card surface. */
+
+.mega-menu-tab.is-selected,
+.mega-menu-tab[aria-selected="true"] {
+  border-color: var(--color-border);
+
+  background: var(--color-surface);
+
+  box-shadow: var(--shadow-sm);
 }
 
 /* ==========================================================================
-   Structural Areas
+   Tab Content
    ========================================================================== */
 
-.mega-menu__rail,
-.mega-menu__content {
+.mega-menu-tab__icon {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+
+  inline-size: 2.25rem;
+  block-size: 2.25rem;
+
+  border-radius: var(--radius-md);
+
+  background: var(--color-surface);
+  color: var(--color-text-muted);
+
+  @include ds.transition((background-color, color), "fast");
+}
+
+.mega-menu-tab.is-selected .mega-menu-tab__icon,
+.mega-menu-tab[aria-selected="true"] .mega-menu-tab__icon {
+  background: var(--color-surface-selected);
+  color: var(--color-primary);
+}
+
+.mega-menu-tab__body {
+  display: grid;
+  gap: 0.125rem;
+
   min-inline-size: 0;
 }
 
-.mega-menu__rail {
-  padding-inline-end: clamp(0.75rem, 1.5vw, 1.25rem);
+.mega-menu-tab__title {
+  color: var(--color-heading);
 
-  border-inline-end: 1px solid var(--color-border);
+  font-size: var(--text-sm);
+  font-weight: ds.font-weight("medium");
+  line-height: var(--line-height-tight);
 }
 
-.mega-menu__content {
-  overflow: visible;
+.mega-menu-tab.is-selected .mega-menu-tab__title,
+.mega-menu-tab[aria-selected="true"] .mega-menu-tab__title {
+  color: var(--color-primary);
 }
 
-/* ==========================================================================
-   Accessibility
-   ========================================================================== */
+.mega-menu-tab__text {
+  color: var(--color-text-muted);
 
-.mega-menu:focus {
-  outline: none;
-}
-
-.mega-menu:focus-visible {
-  @include ds.focus-ring;
-}
-
-/* ==========================================================================
-   Large Desktop
-   ========================================================================== */
-
-@include ds.respond-up("xl") {
-  .mega-menu__container {
-    grid-template-columns:
-      minmax(15rem, 19rem)
-      minmax(0, 1fr);
-  }
+  font-size: var(--text-xs);
+  line-height: var(--line-height-normal);
 }
 
 /* ==========================================================================
    Constrained Desktop
    ========================================================================== */
 
-@media (min-width: 62rem) and (max-width: 73.75rem) {
-  .mega-menu__container {
-    grid-template-columns:
-      minmax(12rem, 15rem)
-      minmax(0, 1fr);
-    gap: 1rem;
-
-    padding: 1rem;
+@include ds.respond-between(config.$nav-breakpoint, "xl") {
+  .mega-menu__card {
+    grid-template-columns: minmax(13rem, 15rem) minmax(0, 1fr);
   }
 
-  .mega-menu__rail {
-    padding-inline-end: 0.75rem;
-  }
-}
-
-/* ==========================================================================
-   Mobile and Tablet
-   ========================================================================== */
-
-@include ds.respond-down("lg") {
-  .mega-menu {
-    display: none;
+  .mega-menu-tabs {
+    padding: var(--space-3);
   }
 }
 
@@ -198,41 +207,22 @@
    High Contrast
    ========================================================================== */
 
-html[data-contrast="high"] .mega-menu__container {
-  border-width: 2px;
-  box-shadow: none;
-}
+html[data-contrast="high"] {
+  .mega-menu__card {
+    border-width: 2px;
 
-html[data-contrast="high"] .mega-menu__rail {
-  border-inline-end-width: 2px;
-}
-
-/* ==========================================================================
-   Reduced Motion
-   ========================================================================== */
-
-@media (prefers-reduced-motion: reduce) {
-  .mega-menu {
-    transition: none;
-    transform: none;
+    box-shadow: none;
   }
 
-  .site-nav__item.is-open > .mega-menu,
-  .site-nav__trigger[aria-expanded="true"] + .mega-menu,
-  .mega-menu[aria-hidden="false"] {
-    transform: none;
+  .mega-menu-tabs {
+    border-inline-end-width: 2px;
   }
-}
 
-html[data-motion-preference="reduce"] .mega-menu {
-  transition: none;
-  transform: none;
-}
+  .mega-menu-tab.is-selected,
+  .mega-menu-tab[aria-selected="true"] {
+    border-width: 2px;
+    border-color: currentColor;
 
-html[data-motion-preference="reduce"] .site-nav__item.is-open > .mega-menu,
-html[data-motion-preference="reduce"]
-  .site-nav__trigger[aria-expanded="true"]
-  + .mega-menu,
-html[data-motion-preference="reduce"] .mega-menu[aria-hidden="false"] {
-  transform: none;
+    box-shadow: none;
+  }
 }

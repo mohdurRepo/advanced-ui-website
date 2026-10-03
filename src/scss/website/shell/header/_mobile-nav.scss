@@ -1,0 +1,404 @@
+@use "../../../design-system/abstracts" as ds;
+@use "header-config" as config;
+
+/* ==========================================================================
+   Mobile Navigation
+   ========================================================================== */
+
+/**
+ * Built on the design-system drawer (.drawer) and accordion (.accordion).
+ * This file only adds navigation-specific sizing and spacing.
+ */
+
+.mobile-nav {
+  --drawer-width: 24rem;
+}
+
+@include ds.respond-up(config.$nav-breakpoint) {
+  .mobile-nav {
+    display: none;
+  }
+}
+
+/* Fallback focus target when the drawer has nothing focusable. */
+.mobile-nav__panel:focus {
+  outline: none;
+}
+
+/* ==========================================================================
+   Header
+   ========================================================================== */
+
+/*
+ * The drawer header repeats the site header's dark brand bar, so the same
+ * WCM logo (light artwork) works in both places and every theme.
+ */
+
+.mobile-nav__header {
+  align-items: center;
+
+  min-block-size: var(--app-header-height);
+  padding-block: 0;
+  padding-inline: var(--space-4);
+
+  border-block-end-color: #{ds.brand("navy-700")};
+
+  background: #{ds.brand("navy-800")};
+  color: #{ds.brand("off-white")};
+}
+
+.mobile-nav__header .drawer-close {
+  --focus-ring: #{ds.brand("teal")};
+
+  border-color: #{ds.brand("navy-700")};
+
+  background: transparent;
+  color: inherit;
+}
+
+.mobile-nav__header .drawer-close:hover {
+  border-color: #{ds.brand("cool-grey")};
+
+  background: rgb(255 255 255 / 0.06);
+}
+
+.mobile-nav__brand {
+  display: inline-flex;
+  align-items: center;
+}
+
+.mobile-nav__brand a {
+  display: inline-flex;
+
+  border-radius: var(--radius-sm);
+}
+
+.mobile-nav__brand a:focus-visible {
+  --focus-ring: #{ds.brand("teal")};
+
+  @include ds.focus-ring;
+}
+
+.mobile-nav__logo,
+.mobile-nav__brand img {
+  inline-size: auto;
+  block-size: auto;
+  max-inline-size: 8rem;
+  max-block-size: 2rem;
+
+  object-fit: contain;
+}
+
+/* Prototype only: light/dark logo pair. */
+
+.mobile-nav__logo--dark,
+html[data-theme="dark"] .mobile-nav__logo--light {
+  display: none;
+}
+
+html[data-theme="dark"] .mobile-nav__logo--dark {
+  display: block;
+}
+
+html[data-contrast="high"] .mobile-nav__header {
+  border-block-end-color: #{ds.brand("white")};
+
+  background: #{ds.brand("black")};
+  color: #{ds.brand("white")};
+}
+
+/* ==========================================================================
+   Body
+   ========================================================================== */
+
+.mobile-nav__body {
+  padding: 0;
+}
+
+/* ==========================================================================
+   Navigation Accordion
+   ========================================================================== */
+
+.accordion--nav {
+  --accordion-gap: 0;
+
+  margin: 0;
+  padding: 0;
+
+  list-style: none;
+}
+
+.mobile-nav__item,
+.accordion--nav .accordion-item {
+  border: 0;
+  border-block-end: 1px solid var(--color-border);
+  border-radius: 0;
+
+  background: transparent;
+}
+
+/* Section triggers and direct links share one row style. */
+
+.accordion--nav .accordion-trigger,
+.mobile-nav__item > .mobile-nav__link--primary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+
+  min-block-size: 3.25rem;
+  padding-block: 0;
+  padding-inline: var(--space-4);
+
+  border-radius: 0;
+
+  color: var(--color-text);
+
+  font-size: var(--text-base);
+  font-weight: ds.font-weight("medium");
+  line-height: var(--line-height-tight);
+}
+
+.accordion--nav .accordion-item.is-open .accordion-trigger {
+  color: var(--color-primary);
+}
+
+.accordion--nav .accordion-icon {
+  --icon-size: 0.75rem;
+}
+
+/* ==========================================================================
+   Section Panel
+   ========================================================================== */
+
+.accordion--nav .accordion-panel-inner {
+  padding-inline: var(--space-3);
+
+  color: var(--color-text);
+
+  font-size: inherit;
+  line-height: inherit;
+}
+
+.accordion--nav .accordion-item.is-open .accordion-panel-inner {
+  padding-block-end: var(--space-4);
+}
+
+.mobile-nav__groups {
+  display: grid;
+  gap: var(--space-5);
+}
+
+.mobile-nav__group {
+  display: grid;
+  gap: var(--space-1);
+}
+
+/* Sentence case, no letter-spacing (keeps Arabic joining intact). */
+
+.mobile-nav__group-title {
+  margin: 0;
+  padding-inline: var(--space-3);
+
+  color: var(--color-text-muted);
+
+  font-size: var(--text-xs);
+  font-weight: ds.font-weight("heavy");
+  line-height: var(--line-height-tight);
+}
+
+.mobile-nav__links {
+  display: grid;
+
+  margin: 0;
+  padding: 0;
+
+  list-style: none;
+}
+
+/* Feature cards sit between groups, inset to align with the links. */
+
+.mobile-nav__feature {
+  padding-inline: var(--space-1);
+}
+
+/* ==========================================================================
+   Links
+   ========================================================================== */
+
+.mobile-nav__link {
+  display: flex;
+  align-items: center;
+
+  min-block-size: 2.75rem;
+  padding-inline: var(--space-3);
+
+  border-radius: var(--radius-md);
+
+  color: var(--color-text);
+
+  font-size: var(--text-sm);
+  line-height: var(--line-height-tight);
+
+  text-decoration: none;
+  overflow-wrap: anywhere;
+
+  @include ds.transition((background-color, color), "fast");
+}
+
+.mobile-nav__link:hover {
+  background: var(--color-surface-hover);
+  color: var(--color-primary);
+}
+
+.mobile-nav__link:focus-visible {
+  @include ds.focus-ring($offset: -2px);
+}
+
+.mobile-nav__link[aria-current="page"] {
+  background: var(--color-surface-selected);
+  color: var(--color-primary);
+
+  font-weight: ds.font-weight("medium");
+}
+
+.mobile-nav__link--primary:hover {
+  background: var(--color-surface-hover);
+}
+
+/* External link (e.g. Careers): small trailing icon, flipped in RTL. */
+
+.mobile-nav__link--external {
+  --icon-size: 0.75rem;
+
+  gap: var(--space-2);
+}
+
+/* ==========================================================================
+   Sub-links (level 4)
+   ========================================================================== */
+
+.mobile-nav__sublist {
+  display: grid;
+
+  margin-block: 0 var(--space-2);
+  margin-inline: var(--space-3) 0;
+  padding: 0;
+  padding-inline-start: var(--space-2);
+
+  border-inline-start: 1px solid var(--color-border);
+
+  list-style: none;
+}
+
+.mobile-nav__sublink {
+  display: flex;
+  align-items: center;
+
+  min-block-size: 2.5rem;
+  padding-inline: var(--space-3);
+
+  border-radius: var(--radius-md);
+
+  color: var(--color-text-muted);
+
+  font-size: var(--text-sm);
+  line-height: var(--line-height-tight);
+
+  text-decoration: none;
+  overflow-wrap: anywhere;
+
+  @include ds.transition((background-color, color), "fast");
+}
+
+.mobile-nav__sublink:hover {
+  background: var(--color-surface-hover);
+  color: var(--color-primary);
+}
+
+.mobile-nav__sublink:focus-visible {
+  @include ds.focus-ring($offset: -2px);
+}
+
+.mobile-nav__sublink[aria-current="page"] {
+  background: var(--color-surface-selected);
+  color: var(--color-primary);
+
+  font-weight: ds.font-weight("medium");
+}
+
+/* Group title rendered as a link when the group has a landing page. */
+
+a.mobile-nav__group-title {
+  justify-self: start;
+
+  border-radius: var(--radius-sm);
+
+  text-decoration: none;
+}
+
+a.mobile-nav__group-title:hover {
+  color: var(--color-primary);
+
+  text-decoration: underline;
+}
+
+a.mobile-nav__group-title:focus-visible {
+  @include ds.focus-ring;
+}
+
+/* ==========================================================================
+   Footer
+   ========================================================================== */
+
+.mobile-nav__footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-5);
+}
+
+.mobile-nav__footer-link {
+  border-radius: var(--radius-sm);
+
+  color: var(--color-text-muted);
+
+  font-size: var(--text-sm);
+
+  text-decoration: none;
+}
+
+.mobile-nav__footer-link:hover {
+  color: var(--color-primary);
+}
+
+.mobile-nav__footer-link:focus-visible {
+  @include ds.focus-ring;
+}
+
+/* ==========================================================================
+   High Contrast
+   ========================================================================== */
+
+html[data-contrast="high"] {
+  .mobile-nav__item,
+  .accordion--nav .accordion-item {
+    border-block-end-width: 2px;
+  }
+
+  .mobile-nav__link:hover,
+  .mobile-nav__link[aria-current="page"],
+  .mobile-nav__sublink:hover,
+  .mobile-nav__sublink[aria-current="page"] {
+    outline: 2px solid currentColor;
+    outline-offset: -2px;
+  }
+
+  .mobile-nav__sublist {
+    border-inline-start-width: 2px;
+    border-color: currentColor;
+  }
+
+  .mobile-nav__sublink {
+    color: var(--color-text);
+  }
+}

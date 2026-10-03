@@ -1,0 +1,12 @@
+/* ==========================================================================
+   Header Configuration
+   ========================================================================== */
+
+/**
+ * Viewport width at which the desktop navigation replaces the drawer.
+ *
+ * Every header partial reads this value, so the breakpoint changes in one
+ * place. Keep DESKTOP_QUERY in header.js in sync with it.
+ */
+
+$nav-breakpoint: "lg";

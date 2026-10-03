@@ -1,3 +1,5 @@
+@use "../abstracts" as ds;
+
 /* ==========================================================================
    Visibility
    ========================================================================== */
@@ -34,4 +36,20 @@
   clip-path: inset(50%) !important;
 
   white-space: nowrap !important;
+}
+
+/* ==========================================================================
+   Visually Hidden Until Focused
+   ========================================================================== */
+
+/**
+ * Hidden until it receives keyboard focus, then shown normally.
+ * Used for skip links.
+ *
+ * The two :not() selectors (rather than one :not() with a list) keep
+ * support for older browsers.
+ */
+
+.visually-hidden-focusable:not(:focus):not(:focus-within) {
+  @include ds.visually-hidden;
 }

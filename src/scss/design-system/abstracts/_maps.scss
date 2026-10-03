@@ -12,8 +12,15 @@
    Brand Colors
    ========================================================================== */
 
+/**
+ * navy-800 and navy-700 are the dark surface and border shades used by the
+ * site header and the dark theme.
+ */
+
 $brand-colors: (
   "navy": #001f33,
+  "navy-800": #0b2233,
+  "navy-700": #1e3d52,
   "teal": #00c7a3,
   "blue": #0044e3,
   "cool-grey": #a7b2b8,

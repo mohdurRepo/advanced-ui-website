@@ -371,3 +371,19 @@ export function initAccordions() {
 
   bindEvents();
 }
+
+/**
+ * Collapses every accordion inside a container.
+ *
+ * Used by the mobile navigation after its drawer has closed, so the menu
+ * opens fresh next time.
+ */
+
+export function collapseAccordions(container = document) {
+  if (!container) return;
+
+  container.querySelectorAll(SELECTORS.accordion).forEach((accordion) => {
+    getItems(accordion).forEach(closeItem);
+    updateExpandAllControl(accordion);
+  });
+}
