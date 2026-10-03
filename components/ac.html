@@ -15,6 +15,9 @@
     - Classes style; data-* attributes are JavaScript hooks (header.js,
       drawer.js, accordion.js). Panels render hidden; header.js sets state.
     - The logo and feature cards come from WCM presentation templates.
+    - Each link URL variable is reset before it is generated. When the
+      portal cannot generate a URL (for example, no access), that item is
+      skipped, as in the previous header.
     - The layout must provide <main id="main" tabindex="-1">.
     - Requires the jstl core (c), functions (fn), fmt, wcm and
       portal-navigation tag libraries, as the previous header did.
@@ -88,8 +91,6 @@
 <%-- Mobile items are collected during the desktop pass. --%>
 <c:set var="mobileNavItems" value="" />
 
-<wcm:initworkspace />
-
 <%-- ==========================================================================
      3. Skip Link
      ========================================================================== --%>
@@ -105,7 +106,16 @@
 <header class="site-header" data-site-header>
   <div class="site-header__inner container">
 
+    <%-- ======================================================================
+         Brand
+         The WCM logo template outputs a light-theme and a dark-theme logo
+         (.site-header__logo--light / --dark); the header styles show the
+         one matching the page theme. The WCM workspace is initialised here
+         once and reused by the feature cards and the drawer logo.
+         ====================================================================== --%>
+
     <div class="site-header__brand">
+      <wcm:initworkspace />
       <wcm:setExplicitContext path="${contentLibrary}/sa-tadawul/sa-home/sa-logo/logo" />
       <wcm:content pageDesign="TadawulV2_Design/LOGO/LOGO-PT_v3" />
     </div>
@@ -202,177 +212,188 @@
                     <c:set var="mobileTitleId" value="mn-${l1Status.index}-${l2Status.index}" />
                     <c:set var="l2Icon" value="${empty nodeL2.metadata['navIcon'] ? 'segment-container' : nodeL2.metadata['navIcon']}" />
 
+                    <c:set var="l2Href" value="" />
                     <portal-navigation:urlGeneration contentNode="${nodeL2Id}" keepNavigationalState="false">
                       <c:set var="l2Href"><%wpsURL.write(out);%>${localeParam}</c:set>
                     </portal-navigation:urlGeneration>
 
-                    <%-- ==========================================================
-                         Level 3 and Level 4
-                         ========================================================== --%>
+                    <c:if test="${not empty l2Href}">
 
-                    <c:set var="columnsHtml" value="" />
-                    <c:set var="mobileLinksHtml" value="" />
-                    <c:set var="visibleCount" value="0" />
+                      <%-- ==========================================================
+                           Level 3 and Level 4
+                           ========================================================== --%>
 
-                    <c:if test="${wp.navigationModel.hasChildren[nodeL2]}">
-                      <c:forEach items="${wp.navigationModel.children[nodeL2]}" var="nodeL3">
-                        <c:if test="${nodeL3.metadata['navVisibility'] != 'hide'}">
+                      <c:set var="columnsHtml" value="" />
+                      <c:set var="mobileLinksHtml" value="" />
+                      <c:set var="visibleCount" value="0" />
 
-                          <c:set var="nodeL3Id" value="${wp.identification[nodeL3]}" />
-                          <c:set var="isSelectedL3" value="${nodeL3Id == selectedNodeId}" />
+                      <c:if test="${wp.navigationModel.hasChildren[nodeL2]}">
+                        <c:forEach items="${wp.navigationModel.children[nodeL2]}" var="nodeL3">
+                          <c:if test="${nodeL3.metadata['navVisibility'] != 'hide'}">
 
-                          <portal-navigation:urlGeneration contentNode="${nodeL3Id}" keepNavigationalState="false">
-                            <c:set var="l3Href"><%wpsURL.write(out);%>${localeParam}</c:set>
-                          </portal-navigation:urlGeneration>
+                            <c:set var="nodeL3Id" value="${wp.identification[nodeL3]}" />
+                            <c:set var="isSelectedL3" value="${nodeL3Id == selectedNodeId}" />
 
-                          <%-- Level 4 --%>
+                            <c:set var="l3Href" value="" />
+                            <portal-navigation:urlGeneration contentNode="${nodeL3Id}" keepNavigationalState="false">
+                              <c:set var="l3Href"><%wpsURL.write(out);%>${localeParam}</c:set>
+                            </portal-navigation:urlGeneration>
 
-                          <c:set var="sublistHtml" value="" />
-                          <c:set var="mobileSublistHtml" value="" />
+                            <c:if test="${not empty l3Href}">
 
-                          <c:if test="${wp.navigationModel.hasChildren[nodeL3]}">
-                            <c:forEach items="${wp.navigationModel.children[nodeL3]}" var="nodeL4">
-                              <c:if test="${nodeL4.metadata['navVisibility'] != 'hide'}">
+                              <%-- Level 4 --%>
 
-                                <c:set var="nodeL4Id" value="${wp.identification[nodeL4]}" />
-                                <c:set var="isSelectedL4" value="${nodeL4Id == selectedNodeId}" />
+                              <c:set var="sublistHtml" value="" />
+                              <c:set var="mobileSublistHtml" value="" />
 
-                                <portal-navigation:urlGeneration contentNode="${nodeL4Id}" keepNavigationalState="false">
-                                  <c:set var="l4Href"><%wpsURL.write(out);%>${localeParam}</c:set>
-                                </portal-navigation:urlGeneration>
+                              <c:if test="${wp.navigationModel.hasChildren[nodeL3]}">
+                                <c:forEach items="${wp.navigationModel.children[nodeL3]}" var="nodeL4">
+                                  <c:if test="${nodeL4.metadata['navVisibility'] != 'hide'}">
 
-                                <c:set var="sublistHtml">${sublistHtml}
-                                  <li><a class="mega-menu-sublink" href="${l4Href}"<c:if test="${isSelectedL4}"> aria-current="page"</c:if>><c:out value="${nodeL4.title}" /></a></li>
-                                </c:set>
+                                    <c:set var="nodeL4Id" value="${wp.identification[nodeL4]}" />
+                                    <c:set var="isSelectedL4" value="${nodeL4Id == selectedNodeId}" />
 
-                                <c:set var="mobileSublistHtml">${mobileSublistHtml}
-                                  <li><a class="mobile-nav__sublink" href="${l4Href}"<c:if test="${isSelectedL4}"> aria-current="page"</c:if>><c:out value="${nodeL4.title}" /></a></li>
-                                </c:set>
+                                    <c:set var="l4Href" value="" />
+                                    <portal-navigation:urlGeneration contentNode="${nodeL4Id}" keepNavigationalState="false">
+                                      <c:set var="l4Href"><%wpsURL.write(out);%>${localeParam}</c:set>
+                                    </portal-navigation:urlGeneration>
+
+                                    <c:if test="${not empty l4Href}">
+
+                                      <c:set var="sublistHtml">${sublistHtml}
+                                        <li><a class="mega-menu-sublink" href="${l4Href}"<c:if test="${isSelectedL4}"> aria-current="page"</c:if>><c:out value="${nodeL4.title}" /></a></li>
+                                      </c:set>
+
+                                      <c:set var="mobileSublistHtml">${mobileSublistHtml}
+                                        <li><a class="mobile-nav__sublink" href="${l4Href}"<c:if test="${isSelectedL4}"> aria-current="page"</c:if>><c:out value="${nodeL4.title}" /></a></li>
+                                      </c:set>
+                                    </c:if>
+                                  </c:if>
+                                </c:forEach>
                               </c:if>
-                            </c:forEach>
-                          </c:if>
 
-                          <c:set var="hasSublist" value="${not empty fn:trim(sublistHtml)}" />
+                              <c:set var="hasSublist" value="${not empty fn:trim(sublistHtml)}" />
 
-                          <%-- Open a column before items 1, 7, 13… --%>
-                          <c:if test="${visibleCount mod itemsPerColumn == 0}">
-                            <c:set var="columnsHtml">${columnsHtml}<div class="mega-menu-group"><ul class="mega-menu-group__list"></c:set>
-                          </c:if>
-
-                          <c:set var="columnsHtml">${columnsHtml}
-                            <li>
-                              <a class="mega-menu-link" href="${l3Href}"<c:if test="${isSelectedL3}"> aria-current="page"</c:if>><c:out value="${nodeL3.title}" /></a>
-                              <c:if test="${hasSublist}">
-                                <ul class="mega-menu-sublist" aria-label="${fn:escapeXml(nodeL3.title)}">${sublistHtml}</ul>
+                              <%-- Open a column before items 1, 7, 13… --%>
+                              <c:if test="${visibleCount mod itemsPerColumn == 0}">
+                                <c:set var="columnsHtml">${columnsHtml}<div class="mega-menu-group"><ul class="mega-menu-group__list"></c:set>
                               </c:if>
-                            </li>
-                          </c:set>
 
-                          <c:set var="mobileLinksHtml">${mobileLinksHtml}
-                            <li>
-                              <a class="mobile-nav__link" href="${l3Href}"<c:if test="${isSelectedL3}"> aria-current="page"</c:if>><c:out value="${nodeL3.title}" /></a>
-                              <c:if test="${hasSublist}">
-                                <ul class="mobile-nav__sublist" aria-label="${fn:escapeXml(nodeL3.title)}">${mobileSublistHtml}</ul>
+                              <c:set var="columnsHtml">${columnsHtml}
+                                <li>
+                                  <a class="mega-menu-link" href="${l3Href}"<c:if test="${isSelectedL3}"> aria-current="page"</c:if>><c:out value="${nodeL3.title}" /></a>
+                                  <c:if test="${hasSublist}">
+                                    <ul class="mega-menu-sublist" aria-label="${fn:escapeXml(nodeL3.title)}">${sublistHtml}</ul>
+                                  </c:if>
+                                </li>
+                              </c:set>
+
+                              <c:set var="mobileLinksHtml">${mobileLinksHtml}
+                                <li>
+                                  <a class="mobile-nav__link" href="${l3Href}"<c:if test="${isSelectedL3}"> aria-current="page"</c:if>><c:out value="${nodeL3.title}" /></a>
+                                  <c:if test="${hasSublist}">
+                                    <ul class="mobile-nav__sublist" aria-label="${fn:escapeXml(nodeL3.title)}">${mobileSublistHtml}</ul>
+                                  </c:if>
+                                </li>
+                              </c:set>
+
+                              <c:set var="visibleCount" value="${visibleCount + 1}" />
+
+                              <%-- Close the column after items 6, 12, 18… --%>
+                              <c:if test="${visibleCount mod itemsPerColumn == 0}">
+                                <c:set var="columnsHtml">${columnsHtml}</ul></div></c:set>
                               </c:if>
-                            </li>
-                          </c:set>
-
-                          <c:set var="visibleCount" value="${visibleCount + 1}" />
-
-                          <%-- Close the column after items 6, 12, 18… --%>
-                          <c:if test="${visibleCount mod itemsPerColumn == 0}">
-                            <c:set var="columnsHtml">${columnsHtml}</ul></div></c:set>
+                            </c:if>
                           </c:if>
-                        </c:if>
-                      </c:forEach>
-                    </c:if>
-
-                    <%-- Careers: takes the next position in the current column. --%>
-
-                    <c:if test="${nodeL2.objectID.uniqueName == careersParentNode}">
-                      <c:if test="${visibleCount mod itemsPerColumn == 0}">
-                        <c:set var="columnsHtml">${columnsHtml}<div class="mega-menu-group"><ul class="mega-menu-group__list"></c:set>
+                        </c:forEach>
                       </c:if>
 
-                      <c:set var="careersLabel"><fmt:message key="theme.subMenue.career" /></c:set>
+                      <%-- Careers: takes the next position in the current column. --%>
 
-                      <c:set var="columnsHtml">${columnsHtml}
-                        <li><a class="mega-menu-link mega-menu-link--external" href="${careersUrl}" target="_blank" rel="noopener noreferrer">${careersLabel}${newTabHint}${externalIcon}</a></li>
-                      </c:set>
+                      <c:if test="${nodeL2.objectID.uniqueName == careersParentNode}">
+                        <c:if test="${visibleCount mod itemsPerColumn == 0}">
+                          <c:set var="columnsHtml">${columnsHtml}<div class="mega-menu-group"><ul class="mega-menu-group__list"></c:set>
+                        </c:if>
 
-                      <c:set var="mobileLinksHtml">${mobileLinksHtml}
-                        <li><a class="mobile-nav__link mobile-nav__link--external" href="${careersUrl}" target="_blank" rel="noopener noreferrer">${careersLabel}${newTabHint}${externalIcon}</a></li>
-                      </c:set>
+                        <c:set var="careersLabel"><fmt:message key="theme.subMenue.career" /></c:set>
 
-                      <c:set var="visibleCount" value="${visibleCount + 1}" />
+                        <c:set var="columnsHtml">${columnsHtml}
+                          <li><a class="mega-menu-link mega-menu-link--external" href="${careersUrl}" target="_blank" rel="noopener noreferrer">${careersLabel}${newTabHint}${externalIcon}</a></li>
+                        </c:set>
 
-                      <c:if test="${visibleCount mod itemsPerColumn == 0}">
+                        <c:set var="mobileLinksHtml">${mobileLinksHtml}
+                          <li><a class="mobile-nav__link mobile-nav__link--external" href="${careersUrl}" target="_blank" rel="noopener noreferrer">${careersLabel}${newTabHint}${externalIcon}</a></li>
+                        </c:set>
+
+                        <c:set var="visibleCount" value="${visibleCount + 1}" />
+
+                        <c:if test="${visibleCount mod itemsPerColumn == 0}">
+                          <c:set var="columnsHtml">${columnsHtml}</ul></div></c:set>
+                        </c:if>
+                      </c:if>
+
+                      <%-- Close the final, partly filled column. --%>
+                      <c:if test="${visibleCount mod itemsPerColumn != 0}">
                         <c:set var="columnsHtml">${columnsHtml}</ul></div></c:set>
                       </c:if>
-                    </c:if>
 
-                    <%-- Close the final, partly filled column. --%>
-                    <c:if test="${visibleCount mod itemsPerColumn != 0}">
-                      <c:set var="columnsHtml">${columnsHtml}</ul></div></c:set>
-                    </c:if>
+                      <c:set var="hasPanel" value="${visibleCount > 0}" />
 
-                    <c:set var="hasPanel" value="${visibleCount > 0}" />
+                      <%-- ==========================================================
+                           Rail link. Without visible children it is still a
+                           link, but has no panel to preview.
+                           ========================================================== --%>
 
-                    <%-- ==========================================================
-                         Rail link. Without visible children it is still a
-                         link, but has no panel to preview.
-                         ========================================================== --%>
+                      <c:set var="railHtml">${railHtml}
+                        <li>
+                          <a
+                            class="mega-menu-tab<c:if test="${isCurrentL2}"> is-current</c:if>"
+                            href="${l2Href}"
+                            data-mega-tab
+                            <c:if test="${hasPanel}">aria-controls="${panelId}"</c:if>
+                            <c:if test="${isCurrentL2}">data-mega-default</c:if>
+                            <c:if test="${isSelectedL2}">aria-current="page"</c:if>
+                          >
+                            <span class="mega-menu-tab__icon has-icon icon-${fn:escapeXml(l2Icon)}" aria-hidden="true"></span>
+                            <span class="mega-menu-tab__body">
+                              <span class="mega-menu-tab__title"><c:out value="${nodeL2.title}" /></span>
+                              <c:if test="${not empty nodeL2.description}">
+                                <span class="mega-menu-tab__text"><c:out value="${nodeL2.description}" /></span>
+                              </c:if>
+                            </span>
+                          </a>
+                        </li>
+                      </c:set>
 
-                    <c:set var="railHtml">${railHtml}
-                      <li>
-                        <a
-                          class="mega-menu-tab<c:if test="${isCurrentL2}"> is-current</c:if>"
-                          href="${l2Href}"
-                          data-mega-tab
-                          <c:if test="${hasPanel}">aria-controls="${panelId}"</c:if>
-                          <c:if test="${isCurrentL2}">data-mega-default</c:if>
-                          <c:if test="${isSelectedL2}">aria-current="page"</c:if>
-                        >
-                          <span class="mega-menu-tab__icon has-icon icon-${fn:escapeXml(l2Icon)}" aria-hidden="true"></span>
-                          <span class="mega-menu-tab__body">
-                            <span class="mega-menu-tab__title"><c:out value="${nodeL2.title}" /></span>
-                            <c:if test="${not empty nodeL2.description}">
-                              <span class="mega-menu-tab__text"><c:out value="${nodeL2.description}" /></span>
+                      <%-- Panel --%>
+
+                      <c:if test="${hasPanel}">
+                        <c:set var="panelsHtml">${panelsHtml}
+                          <div class="mega-menu-panel" id="${panelId}" data-mega-panel hidden>
+                            <div class="mega-menu-panel__groups">${columnsHtml}</div>
+                            <c:if test="${hasFeature}">
+                              <div class="mega-menu-panel__feature">${featureHtml}</div>
                             </c:if>
-                          </span>
-                        </a>
-                      </li>
-                    </c:set>
+                          </div>
+                        </c:set>
+                      </c:if>
 
-                    <%-- Panel --%>
+                      <%-- Mobile group --%>
 
-                    <c:if test="${hasPanel}">
-                      <c:set var="panelsHtml">${panelsHtml}
-                        <div class="mega-menu-panel" id="${panelId}" data-mega-panel hidden>
-                          <div class="mega-menu-panel__groups">${columnsHtml}</div>
-                          <c:if test="${hasFeature}">
-                            <div class="mega-menu-panel__feature">${featureHtml}</div>
+                      <c:set var="mobileGroupsHtml">${mobileGroupsHtml}
+                        <div class="mobile-nav__group">
+                          <a
+                            class="mobile-nav__group-title"
+                            id="${mobileTitleId}"
+                            href="${l2Href}"
+                            <c:if test="${isSelectedL2}">aria-current="page"</c:if>
+                          ><c:out value="${nodeL2.title}" /></a>
+                          <c:if test="${hasPanel}">
+                            <ul class="mobile-nav__links" aria-labelledby="${mobileTitleId}">${mobileLinksHtml}</ul>
                           </c:if>
                         </div>
                       </c:set>
                     </c:if>
-
-                    <%-- Mobile group --%>
-
-                    <c:set var="mobileGroupsHtml">${mobileGroupsHtml}
-                      <div class="mobile-nav__group">
-                        <a
-                          class="mobile-nav__group-title"
-                          id="${mobileTitleId}"
-                          href="${l2Href}"
-                          <c:if test="${isSelectedL2}">aria-current="page"</c:if>
-                        ><c:out value="${nodeL2.title}" /></a>
-                        <c:if test="${hasPanel}">
-                          <ul class="mobile-nav__links" aria-labelledby="${mobileTitleId}">${mobileLinksHtml}</ul>
-                        </c:if>
-                      </div>
-                    </c:set>
-
                   </c:if>
                 </c:forEach>
               </c:if>
@@ -429,27 +450,31 @@
 
                 <%-- Without visible children: direct link --%>
                 <c:otherwise>
+                  <c:set var="l1Href" value="" />
                   <portal-navigation:urlGeneration contentNode="${nodeL1Id}" keepNavigationalState="false">
                     <c:set var="l1Href"><%wpsURL.write(out);%>${localeParam}</c:set>
                   </portal-navigation:urlGeneration>
 
-                  <li class="site-nav__item">
-                    <a
-                      class="site-nav__link<c:if test="${isCurrentL1}"> is-current</c:if>"
-                      href="${l1Href}"
-                      <c:if test="${isSelectedL1}">aria-current="page"</c:if>
-                    ><span class="site-nav__label"><c:out value="${nodeL1.title}" /></span></a>
-                  </li>
+                  <c:if test="${not empty l1Href}">
 
-                  <c:set var="mobileNavItems">${mobileNavItems}
-                    <li class="mobile-nav__item">
+                    <li class="site-nav__item">
                       <a
-                        class="mobile-nav__link mobile-nav__link--primary"
+                        class="site-nav__link<c:if test="${isCurrentL1}"> is-current</c:if>"
                         href="${l1Href}"
                         <c:if test="${isSelectedL1}">aria-current="page"</c:if>
-                      ><c:out value="${nodeL1.title}" /></a>
+                      ><span class="site-nav__label"><c:out value="${nodeL1.title}" /></span></a>
                     </li>
-                  </c:set>
+
+                    <c:set var="mobileNavItems">${mobileNavItems}
+                      <li class="mobile-nav__item">
+                        <a
+                          class="mobile-nav__link mobile-nav__link--primary"
+                          href="${l1Href}"
+                          <c:if test="${isSelectedL1}">aria-current="page"</c:if>
+                        ><c:out value="${nodeL1.title}" /></a>
+                      </li>
+                    </c:set>
+                  </c:if>
                 </c:otherwise>
 
               </c:choose>
@@ -517,6 +542,7 @@
   >
 
     <div class="drawer-header mobile-nav__header">
+      <%-- Same WCM logo as the header; the same theme rules apply. --%>
       <div class="mobile-nav__brand">
         <wcm:setExplicitContext path="${contentLibrary}/sa-tadawul/sa-home/sa-logo/logo" />
         <wcm:content pageDesign="TadawulV2_Design/LOGO/LOGO-PT_v3" />

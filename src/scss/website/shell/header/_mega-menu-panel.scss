@@ -22,13 +22,17 @@
    Groups
    ========================================================================== */
 
-/* Any number of groups flows into as many columns as fit. */
+/*
+ * Three equal columns. Wider columns read better than four narrow ones and
+ * leave room for longer Arabic labels. A panel with more than three
+ * columns of links continues on a second row.
+ */
 
 .mega-menu-panel__groups {
   grid-area: groups;
 
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(10.5rem, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   align-items: start;
   gap: var(--space-6) var(--space-4);
 

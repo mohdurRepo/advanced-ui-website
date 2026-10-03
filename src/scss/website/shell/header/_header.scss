@@ -184,6 +184,28 @@ html[data-accent="navy"] .site-header {
 }
 
 /* ==========================================================================
+   Theme-aware Logos
+   ========================================================================== */
+
+/*
+ * The WCM logo template (LOGO-PT_v3) outputs a light-theme and a dark-theme
+ * logo. Only the one matching the page theme is shown. These rules also
+ * apply inside the mobile drawer, which renders the same template.
+ */
+
+.site-header__logo--dark {
+  display: none;
+}
+
+html[data-theme="dark"] .site-header__logo--light {
+  display: none;
+}
+
+html[data-theme="dark"] .site-header__logo--dark {
+  display: block;
+}
+
+/* ==========================================================================
    High Contrast
    ========================================================================== */
 
