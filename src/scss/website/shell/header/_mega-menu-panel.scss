@@ -216,7 +216,7 @@ a.mega-menu-group__title:focus-visible {
 
 /* The feature card moves below the links as a full-width horizontal card. */
 
-@include ds.respond-between(config.$nav-breakpoint, "xl") {
+@include ds.respond-between(config.$nav-breakpoint, config.$nav-compact-max) {
   .mega-menu-panel {
     grid-template-columns: minmax(0, 1fr);
     grid-template-areas:

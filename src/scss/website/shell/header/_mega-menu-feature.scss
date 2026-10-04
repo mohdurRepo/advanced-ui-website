@@ -106,7 +106,7 @@
  * both lay out correctly.
  */
 
-@include ds.respond-between(config.$nav-breakpoint, "xl") {
+@include ds.respond-between(config.$nav-breakpoint, config.$nav-compact-max) {
   .mega-feature {
     display: flex;
     align-items: center;

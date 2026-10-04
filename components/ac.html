@@ -1,41 +1,595 @@
-<section class="market-status" data-breadcrumb-anchor>…</section>
+<%--
+  ============================================================================
+  Saudi Exchange — Header and Mobile Navigation
+  ----------------------------------------------------------------------------
+  One pass over the portal navigation builds both menus, so desktop and
+  mobile always list the same pages in the same order.
 
-<nav
-  class="breadcrumb-bar"
-  aria-label="${fn:contains(pageContext.request.locale.language, 'ar') ? 'مسار التنقل' : 'Breadcrumb'}"
-  data-breadcrumb
-  hidden
->
-  <%-- your existing breadcrumb markup, unchanged --%>
-</nav>
+  Desktop                              Mobile (drawer)
+    L1  top-bar trigger or link          L1  accordion section or link
+    L2  rail link (previews a panel)     L2  group title link
+    L3  panel link, columns of 6         L3  link
+    L4  indented sub-link                L4  indented sub-link
 
-<noscript>
-  <style>
-    [data-breadcrumb][hidden] {
-      display: block !important;
-    }
-  </style>
-</noscript>
+  A Level-2 page without visible children is a direct link: it has no
+  panel, and shows a trailing chevron (desktop rail and mobile row).
+  External links (Careers) show the external-link icon instead.
 
-<a rel="dynamic-content" href="lm:template"></a>
+  Conventions
+    - Classes style; data-* attributes are JavaScript hooks (header.js,
+      drawer.js, accordion.js). Panels render hidden; header.js sets state.
+    - The logo and feature cards come from WCM presentation templates.
+    - Each link URL variable is reset before it is generated. When the
+      portal cannot generate a URL (for example, no access), that item is
+      skipped, as in the previous header.
+    - The layout must provide <main id="main" tabindex="-1">.
+    - Requires the jstl core (c), functions (fn), fmt, wcm and
+      portal-navigation tag libraries, as the previous header did.
+  ============================================================================
+--%>
 
-<script>
-  (function () {
-    var crumb = document.querySelector("[data-breadcrumb]");
-    if (!crumb) return;
+<%-- ==========================================================================
+     1. Configuration
+     ========================================================================== --%>
 
-    /* Leave the page untouched while editing in Portal. */
-    var editing = document.body.classList.contains("edit-mode");
-    var anchor = editing
-      ? null
-      : document.querySelector("[data-breadcrumb-anchor]");
+<c:set var="isArabic" value="${fn:contains(pageContext.request.locale.language, 'ar')}" />
+<c:set var="contentLibrary" value="${isArabic ? 'tadawulv2_ar' : 'tadawulv2_en'}" />
 
-    if (anchor) {
-      /* Insert after the whole portlet (its Portal wrapper), not inside it. */
-      var portlet = anchor.closest(".component-control") || anchor;
-      portlet.insertAdjacentElement("afterend", crumb);
-    }
+<%-- Set to 'tadawulv2_en' if the Arabic library has no Featured-Menu-V3 items. --%>
+<c:set var="featureLibrary" value="${contentLibrary}" />
 
-    crumb.hidden = false;
-  })();
-</script>
+<c:set var="localeParam" value="?locale=${pageContext.response.locale}" />
+<c:set var="itemsPerColumn" value="6" />
+
+<%-- Level-1 pages never shown in the menu ("|"-delimited). --%>
+<c:set
+  var="excludedL1Nodes"
+  value="|com.tadawul.home|com.tadawul.hiddenpage|com.tadawul.home.v3|com.tadawul.saudiexchange.home.v3|com.tadawul.footer.v3|"
+/>
+
+<%-- Level-2 page whose panel also lists the external Careers link. --%>
+<c:set var="careersParentNode" value="com.tadawul.about.exchange.aboutus.v3" />
+
+<c:url var="careersUrl" value="https://careers.tadawulgroup.sa/">
+  <c:param name="lang" value="${isArabic ? 'ar' : 'en'}" />
+</c:url>
+
+<c:set
+  var="listingUrl"
+  value="${isArabic ? 'https://www.saudiexchange.sa/Resources/400ListedSecurities/ar.html' : 'https://www.saudiexchange.sa/Resources/400ListedSecurities/'}"
+/>
+
+<%-- ==========================================================================
+     2. Current Page
+     selectionPath: [1] navigation root, [2] Level-1 section,
+     [3] Level-2 section, last entry the current page.
+     ========================================================================== --%>
+
+<c:set var="selectionPath" value="${wp.selectionModel.selectionPath}" />
+<c:set var="navigationRoot" value="${selectionPath[1]}" />
+
+<c:set var="selectedNodeId" value="" />
+<c:set var="currentL1Id" value="" />
+<c:set var="currentL2Id" value="" />
+
+<c:if test="${not empty selectionPath}">
+  <c:set var="selectedNodeId" value="${wp.identification[selectionPath[fn:length(selectionPath) - 1]]}" />
+</c:if>
+<c:if test="${fn:length(selectionPath) > 2}">
+  <c:set var="currentL1Id" value="${wp.identification[selectionPath[2]]}" />
+</c:if>
+<c:if test="${fn:length(selectionPath) > 3}">
+  <c:set var="currentL2Id" value="${wp.identification[selectionPath[3]]}" />
+</c:if>
+
+<%-- Shared markup, reused in several places. --%>
+
+<c:set var="newTabHint">
+  <span class="visually-hidden"> <fmt:message key="theme.menu.opensInNewTab" /></span>
+</c:set>
+
+<c:set var="externalIcon">
+  <span class="has-icon icon-external-link icon-flip-rtl" aria-hidden="true"></span>
+</c:set>
+
+<%-- Mobile items are collected during the desktop pass. --%>
+<c:set var="mobileNavItems" value="" />
+
+<%-- ==========================================================================
+     3. Skip Link
+     ========================================================================== --%>
+
+<a class="skip-link visually-hidden-focusable" href="#main">
+  <fmt:message key="theme.header.skipToContent" />
+</a>
+
+<%-- ==========================================================================
+     4. Site Header
+     ========================================================================== --%>
+
+<header class="site-header" data-site-header>
+  <div class="site-header__inner container">
+
+    <%-- ======================================================================
+         Brand
+         The WCM logo template outputs a light-theme and a dark-theme logo
+         (.site-header__logo--light / --dark); the header styles show the
+         one matching the page theme. The WCM workspace is initialised here
+         once and reused by the feature cards and the drawer logo.
+         ====================================================================== --%>
+
+    <div class="site-header__brand">
+      <wcm:initworkspace />
+      <wcm:setExplicitContext path="${contentLibrary}/sa-tadawul/sa-home/sa-logo/logo" />
+      <wcm:content pageDesign="TadawulV2_Design/LOGO/LOGO-PT_v3" />
+    </div>
+
+    <%-- ======================================================================
+         4.1 Desktop Navigation
+         ====================================================================== --%>
+
+    <nav class="site-nav site-header__nav" aria-label="<fmt:message key='theme.header.mainNavigation' />">
+      <ul class="site-nav__list">
+
+        <c:if test="${not empty navigationRoot}">
+          <c:forEach items="${wp.navigationModel.children[navigationRoot]}" var="nodeL1" varStatus="l1Status">
+
+            <c:set var="l1Name" value="${nodeL1.objectID.uniqueName}" />
+            <c:set var="l1Key" value="|${l1Name}|" />
+
+            <c:if test="${nodeL1.metadata['navVisibility'] != 'hide' and not fn:contains(excludedL1Nodes, l1Key)}">
+
+              <c:set var="nodeL1Id" value="${wp.identification[nodeL1]}" />
+              <c:set var="isCurrentL1" value="${not empty currentL1Id and nodeL1Id == currentL1Id}" />
+              <c:set var="isSelectedL1" value="${nodeL1Id == selectedNodeId}" />
+              <c:set var="menuId" value="mm-${l1Status.index}" />
+
+              <%-- ============================================================
+                   Featured content: one per Level-1 section, rendered once,
+                   reused by every panel and by the mobile section.
+                   ============================================================ --%>
+
+              <c:set var="featureItem" value="" />
+              <c:set var="featureHtml" value="" />
+
+              <c:choose>
+                <c:when test="${l1Name == 'com.tadawul.saudiexchange.ourmarkets.v3'}">
+                  <c:set var="featureItem" value="Our market" />
+                </c:when>
+                <c:when test="${l1Name == 'com.tadawul.trading.v3' or l1Name == 'com.tadawul.trading.v3_update'}">
+                  <c:set var="featureItem" value="Trading" />
+                </c:when>
+                <c:when test="${l1Name == 'com.tadawul.newsandreports.v3' or l1Name == 'com.tadawul.newsandreports.v3_update'}">
+                  <c:set var="featureItem" value="market news" />
+                </c:when>
+                <c:when test="${l1Name == 'com.tadawul.v3.rules.and.guidance'}">
+                  <c:set var="featureItem" value="Rules and Guidance" />
+                </c:when>
+                <c:when test="${l1Name == 'com.tadawul.aboutsaudiexchange.v3' or l1Name == 'com.tadawul.aboutsaudiexchange.v3_update'}">
+                  <c:set var="featureItem" value="About Saudi Exchange" />
+                </c:when>
+              </c:choose>
+
+              <c:choose>
+                <%-- Listing: static content from the resource bundle --%>
+                <c:when test="${l1Name == 'com.tadawul.listing.v3' or l1Name == 'com.tadawul.listing.v3_update'}">
+                  <c:set var="featureHtml">
+                    <article class="mega-feature">
+                      <div class="mega-feature__body">
+                        <p class="mega-feature__title"><fmt:message key="theme.menu.listing.right.400.info" /></p>
+                        <p class="mega-feature__text"><fmt:message key="theme.menu.listing.right.400.desc" /></p>
+                        <a class="mega-feature__link" href="${listingUrl}" target="_blank" rel="noopener noreferrer">
+                          <fmt:message key="theme.menu.listing.right.cta" />${newTabHint}
+                        </a>
+                      </div>
+                    </article>
+                  </c:set>
+                </c:when>
+
+                <%-- Other sections: WCM content --%>
+                <c:when test="${not empty featureItem}">
+                  <c:set var="featureHtml">
+                    <wcm:setExplicitContext path="${featureLibrary}/sa-tadawul/SA-Home/Featured-Menu-V3/${featureItem}" />
+                    <wcm:content pageDesign="TadawulV2_Design/PT-Featured-Menu-V3" />
+                  </c:set>
+                </c:when>
+              </c:choose>
+
+              <c:set var="hasFeature" value="${not empty fn:trim(featureHtml)}" />
+
+              <%-- ============================================================
+                   Level 2: rail, panels and mobile groups in one pass
+                   ============================================================ --%>
+
+              <c:set var="railHtml" value="" />
+              <c:set var="panelsHtml" value="" />
+              <c:set var="mobileGroupsHtml" value="" />
+
+              <c:if test="${wp.navigationModel.hasChildren[nodeL1]}">
+                <c:forEach items="${wp.navigationModel.children[nodeL1]}" var="nodeL2" varStatus="l2Status">
+                  <c:if test="${nodeL2.metadata['navVisibility'] != 'hide'}">
+
+                    <c:set var="nodeL2Id" value="${wp.identification[nodeL2]}" />
+                    <c:set var="isCurrentL2" value="${not empty currentL2Id and nodeL2Id == currentL2Id}" />
+                    <c:set var="isSelectedL2" value="${nodeL2Id == selectedNodeId}" />
+                    <c:set var="panelId" value="${menuId}-${l2Status.index}" />
+                    <c:set var="mobileTitleId" value="mn-${l1Status.index}-${l2Status.index}" />
+                    <c:set var="l2Icon" value="${empty nodeL2.metadata['navIcon'] ? 'segment-container' : nodeL2.metadata['navIcon']}" />
+
+                    <c:set var="l2Href" value="" />
+                    <portal-navigation:urlGeneration contentNode="${nodeL2Id}" keepNavigationalState="false">
+                      <c:set var="l2Href"><%wpsURL.write(out);%>${localeParam}</c:set>
+                    </portal-navigation:urlGeneration>
+
+                    <c:if test="${not empty l2Href}">
+
+                      <%-- ==========================================================
+                           Level 3 and Level 4
+                           ========================================================== --%>
+
+                      <c:set var="columnsHtml" value="" />
+                      <c:set var="mobileLinksHtml" value="" />
+                      <c:set var="visibleCount" value="0" />
+
+                      <c:if test="${wp.navigationModel.hasChildren[nodeL2]}">
+                        <c:forEach items="${wp.navigationModel.children[nodeL2]}" var="nodeL3">
+                          <c:if test="${nodeL3.metadata['navVisibility'] != 'hide'}">
+
+                            <c:set var="nodeL3Id" value="${wp.identification[nodeL3]}" />
+                            <c:set var="isSelectedL3" value="${nodeL3Id == selectedNodeId}" />
+
+                            <c:set var="l3Href" value="" />
+                            <portal-navigation:urlGeneration contentNode="${nodeL3Id}" keepNavigationalState="false">
+                              <c:set var="l3Href"><%wpsURL.write(out);%>${localeParam}</c:set>
+                            </portal-navigation:urlGeneration>
+
+                            <c:if test="${not empty l3Href}">
+
+                              <%-- Level 4 --%>
+
+                              <c:set var="sublistHtml" value="" />
+                              <c:set var="mobileSublistHtml" value="" />
+
+                              <c:if test="${wp.navigationModel.hasChildren[nodeL3]}">
+                                <c:forEach items="${wp.navigationModel.children[nodeL3]}" var="nodeL4">
+                                  <c:if test="${nodeL4.metadata['navVisibility'] != 'hide'}">
+
+                                    <c:set var="nodeL4Id" value="${wp.identification[nodeL4]}" />
+                                    <c:set var="isSelectedL4" value="${nodeL4Id == selectedNodeId}" />
+
+                                    <c:set var="l4Href" value="" />
+                                    <portal-navigation:urlGeneration contentNode="${nodeL4Id}" keepNavigationalState="false">
+                                      <c:set var="l4Href"><%wpsURL.write(out);%>${localeParam}</c:set>
+                                    </portal-navigation:urlGeneration>
+
+                                    <c:if test="${not empty l4Href}">
+
+                                      <c:set var="sublistHtml">${sublistHtml}
+                                        <li><a class="mega-menu-sublink" href="${l4Href}"<c:if test="${isSelectedL4}"> aria-current="page"</c:if>><c:out value="${nodeL4.title}" /></a></li>
+                                      </c:set>
+
+                                      <c:set var="mobileSublistHtml">${mobileSublistHtml}
+                                        <li><a class="mobile-nav__sublink" href="${l4Href}"<c:if test="${isSelectedL4}"> aria-current="page"</c:if>><c:out value="${nodeL4.title}" /></a></li>
+                                      </c:set>
+                                    </c:if>
+                                  </c:if>
+                                </c:forEach>
+                              </c:if>
+
+                              <c:set var="hasSublist" value="${not empty fn:trim(sublistHtml)}" />
+
+                              <%-- Open a column before items 1, 7, 13… --%>
+                              <c:if test="${visibleCount mod itemsPerColumn == 0}">
+                                <c:set var="columnsHtml">${columnsHtml}<div class="mega-menu-group"><ul class="mega-menu-group__list"></c:set>
+                              </c:if>
+
+                              <c:set var="columnsHtml">${columnsHtml}
+                                <li>
+                                  <a class="mega-menu-link" href="${l3Href}"<c:if test="${isSelectedL3}"> aria-current="page"</c:if>><c:out value="${nodeL3.title}" /></a>
+                                  <c:if test="${hasSublist}">
+                                    <ul class="mega-menu-sublist" aria-label="${fn:escapeXml(nodeL3.title)}">${sublistHtml}</ul>
+                                  </c:if>
+                                </li>
+                              </c:set>
+
+                              <c:set var="mobileLinksHtml">${mobileLinksHtml}
+                                <li>
+                                  <a class="mobile-nav__link" href="${l3Href}"<c:if test="${isSelectedL3}"> aria-current="page"</c:if>><c:out value="${nodeL3.title}" /></a>
+                                  <c:if test="${hasSublist}">
+                                    <ul class="mobile-nav__sublist" aria-label="${fn:escapeXml(nodeL3.title)}">${mobileSublistHtml}</ul>
+                                  </c:if>
+                                </li>
+                              </c:set>
+
+                              <c:set var="visibleCount" value="${visibleCount + 1}" />
+
+                              <%-- Close the column after items 6, 12, 18… --%>
+                              <c:if test="${visibleCount mod itemsPerColumn == 0}">
+                                <c:set var="columnsHtml">${columnsHtml}</ul></div></c:set>
+                              </c:if>
+                            </c:if>
+                          </c:if>
+                        </c:forEach>
+                      </c:if>
+
+                      <%-- Careers: takes the next position in the current column. --%>
+
+                      <c:if test="${nodeL2.objectID.uniqueName == careersParentNode}">
+                        <c:if test="${visibleCount mod itemsPerColumn == 0}">
+                          <c:set var="columnsHtml">${columnsHtml}<div class="mega-menu-group"><ul class="mega-menu-group__list"></c:set>
+                        </c:if>
+
+                        <c:set var="careersLabel"><fmt:message key="theme.subMenue.career" /></c:set>
+
+                        <c:set var="columnsHtml">${columnsHtml}
+                          <li><a class="mega-menu-link mega-menu-link--external" href="${careersUrl}" target="_blank" rel="noopener noreferrer">${careersLabel}${newTabHint}${externalIcon}</a></li>
+                        </c:set>
+
+                        <c:set var="mobileLinksHtml">${mobileLinksHtml}
+                          <li><a class="mobile-nav__link mobile-nav__link--external" href="${careersUrl}" target="_blank" rel="noopener noreferrer">${careersLabel}${newTabHint}${externalIcon}</a></li>
+                        </c:set>
+
+                        <c:set var="visibleCount" value="${visibleCount + 1}" />
+
+                        <c:if test="${visibleCount mod itemsPerColumn == 0}">
+                          <c:set var="columnsHtml">${columnsHtml}</ul></div></c:set>
+                        </c:if>
+                      </c:if>
+
+                      <%-- Close the final, partly filled column. --%>
+                      <c:if test="${visibleCount mod itemsPerColumn != 0}">
+                        <c:set var="columnsHtml">${columnsHtml}</ul></div></c:set>
+                      </c:if>
+
+                      <c:set var="hasPanel" value="${visibleCount > 0}" />
+
+                      <%-- ==========================================================
+                           Rail link. Without visible children it is still a
+                           link, but has no panel to preview.
+                           ========================================================== --%>
+
+                      <c:set var="railHtml">${railHtml}
+                        <li>
+                          <a
+                            class="mega-menu-tab<c:if test="${not hasPanel}"> mega-menu-tab--direct</c:if><c:if test="${isCurrentL2}"> is-current</c:if>"
+                            href="${l2Href}"
+                            data-mega-tab
+                            <c:if test="${hasPanel}">aria-controls="${panelId}"</c:if>
+                            <c:if test="${isCurrentL2}">data-mega-default</c:if>
+                            <c:if test="${isSelectedL2}">aria-current="page"</c:if>
+                          >
+                            <span class="mega-menu-tab__icon has-icon icon-${fn:escapeXml(l2Icon)}" aria-hidden="true"></span>
+                            <span class="mega-menu-tab__body">
+                              <span class="mega-menu-tab__title"><c:out value="${nodeL2.title}" /></span>
+                              <c:if test="${not empty nodeL2.description}">
+                                <span class="mega-menu-tab__text"><c:out value="${nodeL2.description}" /></span>
+                              </c:if>
+                            </span>
+                            <c:if test="${not hasPanel}">
+                              <span class="mega-menu-tab__go has-icon icon-chevron-right icon-flip-rtl" aria-hidden="true"></span>
+                            </c:if>
+                          </a>
+                        </li>
+                      </c:set>
+
+                      <%-- Panel --%>
+
+                      <c:if test="${hasPanel}">
+                        <c:set var="panelsHtml">${panelsHtml}
+                          <div class="mega-menu-panel" id="${panelId}" data-mega-panel hidden>
+                            <div class="mega-menu-panel__groups">${columnsHtml}</div>
+                            <c:if test="${hasFeature}">
+                              <div class="mega-menu-panel__feature">${featureHtml}</div>
+                            </c:if>
+                          </div>
+                        </c:set>
+                      </c:if>
+
+                      <%-- Mobile group: a titled list, or a direct row when it has no children --%>
+
+                      <c:set var="mobileGroupsHtml">${mobileGroupsHtml}
+                        <div class="mobile-nav__group">
+                          <c:choose>
+                            <c:when test="${hasPanel}">
+                              <a
+                                class="mobile-nav__group-title"
+                                id="${mobileTitleId}"
+                                href="${l2Href}"
+                                <c:if test="${isSelectedL2}">aria-current="page"</c:if>
+                              ><c:out value="${nodeL2.title}" /></a>
+                              <ul class="mobile-nav__links" aria-labelledby="${mobileTitleId}">${mobileLinksHtml}</ul>
+                            </c:when>
+                            <c:otherwise>
+                              <a
+                                class="mobile-nav__link mobile-nav__link--direct"
+                                href="${l2Href}"
+                                <c:if test="${isSelectedL2}">aria-current="page"</c:if>
+                              ><c:out value="${nodeL2.title}" /><span class="has-icon icon-chevron-right icon-flip-rtl" aria-hidden="true"></span></a>
+                            </c:otherwise>
+                          </c:choose>
+                        </div>
+                      </c:set>
+                    </c:if>
+                  </c:if>
+                </c:forEach>
+              </c:if>
+
+              <%-- ============================================================
+                   Level 1 output
+                   ============================================================ --%>
+
+              <c:choose>
+
+                <%-- With visible children: mega menu and accordion section --%>
+                <c:when test="${not empty fn:trim(railHtml)}">
+                  <li class="site-nav__item" data-mega-item>
+                    <button
+                      class="site-nav__trigger<c:if test="${isCurrentL1}"> is-current</c:if>"
+                      type="button"
+                      aria-expanded="false"
+                      aria-controls="${menuId}"
+                      data-mega-trigger
+                    >
+                      <span class="site-nav__label"><c:out value="${nodeL1.title}" /></span>
+                      <span class="site-nav__chevron has-icon icon-chevron-down" aria-hidden="true"></span>
+                    </button>
+
+                    <div class="mega-menu" id="${menuId}" data-mega-menu>
+                      <div class="mega-menu__inner container">
+                        <div class="mega-menu__card">
+                          <ul class="mega-menu-tabs" aria-label="${fn:escapeXml(nodeL1.title)}" data-mega-tabs>
+                            ${railHtml}
+                          </ul>
+                          ${panelsHtml}
+                        </div>
+                      </div>
+                    </div>
+                  </li>
+
+                  <c:set var="mobileNavItems">${mobileNavItems}
+                    <li class="accordion-item mobile-nav__item">
+                      <button class="accordion-trigger mobile-nav__trigger" type="button" aria-expanded="false" data-accordion-trigger>
+                        <span class="accordion-trigger__label"><c:out value="${nodeL1.title}" /></span>
+                        <span class="accordion-icon has-icon icon-chevron-down" aria-hidden="true"></span>
+                      </button>
+                      <div class="accordion-panel">
+                        <div class="accordion-panel-inner mobile-nav__groups">
+                          ${mobileGroupsHtml}
+                          <c:if test="${hasFeature}">
+                            <div class="mobile-nav__feature">${featureHtml}</div>
+                          </c:if>
+                        </div>
+                      </div>
+                    </li>
+                  </c:set>
+                </c:when>
+
+                <%-- Without visible children: direct link --%>
+                <c:otherwise>
+                  <c:set var="l1Href" value="" />
+                  <portal-navigation:urlGeneration contentNode="${nodeL1Id}" keepNavigationalState="false">
+                    <c:set var="l1Href"><%wpsURL.write(out);%>${localeParam}</c:set>
+                  </portal-navigation:urlGeneration>
+
+                  <c:if test="${not empty l1Href}">
+
+                    <li class="site-nav__item">
+                      <a
+                        class="site-nav__link<c:if test="${isCurrentL1}"> is-current</c:if>"
+                        href="${l1Href}"
+                        <c:if test="${isSelectedL1}">aria-current="page"</c:if>
+                      ><span class="site-nav__label"><c:out value="${nodeL1.title}" /></span></a>
+                    </li>
+
+                    <c:set var="mobileNavItems">${mobileNavItems}
+                      <li class="mobile-nav__item">
+                        <a
+                          class="mobile-nav__link mobile-nav__link--primary"
+                          href="${l1Href}"
+                          <c:if test="${isSelectedL1}">aria-current="page"</c:if>
+                        ><c:out value="${nodeL1.title}" /></a>
+                      </li>
+                    </c:set>
+                  </c:if>
+                </c:otherwise>
+
+              </c:choose>
+            </c:if>
+          </c:forEach>
+        </c:if>
+
+      </ul>
+    </nav>
+
+    <%-- ======================================================================
+         4.2 Header Actions
+         ====================================================================== --%>
+
+    <div class="site-header__actions">
+
+      <%-- The only language switch, on desktop and mobile. It shows the
+           target language; the visible text is its accessible name. --%>
+      <a
+        class="header-lang-switch"
+        href='<portal-navigation:url command="ChangeLanguage"><portal-navigation:urlParam name="locale" value="${localeSwitch}" /></portal-navigation:url>'
+        hreflang="${isArabic ? 'en' : 'ar'}"
+        data-lang-toggle
+      >
+        <span class="header-lang-switch__icon has-icon icon-globe" aria-hidden="true"></span>
+        <span class="header-lang-switch__current" lang="${isArabic ? 'en' : 'ar'}">
+          <fmt:message key="${isArabic ? 'theme.header.lang.english' : 'theme.header.lang.arabic'}" />
+        </span>
+      </a>
+
+      <button
+        class="header-burger"
+        type="button"
+        aria-label="<fmt:message key='theme.header.menu' />"
+        aria-expanded="false"
+        aria-controls="mobile-nav"
+        data-drawer-open="mobile-nav"
+      >
+        <span class="header-burger__line" aria-hidden="true"></span>
+        <span class="header-burger__line" aria-hidden="true"></span>
+        <span class="header-burger__line" aria-hidden="true"></span>
+      </button>
+
+    </div>
+
+  </div>
+</header>
+
+<%-- ==========================================================================
+     5. Mobile Navigation (drawer)
+     Must stay outside <header>: while open, the drawer makes the rest of
+     the page inert.
+     ========================================================================== --%>
+
+<div class="drawer mobile-nav" id="mobile-nav" data-drawer="mobile-nav">
+  <div class="drawer-backdrop" data-drawer-close></div>
+
+  <div
+    class="drawer-panel mobile-nav__panel"
+    role="dialog"
+    aria-modal="true"
+    aria-label="<fmt:message key='theme.header.menu' />"
+    tabindex="-1"
+    data-drawer-panel
+  >
+
+    <div class="drawer-header mobile-nav__header">
+      <%-- Same WCM logo as the header; the same theme rules apply. --%>
+      <div class="mobile-nav__brand">
+        <wcm:setExplicitContext path="${contentLibrary}/sa-tadawul/sa-home/sa-logo/logo" />
+        <wcm:content pageDesign="TadawulV2_Design/LOGO/LOGO-PT_v3" />
+      </div>
+
+      <button
+        class="drawer-close has-icon icon-close-x"
+        type="button"
+        aria-label="<fmt:message key='theme.header.closeMenu' />"
+        data-drawer-close
+        data-drawer-initial-focus
+      ></button>
+    </div>
+
+    <nav class="drawer-body mobile-nav__body custom-scrollbar" aria-label="<fmt:message key='theme.header.mainNavigation' />">
+      <ul class="mobile-nav__list accordion accordion--nav">
+        ${mobileNavItems}
+      </ul>
+    </nav>
+
+    <div class="drawer-footer mobile-nav__footer">
+      <%-- Replace "#" with portal-generated URLs once their unique names are confirmed. --%>
+      <a class="mobile-nav__footer-link" href="#">
+        <span class="has-icon icon-telephone-support" aria-hidden="true"></span>
+        <fmt:message key="theme.footer.contactUs" />
+      </a>
+      <a class="mobile-nav__footer-link" href="#">
+        <span class="has-icon icon-headset-support" aria-hidden="true"></span>
+        <fmt:message key="theme.footer.helpCenter" />
+      </a>
+    </div>
+
+  </div>
+</div>

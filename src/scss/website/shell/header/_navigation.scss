@@ -18,11 +18,21 @@
   }
 }
 
+/*
+ * Always one row. When space is short, items shrink and long labels wrap
+ * inside their own item (up to two balanced lines) instead of the row
+ * wrapping or overlapping the logo and actions.
+ */
+
 .site-nav__list {
   display: flex;
+  flex-wrap: nowrap;
   align-items: stretch;
+  justify-content: center;
   gap: var(--space-1);
 
+  inline-size: 100%;
+  min-inline-size: 0;
   margin: 0;
   padding: 0;
 
@@ -36,6 +46,9 @@
 
 .site-nav__item {
   display: flex;
+  flex: 0 1 auto;
+
+  min-inline-size: 0;
 }
 
 /* ==========================================================================
@@ -52,6 +65,7 @@
   align-items: center;
   gap: var(--space-1);
 
+  min-block-size: 2.75rem;
   padding-block: 0;
   padding-inline: var(--space-3);
 
@@ -60,12 +74,29 @@
   background: transparent;
   color: var(--site-header-color);
 
+  min-inline-size: 0;
+
   font-size: var(--text-sm);
   font-weight: ds.font-weight("medium");
   line-height: var(--line-height-tight);
 
+  text-align: center;
   text-decoration: none;
-  white-space: nowrap;
+}
+
+/*
+ * Labels wrap between words only (never inside a word, never truncated).
+ * A long label such as "Data and Management Reports" becomes two balanced
+ * lines; short labels stay on one line.
+ */
+
+.site-nav__label {
+  min-inline-size: 0;
+  max-inline-size: 9rem;
+
+  overflow-wrap: normal;
+  word-break: normal;
+  text-wrap: balance;
 }
 
 .site-nav__trigger:focus-visible,
@@ -130,7 +161,7 @@
    Constrained Desktop
    ========================================================================== */
 
-@include ds.respond-between(config.$nav-breakpoint, "xl") {
+@include ds.respond-between(config.$nav-breakpoint, config.$nav-compact-max) {
   .site-nav__list {
     gap: 0;
   }
@@ -140,6 +171,10 @@
     padding-inline: var(--space-2);
 
     font-size: var(--text-xs);
+  }
+
+  .site-nav__label {
+    max-inline-size: 7.5rem;
   }
 
   .site-nav__trigger::after,

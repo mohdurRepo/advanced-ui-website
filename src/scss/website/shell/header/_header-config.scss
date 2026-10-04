@@ -3,10 +3,18 @@
    ========================================================================== */
 
 /**
- * Viewport width at which the desktop navigation replaces the drawer.
+ * $nav-breakpoint
+ *   Viewport width at which the desktop navigation replaces the drawer.
+ *   Keep DESKTOP_QUERY in header.js in sync with it.
  *
- * Every header partial reads this value, so the breakpoint changes in one
- * place. Keep DESKTOP_QUERY in header.js in sync with it.
+ * $nav-compact-max
+ *   Up to this width the desktop navigation uses its compact layout
+ *   (tighter top bar, feature card below the links).
+ *
+ * The top bar never overlaps the logo or the actions: when the items do
+ * not fit on one row, they wrap onto a second row and the header grows.
+ * header.js then publishes the real header height as --app-header-height.
  */
 
 $nav-breakpoint: "lg";
+$nav-compact-max: "xl";

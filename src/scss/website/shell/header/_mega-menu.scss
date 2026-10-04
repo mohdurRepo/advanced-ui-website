@@ -190,10 +190,44 @@
 }
 
 /* ==========================================================================
+   Direct Links
+   ========================================================================== */
+
+/*
+ * A Level-2 page without children has no panel to preview: a trailing
+ * chevron shows that it goes straight to its page. (The external-link
+ * icon is reserved for links that leave the site, such as Careers.)
+ */
+
+.mega-menu-tab__go {
+  --icon-size: 0.875rem;
+
+  flex: 0 0 auto;
+
+  margin-inline-start: auto;
+
+  color: var(--color-text-muted);
+
+  @include ds.transition((color, transform), "fast");
+}
+
+.mega-menu-tab--direct:hover .mega-menu-tab__go,
+.mega-menu-tab--direct:focus-visible .mega-menu-tab__go {
+  color: var(--color-primary);
+
+  transform: translateX(0.125rem);
+}
+
+html[dir="rtl"] .mega-menu-tab--direct:hover .mega-menu-tab__go,
+html[dir="rtl"] .mega-menu-tab--direct:focus-visible .mega-menu-tab__go {
+  transform: translateX(-0.125rem);
+}
+
+/* ==========================================================================
    Constrained Desktop
    ========================================================================== */
 
-@include ds.respond-between(config.$nav-breakpoint, "xl") {
+@include ds.respond-between(config.$nav-breakpoint, config.$nav-compact-max) {
   .mega-menu__card {
     grid-template-columns: minmax(13rem, 15rem) minmax(0, 1fr);
   }

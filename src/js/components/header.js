@@ -559,6 +559,35 @@ function initScrollState(header) {
 }
 
 /* ==========================================================================
+   Header Height
+   ========================================================================== */
+
+/**
+ * Publishes the header's real height as --app-header-height on <html>.
+ *
+ * The top bar wraps onto a second row when its items do not fit, so the
+ * height is not fixed. The mega menu, drawer bar, sticky layouts and anchor
+ * scrolling all read this token. The CSS values in base/_root.scss remain
+ * the fallback before this runs.
+ */
+
+function initHeaderHeight(header) {
+  const root = document.documentElement;
+
+  const update = () => {
+    root.style.setProperty("--app-header-height", `${header.offsetHeight}px`);
+  };
+
+  update();
+
+  if (typeof window.ResizeObserver === "function") {
+    new ResizeObserver(update).observe(header);
+  } else {
+    window.addEventListener("resize", update, { passive: true });
+  }
+}
+
+/* ==========================================================================
    Public Initializer
    ========================================================================== */
 
@@ -576,6 +605,7 @@ export function initHeader() {
 
   initMobileNavigation();
   initScrollState(header);
+  initHeaderHeight(header);
 
   document.addEventListener("click", handleDocumentClick);
   document.addEventListener("keydown", handleDocumentKeydown);
