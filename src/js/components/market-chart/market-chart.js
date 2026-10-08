@@ -21,7 +21,10 @@ import {
   setMarketChartRangeRecord,
 } from "./market-chart-data.js";
 
-import { getMarketChartStrings } from "./market-chart-i18n.js";
+import {
+  formatMarketChartMessage,
+  getMarketChartStrings,
+} from "./market-chart-i18n.js";
 
 import { createMarketChartLiveController } from "./market-chart-live.js";
 
@@ -132,7 +135,7 @@ const DEFAULT_CONFIGURATION = Object.freeze({
   maxPoints: DEFAULT_MAX_POINTS,
   candleBucketSize: DEFAULT_CANDLE_BUCKET_SIZE,
 
-  showEmptyState: true,
+  showEmptyState: false,
 
   /*
    * null: keep the complete intraday session visible.
@@ -801,10 +804,23 @@ class MarketChartController {
     removeMessages(this.element);
   }
 
+  /**
+   * Localized status message with {name} filled in (chart name, symbol,
+   * or the generic market name).
+   */
+  getMessage(state) {
+    return formatMarketChartMessage(this.strings.messages[state] ?? "", {
+      name:
+        this.configuration.name ||
+        this.configuration.symbol ||
+        this.strings.general.marketName,
+    });
+  }
+
   showMessage(state) {
     this.clearMessage();
 
-    const message = this.strings.messages[state] ?? "";
+    const message = this.getMessage(state);
 
     this.setState(state, message);
 
@@ -2441,7 +2457,13 @@ export function createMarketChart(target, configuration = {}) {
         asPlainObject(source.strings),
       );
 
-    renderCreationError(element, source.errorMessage || strings.messages.error);
+    renderCreationError(
+      element,
+      source.errorMessage ||
+        formatMarketChartMessage(strings.messages.error, {
+          name: source.name || source.symbol || strings.general.marketName,
+        }),
+    );
 
     console.error("Market Chart creation failed.", error);
 

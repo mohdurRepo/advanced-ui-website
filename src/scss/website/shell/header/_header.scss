@@ -114,14 +114,10 @@ html[data-accent="navy"] .site-header {
  * would stop the header from shrinking back to one row.
  */
 
+/* 64px on every screen size; two-line labels fit comfortably. */
+
 .site-header {
   --site-header-row: 4rem;
-}
-
-@include ds.respond-up(config.$nav-breakpoint) {
-  .site-header {
-    --site-header-row: 4.5rem;
-  }
 }
 
 .site-header__inner {

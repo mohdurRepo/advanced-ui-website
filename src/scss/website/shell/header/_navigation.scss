@@ -19,9 +19,8 @@
 }
 
 /*
- * Always one row. When space is short, items shrink and long labels wrap
- * inside their own item (up to two balanced lines) instead of the row
- * wrapping or overlapping the logo and actions.
+ * Always one row, never overlapping the logo or the actions. See the
+ * label rule below for how long labels behave when space runs out.
  */
 
 .site-nav__list {
@@ -44,11 +43,11 @@
  * the sticky header, so it spans the full header width.
  */
 
+/* Items may shrink, but never below their longest word. */
+
 .site-nav__item {
   display: flex;
   flex: 0 1 auto;
-
-  min-inline-size: 0;
 }
 
 /* ==========================================================================
@@ -74,8 +73,6 @@
   background: transparent;
   color: var(--site-header-color);
 
-  min-inline-size: 0;
-
   font-size: var(--text-sm);
   font-weight: ds.font-weight("medium");
   line-height: var(--line-height-tight);
@@ -85,18 +82,17 @@
 }
 
 /*
- * Labels wrap between words only (never inside a word, never truncated).
- * A long label such as "Data and Management Reports" becomes two balanced
- * lines; short labels stay on one line.
+ * One line whenever the bar has room. Only when space genuinely runs out
+ * do items shrink (long labels most, short ones barely), and a label then
+ * wraps between words inside its own item. Because an item shrinks only as
+ * much as needed, its box stays tight around the text, so the text stays
+ * centred and the chevron stays close. Never truncated, never split
+ * inside a word.
  */
 
 .site-nav__label {
-  min-inline-size: 0;
-  max-inline-size: 9rem;
-
   overflow-wrap: normal;
   word-break: normal;
-  text-wrap: balance;
 }
 
 .site-nav__trigger:focus-visible,
@@ -108,7 +104,11 @@
    Chevron
    ========================================================================== */
 
+/* Never shrinks, so it can not be pushed into the text. */
+
 .site-nav__chevron {
+  flex: 0 0 auto;
+
   @include ds.transition(transform, "fast");
 }
 
@@ -171,10 +171,6 @@
     padding-inline: var(--space-2);
 
     font-size: var(--text-xs);
-  }
-
-  .site-nav__label {
-    max-inline-size: 7.5rem;
   }
 
   .site-nav__trigger::after,

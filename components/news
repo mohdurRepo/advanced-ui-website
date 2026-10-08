@@ -1,28 +1,30 @@
 /* ==========================================================================
-   Market Performance — Production Integration (market index + company)
+   Market Performance — Production Integration
    ==========================================================================
 
    One Performance chart (intraday + historical ranges, live 1D) built on the
-   shared SEMarketCharts component. Works for the market index (TASI,
-   sectors) and for company pages (e.g. 2222, 4444).
+   shared SEMarketCharts component. One script serves both page types:
 
-   Owned here:
+     Market index / sector    data-chart-symbol="TASI"
+     Company                  data-chart-company-symbol="4444"
 
+   Owned here
    - backend endpoints, authentication and payload parsing
    - named range records (1D + historical windows, candles, downsampling)
    - the live endpoint adapter (fetchUpdates)
-   - export menu, compare hook and live-status UI
+   - export menu, compare hook and live-status badge
 
-   Owned by the component: rendering, live polling, hidden-tab pausing,
-   back/forward-cache resume, retries, trading-day rollover, i18n defaults.
+   Owned by the component
+   - rendering, ranges, modes, navigator, tooltips
+   - all user-facing text (market-chart-i18n.js)
+   - live polling, hidden-tab / offline / back-forward-cache handling,
+     retries, timeouts and trading-day rollover
 
-   HTML (on the [data-performance-chart] root)
+   HTML attributes (on the [data-performance-chart] root)
 
-     Market index                Company
-     data-chart-symbol="TASI"    data-chart-company-symbol="4444"
-                                 data-chart-company-name="…"
-
-     Optional:
+     data-chart-symbol           market index / sector symbol
+     data-chart-company-symbol   company symbol (enables company mode)
+     data-chart-company-name     chart name (else .chart-toolbar__title)
      data-chart-parameter        API chart-parameter, sent exactly as given
      data-chart-intraday         intraday chart type
      data-chart-historical       historical chart type
@@ -30,13 +32,13 @@
      data-chart-token            JWT, or a URL that returns { jwtToken }
      data-chart-decimals         value decimals (index 0, company 2)
      data-chart-currency         tooltip currency label
-     data-chart-default-range    initial range (default: 1D, or 1W if 1D empty)
+     data-chart-default-range    initial range (default 1D, else first with data)
      data-chart-x-label          x-axis title, historical ranges
      data-chart-t-label          x-axis title, 1D
      data-chart-y-label          y-axis title
      data-chart-empty-label      "no data" message
 
-   Configuration (optional, overrides HTML)
+   Optional script configuration (overrides HTML)
 
      window.marketPerformanceConfig = {
        symbol, parameter, pageName,
@@ -58,6 +60,8 @@
   /* ========================================================================
      Constants
      ======================================================================== */
+
+  const API_PATH = "/tadawul.eportal.charts.v2/ChartGenerator";
 
   const TIME_ZONE = "Asia/Riyadh";
 
@@ -81,7 +85,10 @@
   const MAX_LIVE_POINTS = 900;
   const MAX_HISTORICAL_POINTS = 1_000;
 
-  const API_PATH = "/tadawul.eportal.charts.v2/ChartGenerator";
+  /*
+   * 1W shows the last N trading days rather than a calendar week.
+   */
+  const ONE_WEEK_TRADING_DAYS = 5;
 
   const CHART_TYPES = Object.freeze({
     market: Object.freeze({
@@ -94,14 +101,6 @@
     }),
   });
 
-  const DEBUG = new URLSearchParams(window.location.search).has("chart-debug");
-
-  /*
-   * Server-rendered value when this script is inline in a JSP page.
-   * Unrendered expressions (bundled file) are ignored.
-   */
-  const INLINE_SYMBOL = "${requestScope.chart_tasi_current_sector}";
-
   const RANGE_WINDOWS = Object.freeze({
     "1W": 7 * DAY,
     "1M": 30 * DAY,
@@ -111,11 +110,6 @@
     "5Y": 5 * 365 * DAY,
     ALL: null,
   });
-
-  /*
-   * 1W shows the last N trading days rather than a calendar week.
-   */
-  const ONE_WEEK_TRADING_DAYS = 5;
 
   const CANDLE_BUCKETS = Object.freeze({
     "1D": LIVE_CANDLE_BUCKET,
@@ -129,29 +123,28 @@
   });
 
   /*
-   * Live polling state -> toolbar status.
+   * Live polling state -> badge: i18n key (strings.live) + open/closed dot.
+   * The text itself comes from market-chart-i18n.js.
    */
-  const LIVE_STATUS = Object.freeze({
-    LIVE: { open: true, en: "Live", ar: "مباشر" },
-    PAUSED: { open: false, en: "Paused", ar: "متوقف مؤقتاً" },
-    OFFLINE: { open: false, en: "Offline", ar: "غير متصل" },
-    RECONNECTING: { open: false, en: "Reconnecting", ar: "إعادة الاتصال" },
-    CLOSED: { open: false, en: "Closed", ar: "مغلق" },
+  const LIVE_BADGE = Object.freeze({
+    starting: Object.freeze({ key: "live", open: true }),
+    waiting: Object.freeze({ key: "live", open: true }),
+    updating: Object.freeze({ key: "live", open: true }),
+    live: Object.freeze({ key: "live", open: true }),
+    paused: Object.freeze({ key: "paused", open: false }),
+    hidden: Object.freeze({ key: "paused", open: false }),
+    offline: Object.freeze({ key: "offline", open: false }),
+    error: Object.freeze({ key: "reconnecting", open: false }),
+    stopped: Object.freeze({ key: "closed", open: false }),
+    idle: Object.freeze({ key: "closed", open: false }),
+    destroyed: Object.freeze({ key: "closed", open: false }),
   });
 
-  const LIVE_STATUS_BY_STATE = Object.freeze({
-    starting: LIVE_STATUS.LIVE,
-    waiting: LIVE_STATUS.LIVE,
-    updating: LIVE_STATUS.LIVE,
-    live: LIVE_STATUS.LIVE,
-    paused: LIVE_STATUS.PAUSED,
-    hidden: LIVE_STATUS.PAUSED,
-    offline: LIVE_STATUS.OFFLINE,
-    error: LIVE_STATUS.RECONNECTING,
-    stopped: LIVE_STATUS.CLOSED,
-    idle: LIVE_STATUS.CLOSED,
-    destroyed: LIVE_STATUS.CLOSED,
-  });
+  /*
+   * Server-rendered fallback when this script is inline in a JSP page.
+   * Unrendered expressions (bundled file) are ignored.
+   */
+  const INLINE_SYMBOL = "${requestScope.chart_tasi_current_sector}";
 
   /* ========================================================================
      Runtime
@@ -182,14 +175,8 @@
   let destroyed = false;
 
   /* ========================================================================
-     Helpers
+     General Helpers
      ======================================================================== */
-
-  function debug(...args) {
-    if (DEBUG) {
-      console.info("[Market Performance]", ...args);
-    }
-  }
 
   function isPlainObject(value) {
     return Boolean(value && typeof value === "object" && !Array.isArray(value));
@@ -310,15 +297,7 @@
    * 12:00 so a trading date never shifts to a neighbouring day in any
    * visitor time zone.
    */
-  function riyadhWallTime(
-    year,
-    month,
-    day,
-    hour,
-    minute,
-    second,
-    fraction = "",
-  ) {
+  function riyadhWallTime(year, month, day, hour, minute, second, fraction) {
     const dateOnly = hour === undefined;
 
     const timestamp =
@@ -329,7 +308,7 @@
         dateOnly ? 12 : Number(hour),
         dateOnly ? 0 : Number(minute ?? 0),
         dateOnly ? 0 : Number(second ?? 0),
-        Number(String(fraction).padEnd(3, "0")),
+        Number(String(fraction ?? "").padEnd(3, "0")),
       ) - RIYADH_OFFSET_MS;
 
     return Number.isFinite(timestamp) ? timestamp : null;
@@ -409,16 +388,36 @@
   }
 
   /**
+   * Reads a JSON body defensively: tolerates a BOM, a non-JSON content type
+   * and double-encoded JSON (an array delivered as a JSON string).
+   */
+  async function readJSON(response) {
+    const text = (await response.text()).replace(/^\uFEFF/, "").trim();
+
+    let value = text ? JSON.parse(text) : null;
+
+    if (typeof value === "string") {
+      try {
+        value = JSON.parse(value);
+      } catch {
+        /* A plain string body stays as-is. */
+      }
+    }
+
+    return value;
+  }
+
+  /**
    * Backend items -> { trend, candlestick } sorted by timestamp.
    *
    * - The trend (area / line) needs only a date and one positive price:
    *   closePrice, then indexPrice, … (0.0 means "not provided").
    * - Candles use real OHLC only when it is complete and consistent;
-   *   otherwise they are derived from the trend later. A bad OHLC never
-   *   removes a trend point.
+   *   otherwise they are derived from the trend. A bad OHLC never removes a
+   *   trend point.
    * - Duplicate timestamps: the latest occurrence wins.
    */
-  function parseSeries(payload) {
+  function parseSeries(payload, chartType) {
     const items = unwrapItems(payload);
 
     const trend = new Map();
@@ -476,8 +475,8 @@
      */
     if (items.length && !trend.size) {
       console.warn(
-        `Market chart: ${items.length} item(s) received but none could be read. ` +
-          "Check the date / price fields.",
+        `Market chart (${chartType}): ${items.length} item(s) received but ` +
+          "none could be read. Check the date / price fields.",
         items[0],
       );
     }
@@ -657,11 +656,9 @@
       ONE_WEEK_TRADING_DAYS,
     );
 
-    if (!dateKeys.size) {
-      return null;
-    }
-
-    const trend = filterByDateKeys(historical.trend, dateKeys);
+    const trend = dateKeys.size
+      ? filterByDateKeys(historical.trend, dateKeys)
+      : [];
 
     if (!trend.length) {
       return null;
@@ -706,23 +703,12 @@
     const end = historical.trend.at(-1)[0];
 
     for (const [range, duration] of Object.entries(RANGE_WINDOWS)) {
+      const minimum =
+        duration === null ? start : Math.max(start, end - duration);
+
       const record =
-        range === "1W"
-          ? (createOneWeekRecord(historical) ??
-            createRangeRecord(
-              range,
-              historical,
-              Math.max(start, end - duration),
-              end,
-              null,
-            ))
-          : createRangeRecord(
-              range,
-              historical,
-              duration === null ? start : Math.max(start, end - duration),
-              end,
-              null,
-            );
+        (range === "1W" ? createOneWeekRecord(historical) : null) ??
+        createRangeRecord(range, historical, minimum, end, null);
 
       if (record.trend.length) {
         ranges[range] = record;
@@ -804,7 +790,7 @@
    * API chart-parameter:
    * - an explicit parameter is sent exactly as configured
    * - company symbols are sent as-is (legacy contract)
-   * - market symbols are lower-cased (current market endpoint contract)
+   * - market symbols are lower-cased (market endpoint contract)
    */
   function getChartParameter() {
     const { parameter, symbol, isCompany } = serverConfiguration;
@@ -814,6 +800,19 @@
     }
 
     return isCompany ? symbol : String(symbol).toLowerCase();
+  }
+
+  /**
+   * Chart name: company name, toolbar title, or the symbol. The component
+   * falls back to its localized generic name when this is empty.
+   */
+  function getChartName() {
+    return (
+      renderedValue(dom.root?.dataset.chartCompanyName) ||
+      dom.title?.textContent?.trim() ||
+      serverConfiguration?.symbol ||
+      ""
+    );
   }
 
   /* ========================================================================
@@ -873,7 +872,7 @@
   }
 
   /**
-   * Refreshes the token once for all concurrent callers: configured
+   * Refreshes the token once for all concurrent callers: the configured
    * refreshToken(), otherwise the token URL.
    */
   async function refreshAuthToken() {
@@ -909,7 +908,7 @@
   }
 
   /* ========================================================================
-     Backend Request
+     Backend Requests
      ======================================================================== */
 
   function buildMarketUrl(chartType) {
@@ -938,10 +937,8 @@
   /**
    * Fetches and parses one series.
    *
-   * @param {string} chartType
-   * @param {{ signal?: AbortSignal, timeout?: number }} [options]
-   *   `timeout` is for the initial load only; live requests are timed out by
-   *   the Market Chart live controller.
+   * `timeout` applies to the initial load only; live requests are timed out
+   * by the Market Chart live controller.
    */
   async function requestSeries(chartType, { signal = null, timeout = 0 } = {}) {
     if (signal?.aborted) {
@@ -982,7 +979,7 @@
         throw error;
       }
 
-      return parseSeries(await response.json());
+      return parseSeries(await readJSON(response), chartType);
     } catch (error) {
       if (timedOut) {
         const timeoutError = new Error(
@@ -1024,10 +1021,6 @@
     }
   }
 
-  /* ========================================================================
-     Data Loading
-     ======================================================================== */
-
   async function loadInitialRanges() {
     const options = { signal: pageSignal, timeout: REQUEST_TIMEOUT };
 
@@ -1057,13 +1050,12 @@
       return empty;
     });
 
-    debug("Parsed series.", {
-      intraday: intraday.trend.length,
-      historical: historical.trend.length,
-    });
-
     return createRanges(intraday, historical);
   }
+
+  /* ========================================================================
+     Live
+     ======================================================================== */
 
   /**
    * Live endpoint adapter.
@@ -1104,49 +1096,50 @@
     return points.length ? { points } : null;
   }
 
-  /* ========================================================================
-     Chart Configuration
-     ======================================================================== */
+  /**
+   * A rejected token cannot be fixed by retrying: stop polling, try one
+   * token refresh, and resume with a full snapshot if it succeeds.
+   */
+  async function handleAuthFailure() {
+    const current = controller;
 
-  function getLanguage() {
-    return document.documentElement.lang || "en";
-  }
+    if (!current) {
+      return;
+    }
 
-  function isArabic() {
-    return getLanguage().toLowerCase().startsWith("ar");
-  }
+    current.stopLive();
 
-  function getChartName() {
-    return (
-      renderedValue(dom.root?.dataset.chartCompanyName) ||
-      dom.title?.textContent?.trim() ||
-      (isArabic() ? "أداء السوق الرئيسية" : "Main Market Performance")
+    if ((await refreshAuthToken()) && controller === current && !destroyed) {
+      current.startLive();
+      current.requestSnapshot("token-refresh");
+
+      return;
+    }
+
+    console.error(
+      "Market Performance live updates stopped: the request was not authorized.",
     );
   }
 
-  /*
-   * Page-specific messages. Axis titles, date formats, tooltip labels and
-   * Highcharts strings default to the component's i18n.
+  /**
+   * Badge text comes from the component's localized strings (strings.live).
    */
-  function getMessages() {
-    const name = getChartName();
+  function updateLiveStatus(state, chartController = controller) {
+    const badge = LIVE_BADGE[state] ?? LIVE_BADGE.idle;
 
-    const messages = isArabic()
-      ? {
-          loading: `جارٍ تحميل بيانات ${name}…`,
-          empty: `بيانات ${name} غير متاحة حالياً.`,
-          error: `تعذر تحميل بيانات ${name}.`,
-        }
-      : {
-          loading: `Loading ${name} data…`,
-          empty: `${name} data is currently unavailable.`,
-          error: `${name} data could not be loaded.`,
-        };
+    const text = chartController?.strings?.live?.[badge.key];
 
-    const emptyLabel = renderedValue(dom.root.dataset.chartEmptyLabel);
+    if (dom.liveStatusText && text) {
+      dom.liveStatusText.textContent = text;
+    }
 
-    return emptyLabel ? { ...messages, empty: emptyLabel } : messages;
+    dom.liveStatusIcon?.classList.toggle("market-status--open", badge.open);
+    dom.liveStatusIcon?.classList.toggle("market-status--closed", !badge.open);
   }
+
+  /* ========================================================================
+     Chart Configuration
+     ======================================================================== */
 
   /**
    * Axis titles from HTML; absent attributes keep the component defaults
@@ -1171,8 +1164,18 @@
   }
 
   /**
+   * Optional HTML override for the "no data" message; every other message
+   * comes from the component's i18n.
+   */
+  function getStringOverrides() {
+    const emptyLabel = renderedValue(dom.root.dataset.chartEmptyLabel);
+
+    return emptyLabel ? { messages: { empty: emptyLabel } } : {};
+  }
+
+  /**
    * data-chart-default-range when it has data, else 1D when it has data,
-   * else the first historical range with data (legacy opened on 1W).
+   * else the first historical range with data.
    */
   function resolveInitialRange(ranges) {
     const hasData = (range) => (ranges[range]?.trend.length ?? 0) > 0;
@@ -1205,7 +1208,6 @@
       mode: "trend",
       showEmptyState: true,
 
-      language: getLanguage(),
       timeZone: TIME_ZONE,
       decimals,
 
@@ -1228,6 +1230,8 @@
       },
 
       ...getAxisTitles(),
+
+      strings: getStringOverrides(),
 
       /*
        * Straight labels for 1D / 1W, rotated dates for longer ranges; edge
@@ -1279,7 +1283,7 @@
         alignToInterval: true,
 
         /*
-         * The initial snapshot was fetched before chart creation.
+         * The initial snapshots were fetched before chart creation.
          */
         immediate: false,
 
@@ -1306,63 +1310,7 @@
           });
         },
       },
-
-      strings: { messages: getMessages() },
-
-      accessibilityDescription: isArabic()
-        ? `الأداء التاريخي واللحظي لـ ${getChartName()}.`
-        : `${getChartName()} historical and live market performance.`,
     };
-  }
-
-  /**
-   * A rejected token cannot be fixed by retrying: stop polling, try one
-   * token refresh, and resume with a full snapshot if it succeeds.
-   */
-  async function handleAuthFailure() {
-    const current = controller;
-
-    if (!current) {
-      return;
-    }
-
-    current.stopLive();
-
-    if ((await refreshAuthToken()) && controller === current && !destroyed) {
-      debug("Token refreshed; resuming live updates.");
-
-      current.startLive();
-      current.requestSnapshot("token-refresh");
-
-      return;
-    }
-
-    console.error(
-      "Market Performance live updates stopped: the request was not authorized.",
-    );
-  }
-
-  /* ========================================================================
-     Live Status UI
-     ======================================================================== */
-
-  function updateLiveStatus(state) {
-    const status = LIVE_STATUS_BY_STATE[state] ?? LIVE_STATUS.CLOSED;
-
-    if (dom.liveStatusText) {
-      dom.liveStatusText.textContent = isArabic() ? status.ar : status.en;
-    }
-
-    dom.liveStatusIcon?.classList.toggle("market-status--open", status.open);
-    dom.liveStatusIcon?.classList.toggle("market-status--closed", !status.open);
-  }
-
-  function bindLiveStatus() {
-    dom.chart.addEventListener(
-      "marketchartlivestatechange",
-      (event) => updateLiveStatus(event.detail?.state),
-      { signal: pageSignal },
-    );
   }
 
   /* ========================================================================
@@ -1450,6 +1398,9 @@
     actions[action]?.();
   }
 
+  /*
+   * Menu keyboard support: arrows cycle, Home / End jump, Escape closes.
+   */
   function handleExportMenuKeydown(event) {
     const items = getExportItems();
 
@@ -1561,7 +1512,7 @@
   }
 
   /* ========================================================================
-     Compare Hook
+     Compare / Live Status
      ======================================================================== */
 
   /*
@@ -1588,8 +1539,17 @@
     );
   }
 
+  function bindLiveStatus() {
+    dom.chart.addEventListener(
+      "marketchartlivestatechange",
+      (event) =>
+        updateLiveStatus(event.detail?.state, event.detail?.controller),
+      { signal: pageSignal },
+    );
+  }
+
   /* ========================================================================
-     Bootstrap
+     Lifecycle
      ======================================================================== */
 
   function resolveDOM() {
@@ -1740,16 +1700,6 @@
       );
 
       await createPerformanceChart(api);
-
-      debug("Ready.", {
-        symbol: serverConfiguration.symbol,
-        company: serverConfiguration.isCompany,
-        parameter: getChartParameter(),
-        intraday: serverConfiguration.intradayChartType,
-        historical: serverConfiguration.historicalChartType,
-        decimals: serverConfiguration.decimals,
-        token: authToken ? (tokenUrl ? "from URL" : "present") : "missing",
-      });
     } catch (error) {
       if (isAbortError(error)) {
         return;
@@ -1765,9 +1715,10 @@
     }
   }
 
-  /*
-   * Debug / integration handle.
-   */
+  /* ========================================================================
+     Public Handle
+     ======================================================================== */
+
   window.mainMarketPerformance = Object.freeze({
     getController: () => controller,
     getConfiguration: () => serverConfiguration,

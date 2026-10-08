@@ -12,12 +12,14 @@ import {
 
    Rules:
 
-   1. No other module hard-codes user-facing text.
+   1. No other module or page script hard-codes user-facing text.
    2. Unsupported languages fall back to English.
    3. Consumer overrides can only replace existing keys with a value of the
       same type (string -> string, function -> function). Unknown keys and
       mismatched types are ignored, so a bad override can never break a
       formatter.
+   4. Messages may contain placeholders such as {name}; they are filled by
+      formatMarketChartMessage().
 
    Usage:
 
@@ -25,8 +27,8 @@ import {
        messages: { empty: "لا توجد بيانات اليوم." },
      });
 
-     strings.tooltip.close;              // "الإغلاق"
-     strings.accessibility.description("TASI");
+     formatMarketChartMessage(strings.messages.empty, { name: "تاسي" });
+     strings.live.live;                  // "مباشر"
    ========================================================================== */
 
 /* ==========================================================================
@@ -34,10 +36,28 @@ import {
    ========================================================================== */
 
 const EN = Object.freeze({
+  general: Object.freeze({
+    /*
+     * Fallback for {name} when a chart has no name.
+     */
+    marketName: "Market",
+  }),
+
   messages: Object.freeze({
-    loading: "Loading market data…",
-    empty: "Market data is currently unavailable.",
-    error: "Market data could not be loaded.",
+    loading: "Loading {name} data…",
+    empty: "{name} data is currently unavailable.",
+    error: "{name} data could not be loaded.",
+  }),
+
+  /*
+   * Live-status badge.
+   */
+  live: Object.freeze({
+    live: "Live",
+    paused: "Paused",
+    offline: "Offline",
+    reconnecting: "Reconnecting",
+    closed: "Closed",
   }),
 
   axis: Object.freeze({
@@ -67,16 +87,28 @@ const EN = Object.freeze({
   accessibility: Object.freeze({
     description: (name) =>
       name
-        ? `${name} market performance over time.`
-        : "Market performance over time.",
+        ? `${name} historical and live market performance.`
+        : "Historical and live market performance.",
   }),
 });
 
 const AR = Object.freeze({
+  general: Object.freeze({
+    marketName: "السوق",
+  }),
+
   messages: Object.freeze({
-    loading: "جارٍ تحميل بيانات السوق…",
-    empty: "بيانات السوق غير متاحة حاليًا.",
-    error: "تعذّر تحميل بيانات السوق.",
+    loading: "جارٍ تحميل بيانات {name}…",
+    empty: "بيانات {name} غير متاحة حالياً.",
+    error: "تعذّر تحميل بيانات {name}.",
+  }),
+
+  live: Object.freeze({
+    live: "مباشر",
+    paused: "متوقف مؤقتاً",
+    offline: "غير متصل",
+    reconnecting: "إعادة الاتصال",
+    closed: "مغلق",
   }),
 
   axis: Object.freeze({
@@ -102,7 +134,9 @@ const AR = Object.freeze({
 
   accessibility: Object.freeze({
     description: (name) =>
-      name ? `أداء ${name} في السوق عبر الزمن.` : "أداء السوق عبر الزمن.",
+      name
+        ? `الأداء التاريخي واللحظي لـ ${name}.`
+        : "الأداء التاريخي واللحظي للسوق.",
   }),
 });
 
@@ -209,4 +243,20 @@ export function getMarketChartStrings(language, overrides = null) {
   }
 
   return Object.freeze(strings);
+}
+
+/**
+ * Fills {placeholders} in a message: "{name} data…" -> "TASI data…".
+ * Unknown placeholders are left untouched.
+ *
+ * @param {string} template
+ * @param {Record<string, string>} [values]
+ * @returns {string}
+ */
+export function formatMarketChartMessage(template, values = {}) {
+  return String(template ?? "").replace(/\{(\w+)\}/g, (match, key) =>
+    values[key] !== undefined && values[key] !== null && values[key] !== ""
+      ? String(values[key])
+      : match,
+  );
 }
