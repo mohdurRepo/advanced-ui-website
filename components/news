@@ -2,22 +2,19 @@
    Market Performance — Production Integration (market index + company)
    ==========================================================================
 
-   BUILD: 2026-10-08-diag
-
    One Performance chart (intraday + historical ranges, live 1D) built on the
    shared SEMarketCharts component. Works for the market index (TASI,
    sectors) and for company pages (e.g. 2222, 4444).
 
-   DIAGNOSTICS
+   Owned here:
 
-   This build logs every step to the console with the prefix [MMP]:
-   DOM, configuration, token, each request (URL, status, item count, first
-   item), parsing results, range summary, chart state and live updates.
-   Set DIAGNOSTICS = false (below) once the issue is resolved.
+   - backend endpoints, authentication and payload parsing
+   - named range records (1D + historical windows, candles, downsampling)
+   - the live endpoint adapter (fetchUpdates)
+   - export menu, compare hook and live-status UI
 
-   Console helper:
-
-     mainMarketPerformance.diagnose()
+   Owned by the component: rendering, live polling, hidden-tab pausing,
+   back/forward-cache resume, retries, trading-day rollover, i18n defaults.
 
    HTML (on the [data-performance-chart] root)
 
@@ -38,63 +35,25 @@
      data-chart-t-label          x-axis title, 1D
      data-chart-y-label          y-axis title
      data-chart-empty-label      "no data" message
+
+   Configuration (optional, overrides HTML)
+
+     window.marketPerformanceConfig = {
+       symbol, parameter, pageName,
+       intradayChartType, historicalChartType,
+       jwtToken: "…",
+       refreshToken: async () => "…",  // called once on HTTP 401/403
+     };
    ========================================================================== */
 
 (() => {
   "use strict";
 
-  const BUILD = "2026-10-08-diag";
-
-  /*
-   * Verbose console diagnostics. Set to false after verification.
-   */
-  const DIAGNOSTICS = true;
-
   if (window.__mainMarketPerformanceInitialized) {
-    console.warn(
-      `[MMP] Script loaded twice — second copy ignored (build ${BUILD}). ` +
-        "Check the page for duplicate <script> tags.",
-    );
-
     return;
   }
 
   window.__mainMarketPerformanceInitialized = true;
-
-  /* ========================================================================
-     Diagnostics
-     ======================================================================== */
-
-  const diagnostics = {
-    build: BUILD,
-    steps: [],
-    requests: [],
-    errors: [],
-  };
-
-  function log(step, ...details) {
-    diagnostics.steps.push({ at: new Date().toISOString(), step, details });
-
-    if (DIAGNOSTICS) {
-      console.info(`[MMP] ${step}`, ...details);
-    }
-  }
-
-  function logError(step, error) {
-    diagnostics.errors.push({
-      at: new Date().toISOString(),
-      step,
-      message: error?.message ?? String(error),
-    });
-
-    console.error(`[MMP] ${step}`, error);
-  }
-
-  function maskToken(url) {
-    return String(url).replace(/(jwtToken=)[^&]+/i, "$1***");
-  }
-
-  log(`Script loaded (build ${BUILD}).`);
 
   /* ========================================================================
      Constants
@@ -122,7 +81,7 @@
   const MAX_LIVE_POINTS = 900;
   const MAX_HISTORICAL_POINTS = 1_000;
 
-  const API_PATH = "/api";
+  const API_PATH = "/tadawul.eportal.charts.v2/ChartGenerator";
 
   const CHART_TYPES = Object.freeze({
     market: Object.freeze({
@@ -134,6 +93,8 @@
       historical: "SQL_CI_CV_COM",
     }),
   });
+
+  const DEBUG = new URLSearchParams(window.location.search).has("chart-debug");
 
   /*
    * Server-rendered value when this script is inline in a JSP page.
@@ -167,6 +128,9 @@
     ALL: 365 * DAY,
   });
 
+  /*
+   * Live polling state -> toolbar status.
+   */
   const LIVE_STATUS = Object.freeze({
     LIVE: { open: true, en: "Live", ar: "مباشر" },
     PAUSED: { open: false, en: "Paused", ar: "متوقف مؤقتاً" },
@@ -220,6 +184,12 @@
   /* ========================================================================
      Helpers
      ======================================================================== */
+
+  function debug(...args) {
+    if (DEBUG) {
+      console.info("[Market Performance]", ...args);
+    }
+  }
 
   function isPlainObject(value) {
     return Boolean(value && typeof value === "object" && !Array.isArray(value));
@@ -337,7 +307,8 @@
 
   /**
    * Riyadh wall-clock fields -> epoch ms. Date-only values are anchored at
-   * 12:00 so a trading date never shifts to a neighbouring day.
+   * 12:00 so a trading date never shifts to a neighbouring day in any
+   * visitor time zone.
    */
   function riyadhWallTime(
     year,
@@ -358,7 +329,7 @@
         dateOnly ? 12 : Number(hour),
         dateOnly ? 0 : Number(minute ?? 0),
         dateOnly ? 0 : Number(second ?? 0),
-        Number(String(fraction ?? "").padEnd(3, "0")),
+        Number(String(fraction).padEnd(3, "0")),
       ) - RIYADH_OFFSET_MS;
 
     return Number.isFinite(timestamp) ? timestamp : null;
@@ -368,7 +339,7 @@
    * Backend timestamps without an offset are Riyadh wall-clock time.
    *
    * Supported: epoch seconds / ms, ISO with offset,
-   * "YYYY-MM-DD[ HH:mm[:ss[.SSS]]]", "DD/MM/YYYY[ HH:mm[:ss]]",
+   * "YYYY-MM-DD[ HH:mm[:ss[.SSS]]]", "DD/MM/YYYY[ HH:mm[:ss]]" and
    * "DD-MM-YYYY[ HH:mm[:ss]]".
    */
   function toTimestamp(value) {
@@ -443,23 +414,18 @@
    * - The trend (area / line) needs only a date and one positive price:
    *   closePrice, then indexPrice, … (0.0 means "not provided").
    * - Candles use real OHLC only when it is complete and consistent;
-   *   otherwise they are derived from the trend. A bad OHLC never removes a
-   *   trend point.
+   *   otherwise they are derived from the trend later. A bad OHLC never
+   *   removes a trend point.
    * - Duplicate timestamps: the latest occurrence wins.
    */
-  function parseSeries(payload, label = "series") {
+  function parseSeries(payload) {
     const items = unwrapItems(payload);
 
     const trend = new Map();
     const candles = new Map();
 
-    let badDate = 0;
-    let badPrice = 0;
-
     for (const item of items) {
       if (!isPlainObject(item)) {
-        badDate += 1;
-
         continue;
       }
 
@@ -483,15 +449,7 @@
         item.price,
       );
 
-      if (timestamp === null) {
-        badDate += 1;
-
-        continue;
-      }
-
-      if (close === null) {
-        badPrice += 1;
-
+      if (timestamp === null || close === null) {
         continue;
       }
 
@@ -512,40 +470,24 @@
       }
     }
 
-    const byTime = (first, second) => first[0] - second[0];
-
-    const result = {
-      trend: [...trend.values()].sort(byTime),
-      candlestick: [...candles.values()].sort(byTime),
-    };
-
-    log(`Parsed ${label}.`, {
-      payloadType: Array.isArray(payload) ? "array" : typeof payload,
-      items: items.length,
-      trendPoints: result.trend.length,
-      realCandles: result.candlestick.length,
-      droppedBadDate: badDate,
-      droppedBadPrice: badPrice,
-      firstTrendPoint: result.trend[0]
-        ? [new Date(result.trend[0][0]).toISOString(), result.trend[0][1]]
-        : null,
-      lastTrendPoint: result.trend.at(-1)
-        ? [
-            new Date(result.trend.at(-1)[0]).toISOString(),
-            result.trend.at(-1)[1],
-          ]
-        : null,
-    });
-
+    /*
+     * Items that arrived but could not be read are a format problem, not
+     * "no data": never let that pass silently.
+     */
     if (items.length && !trend.size) {
       console.warn(
-        `[MMP] ${label}: ${items.length} item(s) received but none could be read. ` +
+        `Market chart: ${items.length} item(s) received but none could be read. ` +
           "Check the date / price fields.",
         items[0],
       );
     }
 
-    return result;
+    const byTime = (first, second) => first[0] - second[0];
+
+    return {
+      trend: [...trend.values()].sort(byTime),
+      candlestick: [...candles.values()].sort(byTime),
+    };
   }
 
   /* ========================================================================
@@ -689,7 +631,8 @@
 
   /**
    * The 1D baseline is the last historical close BEFORE the intraday
-   * session date.
+   * session date. After the close, historical endpoints often already
+   * contain today's bar; using it would compare today with itself.
    */
   function resolvePreviousClose(intraday, historical) {
     const sessionDate = riyadhDateKey(intraday.trend[0]?.[0] ?? Date.now());
@@ -714,9 +657,11 @@
       ONE_WEEK_TRADING_DAYS,
     );
 
-    const trend = dateKeys.size
-      ? filterByDateKeys(historical.trend, dateKeys)
-      : [];
+    if (!dateKeys.size) {
+      return null;
+    }
+
+    const trend = filterByDateKeys(historical.trend, dateKeys);
 
     if (!trend.length) {
       return null;
@@ -740,8 +685,8 @@
     const previousClose = resolvePreviousClose(intraday, historical);
 
     /*
-     * 1D always exists. An empty session keeps 1D selectable and is filled
-     * by a live snapshot.
+     * 1D always exists. An empty session (pre-open, failed request) keeps
+     * 1D selectable and is filled by a live snapshot.
      */
     ranges["1D"] = intraday.trend.length
       ? createRangeRecord(
@@ -753,37 +698,36 @@
         )
       : { comparisonValue: previousClose, trend: [], candlestick: [] };
 
-    if (historical.trend.length) {
-      const start = historical.trend[0][0];
-      const end = historical.trend.at(-1)[0];
-
-      for (const [range, duration] of Object.entries(RANGE_WINDOWS)) {
-        const minimum =
-          duration === null ? start : Math.max(start, end - duration);
-
-        const record =
-          (range === "1W" ? createOneWeekRecord(historical) : null) ??
-          createRangeRecord(range, historical, minimum, end, null);
-
-        if (record.trend.length) {
-          ranges[range] = record;
-        }
-      }
+    if (!historical.trend.length) {
+      return ranges;
     }
 
-    log(
-      "Ranges built.",
-      Object.fromEntries(
-        Object.entries(ranges).map(([range, record]) => [
-          range,
-          {
-            trend: record.trend.length,
-            candles: record.candlestick.length,
-            comparisonValue: record.comparisonValue,
-          },
-        ]),
-      ),
-    );
+    const start = historical.trend[0][0];
+    const end = historical.trend.at(-1)[0];
+
+    for (const [range, duration] of Object.entries(RANGE_WINDOWS)) {
+      const record =
+        range === "1W"
+          ? (createOneWeekRecord(historical) ??
+            createRangeRecord(
+              range,
+              historical,
+              Math.max(start, end - duration),
+              end,
+              null,
+            ))
+          : createRangeRecord(
+              range,
+              historical,
+              duration === null ? start : Math.max(start, end - duration),
+              end,
+              null,
+            );
+
+      if (record.trend.length) {
+        ranges[range] = record;
+      }
+    }
 
     return ranges;
   }
@@ -792,6 +736,11 @@
      Configuration
      ======================================================================== */
 
+  /**
+   * Market index pages (data-chart-symbol) and company pages
+   * (data-chart-company-symbol or a numeric symbol such as 4444) use
+   * different endpoints, parameter casing and decimals.
+   */
   function resolveServerConfiguration() {
     const external = isPlainObject(window.marketPerformanceConfig)
       ? window.marketPerformanceConfig
@@ -841,6 +790,9 @@
 
       currency: dataset.chartCurrency?.trim() ?? "",
 
+      /*
+       * Index: whole numbers. Company: prices with 2 decimals.
+       */
       decimals: toFiniteNumber(dataset.chartDecimals) ?? (isCompany ? 2 : 0),
 
       initialRange:
@@ -877,17 +829,16 @@
   async function fetchTokenFromUrl(url) {
     const separator = url.includes("?") ? "&" : "?";
 
-    const requestUrl = `${url}${separator}${new URLSearchParams({
-      pageName: serverConfiguration.pageName,
-    })}`;
-
-    log("Requesting token.", requestUrl);
-
-    const response = await fetch(requestUrl, {
-      credentials: "same-origin",
-      headers: { Accept: "application/json" },
-      signal: pageSignal,
-    });
+    const response = await fetch(
+      `${url}${separator}${new URLSearchParams({
+        pageName: serverConfiguration.pageName,
+      })}`,
+      {
+        credentials: "same-origin",
+        headers: { Accept: "application/json" },
+        signal: pageSignal,
+      },
+    );
 
     if (!response.ok) {
       throw new Error(`Token request failed with HTTP ${response.status}.`);
@@ -895,22 +846,13 @@
 
     const text = (await response.text()).trim();
 
-    let token;
-
     try {
       const parsed = JSON.parse(text);
 
-      token = renderedValue(isPlainObject(parsed) ? parsed.jwtToken : parsed);
+      return renderedValue(isPlainObject(parsed) ? parsed.jwtToken : parsed);
     } catch {
-      token = renderedValue(text);
+      return renderedValue(text);
     }
-
-    log("Token response.", {
-      status: response.status,
-      tokenFound: Boolean(token),
-    });
-
-    return token;
   }
 
   async function resolveInitialToken() {
@@ -920,10 +862,6 @@
         document.querySelector("[data-chart-token]")?.dataset.chartToken ||
         "",
     );
-
-    log("Token source.", {
-      kind: !source ? "missing" : looksLikeUrl(source) ? "url" : "jwt",
-    });
 
     if (source && looksLikeUrl(source)) {
       tokenUrl = source;
@@ -958,7 +896,7 @@
         return Boolean(token);
       } catch (error) {
         if (!isAbortError(error)) {
-          logError("Token refresh failed.", error);
+          console.error("Market Performance token refresh failed.", error);
         }
 
         return false;
@@ -998,40 +936,17 @@
   }
 
   /**
-   * Reads a JSON body robustly: tolerates a BOM, a non-JSON content type
-   * and double-encoded JSON ("[ … ]" delivered as a JSON string).
-   */
-  async function readJSON(response) {
-    const text = (await response.text()).replace(/^\uFEFF/, "").trim();
-
-    let value = text ? JSON.parse(text) : null;
-
-    if (typeof value === "string") {
-      try {
-        value = JSON.parse(value);
-      } catch {
-        /* A plain string body stays as-is. */
-      }
-    }
-
-    return value;
-  }
-
-  /**
    * Fetches and parses one series.
    *
-   * `timeout` is for the initial load only; live requests are timed out by
-   * the Market Chart live controller.
+   * @param {string} chartType
+   * @param {{ signal?: AbortSignal, timeout?: number }} [options]
+   *   `timeout` is for the initial load only; live requests are timed out by
+   *   the Market Chart live controller.
    */
-  async function requestSeries(
-    chartType,
-    { signal = null, timeout = 0, label = chartType } = {},
-  ) {
+  async function requestSeries(chartType, { signal = null, timeout = 0 } = {}) {
     if (signal?.aborted) {
       throw signal.reason ?? createAbortError();
     }
-
-    const url = buildMarketUrl(chartType);
 
     const requestController = new AbortController();
 
@@ -1049,23 +964,13 @@
           }, timeout)
         : null;
 
-    const entry = { label, url: maskToken(url), status: null, items: null };
-
-    diagnostics.requests.push(entry);
-
-    if (diagnostics.requests.length > 50) {
-      diagnostics.requests.shift();
-    }
-
     try {
-      const response = await fetch(url, {
+      const response = await fetch(buildMarketUrl(chartType), {
         method: "GET",
         credentials: "same-origin",
         signal: requestController.signal,
         headers: { Accept: "application/json" },
       });
-
-      entry.status = response.status;
 
       if (!response.ok) {
         const error = new Error(
@@ -1077,19 +982,7 @@
         throw error;
       }
 
-      const payload = await readJSON(response);
-
-      entry.items = unwrapItems(payload).length;
-
-      log(`Response ${label}.`, {
-        url: entry.url,
-        status: response.status,
-        contentType: response.headers.get("content-type"),
-        items: entry.items,
-        firstItem: unwrapItems(payload)[0] ?? payload,
-      });
-
-      return parseSeries(payload, label);
+      return parseSeries(await response.json());
     } catch (error) {
       if (timedOut) {
         const timeoutError = new Error(
@@ -1124,8 +1017,6 @@
       return await requestSeries(chartType, options);
     } catch (error) {
       if (isAuthError(error) && (await refreshAuthToken())) {
-        log("Retrying after token refresh.", chartType);
-
         return requestSeries(chartType, options);
       }
 
@@ -1138,17 +1029,11 @@
      ======================================================================== */
 
   async function loadInitialRanges() {
+    const options = { signal: pageSignal, timeout: REQUEST_TIMEOUT };
+
     const results = await Promise.allSettled([
-      requestSeriesWithAuth(serverConfiguration.intradayChartType, {
-        signal: pageSignal,
-        timeout: REQUEST_TIMEOUT,
-        label: "intraday",
-      }),
-      requestSeriesWithAuth(serverConfiguration.historicalChartType, {
-        signal: pageSignal,
-        timeout: REQUEST_TIMEOUT,
-        label: "historical",
-      }),
+      requestSeriesWithAuth(serverConfiguration.intradayChartType, options),
+      requestSeriesWithAuth(serverConfiguration.historicalChartType, options),
     ]);
 
     if (pageSignal.aborted) {
@@ -1163,13 +1048,18 @@
       }
 
       if (!isAbortError(result.reason)) {
-        logError(
-          `${index === 0 ? "Intraday" : "Historical"} request failed.`,
+        console.error(
+          `${index === 0 ? "Intraday" : "Historical"} Market Performance request failed.`,
           result.reason,
         );
       }
 
       return empty;
+    });
+
+    debug("Parsed series.", {
+      intraday: intraday.trend.length,
+      historical: historical.trend.length,
     });
 
     return createRanges(intraday, historical);
@@ -1179,17 +1069,21 @@
    * Live endpoint adapter.
    *
    * - fullSnapshot: the complete session (authoritative, even when empty).
-   * - incremental: points at/after `since` (inclusive).
+   *   No previousClose is sent: the component keeps the stored baseline, or
+   *   uses the previous session's last close after a trading-day rollover.
+   * - incremental: points at/after `since` (inclusive, so a correction to
+   *   the latest timestamp is reconciled; unchanged points are no-ops).
+   *
+   * Real OHLC is preferred per timestamp; the component derives the trend
+   * close from the same point, keeping trend, candles and navigator aligned.
    */
   async function fetchLiveUpdates({
     signal,
     since = null,
     fullSnapshot = false,
-    reason = null,
   }) {
     const series = await requestSeries(serverConfiguration.intradayChartType, {
       signal,
-      label: fullSnapshot ? `live snapshot (${reason ?? "-"})` : "live poll",
     });
 
     const candleByTimestamp = new Map(
@@ -1202,13 +1096,6 @@
       .filter(([timestamp]) => boundary === null || timestamp >= boundary)
       .slice(-MAX_LIVE_POINTS)
       .map((point) => candleByTimestamp.get(point[0]) ?? point);
-
-    log("Live update prepared.", {
-      fullSnapshot,
-      reason,
-      since: since === null ? null : new Date(since).toISOString(),
-      points: points.length,
-    });
 
     if (fullSnapshot) {
       return { points };
@@ -1237,6 +1124,10 @@
     );
   }
 
+  /*
+   * Page-specific messages. Axis titles, date formats, tooltip labels and
+   * Highcharts strings default to the component's i18n.
+   */
   function getMessages() {
     const name = getChartName();
 
@@ -1258,7 +1149,8 @@
   }
 
   /**
-   * Axis titles from HTML; absent attributes keep the component defaults.
+   * Axis titles from HTML; absent attributes keep the component defaults
+   * (Time / Date / Index Value, localized).
    */
   function getAxisTitles() {
     const { dataset } = dom.root;
@@ -1280,7 +1172,7 @@
 
   /**
    * data-chart-default-range when it has data, else 1D when it has data,
-   * else the first historical range with data.
+   * else the first historical range with data (legacy opened on 1W).
    */
   function resolveInitialRange(ranges) {
     const hasData = (range) => (ranges[range]?.trend.length ?? 0) > 0;
@@ -1301,10 +1193,6 @@
   function createChartConfiguration(ranges) {
     const { symbol, currency, decimals } = serverConfiguration;
 
-    const range = resolveInitialRange(ranges);
-
-    log("Initial range.", range);
-
     return {
       context: "performance",
 
@@ -1313,7 +1201,7 @@
       currency,
       previousClose: ranges["1D"].comparisonValue,
 
-      range,
+      range: resolveInitialRange(ranges),
       mode: "trend",
       showEmptyState: true,
 
@@ -1324,6 +1212,9 @@
       maxPoints: MAX_LIVE_POINTS,
       candleBucketSize: LIVE_CANDLE_BUCKET,
 
+      /*
+       * Initial and live views show the complete session.
+       */
       liveWindowDuration: null,
 
       animation: { duration: 450 },
@@ -1338,6 +1229,10 @@
 
       ...getAxisTitles(),
 
+      /*
+       * Straight labels for 1D / 1W, rotated dates for longer ranges; edge
+       * labels are kept inside the chart by the component.
+       */
       xAxis: {
         rotation: { "1D": 0, "1W": 0, default: -20 },
       },
@@ -1364,6 +1259,10 @@
         showLastLabel: false,
       },
 
+      /*
+       * The toolbar owns the export UI. Requires the Highcharts exporting
+       * (+ offline-exporting) modules.
+       */
       exporting: {
         enabled: true,
         showContextButton: false,
@@ -1378,7 +1277,12 @@
         interval: LIVE_INTERVAL,
         requestTimeout: REQUEST_TIMEOUT,
         alignToInterval: true,
+
+        /*
+         * The initial snapshot was fetched before chart creation.
+         */
         immediate: false,
+
         pauseWhenHidden: true,
         retry: true,
         autostart: true,
@@ -1396,7 +1300,10 @@
             return;
           }
 
-          logError("Live update failed.", { error, metadata });
+          console.error("Market Performance live chart update failed.", {
+            error,
+            metadata,
+          });
         },
       },
 
@@ -1408,6 +1315,10 @@
     };
   }
 
+  /**
+   * A rejected token cannot be fixed by retrying: stop polling, try one
+   * token refresh, and resume with a full snapshot if it succeeds.
+   */
   async function handleAuthFailure() {
     const current = controller;
 
@@ -1418,7 +1329,7 @@
     current.stopLive();
 
     if ((await refreshAuthToken()) && controller === current && !destroyed) {
-      log("Token refreshed; resuming live updates.");
+      debug("Token refreshed; resuming live updates.");
 
       current.startLive();
       current.requestSnapshot("token-refresh");
@@ -1426,9 +1337,8 @@
       return;
     }
 
-    logError(
-      "Live updates stopped.",
-      new Error("The request was not authorized."),
+    console.error(
+      "Market Performance live updates stopped: the request was not authorized.",
     );
   }
 
@@ -1447,51 +1357,11 @@
     dom.liveStatusIcon?.classList.toggle("market-status--closed", !status.open);
   }
 
-  function bindChartEvents() {
-    const options = { signal: pageSignal };
-
+  function bindLiveStatus() {
     dom.chart.addEventListener(
       "marketchartlivestatechange",
       (event) => updateLiveStatus(event.detail?.state),
-      options,
-    );
-
-    /*
-     * Diagnostics: every chart state change, with the data it has.
-     */
-    dom.chart.addEventListener(
-      "marketchartstatechange",
-      (event) => {
-        const state = controller?.getState();
-
-        log("Chart state.", {
-          state: event.detail?.state,
-          message: event.detail?.message || null,
-          range: state?.range,
-          mode: state?.mode,
-          activePoints: controller?.getActiveData().length ?? null,
-          awaitingSnapshot: state?.awaitingSnapshot,
-        });
-      },
-      options,
-    );
-
-    dom.chart.addEventListener(
-      "marketchartliveupdate",
-      (event) =>
-        log("Live update applied.", {
-          fullSnapshot: event.detail?.fullSnapshot,
-          points: event.detail?.points?.length,
-          chartChanged: event.detail?.chartChanged,
-          activePoints: controller?.getActiveData().length ?? null,
-        }),
-      options,
-    );
-
-    dom.chart.addEventListener(
-      "marketcharterror",
-      (event) => logError("Chart error.", event.detail?.error),
-      options,
+      { signal: pageSignal },
     );
   }
 
@@ -1559,6 +1429,10 @@
 
     const filename = getExportFileName();
 
+    /*
+     * Prefer client-side export (offline-exporting module): no data leaves
+     * the browser and no export server is required.
+     */
     const exportAs = (type) =>
       typeof chart.exportChartLocal === "function"
         ? chart.exportChartLocal({ type, filename })
@@ -1650,7 +1524,10 @@
         try {
           executeExport(button.dataset.exportAction);
         } catch (error) {
-          logError(`Export "${button.dataset.exportAction}" failed.`, error);
+          console.error(
+            `Market chart export "${button.dataset.exportAction}" failed.`,
+            error,
+          );
         }
       },
       options,
@@ -1687,6 +1564,10 @@
      Compare Hook
      ======================================================================== */
 
+  /*
+   * Compare business logic lives outside the base chart; this only toggles
+   * the button and announces the change.
+   */
   function bindCompare() {
     dom.compare?.addEventListener(
       "click",
@@ -1716,10 +1597,7 @@
 
     if (!dom.root) {
       throw new Error(
-        "Root [data-performance-chart] is missing on this page. " +
-          (document.querySelector("[data-chart]")
-            ? "Found legacy [data-chart] markup — the page still uses the old template."
-            : ""),
+        "Market Performance root [data-performance-chart] is missing.",
       );
     }
 
@@ -1727,7 +1605,7 @@
 
     if (!dom.chart) {
       throw new Error(
-        "Chart element [data-market-chart] is missing inside the root.",
+        "Market Performance chart element [data-market-chart] is missing.",
       );
     }
 
@@ -1740,16 +1618,6 @@
     dom.compare = dom.root.querySelector("[data-chart-compare]");
     dom.liveStatusText = dom.root.querySelector("[data-chart-live-status]");
     dom.liveStatusIcon = dom.root.querySelector(".market-status");
-
-    log("DOM resolved.", {
-      rootAttributes: {
-        ...dom.root.dataset,
-        chartToken: dom.root.dataset.chartToken ? "***" : undefined,
-      },
-      chartElementId: dom.chart.id || null,
-      legacyChartScriptMarkup: Boolean(document.querySelector("[data-chart]")),
-      legacyDrawGraph: Boolean(document.getElementById("drawGraph")),
-    });
   }
 
   function waitForDOM() {
@@ -1793,6 +1661,10 @@
         return;
       }
 
+      /*
+       * From here the controller owns data-chart-state (ready / empty /
+       * loading / error); it is never overwritten by this page.
+       */
       controller = api.create(dom.chart, createChartConfiguration(ranges));
 
       if (!controller) {
@@ -1801,22 +1673,7 @@
 
       dom.root.marketChartController = controller;
 
-      const state = controller.getState();
-
-      log("Chart created.", {
-        state: state.state,
-        range: state.range,
-        mode: state.mode,
-        activePoints: controller.getActiveData().length,
-        storedRanges: Object.fromEntries(
-          Object.entries(controller.ranges).map(([range, record]) => [
-            range,
-            record.trend.length,
-          ]),
-        ),
-      });
-
-      updateLiveStatus(state.live?.state);
+      updateLiveStatus(controller.getState().live?.state);
     } finally {
       dom.root.setAttribute("aria-busy", "false");
     }
@@ -1836,7 +1693,7 @@
     try {
       controller?.destroy();
     } catch (error) {
-      logError("Chart destruction failed.", error);
+      console.error("Market Performance chart destruction failed.", error);
     }
 
     if (dom.root?.marketChartController === controller) {
@@ -1855,19 +1712,9 @@
       resolveDOM();
 
       serverConfiguration = resolveServerConfiguration();
-
-      log("Configuration.", {
-        ...serverConfiguration,
-        chartParameter: getChartParameter(),
-      });
-
       authToken = await resolveInitialToken();
 
-      log("Token ready.", { present: Boolean(authToken) });
-
       const api = await waitForMarketChartAPI();
-
-      log("SEMarketCharts available.");
 
       if (destroyed) {
         return;
@@ -1875,8 +1722,13 @@
 
       bindExportMenu();
       bindCompare();
-      bindChartEvents();
+      bindLiveStatus();
 
+      /*
+       * Destroy only on a real unload. A page entering the back/forward
+       * cache (event.persisted) keeps its chart: the live controller pauses
+       * on pagehide and resumes with a full snapshot on pageshow.
+       */
       window.addEventListener(
         "pagehide",
         (event) => {
@@ -1888,6 +1740,16 @@
       );
 
       await createPerformanceChart(api);
+
+      debug("Ready.", {
+        symbol: serverConfiguration.symbol,
+        company: serverConfiguration.isCompany,
+        parameter: getChartParameter(),
+        intraday: serverConfiguration.intradayChartType,
+        historical: serverConfiguration.historicalChartType,
+        decimals: serverConfiguration.decimals,
+        token: authToken ? (tokenUrl ? "from URL" : "present") : "missing",
+      });
     } catch (error) {
       if (isAbortError(error)) {
         return;
@@ -1899,7 +1761,7 @@
         dom.chart.dataset.chartState = "error";
       }
 
-      logError("Initialization failed.", error);
+      console.error("Market Performance initialization failed.", error);
     }
   }
 
@@ -1907,54 +1769,8 @@
    * Debug / integration handle.
    */
   window.mainMarketPerformance = Object.freeze({
-    build: BUILD,
     getController: () => controller,
     getConfiguration: () => serverConfiguration,
-
-    /**
-     * One-shot summary for support: paste the output.
-     */
-    diagnose() {
-      const state = controller?.getState();
-
-      const summary = {
-        build: BUILD,
-        configuration: serverConfiguration
-          ? { ...serverConfiguration, chartParameter: getChartParameter() }
-          : null,
-        token: authToken ? (tokenUrl ? "from url" : "jwt") : "missing",
-        chart: state
-          ? {
-              state: state.state,
-              range: state.range,
-              mode: state.mode,
-              activePoints: controller.getActiveData().length,
-              awaitingSnapshot: state.awaitingSnapshot,
-              live: state.live?.state,
-            }
-          : "not created",
-        storedRanges: controller
-          ? Object.fromEntries(
-              Object.entries(controller.ranges).map(([range, record]) => [
-                range,
-                record.trend.length,
-              ]),
-            )
-          : null,
-        requests: diagnostics.requests.slice(-6),
-        errors: diagnostics.errors,
-        scriptsOnPage: [...document.scripts]
-          .map((script) => script.src)
-          .filter((src) => /chart|performance|market/i.test(src)),
-      };
-
-      console.log("[MMP] diagnose", summary);
-      console.log(JSON.stringify(summary, null, 2));
-
-      return summary;
-    },
-
-    diagnostics,
     destroy,
   });
 
