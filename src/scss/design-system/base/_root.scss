@@ -79,17 +79,14 @@ $-font-scales: (
    ========================================================================== */
 
 /**
- * Used by the sticky header, the mega-menu height limit, the drawer header,
- * sticky layouts and anchor scrolling.
+ * Used by the mega-menu height limit, the drawer header, sticky layouts and
+ * anchor scrolling. These values are the fallback before JavaScript runs:
+ * header.js then sets the header's measured height.
  *
  * The breakpoint must match $nav-breakpoint in header/_header-config.scss.
  */
 
-@include ds.respond-up("lg") {
-  :root {
-    --app-header-height: 4.5rem;
-  }
-}
+/* Same height on every screen size (64px). */
 
 /* ==========================================================================
    Text-size Preference
