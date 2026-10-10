@@ -1,29 +1,5 @@
 @use "../../../../design-system/abstracts" as ds;
 
-/* ==========================================================================
-   Main Market Hero
-   ========================================================================== */
-
-/**
- * Main Market specialization of the shared Hero Section.
- *
- * Shared responsibilities:
- *
- * - hero-section → hero shell / background / spacing
- * - split-layout → two-region composition
- * - hero-intro → title and description
- * - instrument-price → market value presentation
- *
- * This file owns only the Main Market composition between those primitives.
- */
-
-/* ==========================================================================
-   Layout
-   ========================================================================== */
-
-.main-market-hero {
-  align-items: end;
-}
 
 /* ==========================================================================
    Summary

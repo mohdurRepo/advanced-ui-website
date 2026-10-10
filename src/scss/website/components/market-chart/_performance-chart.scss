@@ -88,21 +88,6 @@
   border-block-end: 1px solid var(--performance-chart-border);
 
   background: var(--performance-chart-bg);
-
-  &::after {
-    position: absolute;
-
-    inset-block-end: -1px;
-    inset-inline: 0;
-
-    block-size: 2px;
-
-    background: var(--performance-chart-state-accent);
-
-    content: "";
-
-    pointer-events: none;
-  }
 }
 
 /* ==========================================================================
@@ -482,10 +467,6 @@ html[data-contrast="high"] {
 
   .performance-chart__header {
     border-color: CanvasText;
-
-    &::after {
-      background: Highlight;
-    }
   }
 }
 
@@ -536,10 +517,6 @@ html[data-motion-preference="reduce"] {
     padding: 1rem;
 
     background: transparent;
-
-    &::after {
-      display: none;
-    }
   }
 
   .performance-chart__body {

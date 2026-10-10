@@ -124,7 +124,7 @@ text-align: justify;
 
   color: var(--color-text-muted);
 
-  font-size: clamp(var(--text-base), 0.95rem + 0.3vw, var(--text-lg));
+  font-size: var(--text-base);
 
   font-weight: ds.font-weight("medium");
   line-height: var(--line-height-relaxed);

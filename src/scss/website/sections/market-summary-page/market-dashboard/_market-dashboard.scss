@@ -22,7 +22,7 @@
   --market-dashboard-bg: var(--color-bg);
   --market-dashboard-fg: var(--color-text);
 
-  --market-dashboard-gap: clamp(1.25rem, 2.5vw, 2rem);
+  --market-dashboard-gap: clamp(0.75rem, 0.5vw, 0.75rem);
 
   position: relative;
 
@@ -277,7 +277,7 @@
 
 @include respond-down(lg) {
   .market-dashboard {
-    --market-dashboard-gap: 1.5rem;
+    --market-dashboard-gap: 0.75rem;
   }
 
   /**
@@ -303,7 +303,7 @@
 
 @include respond-down(md) {
   .market-dashboard {
-    --market-dashboard-gap: 1.25rem;
+    --market-dashboard-gap: 0.75rem;
   }
 
   .market-dashboard__metrics {
@@ -347,7 +347,7 @@
 
 @include respond-down(sm) {
   .market-dashboard {
-    --market-dashboard-gap: 1rem;
+    --market-dashboard-gap: 0.75rem;
   }
 
   .market-dashboard__metrics {

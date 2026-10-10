@@ -31,9 +31,9 @@
   --instrument-price-gap: var(--space-2, #{ds.space(2)});
   --instrument-price-inline-gap: var(--space-2, #{ds.space(2)});
 
-  --instrument-price-value-size: clamp(2.5rem, 4vw, 3.75rem);
+  --instrument-price-value-size: clamp(2rem, 1.5vw, 1.75rem);
   --instrument-price-currency-size: 2.25rem;
-  --instrument-price-direction-size: 1.2rem;
+  --instrument-price-direction-size: 0.75rem;
 
   display: grid;
   align-content: start;
@@ -44,7 +44,6 @@
 
   color: var(--instrument-price-color);
 
-  direction: ltr;
   font-variant-numeric: tabular-nums;
   unicode-bidi: isolate;
 }
@@ -137,7 +136,7 @@
   max-inline-size: 100%;
   min-inline-size: 0;
 
-  font-size: var(--text-base);
+  font-size: var(--text-sm);
   font-weight: ds.font-weight("bold");
   line-height: var(--line-height-tight);
 
@@ -178,9 +177,9 @@
    ========================================================================== */
 
 .instrument-price--compact {
-  --instrument-price-value-size: var(--text-3xl);
+  --instrument-price-value-size: var(--text-base);
   --instrument-price-currency-size: 1.625rem;
-  --instrument-price-direction-size: 0.5rem;
+  --instrument-price-direction-size: 0.25rem;
 
   --instrument-price-gap: var(--space-1, #{ds.space(1)});
 }
@@ -195,7 +194,7 @@
 
 @include ds.respond-down("md") {
   .instrument-price {
-    --instrument-price-value-size: var(--text-4xl);
+    --instrument-price-value-size: var(--text-base);
     --instrument-price-currency-size: 2rem;
   }
 }
@@ -207,9 +206,9 @@
 @include ds.respond-down("sm") {
   .instrument-price {
     --instrument-price-gap: 0.375rem;
-    --instrument-price-value-size: var(--text-3xl);
+    --instrument-price-value-size: var(--text-base);
     --instrument-price-currency-size: 1.625rem;
-    --instrument-price-direction-size: 0.5rem;
+    --instrument-price-direction-size: 0.25rem;
   }
 
   .instrument-price__value {

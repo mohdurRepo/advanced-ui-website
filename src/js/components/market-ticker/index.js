@@ -112,8 +112,8 @@ function getPriceState(changePercent) {
   }
 
   return value > 0
-    ? { className: "price-up", iconClass: "icon-trending-up" }
-    : { className: "price-down", iconClass: "icon-trending-down" };
+    ? { className: "price-up", iconClass: "icon-triangle-up" }
+    : { className: "price-down", iconClass: "icon-triangle-down" };
 }
 
 /* ==========================================================================
@@ -301,7 +301,7 @@ class MarketTicker {
    * for Arabic locales can differ between browsers and versions.
    */
 
-  updateFormatters() {
+    updateFormatters() {
     const options = {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
@@ -312,9 +312,10 @@ class MarketTicker {
 
     this.signedNumberFormatter = new Intl.NumberFormat(this.language, {
       ...options,
-      signDisplay: "exceptZero",
+      signDisplay: "auto", 
     });
   }
+
 
   formatNumber(value, signed = false) {
     const number = parseNumber(value);
@@ -435,7 +436,7 @@ class MarketTicker {
     if (state.iconClass) {
       const icon = createElement(
         "span",
-        `market-ticker__direction has-icon ${state.iconClass} icon-md`,
+        `market-ticker__direction has-icon ${state.iconClass} icon-xm`,
       );
 
       icon.setAttribute("aria-hidden", "true");

@@ -214,17 +214,15 @@ function companyInitials(company) {
    ========================================================================== */
 
 function primaryCompanyImageUrl(company) {
-  if (!company.companyCode) {
+  if (!company.symbol) {
     return DEFAULT_COMPANY_IMAGE;
   }
 
-  return `${COMPANY_IMAGE_BASE_PATH}/${encodeURIComponent(
-    String(company.symbol),
-  )}.png`;
+  return `${COMPANY_IMAGE_BASE_PATH}/${company.symbol}.png`;
 }
 
 function initialImageStage(company) {
-  return company.companyCode ? "company" : "default";
+  return company.symbol ? "company" : "default";
 }
 
 /* ==========================================================================

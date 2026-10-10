@@ -551,6 +551,10 @@ html[dir="rtl"] {
   .market-overview[data-market-details-mode="disclosure"] {
     --market-overview-inner-gradient-angle: 270deg;
   }
+
+  .market-overview__disclosure {
+    --hero-section-gradient-angle: 270deg;
+  }
 }
 
 /* ==========================================================================

@@ -48,7 +48,7 @@
      Dashboard
      -------------------------------------------------------------------------- */
 
-  --peer-comparison-gap: clamp(1.25rem, 2.5vw, 2rem);
+      --peer-comparison-gap: clamp(0.75rem, 0.5vw, 0.75rem);
 
   /* --------------------------------------------------------------------------
      Panel
@@ -956,7 +956,7 @@
 
 @include ds.respond-down("lg") {
   .peer-comparison-result {
-    --peer-comparison-gap: 1.5rem;
+    --peer-comparison-gap: 0.75rem;
   }
 
   /**
@@ -979,7 +979,7 @@
 
 @include ds.respond-down("md") {
   .peer-comparison-result {
-    --peer-comparison-gap: 1.25rem;
+    --peer-comparison-gap: 0.75rem;
     --peer-comparison-panel-space: 1rem;
   }
 
@@ -1002,7 +1002,7 @@
 
 @include ds.respond-down("sm") {
   .peer-comparison-result {
-    --peer-comparison-gap: 1rem;
+    --peer-comparison-gap: 0.75rem;
     --peer-comparison-panel-space: 0.875rem;
   }
 
@@ -1280,7 +1280,7 @@ html[data-motion-preference="reduce"] {
 
 @media print {
   .peer-comparison-result {
-    --peer-comparison-gap: 1rem;
+    --peer-comparison-gap: 0.75rem;
 
     --peer-comparison-panel-bg: transparent;
     --peer-comparison-panel-fg: #000000;

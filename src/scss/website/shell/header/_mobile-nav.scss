@@ -68,7 +68,6 @@
 }
 
 .mobile-nav__brand a {
-  display: inline-flex;
 
   border-radius: var(--radius-sm);
 }
@@ -77,16 +76,6 @@
   --focus-ring: #{ds.brand("teal")};
 
   @include ds.focus-ring;
-}
-
-.mobile-nav__logo,
-.mobile-nav__brand img {
-  inline-size: auto;
-  block-size: auto;
-  max-inline-size: 8rem;
-  max-block-size: 2rem;
-
-  object-fit: contain;
 }
 
 /* Prototype only: light/dark logo pair. */

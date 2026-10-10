@@ -151,7 +151,6 @@ html[data-accent="navy"] .site-header {
    ========================================================================== */
 
 .site-header__brand {
-  display: inline-flex;
   flex: 0 0 auto;
   align-items: center;
 
@@ -169,8 +168,6 @@ html[data-accent="navy"] .site-header {
  */
 
 .site-header__brand a {
-  display: inline-flex;
-
   border-radius: var(--radius-sm);
 }
 
@@ -178,24 +175,6 @@ html[data-accent="navy"] .site-header {
   --focus-ring: var(--site-header-focus);
 
   @include ds.focus-ring;
-}
-
-.site-header__logo,
-.site-header__brand img {
-  inline-size: auto;
-  block-size: auto;
-  max-inline-size: 8rem;
-  max-block-size: 2rem;
-
-  object-fit: contain;
-}
-
-@include ds.respond-up(config.$nav-breakpoint) {
-  .site-header__logo,
-  .site-header__brand img {
-    max-inline-size: 10rem;
-    max-block-size: 2.5rem;
-  }
 }
 
 /* ==========================================================================
