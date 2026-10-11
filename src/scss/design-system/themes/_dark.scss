@@ -11,9 +11,9 @@ html[data-theme="dark"] {
      Backgrounds and Surfaces
      ========================================================================== */
 
-  --color-bg: #001f33;
+  --color-bg: #{ds.brand("navy")};
 
-  --color-surface: #0b2233;
+  --color-surface: #{ds.brand("navy-800")};
   --color-surface-alt: #102f45;
 
   --color-surface-hover: #12364e;
@@ -80,6 +80,11 @@ html[data-theme="dark"] {
      Neutral Actions
      ========================================================================== */
 
+  /**
+   * --color-dark equals --color-bg in this theme. Components using it must
+   * add a border, or the element has no visible edge.
+   */
+
   --color-light: #{ds.brand("white")};
   --color-light-hover: #f3f4f6;
   --color-on-light: #{ds.brand("navy")};
@@ -92,7 +97,7 @@ html[data-theme="dark"] {
      Borders
      ========================================================================== */
 
-  --color-border: #1e3d52;
+  --color-border: #{ds.brand("navy-700")};
   --color-border-strong: #46657a;
 
   /* ==========================================================================

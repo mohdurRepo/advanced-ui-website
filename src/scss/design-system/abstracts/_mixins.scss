@@ -9,9 +9,20 @@
    Breakpoints
    ========================================================================== */
 
+/**
+ * respond-up("xs") applies everywhere, so it emits the content without a
+ * media query instead of a useless `min-width: 0`.
+ */
+
 @mixin respond-up($key) {
-  @media (min-width: functions.breakpoint($key)) {
+  $value: functions.breakpoint($key);
+
+  @if $value == 0 {
     @content;
+  } @else {
+    @media (min-width: $value) {
+      @content;
+    }
   }
 }
 
@@ -52,21 +63,23 @@
  *
  * $motion is a token ("fast" | "normal" | "slow") or a custom duration.
  * Prefer tokens: they read --transition-*, which the site "reduce motion"
- * setting sets to 0ms. Custom durations are not reduced.
+ * setting shortens to near zero. Custom durations are not reduced.
+ *
+ * Prefer an explicit property list over the `all` default: `all` also
+ * animates layout and theme changes nobody intended.
  */
 
 @mixin transition($properties: all, $motion: "normal", $timing-function: ease) {
   $duration: $motion;
 
+  /* A bare word that is not a token is a typo, e.g. "medium".
+     CSS values such as var(…) or calc(…) and plain durations pass. */
+  $is-bare-word: meta.type-of($motion) == "string" and not
+    string.index("#{$motion}", "(");
+
   @if map.has-key(maps.$motions, $motion) {
     $duration: var(--transition-#{$motion});
-  } @else if
-    meta.type-of($motion) ==
-    "string" and not
-    string.index("#{$motion}", "(")
-  {
-    /* A bare word that is not a token is a typo, e.g. "medium".
-       CSS values such as var(…) or calc(…) and plain durations pass. */
+  } @else if $is-bare-word {
     @error "Unknown motion token `#{$motion}`. Use fast, normal, slow or a duration.";
   }
 
@@ -75,7 +88,7 @@
   @each $property in $properties {
     $transitions: list.append(
       $transitions,
-      #{$property} $duration $timing-function,
+      $property $duration $timing-function,
       $separator: comma
     );
   }
@@ -98,14 +111,20 @@
  *     }
  *   }
  *
+ * Must be used inside a selector: it prefixes the parent selector (&).
+ *
  * Use it for keyframe animations and transforms. Transitions written with
- * the transition() mixin and a token already drop to 0ms automatically.
+ * the transition() mixin and a token are already reduced automatically.
  *
  * The site setting is the single authority; OS settings are not read.
  * This is the only place components should reference the attribute.
  */
 
 @mixin reduced-motion {
+  @if not & {
+    @error "reduced-motion() must be used inside a selector.";
+  }
+
   html[data-motion-preference="reduce"] & {
     @content;
   }

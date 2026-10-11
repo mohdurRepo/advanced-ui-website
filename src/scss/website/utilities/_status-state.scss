@@ -20,6 +20,11 @@
  * Status State represents semantic condition or severity.
  *
  * Financial price movement remains owned by price-state.
+ *
+ * Only the indicator carries the status colour. The label uses the normal
+ * text colour: attention and warning are too light to be read as text on
+ * light surfaces. The label must always name the status, so severity is
+ * never conveyed by colour alone.
  */
 
 /* ==========================================================================
@@ -135,7 +140,7 @@
 .status-state__label {
   min-inline-size: 0;
 
-  color: inherit;
+  color: var(--color-text);
 
   font-size: var(--text-sm);
   line-height: var(--line-height-normal);
@@ -175,6 +180,10 @@ html[data-contrast="high"] {
 @media print {
   .status-state {
     --status-state-color: #000000;
+  }
+
+  .status-state__label {
+    color: #000000;
   }
 
   .status-state__indicator {

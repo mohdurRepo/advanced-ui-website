@@ -9,15 +9,15 @@
  *
  * Responsibilities:
  *
- * - Own category/view tab navigation.
- * - Own active/inactive market-view panel presentation.
- * - Allow the active view to fill the remaining fixed Details canvas.
- * - Release fixed-height behavior when the surrounding Details layout becomes
- *   content-sized on tablet/mobile.
+ * - Own category / view tab navigation.
+ * - Own active / inactive market-view panel presentation.
+ * - Let the active view fill the remaining fixed Details canvas.
+ * - Release fixed-height behavior when Details become content-sized on
+ *   tablet / mobile.
  *
- * The parent Market Details panel remains responsible for the overall canvas
- * height. This component only distributes that available height between the
- * tab navigation and the active view.
+ * The parent Market Details panel owns the overall canvas height. This
+ * component only distributes it between the tab navigation and the active
+ * view.
  */
 
 /* ==========================================================================
@@ -25,6 +25,8 @@
    ========================================================================== */
 
 .market-views {
+  --market-views-line-width: 1px;
+
   display: flex;
   flex-direction: column;
 
@@ -56,13 +58,15 @@
 
   max-inline-size: calc(100% - (var(--market-panel-space) * 2));
 
-  margin: var(--market-panel-space-sm) var(--market-panel-space);
+  margin-block: var(--market-panel-space-sm);
+  margin-inline: var(--market-panel-space);
+
   padding: 0.375rem;
 
   overflow-x: auto;
   overflow-y: hidden;
 
-  border: 1px solid var(--market-panel-line);
+  border: var(--market-views-line-width) solid var(--market-panel-line);
   border-radius: var(--radius-pill);
 
   background: rgb(255 255 255 / 0.08);
@@ -85,6 +89,11 @@
    Tab
    ========================================================================== */
 
+/*
+ * Active tab uses the overview primary with its on-primary color, so the
+ * visitor's accent is respected and the label stays readable on dark.
+ */
+
 .market-views__tab {
   display: inline-flex;
   align-items: center;
@@ -94,11 +103,12 @@
 
   min-block-size: 2.5rem;
 
-  padding: 0.625rem 1.25rem;
+  padding-block: 0.625rem;
+  padding-inline: var(--space-5, #{ds.space(5)});
 
   appearance: none;
 
-  border: 1px solid transparent;
+  border: var(--market-views-line-width) solid transparent;
   border-radius: var(--radius-pill);
 
   background: transparent;
@@ -122,7 +132,7 @@
     "fast"
   );
 
-  &:hover:not(:disabled):not(.is-disabled) {
+  &:hover:not(:disabled, .is-disabled) {
     background: rgb(255 255 255 / 0.1);
     color: var(--market-details-fg);
   }
@@ -137,8 +147,7 @@
     @include ds.focus-ring;
   }
 
-  &.is-active,
-  &[aria-selected="true"] {
+  &:is(.is-active, [aria-selected="true"]) {
     border-color: var(--color-primary);
 
     background: var(--color-primary);
@@ -161,14 +170,14 @@
    ========================================================================== */
 
 /*
- * Desktop fixed-canvas behavior:
+ * Desktop fixed canvas:
  *
- * tab list
- * ─────────────────────────
- * active view -> fills every remaining pixel
+ *   tab list
+ *   ─────────────────────────
+ *   active view -> fills every remaining pixel
  *
- * The active panel is a flex container so its Details grid can inherit the
- * available height. Hidden panels never participate in layout.
+ * The active panel is a flex container so its Details grid inherits the
+ * available height. Hidden panels never take part in layout.
  */
 
 .market-view-panel {
@@ -187,21 +196,15 @@
     display: none !important;
   }
 
-  &.is-active,
-  &[aria-hidden="false"] {
+  &:is(.is-active, [aria-hidden="false"]) {
     display: flex;
     flex-direction: column;
   }
 }
 
-/* ========================================================================== 
-   Details Grid Integration
-   ========================================================================== */
-
 /*
- * The grid must consume the active view's remaining height rather than using
- * its content height. This is what keeps REITs / ETFs / CEFs visually equal
- * when their content volume differs.
+ * The grid takes the active view's remaining height rather than its
+ * content height, which keeps REITs / ETFs / CEFs visually equal.
  */
 
 .market-view-panel > .market-details-panel__grid {
@@ -218,9 +221,8 @@
    ========================================================================== */
 
 /*
- * Below desktop the surrounding Market Details component stops using the
- * fixed canvas. Release panel clipping and let each active view follow normal
- * document flow.
+ * Below lg the surrounding Details stop using the fixed canvas: release
+ * clipping and let the active view follow normal document flow.
  */
 
 @include ds.respond-down(lg) {
@@ -235,16 +237,13 @@
 
     overflow: visible;
 
-    &.is-active,
-    &[aria-hidden="false"] {
+    &:is(.is-active, [aria-hidden="false"]) {
       display: block;
     }
   }
 
   .market-view-panel > .market-details-panel__grid {
     flex: 0 0 auto;
-
-    block-size: auto;
   }
 }
 
@@ -256,7 +255,6 @@
   .market-views__list {
     align-self: stretch;
 
-    inline-size: auto;
     max-inline-size: none;
 
     margin: var(--market-panel-space-sm);
@@ -290,14 +288,12 @@
    ========================================================================== */
 
 html[data-contrast="high"] {
-  .market-views__list {
-    border-width: 2px;
-    border-color: var(--market-details-border-strong);
+  .market-views {
+    --market-views-line-width: 2px;
   }
 
-  .market-views__tab.is-active,
-  .market-views__tab[aria-selected="true"] {
-    border-width: 2px;
+  .market-views__list {
+    border-color: var(--market-details-border-strong);
   }
 }
 
@@ -310,34 +306,13 @@ html[data-contrast="high"] {
     border-color: CanvasText;
   }
 
-  .market-views__tab {
-    border-color: transparent;
+  .market-views__tab:is(.is-active, [aria-selected="true"]) {
+    forced-color-adjust: none;
 
-    &.is-active,
-    &[aria-selected="true"] {
-      border-color: Highlight;
+    border-color: Highlight;
 
-      background: Highlight;
-      color: HighlightText;
-
-      forced-color-adjust: none;
-    }
-  }
-}
-
-/* ==========================================================================
-   Reduced Motion
-   ========================================================================== */
-
-@media (prefers-reduced-motion: reduce) {
-  .market-views__tab {
-    transition: none;
-  }
-}
-
-html[data-motion-preference="reduce"] {
-  .market-views__tab {
-    transition: none;
+    background: Highlight;
+    color: HighlightText;
   }
 }
 
@@ -361,14 +336,9 @@ html[data-motion-preference="reduce"] {
 
   .market-view-panel {
     overflow: visible;
-  }
 
-  .market-view-panel[hidden] {
-    display: none !important;
-  }
-
-  .market-view-panel.is-active,
-  .market-view-panel[aria-hidden="false"] {
-    display: block;
+    &:is(.is-active, [aria-hidden="false"]) {
+      display: block;
+    }
   }
 }

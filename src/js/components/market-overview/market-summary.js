@@ -8,7 +8,7 @@
  * - Manage top-level market-card selection.
  * - Maintain tab semantics and roving tabindex.
  * - Support keyboard navigation.
- * - Keep active selections visually centered when possible.
+ * - Center selected markets when possible.
  * - Manage horizontal overflow state.
  * - Manage previous / next browse controls.
  * - Manage the "return to selected market" control.
@@ -17,20 +17,27 @@
  *
  * Direction strategy:
  *
- * - DOM order is ALWAYS logical market order.
+ * - DOM order is ALWAYS logical market order; JS never reverses it.
  * - CSS owns LTR / RTL visual placement.
- * - JS NEVER reverses card order.
  * - getBoundingClientRect() is used only for physical visibility checks.
- * - scrollIntoView() handles logical LTR / RTL scrolling.
- * - scrollLeft normalization is deliberately avoided.
+ * - scrollIntoView() handles logical LTR / RTL scrolling; scrollLeft
+ *   normalization is deliberately avoided.
  *
  * Selection strategy:
  *
- * - Initial page rendering starts at the first logical market.
- * - User-selected markets are centered whenever browser scroll geometry allows.
- * - Rail browse controls continue to move toward logical start / end.
- * - Direction changes preserve the active selection and recenter it.
+ * - The page starts at the first logical market.
+ * - User-selected markets are centered whenever scroll geometry allows.
+ * - Browse controls move toward the logical start / end.
+ * - Direction changes keep the active selection and recenter it.
  */
+
+import {
+  getLanguage,
+  getScrollBehavior,
+  isElementRendered,
+  isRTL,
+  prefersReducedMotion,
+} from "./market-shared";
 
 /* ==========================================================================
    Selectors
@@ -64,22 +71,42 @@ const CLASSES = {
 };
 
 /* ==========================================================================
+   Events
+   ========================================================================== */
+
+const EVENTS = {
+  marketChange: "market:change",
+};
+
+/* ==========================================================================
    Constants
    ========================================================================== */
 
 const SCROLL_TOLERANCE = 3;
 
 /*
- * Defensive fallback for browsers without a reliable scrollend event.
+ * Fallback for browsers without a reliable scrollend event.
  */
 
 const PROGRAMMATIC_SCROLL_FALLBACK = 600;
 
 /*
- * Actual market selection should read as the focal item in the rail.
+ * The selected market reads as the focal item in the rail.
  */
 
 const SELECTION_ALIGNMENT = "center";
+
+/*
+ * Preferences that change rail geometry. A reset (name: null) may change
+ * anything.
+ */
+
+const GEOMETRY_PREFERENCES = new Set([
+  "lang",
+  "direction",
+  "fontSize",
+  "contrast",
+]);
 
 /* ==========================================================================
    Labels
@@ -107,6 +134,10 @@ const LABELS = {
   },
 };
 
+function getLabels() {
+  return LABELS[getLanguage()];
+}
+
 /* ==========================================================================
    State
    ========================================================================== */
@@ -116,7 +147,7 @@ const initializedRoots = new WeakSet();
 const rootStates = new WeakMap();
 
 /*
- * Keep initialized roots iterable for global refresh operations.
+ * Iterable set of initialized roots for global refresh operations.
  */
 
 const roots = new Set();
@@ -124,50 +155,6 @@ const roots = new Set();
 let globalEventsInitialized = false;
 
 let documentObserver = null;
-
-/* ==========================================================================
-   Language
-   ========================================================================== */
-
-function getLanguage() {
-  const language = document.documentElement.lang?.trim().toLowerCase() || "en";
-
-  return language.startsWith("ar") ? "ar" : "en";
-}
-
-function getLabels() {
-  return LABELS[getLanguage()];
-}
-
-/* ==========================================================================
-   Motion
-   ========================================================================== */
-
-function prefersReducedMotion() {
-  if (document.documentElement.dataset.motionPreference === "reduce") {
-    return true;
-  }
-
-  return (
-    window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false
-  );
-}
-
-function getScrollBehavior() {
-  return prefersReducedMotion() ? "auto" : "smooth";
-}
-
-/* ==========================================================================
-   Direction
-   ========================================================================== */
-
-function isRTL(element) {
-  if (!element) {
-    return false;
-  }
-
-  return window.getComputedStyle(element).direction === "rtl";
-}
 
 /* ==========================================================================
    Elements
@@ -218,30 +205,15 @@ function getElements(root) {
 }
 
 /* ==========================================================================
-   Rendering
-   ========================================================================== */
-
-function isElementRendered(element) {
-  return Boolean(
-    element &&
-    element.isConnected &&
-    element.getClientRects().length &&
-    element.getBoundingClientRect().width,
-  );
-}
-
-/* ==========================================================================
    Active Card
    ========================================================================== */
 
 function getActiveCard(root) {
-  const elements = getElements(root);
+  const cards = getElements(root)?.cards;
 
-  if (!elements) {
+  if (!cards) {
     return null;
   }
-
-  const { cards } = elements;
 
   return (
     cards.find((card) => card.getAttribute("aria-selected") === "true") ||
@@ -264,33 +236,17 @@ function getCardName(card) {
 }
 
 /* ==========================================================================
-   Physical Geometry
-   ========================================================================== */
-
-function getScrollerRect(scroller) {
-  return scroller.getBoundingClientRect();
-}
-
-function getCardRect(card) {
-  return card.getBoundingClientRect();
-}
-
-/* ==========================================================================
-   Card Visibility
+   Visibility Geometry
    ========================================================================== */
 
 function isCardFullyVisible(card, scroller) {
-  if (!card || !scroller) {
-    return false;
-  }
-
   if (!isElementRendered(card) || !isElementRendered(scroller)) {
     return false;
   }
 
-  const cardRect = getCardRect(card);
+  const cardRect = card.getBoundingClientRect();
 
-  const scrollerRect = getScrollerRect(scroller);
+  const scrollerRect = scroller.getBoundingClientRect();
 
   return (
     cardRect.left >= scrollerRect.left - SCROLL_TOLERANCE &&
@@ -298,22 +254,11 @@ function isCardFullyVisible(card, scroller) {
   );
 }
 
-/* ==========================================================================
-   Logical Edge Geometry
-   ========================================================================== */
-
 /*
- * getBoundingClientRect() returns physical coordinates.
+ * getBoundingClientRect() is physical:
  *
- * LTR:
- *
- * inline-start = left
- * inline-end   = right
- *
- * RTL:
- *
- * inline-start = right
- * inline-end   = left
+ * LTR: inline-start = left,  inline-end = right
+ * RTL: inline-start = right, inline-end = left
  */
 
 function isHiddenAtInlineStart(elementRect, scrollerRect, rtl) {
@@ -332,44 +277,20 @@ function isHiddenAtInlineEnd(elementRect, scrollerRect, rtl) {
   return elementRect.right > scrollerRect.right + SCROLL_TOLERANCE;
 }
 
-/* ==========================================================================
-   First / Last Logical Card Visibility
-   ========================================================================== */
-
-function isLogicalStartCardVisible(card, scroller) {
-  if (!card || !scroller) {
-    return false;
-  }
-
+function isCardHiddenAt(card, scroller, edge) {
   if (!isElementRendered(card) || !isElementRendered(scroller)) {
-    return false;
+    return true;
   }
 
-  const cardRect = getCardRect(card);
+  const cardRect = card.getBoundingClientRect();
 
-  const scrollerRect = getScrollerRect(scroller);
+  const scrollerRect = scroller.getBoundingClientRect();
 
   const rtl = isRTL(scroller);
 
-  return !isHiddenAtInlineStart(cardRect, scrollerRect, rtl);
-}
-
-function isLogicalEndCardVisible(card, scroller) {
-  if (!card || !scroller) {
-    return false;
-  }
-
-  if (!isElementRendered(card) || !isElementRendered(scroller)) {
-    return false;
-  }
-
-  const cardRect = getCardRect(card);
-
-  const scrollerRect = getScrollerRect(scroller);
-
-  const rtl = isRTL(scroller);
-
-  return !isHiddenAtInlineEnd(cardRect, scrollerRect, rtl);
+  return edge === "start"
+    ? isHiddenAtInlineStart(cardRect, scrollerRect, rtl)
+    : isHiddenAtInlineEnd(cardRect, scrollerRect, rtl);
 }
 
 /* ==========================================================================
@@ -379,40 +300,27 @@ function isLogicalEndCardVisible(card, scroller) {
 function getOverflowState(elements) {
   const { tabs, cards } = elements;
 
+  const none = {
+    hasOverflowStart: false,
+    hasOverflowEnd: false,
+  };
+
   if (!tabs || !cards.length || !isElementRendered(tabs)) {
-    return {
-      canScroll: false,
-      hasOverflowStart: false,
-      hasOverflowEnd: false,
-    };
+    return none;
   }
 
-  const canScroll = tabs.scrollWidth > tabs.clientWidth + SCROLL_TOLERANCE;
-
-  if (!canScroll) {
-    return {
-      canScroll: false,
-      hasOverflowStart: false,
-      hasOverflowEnd: false,
-    };
+  if (tabs.scrollWidth <= tabs.clientWidth + SCROLL_TOLERANCE) {
+    return none;
   }
 
   /*
-   * DOM order remains logical in both directions.
+   * DOM order is logical in both directions.
    */
 
-  const firstCard = cards[0];
-
-  const lastCard = cards[cards.length - 1];
-
-  const hasOverflowStart = !isLogicalStartCardVisible(firstCard, tabs);
-
-  const hasOverflowEnd = !isLogicalEndCardVisible(lastCard, tabs);
-
   return {
-    canScroll,
-    hasOverflowStart,
-    hasOverflowEnd,
+    hasOverflowStart: isCardHiddenAt(cards[0], tabs, "start"),
+
+    hasOverflowEnd: isCardHiddenAt(cards[cards.length - 1], tabs, "end"),
   };
 }
 
@@ -421,18 +329,14 @@ function getOverflowState(elements) {
    ========================================================================== */
 
 function dispatchMarketChange(card) {
-  if (!card) {
-    return;
-  }
-
-  const overview = card.closest(SELECTORS.overview);
+  const overview = card?.closest(SELECTORS.overview);
 
   if (!overview) {
     return;
   }
 
   card.dispatchEvent(
-    new CustomEvent("market:change", {
+    new CustomEvent(EVENTS.marketChange, {
       bubbles: true,
 
       detail: {
@@ -468,6 +372,11 @@ function clearProgrammaticScrollState(root) {
   state.suppressSelectedMarket = false;
 }
 
+/*
+ * Do not flash the recovery control while the selected card is being
+ * intentionally repositioned.
+ */
+
 function beginProgrammaticCardReveal(root) {
   const state = getState(root);
 
@@ -478,11 +387,6 @@ function beginProgrammaticCardReveal(root) {
   if (state.programmaticScrollTimer !== null) {
     window.clearTimeout(state.programmaticScrollTimer);
   }
-
-  /*
-   * Do not flash the recovery control while the selected card is being
-   * intentionally repositioned.
-   */
 
   state.suppressSelectedMarket = true;
 
@@ -500,18 +404,12 @@ function beginProgrammaticCardReveal(root) {
 }
 
 /* ==========================================================================
-   Generic Card Reveal
+   Card Reveal
    ========================================================================== */
 
 /*
- * Keep the generic primitive alignment-agnostic.
- *
- * Callers decide whether they require:
- *
- * - nearest
- * - center
- * - start
- * - end
+ * Alignment-agnostic primitive. Ordinary reveals skip fully visible cards;
+ * `force` is used where a visible card still needs repositioning.
  */
 
 function revealCard(
@@ -519,20 +417,9 @@ function revealCard(
   scroller,
   { behavior = getScrollBehavior(), inline = "nearest", force = false } = {},
 ) {
-  if (!card || !scroller) {
-    return false;
-  }
-
   if (!isElementRendered(card) || !isElementRendered(scroller)) {
     return false;
   }
-
-  /*
-   * Ordinary reveals may avoid unnecessary movement.
-   *
-   * Selection centering passes force: true because a fully visible card can
-   * still be visually off-center.
-   */
 
   if (!force && isCardFullyVisible(card, scroller)) {
     return false;
@@ -549,63 +436,19 @@ function revealCard(
   return true;
 }
 
-/* ==========================================================================
-   Selected Card Reveal
-   ========================================================================== */
-
 /*
- * A selected market is the focal item in the Summary rail.
- *
- * Centering produces a materially cleaner relationship with Details and the
- * Summary → Details connector than merely ensuring the card is visible.
- *
- * Browser scroll limits still apply naturally to cards at the absolute ends
- * of the scrollable content.
+ * The selected market is centered (browser scroll limits still apply at
+ * the ends of the rail).
  */
 
-function revealSelectedCard(
-  card,
-  scroller,
-  { behavior = getScrollBehavior() } = {},
-) {
+function revealSelectedCard(card, scroller, options = {}) {
   return revealCard(card, scroller, {
-    behavior,
+    ...options,
 
     inline: SELECTION_ALIGNMENT,
 
     force: true,
   });
-}
-
-/* ==========================================================================
-   Logical Start Alignment
-   ========================================================================== */
-
-/*
- * Initial rendering is intentionally different from active selection.
- *
- * The rail must start at its first logical market rather than opening with
- * the initial card artificially centered.
- */
-
-function alignCardToLogicalStart(card, scroller) {
-  if (!card || !scroller) {
-    return false;
-  }
-
-  if (!isElementRendered(card) || !isElementRendered(scroller)) {
-    return false;
-  }
-
-  card.scrollIntoView({
-    behavior: "auto",
-
-    block: "nearest",
-
-    inline: "start",
-  });
-
-  return true;
 }
 
 /* ==========================================================================
@@ -618,10 +461,6 @@ function setActiveCard(
 ) {
   const root = card?.closest(SELECTORS.root);
 
-  if (!root) {
-    return;
-  }
-
   const elements = getElements(root);
 
   if (!elements || !elements.cards.includes(card)) {
@@ -631,9 +470,7 @@ function setActiveCard(
   const { cards, tabs } = elements;
 
   /*
-   * Normalize the complete tab set on every selection.
-   *
-   * This guarantees there can be only one selected / keyboard-active card.
+   * Normalize the complete tab set: exactly one selected / focusable card.
    */
 
   cards.forEach((item) => {
@@ -655,18 +492,7 @@ function setActiveCard(
   if (scroll && tabs) {
     beginProgrammaticCardReveal(root);
 
-    /*
-     * Important:
-     *
-     * Do NOT use inline: nearest here.
-     *
-     * A selected card may already be fully visible while still sitting at
-     * the far edge of the rail. We intentionally recenter it.
-     */
-
-    const moved = revealSelectedCard(card, tabs);
-
-    if (!moved) {
+    if (!revealSelectedCard(card, tabs)) {
       clearProgrammaticScrollState(root);
     }
   } else {
@@ -692,8 +518,7 @@ function initializeActiveCard(root) {
   }
 
   /*
-   * Normalize initial selection state without allowing selection itself to
-   * move the rail.
+   * Normalize selection without moving the rail.
    */
 
   setActiveCard(activeCard, {
@@ -702,38 +527,16 @@ function initializeActiveCard(root) {
     dispatch: true,
   });
 
-  const state = getState(root);
-
-  if (!state) {
-    return;
-  }
-
-  const { tabs, cards } = state.elements;
+  const { tabs, cards } = getState(root).elements;
 
   /*
-   * Initial page presentation starts from the first logical market.
+   * The page starts at the first logical market:
    *
-   * LTR:
+   * LTR: Main | Nomu | Sukuk | Funds ->
+   * RTL: <- Funds | Sukuk | Nomu | Main
    *
-   * Main | Nomu | Sukuk | Funds ->
-   *
-   * RTL:
-   *
-   * <- Funds | Sukuk | Nomu | Main
-   *
-   * DOM order remains unchanged.
-   */
-
-  const firstCard = cards[0];
-
-  if (!firstCard) {
-    return;
-  }
-
-  /*
-   * Frame 1:
-   *
-   * Allow CSS direction, fonts and grid sizes to establish geometry.
+   * Frame 1 lets direction, fonts and grid sizes settle; frame 2 lets
+   * scroll geometry settle before the controls are resolved.
    */
 
   window.requestAnimationFrame(() => {
@@ -741,26 +544,26 @@ function initializeActiveCard(root) {
       return;
     }
 
-    alignCardToLogicalStart(firstCard, tabs);
+    if (isElementRendered(cards[0]) && isElementRendered(tabs)) {
+      cards[0].scrollIntoView({
+        behavior: "auto",
 
-    /*
-     * Frame 2:
-     *
-     * Allow browser scroll geometry to settle before resolving rail controls.
-     */
+        block: "nearest",
+
+        inline: "start",
+      });
+    }
 
     window.requestAnimationFrame(() => {
-      if (!root.isConnected) {
-        return;
+      if (root.isConnected) {
+        requestVisualUpdate(root);
       }
-
-      requestVisualUpdate(root);
     });
   });
 }
 
 /* ==========================================================================
-   Logical Card Navigation
+   Keyboard Navigation
    ========================================================================== */
 
 function getAdjacentCard(cards, currentCard, direction) {
@@ -770,22 +573,10 @@ function getAdjacentCard(cards, currentCard, direction) {
     return null;
   }
 
-  /*
-   * DOM order is logical.
-   *
-   * Never reverse the array for RTL.
-   */
-
   const step = direction === "next" ? 1 : -1;
 
-  const nextIndex = (currentIndex + step + cards.length) % cards.length;
-
-  return cards[nextIndex];
+  return cards[(currentIndex + step + cards.length) % cards.length];
 }
-
-/* ==========================================================================
-   Keyboard Navigation
-   ========================================================================== */
 
 function handleCardKeydown(root, event) {
   const card = event.target.closest(SELECTORS.card);
@@ -794,49 +585,32 @@ function handleCardKeydown(root, event) {
     return;
   }
 
-  const elements = getElements(root);
-
-  if (!elements) {
-    return;
-  }
-
-  const { tabs, cards } = elements;
+  const { tabs, cards } = getElements(root);
 
   const rtl = isRTL(tabs);
 
   let nextCard = null;
 
   switch (event.key) {
+    /*
+     * Physical arrows follow visual direction:
+     * LTR right = next, RTL right = previous.
+     */
+
     case "ArrowRight":
-      /*
-       * Physical keyboard movement:
-       *
-       * LTR right = logical next.
-       * RTL right = logical previous.
-       */
-
       nextCard = getAdjacentCard(cards, card, rtl ? "previous" : "next");
-
       break;
 
     case "ArrowLeft":
-      /*
-       * LTR left = logical previous.
-       * RTL left = logical next.
-       */
-
       nextCard = getAdjacentCard(cards, card, rtl ? "next" : "previous");
-
       break;
 
     case "Home":
       nextCard = cards[0] || null;
-
       break;
 
     case "End":
       nextCard = cards[cards.length - 1] || null;
-
       break;
 
     case "Enter":
@@ -871,35 +645,16 @@ function handleCardKeydown(root, event) {
    ========================================================================== */
 
 /*
- * Browse controls do NOT change market selection.
- *
- * They expose hidden portions of the rail so users can inspect additional
- * markets before choosing one.
+ * Browse controls do NOT change selection; they expose hidden parts of the
+ * rail. Previous → first logical market, Next → last logical market.
  */
 
 function scrollRail(root, direction) {
-  const elements = getElements(root);
-
-  if (!elements) {
-    return;
-  }
-
-  const { tabs, cards } = elements;
-
-  if (!tabs || !cards.length) {
-    return;
-  }
-
-  /*
-   * Previous -> logical first market.
-   * Next     -> logical last market.
-   *
-   * Their physical location remains CSS-owned.
-   */
+  const { tabs, cards } = getElements(root);
 
   const target = direction === "previous" ? cards[0] : cards[cards.length - 1];
 
-  if (!target) {
+  if (!tabs || !target) {
     return;
   }
 
@@ -922,6 +677,11 @@ function scrollRail(root, direction) {
    Return to Selected Market
    ========================================================================== */
 
+/*
+ * Restores the selected market to the same centered position used during
+ * ordinary selection.
+ */
+
 function scrollToSelectedMarket(root) {
   const elements = getElements(root);
 
@@ -933,14 +693,7 @@ function scrollToSelectedMarket(root) {
 
   beginProgrammaticCardReveal(root);
 
-  /*
-   * Recovery should restore the selected market to the same visual position
-   * used during ordinary market selection.
-   */
-
-  const moved = revealSelectedCard(activeCard, elements.tabs);
-
-  if (!moved) {
+  if (!revealSelectedCard(activeCard, elements.tabs)) {
     clearProgrammaticScrollState(root);
   }
 
@@ -948,32 +701,24 @@ function scrollToSelectedMarket(root) {
 }
 
 /* ==========================================================================
-   Scroll Controls
+   Controls
    ========================================================================== */
 
 function updateScrollControls(elements, overflow) {
   const { scrollPrevious, scrollNext } = elements;
 
-  const showPrevious = overflow.canScroll && overflow.hasOverflowStart;
-
-  const showNext = overflow.canScroll && overflow.hasOverflowEnd;
-
   if (scrollPrevious) {
-    scrollPrevious.hidden = !showPrevious;
+    scrollPrevious.hidden = !overflow.hasOverflowStart;
 
-    scrollPrevious.disabled = !showPrevious;
+    scrollPrevious.disabled = !overflow.hasOverflowStart;
   }
 
   if (scrollNext) {
-    scrollNext.hidden = !showNext;
+    scrollNext.hidden = !overflow.hasOverflowEnd;
 
-    scrollNext.disabled = !showNext;
+    scrollNext.disabled = !overflow.hasOverflowEnd;
   }
 }
-
-/* ==========================================================================
-   Edge Fades
-   ========================================================================== */
 
 function updateOverflowClasses(elements, overflow) {
   const { wrap } = elements;
@@ -982,22 +727,15 @@ function updateOverflowClasses(elements, overflow) {
     return;
   }
 
-  wrap.classList.toggle(
-    CLASSES.overflowStart,
+  wrap.classList.toggle(CLASSES.overflowStart, overflow.hasOverflowStart);
 
-    overflow.canScroll && overflow.hasOverflowStart,
-  );
-
-  wrap.classList.toggle(
-    CLASSES.overflowEnd,
-
-    overflow.canScroll && overflow.hasOverflowEnd,
-  );
+  wrap.classList.toggle(CLASSES.overflowEnd, overflow.hasOverflowEnd);
 }
 
-/* ==========================================================================
-   Selected Market Recovery Control
-   ========================================================================== */
+/*
+ * The recovery control represents genuine recovery only: it never appears
+ * while JS is intentionally centering the active card.
+ */
 
 function updateSelectedMarketControl(elements) {
   const { root, tabs, selectedMarket, selectedMarketName } = elements;
@@ -1014,33 +752,23 @@ function updateSelectedMarketControl(elements) {
     return;
   }
 
-  const state = getState(root);
-
   const activeCardVisible = isCardFullyVisible(activeCard, tabs);
 
   /*
-   * A programmatic reveal can finish before scrollend is dispatched.
+   * A programmatic reveal can finish before scrollend arrives.
    */
 
-  if (activeCardVisible && state?.suppressSelectedMarket) {
+  if (activeCardVisible && getState(root)?.suppressSelectedMarket) {
     clearProgrammaticScrollState(root);
   }
 
   const suppress = getState(root)?.suppressSelectedMarket ?? false;
 
-  /*
-   * The control represents genuine recovery only.
-   *
-   * It must not appear while JS is intentionally centering the active card.
-   */
-
-  const shouldShow = !activeCardVisible && !suppress;
-
-  selectedMarket.hidden = !shouldShow;
+  selectedMarket.hidden = activeCardVisible || suppress;
 
   const name = getCardName(activeCard);
 
-  if (selectedMarketName) {
+  if (selectedMarketName && selectedMarketName.textContent !== name) {
     selectedMarketName.textContent = name;
   }
 
@@ -1053,20 +781,12 @@ function updateSelectedMarketControl(elements) {
   }
 }
 
-/* ==========================================================================
-   Localized Controls
-   ========================================================================== */
-
 function updateControlLabels(elements) {
   const labels = getLabels();
 
-  if (elements.scrollPrevious) {
-    elements.scrollPrevious.setAttribute("aria-label", labels.previous);
-  }
+  elements.scrollPrevious?.setAttribute("aria-label", labels.previous);
 
-  if (elements.scrollNext) {
-    elements.scrollNext.setAttribute("aria-label", labels.next);
-  }
+  elements.scrollNext?.setAttribute("aria-label", labels.next);
 }
 
 /* ==========================================================================
@@ -1091,20 +811,16 @@ function updateVisualState(root) {
   updateControlLabels(elements);
 }
 
-function requestVisualUpdate(root) {
-  if (!root) {
-    return;
-  }
+/*
+ * Collapses scroll / resize bursts into one rendering pass per frame.
+ */
 
+function requestVisualUpdate(root) {
   const state = getState(root);
 
   if (!state) {
     return;
   }
-
-  /*
-   * Collapse multiple scroll / resize events into one rendering pass.
-   */
 
   if (state.animationFrame !== null) {
     window.cancelAnimationFrame(state.animationFrame);
@@ -1113,17 +829,15 @@ function requestVisualUpdate(root) {
   state.animationFrame = window.requestAnimationFrame(() => {
     state.animationFrame = null;
 
-    if (!root.isConnected) {
-      return;
+    if (root.isConnected) {
+      updateVisualState(root);
     }
-
-    updateVisualState(root);
   });
 }
 
 function requestAllVisualUpdates() {
   roots.forEach((root) => {
-    if (root.isConnected && initializedRoots.has(root)) {
+    if (root.isConnected) {
       requestVisualUpdate(root);
     }
   });
@@ -1133,34 +847,21 @@ function requestAllVisualUpdates() {
    Direction Realignment
    ========================================================================== */
 
+/*
+ * A direction change invalidates the previous physical scroll position.
+ * Recenter the active market so it stays the focal point.
+ */
+
 function realignRootAfterDirectionChange(root) {
-  if (!root || !initializedRoots.has(root)) {
-    return;
-  }
-
   const state = getState(root);
-
-  if (!state) {
-    return;
-  }
-
-  const { tabs } = state.elements;
 
   const activeCard = getActiveCard(root);
 
-  if (!tabs || !activeCard) {
+  if (!state?.elements.tabs || !activeCard) {
     return;
   }
 
   clearProgrammaticScrollState(root);
-
-  /*
-   * Direction changes invalidate the browser's previous physical scroll
-   * position.
-   *
-   * Recenter the active market after the direction has changed so selection
-   * remains the visual focal point in either writing direction.
-   */
 
   window.requestAnimationFrame(() => {
     if (!root.isConnected) {
@@ -1169,13 +870,9 @@ function realignRootAfterDirectionChange(root) {
 
     beginProgrammaticCardReveal(root);
 
-    revealSelectedCard(activeCard, tabs, {
+    revealSelectedCard(activeCard, state.elements.tabs, {
       behavior: "auto",
     });
-
-    /*
-     * Allow new RTL/LTR scroll geometry to settle before updating controls.
-     */
 
     window.requestAnimationFrame(() => {
       if (!root.isConnected) {
@@ -1191,7 +888,7 @@ function realignRootAfterDirectionChange(root) {
 
 function realignAllRootsAfterDirectionChange() {
   roots.forEach((root) => {
-    if (root.isConnected && initializedRoots.has(root)) {
+    if (root.isConnected) {
       realignRootAfterDirectionChange(root);
     }
   });
@@ -1202,9 +899,9 @@ function realignAllRootsAfterDirectionChange() {
    ========================================================================== */
 
 function handleRootClick(root, event) {
-  const previous = event.target.closest(SELECTORS.scrollPrevious);
+  const target = event.target;
 
-  if (previous && root.contains(previous)) {
+  if (target.closest(SELECTORS.scrollPrevious)) {
     event.preventDefault();
 
     scrollRail(root, "previous");
@@ -1212,9 +909,7 @@ function handleRootClick(root, event) {
     return;
   }
 
-  const next = event.target.closest(SELECTORS.scrollNext);
-
-  if (next && root.contains(next)) {
+  if (target.closest(SELECTORS.scrollNext)) {
     event.preventDefault();
 
     scrollRail(root, "next");
@@ -1222,9 +917,7 @@ function handleRootClick(root, event) {
     return;
   }
 
-  const selectedMarket = event.target.closest(SELECTORS.selectedMarket);
-
-  if (selectedMarket && root.contains(selectedMarket)) {
+  if (target.closest(SELECTORS.selectedMarket)) {
     event.preventDefault();
 
     scrollToSelectedMarket(root);
@@ -1232,7 +925,7 @@ function handleRootClick(root, event) {
     return;
   }
 
-  const card = event.target.closest(SELECTORS.card);
+  const card = target.closest(SELECTORS.card);
 
   if (card && root.contains(card)) {
     setActiveCard(card, {
@@ -1246,10 +939,6 @@ function handleRootClick(root, event) {
    Scroll Events
    ========================================================================== */
 
-function handleScrollerScroll(root) {
-  requestVisualUpdate(root);
-}
-
 function handleScrollerScrollEnd(root) {
   const state = getState(root);
 
@@ -1257,51 +946,15 @@ function handleScrollerScrollEnd(root) {
     return;
   }
 
-  if (!state.suppressSelectedMarket) {
-    requestVisualUpdate(root);
+  if (state.suppressSelectedMarket) {
+    const activeCard = getActiveCard(root);
 
-    return;
-  }
-
-  const activeCard = getActiveCard(root);
-
-  const tabs = state.elements.tabs;
-
-  if (activeCard && isCardFullyVisible(activeCard, tabs)) {
-    clearProgrammaticScrollState(root);
+    if (activeCard && isCardFullyVisible(activeCard, state.elements.tabs)) {
+      clearProgrammaticScrollState(root);
+    }
   }
 
   requestVisualUpdate(root);
-}
-
-/* ==========================================================================
-   Resize Observer
-   ========================================================================== */
-
-function initializeResizeObserver(root) {
-  if (!("ResizeObserver" in window)) {
-    return;
-  }
-
-  const state = getState(root);
-
-  if (!state) {
-    return;
-  }
-
-  const { tabs, wrap } = state.elements;
-
-  const observer = new ResizeObserver(() => {
-    requestVisualUpdate(root);
-  });
-
-  observer.observe(tabs);
-
-  if (wrap) {
-    observer.observe(wrap);
-  }
-
-  state.resizeObserver = observer;
 }
 
 /* ==========================================================================
@@ -1309,13 +962,7 @@ function initializeResizeObserver(root) {
    ========================================================================== */
 
 function initializeRootEvents(root) {
-  const state = getState(root);
-
-  if (!state) {
-    return;
-  }
-
-  const { tabs } = state.elements;
+  const { tabs, wrap } = getState(root).elements;
 
   root.addEventListener("click", (event) => {
     handleRootClick(root, event);
@@ -1328,7 +975,7 @@ function initializeRootEvents(root) {
   tabs.addEventListener(
     "scroll",
     () => {
-      handleScrollerScroll(root);
+      requestVisualUpdate(root);
     },
     {
       passive: true,
@@ -1336,10 +983,7 @@ function initializeRootEvents(root) {
   );
 
   /*
-   * Modern browsers expose scrollend.
-   *
-   * The timeout fallback still protects environments where it is absent or
-   * not dispatched reliably.
+   * scrollend where available; the timeout fallback covers the rest.
    */
 
   if ("onscrollend" in tabs) {
@@ -1352,6 +996,20 @@ function initializeRootEvents(root) {
         passive: true,
       },
     );
+  }
+
+  if ("ResizeObserver" in window) {
+    const observer = new ResizeObserver(() => {
+      requestVisualUpdate(root);
+    });
+
+    observer.observe(tabs);
+
+    if (wrap) {
+      observer.observe(wrap);
+    }
+
+    getState(root).resizeObserver = observer;
   }
 }
 
@@ -1388,8 +1046,6 @@ function initializeRoot(root) {
 
   initializeRootEvents(root);
 
-  initializeResizeObserver(root);
-
   initializeActiveCard(root);
 
   requestVisualUpdate(root);
@@ -1400,38 +1056,31 @@ function initializeRoot(root) {
    ========================================================================== */
 
 function handlePreferenceChange(event) {
-  const preferenceName = event.detail?.name;
+  const name = event.detail?.name;
 
-  const relevantPreferences = [
-    "lang",
-    "direction",
-    "fontSize",
-    "motion",
-    "contrast",
-  ];
-
-  if (preferenceName && !relevantPreferences.includes(preferenceName)) {
+  if (name && !GEOMETRY_PREFERENCES.has(name)) {
     return;
   }
 
   /*
-   * Direction changes modify physical scroll geometry.
+   * Direction changes alter physical scroll geometry.
    */
 
-  if (preferenceName === "direction") {
-    window.requestAnimationFrame(() => {
-      realignAllRootsAfterDirectionChange();
-    });
-
-    return;
-  }
-
-  window.requestAnimationFrame(requestAllVisualUpdates);
+  window.requestAnimationFrame(
+    name === "direction"
+      ? realignAllRootsAfterDirectionChange
+      : requestAllVisualUpdates,
+  );
 }
 
 /* ==========================================================================
    Document Direction / Language Observer
    ========================================================================== */
+
+/*
+ * Protects against integrations that update <html dir> or <html lang>
+ * directly. Direction has priority because it changes physical geometry.
+ */
 
 function initializeDocumentObserver() {
   if (documentObserver || !("MutationObserver" in window)) {
@@ -1439,39 +1088,15 @@ function initializeDocumentObserver() {
   }
 
   documentObserver = new MutationObserver((mutations) => {
-    let directionChanged = false;
+    const directionChanged = mutations.some(
+      (mutation) => mutation.attributeName === "dir",
+    );
 
-    let languageChanged = false;
-
-    mutations.forEach((mutation) => {
-      if (mutation.type !== "attributes") {
-        return;
-      }
-
-      if (mutation.attributeName === "dir") {
-        directionChanged = true;
-      }
-
-      if (mutation.attributeName === "lang") {
-        languageChanged = true;
-      }
-    });
-
-    /*
-     * Direction has priority because it changes physical geometry.
-     */
-
-    if (directionChanged) {
-      window.requestAnimationFrame(() => {
-        realignAllRootsAfterDirectionChange();
-      });
-
-      return;
-    }
-
-    if (languageChanged) {
-      window.requestAnimationFrame(requestAllVisualUpdates);
-    }
+    window.requestAnimationFrame(
+      directionChanged
+        ? realignAllRootsAfterDirectionChange
+        : requestAllVisualUpdates,
+    );
   });
 
   documentObserver.observe(document.documentElement, {
@@ -1479,34 +1104,6 @@ function initializeDocumentObserver() {
 
     attributeFilter: ["dir", "lang"],
   });
-}
-
-/* ==========================================================================
-   Global Resize
-   ========================================================================== */
-
-function handleWindowResize() {
-  requestAllVisualUpdates();
-}
-
-/* ==========================================================================
-   Window Load
-   ========================================================================== */
-
-function handleWindowLoad() {
-  /*
-   * Recalculate after initial resources settle.
-   */
-
-  requestAllVisualUpdates();
-}
-
-/* ==========================================================================
-   Language Change
-   ========================================================================== */
-
-function handleLanguageChange() {
-  requestAllVisualUpdates();
 }
 
 /* ==========================================================================
@@ -1520,25 +1117,23 @@ function initializeGlobalEvents() {
 
   globalEventsInitialized = true;
 
-  window.addEventListener("load", handleWindowLoad);
+  window.addEventListener("load", requestAllVisualUpdates);
 
-  window.addEventListener("resize", handleWindowResize, {
+  window.addEventListener("resize", requestAllVisualUpdates, {
     passive: true,
   });
 
-  window.addEventListener("languagechange", handleLanguageChange);
+  document.addEventListener("languagechange", requestAllVisualUpdates);
 
   document.addEventListener("preferencechange", handlePreferenceChange);
 
   initializeDocumentObserver();
 
   /*
-   * Font loading can modify card dimensions after initial layout.
+   * Font loading can change card dimensions after initial layout.
    */
 
-  document.fonts?.ready?.then(() => {
-    requestAllVisualUpdates();
-  });
+  document.fonts?.ready?.then(requestAllVisualUpdates);
 }
 
 /* ==========================================================================

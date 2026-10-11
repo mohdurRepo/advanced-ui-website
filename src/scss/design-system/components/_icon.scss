@@ -1,89 +1,54 @@
+@use "sass:list";
+@use "../abstracts" as ds;
+
 /* ==========================================================================
-   Icon Registry
+   Registry
    ========================================================================== */
 
-$icons: (
-  "check": "check",
-  "search": "search",
-  "sun": "sun",
-  "chevron-up": "chevron-up",
-  "chevron-down": "chevron-down",
-  "chevron-right": "chevron-right",
-  "chevron-left": "chevron-left",
-  "location-pin": "location-pin",
-  "globe": "globe",
-  "calendar-add": "calendar-add",
-  "tadawul": "tadawul-icon",
-  "tadawul-outline": "tadawul-icon-outline",
-  "tadawul-bordered": "tadawul-bordered-icon",
-  "external-link": "external-link",
-  "star-outline": "star-outline",
-  "star-filled": "star-filled",
-  "triangle-up": "triangle-up",
-  "triangle-down": "triangle-down",
-  "arrow-up-right": "arrow-up-right",
-  "trending-up": "trending-up",
-  "trending-down": "trending-down",
-  "info-warning": "info-warning",
-  "riyal": "riyal-symbol",
-  "riyal-parentheses": "riyal-parentheses",
-  "trend-up": "trend-up",
-  "analytics-filter": "analytics-filter",
-  "share": "share",
-  "file-download": "file-download",
-  "copy": "copy",
-  "close-x": "close-x",
-  "pdf-file": "pdf-file",
-  "filter-funnel": "filter-funnel",
-  "sync-refresh": "sync-refresh",
-  "list-bullet": "list-bullet",
-  "chart-bar": "chart-bar",
-  "segment-container": "segment-container",
-  "card-list-view": "card-list-view",
-  "grid-bento-view": "grid-bento-view",
-  "telephone-support": "telephone-support",
-  "scanner-fax": "scanner-fax",
-  "inbox-email": "inbox-email",
-  "bell": "bell",
-  "alert-bell": "alert-bell",
-  "eye": "eye",
-  "eye-off": "eye-off",
-  "key": "key",
-  "avatar": "avatar",
-  "history-clock": "history-clock",
-  "headset-support": "headset-support",
-  "brand-whatsapp": "brand-whatsapp",
-  "mailbox-split": "mailbox-split",
-  "bookmark-ribbon": "bookmark-ribbon",
-  "bookmark-ribbon-outline": "bookmark-ribbon-outline",
-  "calendar-scheduler": "calendar-scheduler",
-  "telephone-handle": "telephone-handle",
-  "at-sign": "at-sign",
-  "add-plus": "add-plus",
-  "edit-pencil": "edit-pencil",
-  "logout-door": "logout-door",
-  "trash-delete": "trash-delete",
-  "folder-import": "folder-import",
-  "play-circle": "play-circle",
-  "play": "play",
-  "edaa": "edaa-icon",
-  "muqassa": "muqassa-icon",
-  "chevron-down-bold": "chevron-down-bold",
-  "chevron-right-bold": "chevron-right-bold",
-  "chevron-left-bold": "chevron-left-bold",
-  "chevron-up-bold": "chevron-up-bold",
-  "menu-dots-vertical": "menu-dots-vertical",
-  "minus-line": "minus-line",
-  "brand-facebook": "brand-facebook",
-  "brand-linkedin": "brand-linkedin",
-  "brand-instagram": "brand-instagram",
-  "brand-x": "brand-x",
-  "brand-youtube": "brand-youtube",
-  "theme-palette": "theme-palette",
-  "panel-dashboard": "panel-dashboard",
-  "network-radar": "network-radar",
-  "analytics-steps": "analytics-steps",
+/**
+ * Icon files are registered once in abstracts/_icons.scss (ds.$icons,
+ * ds.icon-url()). This file only generates the classes.
+ */
+
+/* ==========================================================================
+   Registry Guard
+   ========================================================================== */
+
+/**
+ * Icon names share the `.icon-*` and `.icon-list-*` namespaces with the
+ * modifier classes below. Registering an icon with one of these names
+ * would silently override a modifier, so the build stops instead.
+ */
+
+$-reserved-names: (
+  "xs",
+  "sm",
+  "md",
+  "lg",
+  "xl",
+  "2xl",
+  "end",
+  "flip-rtl",
+  "spin",
+  "pulse",
+  "list",
+  "primary",
+  "secondary",
+  "accent",
+  "muted",
+  "heading",
+  "success",
+  "info",
+  "attention",
+  "warning",
+  "danger"
 );
+
+@each $name, $file in ds.$icons {
+  @if list.index($-reserved-names, $name) {
+    @error "Icon name `#{$name}` clashes with an icon modifier class.";
+  }
+}
 
 /* ==========================================================================
    Base Icon
@@ -94,9 +59,21 @@ $icons: (
  *
  * The host element keeps its inherited typography. Icon dimensions and
  * alignment are controlled independently through local custom properties.
+ *
+ * Every icon property is reset on the host, so nothing leaks in from an
+ * ancestor: a .has-icon without an .icon-<name> class never shows an
+ * icon that belongs to its parent.
+ *
+ * .has-icon sets display: inline-flex. On a block element (div, li) this
+ * makes the element inline; wrap the content instead.
+ *
+ * The icon is decorative (a pseudo-element is not announced). When an icon
+ * carries meaning, e.g. a market direction, the meaning must also be in the
+ * text or in a visually hidden label.
  */
 
 .has-icon {
+  --icon-svg: none;
   --icon-size: 0.75em;
   --icon-gap: var(--space-2);
   --icon-animation: none;
@@ -127,24 +104,101 @@ $icons: (
 
   animation: var(--icon-animation);
 
-  transition:
-    transform var(--transition-normal),
-    opacity var(--transition-normal);
+  @include ds.transition((transform, opacity));
+}
+
+/* ==========================================================================
+   Inline SVG
+   ========================================================================== */
+
+/**
+ * Sets its own --icon-size so it never inherits a size class from an
+ * ancestor. Size classes below still apply to the element itself.
+ */
+
+.svg-icon {
+  --icon-size: 1em;
+
+  display: inline-flex;
+  flex: 0 0 auto;
+
+  inline-size: var(--icon-size);
+  block-size: var(--icon-size);
+
+  color: currentColor;
+
+  fill: currentColor;
+  stroke: currentColor;
+
+  line-height: 1;
+  vertical-align: middle;
+}
+
+.svg-icon svg {
+  display: block;
+
+  inline-size: 100%;
+  block-size: 100%;
+}
+
+/* ==========================================================================
+   Saudi Riyal Symbol
+   ========================================================================== */
+
+/**
+ * The element's own text (e.g. "SAR" / "ر.س") stays in the DOM for screen
+ * readers and is clipped visually.
+ *
+ * Unicode 17 adds a Saudi Riyal sign (U+20C1), but font support is still
+ * limited, so the mask remains the reliable rendering.
+ */
+
+.sar-symbol {
+  --icon-size: 1em;
+
+  display: inline-block;
+
+  inline-size: var(--icon-size);
+  block-size: var(--icon-size);
+
+  overflow: hidden;
+
+  vertical-align: middle;
+  line-height: 1;
+
+  text-indent: 100%;
+  white-space: nowrap;
+}
+
+.sar-symbol::before {
+  content: "";
+
+  display: block;
+
+  inline-size: 100%;
+  block-size: 100%;
+
+  background-color: currentColor;
+
+  -webkit-mask: ds.icon-url("riyal") center / contain no-repeat;
+  mask: ds.icon-url("riyal") center / contain no-repeat;
 }
 
 /* ==========================================================================
    Registered Icons
    ========================================================================== */
 
-@each $name, $file in $icons {
+@each $name, $file in ds.$icons {
   .icon-#{$name} {
-    --icon-svg: url("/assets/icons/#{$file}.svg");
+    --icon-svg: #{ds.icon-url($name)};
   }
 }
 
 /* ==========================================================================
    Sizes
    ========================================================================== */
+
+/* Declared after .has-icon, .svg-icon and .sar-symbol so they win. */
 
 .icon-xs {
   --icon-size: 0.75rem;
@@ -189,7 +243,12 @@ $icons: (
    Direction
    ========================================================================== */
 
-html[dir="rtl"] .icon-flip-rtl {
+/**
+ * :dir() follows the nearest dir attribute, so an icon inside an LTR block
+ * on an Arabic page is not flipped.
+ */
+
+.icon-flip-rtl:dir(rtl) {
   --icon-scale-x: -1;
 }
 
@@ -197,8 +256,18 @@ html[dir="rtl"] .icon-flip-rtl {
    Animation
    ========================================================================== */
 
+/**
+ * With the site "Reduce motion" setting, the spinner becomes a slow pulse
+ * instead of stopping, so a loading state still looks active.
+ * The pulse only changes opacity and is kept as it is.
+ */
+
 .icon-spin {
   --icon-animation: icon-spin 1s linear infinite;
+
+  @include ds.reduced-motion {
+    --icon-animation: icon-pulse 2s ease-in-out infinite;
+  }
 }
 
 .icon-pulse {
@@ -218,210 +287,16 @@ html[dir="rtl"] .icon-flip-rtl {
 }
 
 /* ==========================================================================
-   Icon List
+   Colors
    ========================================================================== */
 
 /**
- * Applies one shared icon to every direct list item.
+ * Meaningful icons need 3:1 against their background.
  *
- * Example:
- *
- * <ul class="icon-list icon-list-check">
- *   <li>First item</li>
- *   <li>Second item</li>
- * </ul>
+ * Warning uses --color-warning-text, the text-safe warning colour.
+ * Attention and secondary are below 3:1 on light surfaces: use them only
+ * for decorative icons or on dark surfaces.
  */
-
-.icon-list {
-  --icon-list-size: 1em;
-  --icon-list-gap: var(--space-3);
-  --icon-list-item-gap: var(--space-2);
-  --icon-list-color: var(--color-primary);
-  --icon-list-scale-x: 1;
-
-  display: grid;
-
-  gap: var(--icon-list-gap);
-
-  margin: 0;
-  padding: 0;
-
-  list-style: none;
-}
-
-.icon-list > li {
-  display: flex;
-  align-items: flex-start;
-
-  gap: var(--icon-list-item-gap);
-  min-width: 0;
-}
-
-.icon-list > li::before {
-  content: "";
-
-  flex: 0 0 auto;
-
-  inline-size: var(--icon-list-size);
-  block-size: var(--icon-list-size);
-
-  margin-block-start: 0.2em;
-
-  background-color: var(--icon-list-color);
-
-  -webkit-mask: var(--icon-svg) center / contain no-repeat;
-  mask: var(--icon-svg) center / contain no-repeat;
-
-  transform: scaleX(var(--icon-list-scale-x));
-}
-
-/* ==========================================================================
-   Registered Icon Lists
-   ========================================================================== */
-
-@each $name, $file in $icons {
-  .icon-list-#{$name} {
-    --icon-svg: url("/assets/icons/#{$file}.svg");
-  }
-}
-
-/* ==========================================================================
-   Icon List Sizes
-   ========================================================================== */
-
-.icon-list-xs {
-  --icon-list-size: 0.75rem;
-}
-
-.icon-list-sm {
-  --icon-list-size: 1rem;
-}
-
-.icon-list-md {
-  --icon-list-size: 1.25rem;
-}
-
-.icon-list-lg {
-  --icon-list-size: 1.5rem;
-}
-
-/* ==========================================================================
-   Icon List Colors
-   ========================================================================== */
-
-.icon-list-primary {
-  --icon-list-color: var(--color-primary);
-}
-
-.icon-list-secondary {
-  --icon-list-color: var(--color-secondary);
-}
-
-.icon-list-accent {
-  --icon-list-color: var(--color-accent);
-}
-
-.icon-list-muted {
-  --icon-list-color: var(--color-text-muted);
-}
-
-.icon-list-heading {
-  --icon-list-color: var(--color-heading);
-}
-
-.icon-list-success {
-  --icon-list-color: var(--color-success);
-}
-
-.icon-list-info {
-  --icon-list-color: var(--color-info);
-}
-
-.icon-list-attention {
-  --icon-list-color: var(--color-attention);
-}
-
-.icon-list-warning {
-  --icon-list-color: var(--color-warning);
-}
-
-.icon-list-danger {
-  --icon-list-color: var(--color-danger);
-}
-
-/* ==========================================================================
-   Icon List Direction
-   ========================================================================== */
-
-html[dir="rtl"] .icon-list-flip-rtl {
-  --icon-list-scale-x: -1;
-}
-
-/* ==========================================================================
-   Inline SVG
-   ========================================================================== */
-
-.svg-icon {
-  display: inline-flex;
-  flex: 0 0 auto;
-
-  inline-size: var(--icon-size, 1em);
-  block-size: var(--icon-size, 1em);
-
-  color: currentColor;
-
-  fill: currentColor;
-  stroke: currentColor;
-
-  line-height: 1;
-  vertical-align: middle;
-}
-
-.svg-icon svg {
-  display: block;
-
-  inline-size: 100%;
-  block-size: 100%;
-}
-
-/* ==========================================================================
-   Saudi Riyal Symbol
-   ========================================================================== */
-
-.sar-symbol {
-  --icon-size: 1em;
-
-  display: inline-block;
-
-  inline-size: var(--icon-size);
-  block-size: var(--icon-size);
-
-  overflow: hidden;
-
-  vertical-align: middle;
-  line-height: 1;
-
-  text-indent: 100%;
-  white-space: nowrap;
-}
-
-.sar-symbol::before {
-  content: "";
-
-  display: block;
-
-  inline-size: 100%;
-  block-size: 100%;
-
-  background-color: currentColor;
-
-  -webkit-mask: url("/assets/icons/riyal-symbol.svg") center / contain no-repeat;
-  mask: url("/assets/icons/riyal-symbol.svg") center / contain no-repeat;
-}
-
-/* ==========================================================================
-   Colors
-   ========================================================================== */
 
 .icon-primary {
   color: var(--color-primary);
@@ -456,7 +331,7 @@ html[dir="rtl"] .icon-list-flip-rtl {
 }
 
 .icon-warning {
-  color: var(--color-warning);
+  color: var(--color-warning-text);
 }
 
 .icon-danger {
@@ -464,22 +339,170 @@ html[dir="rtl"] .icon-list-flip-rtl {
 }
 
 /* ==========================================================================
-   Reduced Motion
+   Icon List
    ========================================================================== */
 
-/*
- * Global motion tokens already remove transition durations.
+/**
+ * Applies one shared icon to every direct list item.
  *
- * Explicit animation disabling remains necessary here because icon-spin and
- * icon-pulse use keyframe animations rather than transition tokens.
+ * Example:
+ *
+ * <ul class="icon-list icon-list-check">
+ *   <li>First item</li>
+ *   <li>Second item</li>
+ * </ul>
+ *
+ * The list uses its own --icon-list-svg so a .has-icon inside an item
+ * never picks up the list icon.
  */
 
-@media (prefers-reduced-motion: reduce) {
-  .has-icon::before {
-    animation: none;
+.icon-list {
+  --icon-list-svg: none;
+  --icon-list-size: 1em;
+  --icon-list-gap: var(--space-3);
+  --icon-list-item-gap: var(--space-2);
+  --icon-list-color: var(--color-primary);
+  --icon-list-scale-x: 1;
+
+  display: grid;
+
+  gap: var(--icon-list-gap);
+
+  margin: 0;
+  padding: 0;
+
+  list-style: none;
+}
+
+.icon-list > li {
+  display: flex;
+  align-items: flex-start;
+
+  gap: var(--icon-list-item-gap);
+  min-inline-size: 0;
+}
+
+.icon-list > li::before {
+  content: "";
+
+  flex: 0 0 auto;
+
+  inline-size: var(--icon-list-size);
+  block-size: var(--icon-list-size);
+
+  margin-block-start: 0.2em;
+
+  background-color: var(--icon-list-color);
+
+  -webkit-mask: var(--icon-list-svg) center / contain no-repeat;
+  mask: var(--icon-list-svg) center / contain no-repeat;
+
+  transform: scaleX(var(--icon-list-scale-x));
+}
+
+/* ==========================================================================
+   Registered Icon Lists
+   ========================================================================== */
+
+@each $name, $file in ds.$icons {
+  .icon-list-#{$name} {
+    --icon-list-svg: #{ds.icon-url($name)};
   }
 }
 
-html[data-motion-preference="reduce"] .has-icon::before {
-  animation: none;
+/* ==========================================================================
+   Icon List Sizes
+   ========================================================================== */
+
+.icon-list-xs {
+  --icon-list-size: 0.75rem;
+}
+
+.icon-list-sm {
+  --icon-list-size: 1rem;
+}
+
+.icon-list-md {
+  --icon-list-size: 1.25rem;
+}
+
+.icon-list-lg {
+  --icon-list-size: 1.5rem;
+}
+
+/* ==========================================================================
+   Icon List Colors
+   ========================================================================== */
+
+/* Same contrast rules as the icon colours above. */
+
+.icon-list-primary {
+  --icon-list-color: var(--color-primary);
+}
+
+.icon-list-secondary {
+  --icon-list-color: var(--color-secondary);
+}
+
+.icon-list-accent {
+  --icon-list-color: var(--color-accent);
+}
+
+.icon-list-muted {
+  --icon-list-color: var(--color-text-muted);
+}
+
+.icon-list-heading {
+  --icon-list-color: var(--color-heading);
+}
+
+.icon-list-success {
+  --icon-list-color: var(--color-success);
+}
+
+.icon-list-info {
+  --icon-list-color: var(--color-info);
+}
+
+.icon-list-attention {
+  --icon-list-color: var(--color-attention);
+}
+
+.icon-list-warning {
+  --icon-list-color: var(--color-warning-text);
+}
+
+.icon-list-danger {
+  --icon-list-color: var(--color-danger);
+}
+
+/* ==========================================================================
+   Icon List Direction
+   ========================================================================== */
+
+.icon-list-flip-rtl:dir(rtl) {
+  --icon-list-scale-x: -1;
+}
+
+/* ==========================================================================
+   Forced Colors
+   ========================================================================== */
+
+/**
+ * Windows High Contrast replaces background-color with the system
+ * background, which makes every masked icon invisible. Masked icons opt out
+ * and paint with the system text colour instead.
+ *
+ * This is an OS rendering mode, not a motion-style preference, so the media
+ * query is the correct tool here.
+ */
+
+@media (forced-colors: active) {
+  .has-icon::before,
+  .icon-list > li::before,
+  .sar-symbol::before {
+    forced-color-adjust: none;
+
+    background-color: CanvasText;
+  }
 }

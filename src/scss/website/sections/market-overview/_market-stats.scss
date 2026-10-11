@@ -8,20 +8,19 @@
  * Responsibilities:
  *
  * - Own the Market Statistics presentation.
- * - Fill the complete Details statistics region.
- * - Present desktop statistics as a balanced 2 × 4 dashboard.
- * - Own statistic label/value typography.
- * - Own statistic-specific label indicators such as Symbols up/down.
- * - Own supporting unit icons such as Riyal.
- * - Provide responsive tablet/mobile layouts.
+ * - Fill the complete Details statistics region on XL.
+ * - Present statistics as a balanced two-column dashboard.
+ * - Own statistic label / value typography.
+ * - Own statistic label indicators such as Symbols up / down.
+ * - Size supporting unit icons such as the Riyal.
+ * - Provide responsive tablet / mobile layouts.
  *
  * This file does NOT own:
  *
  * - overall Details height;
  * - Movers layout;
  * - chart geometry;
- * - shared .market-change arrow geometry;
- * - global positive / negative price-state semantics;
+ * - market-change layout, color and direction icons (market-status.scss);
  * - mobile Details disclosure behavior.
  */
 
@@ -34,13 +33,11 @@
      Surface
      -------------------------------------------------------------------- */
 
-  --market-stats-bg: var(--market-details-side-bg, #102f45);
+  --market-stats-bg: var(--market-details-side-bg, #0d1e2b);
 
   --market-stats-fg: var(--market-details-fg, #ffffff);
 
   --market-stats-muted: var(--market-details-muted, #b7c7d4);
-
-  --market-stats-muted-strong: var(--market-details-muted-strong, #d1dce3);
 
   --market-stats-line: var(--market-panel-line, rgb(255 255 255 / 0.12));
 
@@ -52,15 +49,23 @@
 
   --market-stats-hover: rgb(255 255 255 / 0.025);
 
+  --market-stats-indicator-size: 0.625rem;
+
   /* -----------------------------------------------------------------------
      Layout
      -------------------------------------------------------------------- */
+
+  /*
+   * Rows are created as needed and share the available height equally, so
+   * panels with 4, 6 or 8 statistics all fill the XL canvas without an
+   * empty trailing row.
+   */
 
   display: grid;
 
   grid-template-columns: repeat(2, minmax(0, 1fr));
 
-  grid-template-rows: repeat(4, minmax(0, 1fr));
+  grid-auto-rows: minmax(0, 1fr);
 
   align-content: stretch;
   align-items: stretch;
@@ -89,20 +94,7 @@
    Details Integration
    ========================================================================== */
 
-.market-details-panel__stats {
-  min-inline-size: 0;
-  min-block-size: 0;
-}
-
 .market-details-panel__stats > .market-stats {
-  flex: 1 1 0;
-
-  inline-size: 100%;
-  block-size: 100%;
-
-  min-inline-size: 0;
-  min-block-size: 0;
-
   align-self: stretch;
 }
 
@@ -111,10 +103,8 @@
    ========================================================================== */
 
 /*
- * Keep each metric visually open.
- *
- * Individual card borders and vertical dividers are intentionally avoided.
- * The entire Stats region should read as one financial information surface.
+ * One open information surface: no card borders, no vertical divider, only
+ * horizontal row separators.
  */
 
 .market-stats__item {
@@ -127,7 +117,6 @@
   gap: 0.375rem;
 
   inline-size: 100%;
-  block-size: 100%;
 
   min-inline-size: 0;
   min-block-size: 0;
@@ -138,6 +127,7 @@
   padding-inline: var(--space-3, #{ds.space(3)});
 
   border: 0;
+  border-block-end: 1px solid var(--market-stats-line-soft);
 
   background: transparent;
 
@@ -153,27 +143,22 @@
    ========================================================================== */
 
 /*
- * Desktop structure:
+ * Every item draws a separator except those in the last row. This works for
+ * any item count:
  *
- *   1 | 2
- *   -----
- *   3 | 4
- *   -----
- *   5 | 6
- *   -----
- *   7 | 8
- *
- * Only horizontal row separators are used.
- * There is deliberately no center vertical divider.
+ * - the last item never has one;
+ * - in two columns, the item before it has none either when it starts the
+ *   last row (odd position).
  */
 
-.market-stats__item:nth-child(1),
-.market-stats__item:nth-child(2),
-.market-stats__item:nth-child(3),
-.market-stats__item:nth-child(4),
-.market-stats__item:nth-child(5),
-.market-stats__item:nth-child(6) {
-  border-block-end: 1px solid var(--market-stats-line-soft);
+.market-stats__item:last-child {
+  border-block-end: 0;
+}
+
+@include ds.respond-up(sm) {
+  .market-stats__item:nth-last-child(2):nth-child(odd) {
+    border-block-end: 0;
+  }
 }
 
 /* ==========================================================================
@@ -192,8 +177,6 @@
 
   margin: 0;
 
-  overflow: visible;
-
   color: var(--market-stats-muted);
 
   font-size: var(--text-sm);
@@ -202,10 +185,6 @@
 
   text-align: start;
 }
-
-/* ==========================================================================
-   Label Text
-   ========================================================================== */
 
 .market-stats__label-text {
   min-inline-size: 0;
@@ -222,71 +201,23 @@
    ========================================================================== */
 
 /*
- * Used for Riyal / unit indicators.
- *
- * The icon is intentionally slightly smaller than the value typography so it
- * supports the label rather than competing with the metric.
+ * Riyal / unit indicators: a normal registry icon, slightly smaller than
+ * the value so it supports the label rather than competing with it.
  */
 
 .market-stats__icon {
-  --market-stats-icon-size: 1rem;
+  --icon-size: 1rem;
 
-  position: static;
-
-  inset: auto;
-
-  display: inline-grid;
-  place-items: center;
-
-  flex: 0 0 var(--market-stats-icon-size);
-
-  inline-size: var(--market-stats-icon-size);
-  block-size: var(--market-stats-icon-size);
-
-  min-inline-size: var(--market-stats-icon-size);
-  min-block-size: var(--market-stats-icon-size);
-
-  margin: 0;
-  padding: 0;
-
-  overflow: visible;
-
-  //color: var(--color-primary);
-
-  font-size: var(--market-stats-icon-size);
-  line-height: 1;
-
-  vertical-align: middle;
-
-  transform: none;
-}
-
-/* ==========================================================================
-   Riyal Icon
-   ========================================================================== */
-
-.market-stats__icon.icon-riyal {
-  --market-stats-icon-size: 1rem;
-}
-
-/* ==========================================================================
-   SVG Supporting Icons
-   ========================================================================== */
-
-.market-stats__icon svg {
-  display: block;
-
-  inline-size: 100%;
-  block-size: 100%;
-
-  overflow: visible;
-
-  fill: currentColor;
+  flex: 0 0 auto;
 }
 
 /* ==========================================================================
    Value
    ========================================================================== */
+
+/*
+ * Financial values stay LTR in both document directions.
+ */
 
 .market-stats__value {
   display: inline-flex;
@@ -297,8 +228,6 @@
   min-inline-size: 0;
 
   margin: 0;
-
-  overflow: visible;
 
   color: var(--market-stats-fg);
 
@@ -314,27 +243,30 @@
 
   direction: ltr;
   unicode-bidi: isolate;
+
+  data,
+  .numeric {
+    display: inline-block;
+
+    min-inline-size: 0;
+
+    color: inherit;
+
+    font: inherit;
+
+    white-space: nowrap;
+  }
 }
 
-/* ==========================================================================
-   Numeric Content
-   ========================================================================== */
+/*
+ * Movement values: market-status.scss owns layout, color and icon. Stats
+ * only aligns them to the start of the cell.
+ */
 
-.market-stats__value data,
-.market-stats__value .numeric {
-  display: inline-block;
+.market-stats__value.market-change {
+  justify-content: flex-start;
 
-  min-inline-size: 0;
-
-  color: inherit;
-
-  font: inherit;
-
-  line-height: inherit;
-
-  font-variant-numeric: tabular-nums;
-
-  white-space: nowrap;
+  text-align: start;
 }
 
 /* ==========================================================================
@@ -342,205 +274,76 @@
    ========================================================================== */
 
 /*
- * These are statistic labels such as:
- *
- *   Symbols down
- *   Symbols up
- *
- * They are not `.market-change` values, therefore their small directional
- * indicator belongs to Market Stats itself.
+ * Labels such as "Symbols up" / "Symbols down". They are not market-change
+ * values, so their indicator belongs here. Same registry icons as the
+ * movement arrows, drawn as a mask in the label color.
  */
 
-.market-stats__label--up,
-.market-stats__label--down {
-  position: relative;
-
-  gap: 0.375rem;
-
-  overflow: visible;
-}
-
 .market-stats__label--up {
-  color: var(--color-market-positive, #4ade80);
+  --market-stats-label-icon: #{ds.icon-url("triangle-up")};
+
+  color: var(--color-market-positive);
 }
 
 .market-stats__label--down {
-  color: var(--color-market-negative, #fb7185);
+  --market-stats-label-icon: #{ds.icon-url("triangle-down")};
+
+  color: var(--color-market-negative);
 }
 
 .market-stats__label--neutral {
   color: var(--color-market-neutral, var(--market-stats-muted));
 }
 
-/* ==========================================================================
-   Directional Statistic Label Indicator
-   ========================================================================== */
-
-/*
- * Use a real-size shape rather than a zero-size CSS border triangle.
- *
- * This prevents clipping and remains visually compatible with the shared
- * movement arrows without coupling Stats to their implementation.
- */
-
 .market-stats__label--up::before,
 .market-stats__label--down::before {
   content: "";
 
-  display: block;
-
-  flex: 0 0 0.625rem;
-
-  inline-size: 0.625rem;
-  block-size: 0.4375rem;
-
-  min-inline-size: 0.625rem;
-  min-block-size: 0.4375rem;
-
-  margin: 0;
-
-  background: currentColor;
-
-  pointer-events: none;
-}
-
-.market-stats__label--up::before {
-  clip-path: polygon(50% 0, 100% 100%, 0 100%);
-}
-
-.market-stats__label--down::before {
-  clip-path: polygon(0 0, 100% 0, 50% 100%);
-}
-
-/* ==========================================================================
-   Market Change Integration
-   ========================================================================== */
-
-/*
- * market-status.scss owns:
- *
- * - .market-change layout;
- * - .market-change__icon geometry;
- * - positive / negative / neutral movement arrows.
- *
- * Stats only controls placement and typography inside its own cells.
- */
-
-.market-stats__value.market-change {
-  display: inline-flex;
-  align-items: center;
-  justify-content: flex-start;
-
-  gap: 0.375rem;
-
-  min-inline-size: 0;
-  min-block-size: 1rem;
-
-  max-inline-size: 100%;
-
-  overflow: visible;
-
-  font-size: var(--text-base);
-  font-weight: ds.font-weight("heavy");
-  line-height: 1.15;
-
-  text-align: start;
-
-  white-space: nowrap;
-
-  direction: ltr;
-  unicode-bidi: isolate;
-}
-
-.market-stats__value.market-change .market-change__icon {
   flex: 0 0 auto;
 
-  overflow: visible;
-}
+  inline-size: var(--market-stats-indicator-size);
+  block-size: var(--market-stats-indicator-size);
 
-/* ==========================================================================
-   Legacy Movement Compatibility
-   ========================================================================== */
+  background-color: currentColor;
 
-/*
- * Older Details panels may still use:
- *
- *   market-change--up
- *   market-change--down
- *   market-change--neutral
- *
- * Keep semantic color compatibility until all panels are migrated to the
- * shared price-up / price-down / price-neutral utilities.
- *
- * Arrow geometry remains owned by market-status.scss.
- */
+  -webkit-mask: var(--market-stats-label-icon) center / contain no-repeat;
+  mask: var(--market-stats-label-icon) center / contain no-repeat;
 
-.market-stats__value.market-change--up {
-  color: var(--color-market-positive, #4ade80);
-}
+  pointer-events: none;
 
-.market-stats__value.market-change--down {
-  color: var(--color-market-negative, #fb7185);
-}
-
-.market-stats__value.market-change--neutral {
-  color: var(--color-market-neutral, var(--market-stats-muted));
+  print-color-adjust: exact;
+  -webkit-print-color-adjust: exact;
 }
 
 /* ==========================================================================
    Mobile Summary Marker
    ========================================================================== */
 
+/*
+ * Values represented by the dedicated mobile summary are hidden in the
+ * expanded mobile statistics (see Mobile below).
+ */
+
 .market-stats__item--mobile-summary {
   display: flex;
 }
 
 /* ==========================================================================
-   XL Desktop
+   Below XL: Content-sized
    ========================================================================== */
 
 /*
- * At XL+ the Details panel owns the shared dashboard height.
- *
- * Four equal rows make Stats fill that height exactly even when labels or
- * numeric values have different content lengths.
+ * Only XL has a fixed Details canvas to fill. Below it, Stats size to their
+ * content.
  */
 
-@include ds.respond-up(xl) {
+@include ds.respond-down(xl) {
   .market-stats {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-
-    grid-template-rows: repeat(4, minmax(0, 1fr));
-
-    block-size: 100%;
-  }
-
-  .market-stats__item {
-    block-size: 100%;
-  }
-}
-
-/* ==========================================================================
-   Constrained Desktop
-   ========================================================================== */
-
-@include ds.respond-between(lg, xl) {
-  .market-stats {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-
-    grid-template-rows: none;
-
     grid-auto-rows: minmax(5rem, auto);
 
     block-size: auto;
 
     overflow: visible;
-  }
-
-  .market-stats__item {
-    block-size: auto;
-
-    min-block-size: 5rem;
   }
 }
 
@@ -549,23 +352,7 @@
    ========================================================================== */
 
 @include ds.respond-down(lg) {
-  .market-stats {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-
-    grid-template-rows: none;
-
-    grid-auto-rows: minmax(5rem, auto);
-
-    block-size: auto;
-
-    overflow: visible;
-  }
-
   .market-stats__item {
-    block-size: auto;
-
-    min-block-size: 5rem;
-
     padding-inline: var(--market-panel-space-sm);
   }
 }
@@ -575,45 +362,12 @@
    ========================================================================== */
 
 @include ds.respond-down(md) {
-  /*
-   * Primary values represented by the dedicated mobile summary should not be
-   * duplicated in the expanded mobile statistics area.
-   */
-
   .market-stats__item--mobile-summary {
     display: none;
   }
 
-  .market-stats {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-
-    grid-template-rows: none;
-
-    grid-auto-rows: minmax(5rem, auto);
-
-    block-size: auto;
-
-    overflow: visible;
-  }
-
   .market-stats__item {
-    justify-content: center;
-
-    block-size: auto;
-
-    min-block-size: 5rem;
-
     padding-block: var(--space-3, #{ds.space(3)});
-    padding-inline: var(--market-panel-space-sm);
-  }
-
-  .market-stats__label {
-    font-size: var(--text-sm);
-  }
-
-  .market-stats__value,
-  .market-stats__value.market-change {
-    font-size: var(--text-base);
   }
 }
 
@@ -623,91 +377,37 @@
 
 @include ds.respond-down(sm) {
   .market-stats {
-    grid-template-columns: minmax(0, 1fr);
+    --market-stats-indicator-size: 0.5625rem;
 
-    grid-template-rows: none;
+    grid-template-columns: minmax(0, 1fr);
 
     grid-auto-rows: auto;
   }
 
-  /*
-   * In the single-column layout every visible metric becomes its own row,
-   * therefore every item except the final one receives a separator.
-   */
-
-  .market-stats__item,
-  .market-stats__item:nth-child(1),
-  .market-stats__item:nth-child(2),
-  .market-stats__item:nth-child(3),
-  .market-stats__item:nth-child(4),
-  .market-stats__item:nth-child(5),
-  .market-stats__item:nth-child(6) {
-    block-size: auto;
-
+  .market-stats__item {
     min-block-size: 4.5rem;
 
     padding-block: var(--space-2, #{ds.space(2)});
     padding-inline: var(--space-2, #{ds.space(2)});
-
-    border-block-end: 1px solid var(--market-stats-line-soft);
   }
 
-  .market-stats__item:last-child {
-    border-block-end: 0;
-  }
-
-  .market-stats__label {
-    font-size: var(--text-sm);
-  }
-
-  .market-stats__value,
-  .market-stats__value.market-change {
+  .market-stats__value {
     font-size: var(--text-sm);
   }
 
   .market-stats__icon {
-    --market-stats-icon-size: 0.9375rem;
-  }
-
-  .market-stats__label--up::before,
-  .market-stats__label--down::before {
-    flex-basis: 0.5625rem;
-
-    inline-size: 0.5625rem;
-    min-inline-size: 0.5625rem;
-
-    block-size: 0.375rem;
-    min-block-size: 0.375rem;
-  }
-}
-
-/* ==========================================================================
-   RTL
-   ========================================================================== */
-
-html[dir="rtl"] {
-  .market-stats__label {
-    text-align: start;
-  }
-
-  /*
-   * Numeric financial values intentionally remain LTR so signs, decimals and
-   * percentages maintain a predictable visual order.
-   */
-
-  .market-stats__value,
-  .market-stats__value.market-change {
-    direction: ltr;
-
-    unicode-bidi: isolate;
-
-    text-align: start;
+    --icon-size: 0.9375rem;
   }
 }
 
 /* ==========================================================================
    High Contrast
    ========================================================================== */
+
+/*
+ * Label colors stay: high contrast strengthens the overview market tokens
+ * instead of removing them.
+ */
 
 html[data-contrast="high"] {
   .market-stats {
@@ -723,16 +423,6 @@ html[data-contrast="high"] {
 
     outline-offset: -1px;
   }
-
-  .market-stats__icon {
-    color: currentColor;
-  }
-
-  .market-stats__label--up,
-  .market-stats__label--down,
-  .market-stats__label--neutral {
-    color: currentColor;
-  }
 }
 
 /* ==========================================================================
@@ -747,29 +437,30 @@ html[data-contrast="high"] {
 
     --market-stats-muted: CanvasText;
 
-    --market-stats-muted-strong: CanvasText;
-
     --market-stats-line: CanvasText;
 
     --market-stats-line-soft: CanvasText;
 
     --market-stats-hover: Canvas;
-
-    forced-color-adjust: auto;
   }
 
-  .market-stats__label,
-  .market-stats__label--up,
-  .market-stats__label--down,
-  .market-stats__label--neutral,
-  .market-stats__value,
-  .market-stats__icon {
+  .market-stats__label:is(
+    .market-stats__label--up,
+    .market-stats__label--down,
+    .market-stats__label--neutral
+  ) {
     color: CanvasText;
   }
 
+  /*
+   * Forced colors would replace the mask's background with Canvas.
+   */
+
   .market-stats__label--up::before,
   .market-stats__label--down::before {
-    background: CanvasText;
+    forced-color-adjust: none;
+
+    background-color: CanvasText;
   }
 
   .market-stats__item:hover {
@@ -780,74 +471,47 @@ html[data-contrast="high"] {
 }
 
 /* ==========================================================================
-   Reduced Motion
-   ========================================================================== */
-
-@media (prefers-reduced-motion: reduce) {
-  .market-stats__item {
-    transition: none;
-  }
-}
-
-html[data-motion-preference="reduce"] {
-  .market-stats__item {
-    transition: none;
-  }
-}
-
-/* ==========================================================================
    Print
    ========================================================================== */
 
 @media print {
   .market-stats {
-    display: grid;
+    --market-stats-bg: #ffffff;
+
+    --market-stats-fg: #000000;
+
+    --market-stats-muted: #000000;
+
+    --market-stats-line-soft: #000000;
 
     grid-template-columns: repeat(2, minmax(0, 1fr));
-
-    grid-template-rows: none;
 
     grid-auto-rows: auto;
 
     block-size: auto;
 
     overflow: visible;
-
-    background: #ffffff;
-
-    color: #000000;
   }
 
-  .market-stats__item,
-  .market-stats__item--mobile-summary {
-    display: flex;
-
-    block-size: auto;
-
+  .market-stats__item {
     min-block-size: 4rem;
 
     break-inside: avoid;
-
-    border-block-end: 1px solid #000000;
-
-    background: #ffffff;
   }
 
-  .market-stats__item:nth-last-child(-n + 2) {
-    border-block-end: 0;
+  /*
+   * Printed statistics include the values shown in the mobile summary.
+   */
+
+  .market-stats__item--mobile-summary {
+    display: flex;
   }
 
-  .market-stats__label,
-  .market-stats__label--up,
-  .market-stats__label--down,
-  .market-stats__label--neutral,
-  .market-stats__value,
-  .market-stats__icon {
+  .market-stats__label:is(
+    .market-stats__label--up,
+    .market-stats__label--down,
+    .market-stats__label--neutral
+  ) {
     color: #000000;
-  }
-
-  .market-stats__label--up::before,
-  .market-stats__label--down::before {
-    background: #000000;
   }
 }

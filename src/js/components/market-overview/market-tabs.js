@@ -5,13 +5,10 @@
 /*
  * Responsibilities:
  *
- * - Manage nested Market Details tab interfaces.
- * - Support Market View tabs.
- * - Support Market Movers tabs.
+ * - Manage nested Market Details tab interfaces (Market Views and Movers).
  * - Maintain roving tabindex.
  * - Synchronize aria-selected / aria-hidden / hidden / inert.
- * - Support keyboard navigation.
- * - Respect RTL horizontal navigation.
+ * - Support keyboard navigation, following visual direction in RTL.
  * - Publish market:tabchange for dependent components.
  * - Reset newly activated panel scroll position.
  *
@@ -23,6 +20,12 @@
  * - Bridge geometry.
  * - Market chart implementation.
  */
+
+import {
+  dispatchCompatibilityResize,
+  getScrollBehavior,
+  isRTL,
+} from "./market-shared";
 
 /* ==========================================================================
    Selectors
@@ -41,24 +44,16 @@ const SELECTORS = {
 };
 
 /* ==========================================================================
-   Classes
+   Classes / Events / Types
    ========================================================================== */
 
 const CLASSES = {
   active: "is-active",
 };
 
-/* ==========================================================================
-   Events
-   ========================================================================== */
-
 const EVENTS = {
   change: "market:tabchange",
 };
-
-/* ==========================================================================
-   Types
-   ========================================================================== */
 
 const TYPES = {
   view: "view",
@@ -95,31 +90,13 @@ const initializedTabRoots = new WeakSet();
 
 const tabStates = new WeakMap();
 
+function getState(root) {
+  return tabStates.get(root) || null;
+}
+
 /* ==========================================================================
    Helpers
    ========================================================================== */
-
-function isRTL(element) {
-  if (!element) {
-    return false;
-  }
-
-  return window.getComputedStyle(element).direction === "rtl";
-}
-
-function prefersReducedMotion() {
-  if (document.documentElement.dataset.motionPreference === "reduce") {
-    return true;
-  }
-
-  return (
-    window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false
-  );
-}
-
-function getScrollBehavior() {
-  return prefersReducedMotion() ? "auto" : "smooth";
-}
 
 function isDisabledTab(tab) {
   return Boolean(
@@ -128,6 +105,15 @@ function isDisabledTab(tab) {
     tab.getAttribute("aria-disabled") === "true" ||
     tab.classList.contains("is-disabled"),
   );
+}
+
+/*
+ * True when `element` belongs directly to this tab component, not to a
+ * nested one (a Funds view panel contains its own Movers tabs).
+ */
+
+function belongsTo(element, elements) {
+  return element.closest(elements.config.rootSelector) === elements.root;
 }
 
 /* ==========================================================================
@@ -139,19 +125,14 @@ function collectTabElements(root, config) {
     return null;
   }
 
-  /*
-   * Only collect tabs belonging directly to this tab component.
-   *
-   * This prevents a Funds market-view instance from accidentally collecting
-   * Movers tabs nested inside one of its view panels.
-   */
+  const scope = { root, config };
 
   const tabs = Array.from(root.querySelectorAll(config.tabSelector)).filter(
-    (tab) => tab.closest(config.rootSelector) === root,
+    (tab) => belongsTo(tab, scope),
   );
 
   const panels = Array.from(root.querySelectorAll(config.panelSelector)).filter(
-    (panel) => panel.closest(config.rootSelector) === root,
+    (panel) => belongsTo(panel, scope),
   );
 
   if (!tabs.length || !panels.length) {
@@ -172,86 +153,51 @@ function collectTabElements(root, config) {
 }
 
 /* ==========================================================================
-   State Access
+   Resolution
    ========================================================================== */
 
-function getState(root) {
-  return tabStates.get(root) || null;
-}
+function getPanelForTab(elements, tab) {
+  const panelId = tab?.getAttribute("aria-controls");
 
-/* ==========================================================================
-   Panel Resolution
-   ========================================================================== */
-
-function getPanelById(elements, panelId) {
-  if (!elements || !panelId) {
+  if (!panelId) {
     return null;
   }
 
   return elements.panels.find((panel) => panel.id === panelId) || null;
 }
 
-function getPanelForTab(elements, tab) {
-  if (!elements || !tab) {
-    return null;
-  }
-
-  const panelId = tab.getAttribute("aria-controls");
-
-  return getPanelById(elements, panelId);
+function getEnabledTabs(elements) {
+  return elements ? elements.tabs.filter((tab) => !isDisabledTab(tab)) : [];
 }
 
-/* ==========================================================================
-   Active Tab Resolution
-   ========================================================================== */
-
 function getActiveTab(elements) {
-  if (!elements) {
-    return null;
-  }
-
-  const enabledTabs = elements.tabs.filter((tab) => !isDisabledTab(tab));
-
-  if (!enabledTabs.length) {
-    return null;
-  }
+  const enabledTabs = getEnabledTabs(elements);
 
   return (
     enabledTabs.find((tab) => tab.getAttribute("aria-selected") === "true") ||
     enabledTabs.find((tab) => tab.classList.contains(CLASSES.active)) ||
-    enabledTabs[0]
+    enabledTabs[0] ||
+    null
   );
 }
 
 /* ==========================================================================
-   Tab State
+   Tab / Panel State
    ========================================================================== */
 
 function setTabState(tab, active) {
-  if (!tab) {
-    return;
-  }
-
   tab.classList.toggle(CLASSES.active, active);
 
   tab.setAttribute("aria-selected", String(active));
 
   /*
-   * Disabled controls remain outside the roving tab stop.
+   * Disabled controls stay outside the roving tab stop.
    */
 
   tab.setAttribute("tabindex", active && !isDisabledTab(tab) ? "0" : "-1");
 }
 
-/* ==========================================================================
-   Panel State
-   ========================================================================== */
-
 function setPanelState(panel, active) {
-  if (!panel) {
-    return;
-  }
-
   panel.classList.toggle(CLASSES.active, active);
 
   panel.hidden = !active;
@@ -263,43 +209,17 @@ function setPanelState(panel, active) {
   }
 }
 
-/* ==========================================================================
-   Scroll Reset
-   ========================================================================== */
+/*
+ * Switching Gainers → Losers → Gainers returns each list to its start.
+ */
 
 function resetPanelScroll(panel) {
-  if (!panel) {
-    return;
-  }
-
   panel.scrollTop = 0;
 
   panel.scrollLeft = 0;
-
-  /*
-   * Movers itself is now a desktop scrolling surface.
-   *
-   * Reset it whenever that Movers tab becomes active so switching:
-   *
-   * Gainers → Losers → Gainers
-   *
-   * returns each list to its logical beginning.
-   */
-
-  if (panel.matches(SELECTORS.moversPanel)) {
-    panel.scrollTop = 0;
-  }
 }
 
-/* ==========================================================================
-   Tab Visibility
-   ========================================================================== */
-
 function revealTab(tab) {
-  if (!tab) {
-    return;
-  }
-
   tab.scrollIntoView({
     behavior: getScrollBehavior(),
 
@@ -314,12 +234,6 @@ function revealTab(tab) {
    ========================================================================== */
 
 function dispatchTabChange(elements, tab, panel) {
-  if (!elements || !tab || !panel) {
-    return;
-  }
-
-  const overview = elements.root.closest(SELECTORS.overview);
-
   tab.dispatchEvent(
     new CustomEvent(EVENTS.change, {
       bubbles: true,
@@ -333,7 +247,7 @@ function dispatchTabChange(elements, tab, panel) {
 
         root: elements.root,
 
-        overview,
+        overview: elements.root.closest(SELECTORS.overview),
 
         tabId: tab.id || null,
 
@@ -347,17 +261,17 @@ function dispatchTabChange(elements, tab, panel) {
    Settled Layout Refresh
    ========================================================================== */
 
-function requestSettledRefresh(elements, tab, panel) {
-  const state = getState(elements?.root);
+/*
+ * A fast sequence of keyboard / click changes results in one final refresh,
+ * two frames after the last change so geometry has settled.
+ */
 
-  if (!state || !panel) {
+function requestSettledRefresh(elements, tab, panel) {
+  const state = getState(elements.root);
+
+  if (!state) {
     return;
   }
-
-  /*
-   * A fast sequence of keyboard/click changes should result in only one final
-   * geometry refresh.
-   */
 
   if (state.refreshFrame !== null) {
     window.cancelAnimationFrame(state.refreshFrame);
@@ -371,20 +285,9 @@ function requestSettledRefresh(elements, tab, panel) {
         return;
       }
 
-      /*
-       * market:tabchange is the primary explicit refresh signal.
-       */
-
       dispatchTabChange(elements, tab, panel);
 
-      /*
-       * Temporary compatibility for Highcharts / legacy layout
-       * consumers that still reflow from window resize.
-       *
-       * Remove in the chart cleanup phase.
-       */
-
-      window.dispatchEvent(new Event("resize"));
+      dispatchCompatibilityResize();
     });
   });
 }
@@ -404,23 +307,15 @@ function activateTab(
     dispatch = true,
   } = {},
 ) {
-  if (!elements || !tab || isDisabledTab(tab)) {
-    return false;
-  }
-
-  if (!elements.tabs.includes(tab)) {
+  if (!elements?.tabs.includes(tab) || isDisabledTab(tab)) {
     return false;
   }
 
   const panel = getPanelForTab(elements, tab);
 
-  if (!panel) {
-    return false;
-  }
-
   const state = getState(elements.root);
 
-  if (!state) {
+  if (!panel || !state) {
     return false;
   }
 
@@ -428,37 +323,24 @@ function activateTab(
     state.activeTab === tab &&
     state.activePanel === panel &&
     tab.getAttribute("aria-selected") === "true" &&
-    !panel.hidden &&
-    panel.getAttribute("aria-hidden") === "false";
+    !panel.hidden;
 
-  if (alreadyActive && !force) {
-    if (focus) {
-      tab.focus({
-        preventScroll: true,
-      });
+  if (!alreadyActive || force) {
+    elements.tabs.forEach((candidate) => {
+      setTabState(candidate, candidate === tab);
+    });
+
+    elements.panels.forEach((candidate) => {
+      setPanelState(candidate, candidate === panel);
+    });
+
+    state.activeTab = tab;
+
+    state.activePanel = panel;
+
+    if (resetScroll) {
+      resetPanelScroll(panel);
     }
-
-    if (scroll) {
-      revealTab(tab);
-    }
-
-    return false;
-  }
-
-  elements.tabs.forEach((candidate) => {
-    setTabState(candidate, candidate === tab);
-  });
-
-  elements.panels.forEach((candidate) => {
-    setPanelState(candidate, candidate === panel);
-  });
-
-  state.activeTab = tab;
-
-  state.activePanel = panel;
-
-  if (resetScroll) {
-    resetPanelScroll(panel);
   }
 
   if (focus) {
@@ -471,97 +353,44 @@ function activateTab(
     revealTab(tab);
   }
 
-  if (dispatch) {
+  if (dispatch && (!alreadyActive || force)) {
     requestSettledRefresh(elements, tab, panel);
   }
 
-  return true;
-}
-
-/* ==========================================================================
-   Enabled Tabs
-   ========================================================================== */
-
-function getEnabledTabs(elements) {
-  if (!elements) {
-    return [];
-  }
-
-  return elements.tabs.filter((tab) => !isDisabledTab(tab));
-}
-
-/* ==========================================================================
-   Adjacent Tab
-   ========================================================================== */
-
-function getAdjacentTab(elements, currentTab, direction) {
-  const tabs = getEnabledTabs(elements);
-
-  if (!tabs.length) {
-    return null;
-  }
-
-  const currentIndex = tabs.indexOf(currentTab);
-
-  if (currentIndex < 0) {
-    return tabs[0];
-  }
-
-  let step = direction === "next" ? 1 : -1;
-
-  /*
-   * Horizontal keyboard direction follows visual direction.
-   */
-
-  if (isRTL(elements.root)) {
-    step *= -1;
-  }
-
-  const nextIndex = (currentIndex + step + tabs.length) % tabs.length;
-
-  return tabs[nextIndex];
-}
-
-/* ==========================================================================
-   Click
-   ========================================================================== */
-
-function handleClick(elements, event) {
-  const tab = event.target.closest(elements.config.tabSelector);
-
-  if (!tab || tab.closest(elements.config.rootSelector) !== elements.root) {
-    return;
-  }
-
-  if (isDisabledTab(tab)) {
-    event.preventDefault();
-
-    return;
-  }
-
-  activateTab(elements, tab, {
-    focus: false,
-
-    scroll: true,
-  });
+  return !alreadyActive || force;
 }
 
 /* ==========================================================================
    Keyboard
    ========================================================================== */
 
+function getAdjacentTab(elements, currentTab, direction) {
+  const tabs = getEnabledTabs(elements);
+
+  const currentIndex = tabs.indexOf(currentTab);
+
+  if (currentIndex < 0) {
+    return tabs[0] || null;
+  }
+
+  /*
+   * Horizontal keys follow visual direction.
+   */
+
+  const step =
+    (direction === "next" ? 1 : -1) * (isRTL(elements.root) ? -1 : 1);
+
+  return tabs[(currentIndex + step + tabs.length) % tabs.length];
+}
+
 function handleKeydown(elements, event) {
   const tab = event.target.closest(elements.config.tabSelector);
 
-  if (!tab || tab.closest(elements.config.rootSelector) !== elements.root) {
+  if (!tab || !belongsTo(tab, elements)) {
     return;
   }
 
   const tabs = getEnabledTabs(elements);
-
-  if (!tabs.length) {
-    return;
-  }
 
   let nextTab = null;
 
@@ -588,7 +417,6 @@ function handleKeydown(elements, event) {
 
       activateTab(elements, tab, {
         focus: true,
-
         scroll: true,
       });
 
@@ -605,65 +433,35 @@ function handleKeydown(elements, event) {
   event.preventDefault();
 
   /*
-   * Automatic activation follows the existing Summary interaction model:
-   * moving focus with arrows also activates the corresponding tab.
+   * Automatic activation, matching the Summary: moving focus with the
+   * arrows also activates the tab.
    */
 
   activateTab(elements, nextTab, {
     focus: true,
-
     scroll: true,
   });
 }
 
 /* ==========================================================================
-   Initialization State
+   Click
    ========================================================================== */
 
-function initializeTabState(elements) {
-  const activeTab = getActiveTab(elements);
+function handleClick(elements, event) {
+  const tab = event.target.closest(elements.config.tabSelector);
 
-  if (!activeTab) {
+  if (!tab || !belongsTo(tab, elements)) {
     return;
   }
 
-  /*
-   * Normalize potentially inconsistent server-rendered state.
-   *
-   * The selected tab is the source of truth and aria-controls defines its
-   * panel.
-   */
+  if (isDisabledTab(tab)) {
+    event.preventDefault();
 
-  activateTab(elements, activeTab, {
-    focus: false,
+    return;
+  }
 
-    scroll: false,
-
-    resetScroll: false,
-
-    force: true,
-
-    /*
-     * Initial normalization does not need to emit tabchange. The currently
-     * visible outer panel/chart will receive its normal initialization and
-     * panelshown/detailsshown events.
-     */
-
-    dispatch: false,
-  });
-}
-
-/* ==========================================================================
-   Root Events
-   ========================================================================== */
-
-function initializeTabEvents(elements) {
-  elements.root.addEventListener("click", (event) => {
-    handleClick(elements, event);
-  });
-
-  elements.root.addEventListener("keydown", (event) => {
-    handleKeydown(elements, event);
+  activateTab(elements, tab, {
+    scroll: true,
   });
 }
 
@@ -694,19 +492,31 @@ function initializeTabRoot(root, config) {
 
   initializedTabRoots.add(root);
 
-  initializeTabEvents(elements);
-
-  initializeTabState(elements);
-}
-
-/* ==========================================================================
-   Type Initialization
-   ========================================================================== */
-
-function initializeTabType(config) {
-  document.querySelectorAll(config.rootSelector).forEach((root) => {
-    initializeTabRoot(root, config);
+  root.addEventListener("click", (event) => {
+    handleClick(elements, event);
   });
+
+  root.addEventListener("keydown", (event) => {
+    handleKeydown(elements, event);
+  });
+
+  /*
+   * Normalize server-rendered state. The selected tab is the source of
+   * truth, aria-controls defines its panel. No tabchange event: the
+   * visible outer panel already receives its own initialization events.
+   */
+
+  const activeTab = getActiveTab(elements);
+
+  if (activeTab) {
+    activateTab(elements, activeTab, {
+      resetScroll: false,
+
+      force: true,
+
+      dispatch: false,
+    });
+  }
 }
 
 /* ==========================================================================
@@ -715,6 +525,8 @@ function initializeTabType(config) {
 
 export function initMarketTabs() {
   TAB_CONFIGS.forEach((config) => {
-    initializeTabType(config);
+    document.querySelectorAll(config.rootSelector).forEach((root) => {
+      initializeTabRoot(root, config);
+    });
   });
 }

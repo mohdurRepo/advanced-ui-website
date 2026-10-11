@@ -5,23 +5,33 @@
 /*
  * Responsibilities:
  *
- * - Manage internal Market Details disclosures on mobile.
+ * - Manage internal Market Details disclosures on mobile, ONLY when the
+ *   overview itself cannot collapse (data-market-details-mode="always").
+ *   A collapsible overview already has one disclosure (its handle); a
+ *   second "Show market details" button inside it would confuse visitors,
+ *   so its content is simply exposed.
  * - Keep Details content permanently exposed on tablet / desktop.
  * - Synchronize aria-expanded / aria-hidden / hidden / inert.
- * - Localize disclosure labels.
- * - Support special Derivatives "more tables" disclosure wording.
- * - Re-synchronize when a nested Market View changes.
+ * - Localize disclosure labels (including the Derivatives "more tables"
+ *   wording).
+ * - Re-synchronize when a nested view or outer panel changes.
+ * - Preserve each disclosure's mobile state across breakpoint changes.
  * - Publish market:detailsexpanded for dependent components.
  *
  * This module does NOT own:
  *
  * - The outer Market Overview <details> disclosure.
  * - Summary market selection.
- * - Outer market-panel switching.
- * - Nested view / Movers tab selection.
+ * - Outer panel switching or nested tab selection.
  * - Bridge geometry.
  * - Chart implementation.
  */
+
+import {
+  createMediaQuery,
+  getLanguage,
+  onMediaQueryChange,
+} from "./market-shared";
 
 /* ==========================================================================
    Selectors
@@ -36,22 +46,20 @@ const SELECTORS = {
 
   collapsible: "[data-market-details-collapsible]",
 
+  moreTables: ".derivatives-dashboard__more",
+
   viewPanel: "[data-market-view-panel]",
 
   detailPanel: "[data-market-detail-panel]",
 };
 
 /* ==========================================================================
-   Classes
+   Classes / Events
    ========================================================================== */
 
 const CLASSES = {
   expanded: "is-expanded",
 };
-
-/* ==========================================================================
-   Events
-   ========================================================================== */
 
 const EVENTS = {
   expanded: "market:detailsexpanded",
@@ -66,20 +74,26 @@ const EVENTS = {
    ========================================================================== */
 
 /*
- * Must remain aligned with the SCSS md breakpoint.
+ * Must stay aligned with the SCSS md breakpoint.
  */
 
 const MOBILE_QUERY = "(max-width: 767.98px)";
 
-/* ==========================================================================
-   Disclosure Types
-   ========================================================================== */
+let mobileMediaQuery = null;
 
-const DISCLOSURE_TYPES = {
-  details: "details",
+function getMobileMediaQuery() {
+  mobileMediaQuery ??= createMediaQuery(MOBILE_QUERY);
 
-  moreTables: "more-tables",
-};
+  return mobileMediaQuery;
+}
+
+function isMobile() {
+  return getMobileMediaQuery()?.matches ?? false;
+}
+
+function usesInnerDisclosure(elements) {
+  return isMobile() && elements.root.dataset.marketDetailsMode === "always";
+}
 
 /* ==========================================================================
    Labels
@@ -89,13 +103,11 @@ const LABELS = {
   en: {
     details: {
       show: "Show market details",
-
       hide: "Hide market details",
     },
 
     moreTables: {
       show: "Show more tables",
-
       hide: "Hide more tables",
     },
   },
@@ -103,13 +115,11 @@ const LABELS = {
   ar: {
     details: {
       show: "عرض تفاصيل السوق",
-
       hide: "إخفاء تفاصيل السوق",
     },
 
     moreTables: {
       show: "عرض المزيد من الجداول",
-
       hide: "إخفاء الجداول الإضافية",
     },
   },
@@ -125,32 +135,8 @@ const rootStates = new WeakMap();
 
 let globalEventsInitialized = false;
 
-let mobileMediaQuery = null;
-
-/* ==========================================================================
-   Language
-   ========================================================================== */
-
-function getLanguage() {
-  const language = document.documentElement.lang?.trim().toLowerCase() || "en";
-
-  return language.startsWith("ar") ? "ar" : "en";
-}
-
-/* ==========================================================================
-   Media Query
-   ========================================================================== */
-
-function getMobileMediaQuery() {
-  if (!mobileMediaQuery) {
-    mobileMediaQuery = window.matchMedia(MOBILE_QUERY);
-  }
-
-  return mobileMediaQuery;
-}
-
-function isMobile() {
-  return getMobileMediaQuery().matches;
+function getState(root) {
+  return rootStates.get(root) || null;
 }
 
 /* ==========================================================================
@@ -164,13 +150,9 @@ function collectElements(root) {
 
   const toggles = Array.from(root.querySelectorAll(SELECTORS.toggle));
 
-  if (!toggles.length) {
-    return null;
-  }
-
   const collapsibles = Array.from(root.querySelectorAll(SELECTORS.collapsible));
 
-  if (!collapsibles.length) {
+  if (!toggles.length || !collapsibles.length) {
     return null;
   }
 
@@ -183,45 +165,29 @@ function collectElements(root) {
   };
 }
 
-function getState(root) {
-  return rootStates.get(root) || null;
-}
-
 /* ==========================================================================
-   Controlled Region Resolution
+   Toggle ↔ Region
    ========================================================================== */
 
 function getControlledId(toggle) {
   return toggle?.getAttribute("aria-controls")?.trim() || "";
 }
 
-function getCollapsibleForToggle(elements, toggle) {
-  if (!elements || !toggle) {
-    return null;
-  }
+/*
+ * Resolved only within this Market Overview, so duplicated IDs in external
+ * markup can never make a toggle control an unrelated element.
+ */
 
+function getCollapsibleForToggle(elements, toggle) {
   const id = getControlledId(toggle);
 
-  if (!id) {
-    return null;
-  }
-
-  /*
-   * Resolve only against collapsibles belonging to this Market Overview.
-   *
-   * This prevents accidental control of an unrelated element if IDs are
-   * duplicated by malformed external markup.
-   */
-
-  return elements.collapsibles.find((element) => element.id === id) || null;
+  return id
+    ? elements.collapsibles.find((element) => element.id === id) || null
+    : null;
 }
 
-/* ==========================================================================
-   Toggle Resolution
-   ========================================================================== */
-
 function getToggleForCollapsible(elements, collapsible) {
-  if (!elements || !collapsible?.id) {
+  if (!collapsible?.id) {
     return null;
   }
 
@@ -233,66 +199,53 @@ function getToggleForCollapsible(elements, collapsible) {
 }
 
 /* ==========================================================================
-   Disclosure Type
-   ========================================================================== */
-
-function getDisclosureType(toggle, collapsible) {
-  if (
-    collapsible?.classList.contains("derivatives-dashboard__more") ||
-    collapsible?.id === "derivatives-more-tables" ||
-    getControlledId(toggle) === "derivatives-more-tables"
-  ) {
-    return DISCLOSURE_TYPES.moreTables;
-  }
-
-  return DISCLOSURE_TYPES.details;
-}
-
-/* ==========================================================================
    Labels
    ========================================================================== */
 
-function getDisclosureLabels(toggle, collapsible) {
-  const language = getLanguage();
+function getDisclosureLabels(collapsible) {
+  const labels = LABELS[getLanguage()];
 
-  const type = getDisclosureType(toggle, collapsible);
-
-  return LABELS[language][type] || LABELS.en.details;
+  return collapsible?.matches(SELECTORS.moreTables)
+    ? labels.moreTables
+    : labels.details;
 }
 
-function updateToggleLabel(toggle, collapsible, expanded) {
-  if (!toggle) {
-    return;
-  }
+/*
+ * The visible text is the accessible name; no aria-label or tooltip
+ * duplicates it.
+ */
 
-  const labels = getDisclosureLabels(toggle, collapsible);
+function updateToggleLabel(toggle, collapsible, expanded) {
+  const labels = getDisclosureLabels(collapsible);
 
   const label = expanded ? labels.hide : labels.show;
-
-  toggle.setAttribute("aria-label", label);
-
-  /*
-   * Preserve the existing project tooltip convention.
-   */
-
-  toggle.setAttribute("data-tooltip", label);
 
   const text = toggle.querySelector(SELECTORS.toggleText);
 
   if (text) {
-    text.textContent = label;
-  }
-}
+    if (text.textContent !== label) {
+      text.textContent = label;
+    }
 
-/* ==========================================================================
-   Accessibility
-   ========================================================================== */
+    toggle.removeAttribute("aria-label");
 
-function setCollapsibleAccessibility(collapsible, exposed) {
-  if (!collapsible) {
+    toggle.removeAttribute("data-tooltip");
+
     return;
   }
 
+  /*
+   * Icon-only toggles keep an explicit name.
+   */
+
+  toggle.setAttribute("aria-label", label);
+}
+
+/* ==========================================================================
+   Region Exposure
+   ========================================================================== */
+
+function setCollapsibleExposed(collapsible, exposed) {
   collapsible.hidden = !exposed;
 
   collapsible.setAttribute("aria-hidden", String(!exposed));
@@ -305,103 +258,10 @@ function setCollapsibleAccessibility(collapsible, exposed) {
 }
 
 /* ==========================================================================
-   Mobile State
-   ========================================================================== */
-
-function setMobileDisclosureState(
-  elements,
-  toggle,
-  expanded,
-  { dispatch = true } = {},
-) {
-  if (!elements || !toggle) {
-    return false;
-  }
-
-  const collapsible = getCollapsibleForToggle(elements, toggle);
-
-  if (!collapsible) {
-    return false;
-  }
-
-  const resolvedExpanded = Boolean(expanded);
-
-  toggle.hidden = false;
-
-  toggle.removeAttribute("aria-hidden");
-
-  toggle.removeAttribute("tabindex");
-
-  toggle.setAttribute("aria-expanded", String(resolvedExpanded));
-
-  updateToggleLabel(toggle, collapsible, resolvedExpanded);
-
-  setCollapsibleAccessibility(collapsible, resolvedExpanded);
-
-  const state = getState(elements.root);
-
-  if (state) {
-    state.expandedStates.set(collapsible, resolvedExpanded);
-  }
-
-  if (dispatch) {
-    dispatchExpanded(elements, toggle, collapsible, resolvedExpanded);
-  }
-
-  return true;
-}
-
-/* ==========================================================================
-   Desktop / Tablet State
-   ========================================================================== */
-
-/*
- * Internal disclosure exists only as a mobile progressive-disclosure
- * mechanism.
- *
- * At md+ all content is exposed regardless of the previous mobile state.
- */
-
-function exposeDesktopDisclosure(elements, toggle) {
-  if (!elements || !toggle) {
-    return;
-  }
-
-  const collapsible = getCollapsibleForToggle(elements, toggle);
-
-  if (!collapsible) {
-    return;
-  }
-
-  /*
-   * CSS normally hides the control above mobile, but setting hidden here also
-   * keeps its accessibility state unambiguous.
-   */
-
-  toggle.hidden = true;
-
-  toggle.setAttribute("aria-hidden", "true");
-
-  toggle.setAttribute("tabindex", "-1");
-
-  toggle.setAttribute("aria-expanded", "true");
-
-  setCollapsibleAccessibility(collapsible, true);
-}
-
-/* ==========================================================================
    Expansion Event
    ========================================================================== */
 
 function dispatchExpanded(elements, toggle, collapsible, expanded) {
-  if (!elements || !collapsible) {
-    return;
-  }
-
-  const detailPanel = collapsible.closest(SELECTORS.detailPanel);
-
-  const viewPanel = collapsible.closest(SELECTORS.viewPanel);
-
   collapsible.dispatchEvent(
     new CustomEvent(EVENTS.expanded, {
       bubbles: true,
@@ -415,9 +275,9 @@ function dispatchExpanded(elements, toggle, collapsible, expanded) {
 
         expanded,
 
-        detailPanel,
+        detailPanel: collapsible.closest(SELECTORS.detailPanel),
 
-        viewPanel,
+        viewPanel: collapsible.closest(SELECTORS.viewPanel),
 
         controls: collapsible.id || null,
       },
@@ -426,26 +286,47 @@ function dispatchExpanded(elements, toggle, collapsible, expanded) {
 }
 
 /* ==========================================================================
-   Saved Mobile State
+   Mobile State
    ========================================================================== */
 
+function setMobileDisclosureState(
+  elements,
+  toggle,
+  expanded,
+  { dispatch = true } = {},
+) {
+  const collapsible = getCollapsibleForToggle(elements, toggle);
+
+  if (!collapsible) {
+    return;
+  }
+
+  toggle.hidden = false;
+
+  toggle.setAttribute("aria-expanded", String(expanded));
+
+  updateToggleLabel(toggle, collapsible, expanded);
+
+  setCollapsibleExposed(collapsible, expanded);
+
+  getState(elements.root)?.expandedStates.set(collapsible, expanded);
+
+  if (dispatch) {
+    dispatchExpanded(elements, toggle, collapsible, expanded);
+  }
+}
+
+/*
+ * First mobile entry follows the toggle's authored aria-expanded (collapsed
+ * in the current markup); afterwards the visitor's last state is kept.
+ */
+
 function getSavedMobileState(elements, collapsible) {
-  const state = getState(elements.root);
+  const saved = getState(elements.root)?.expandedStates;
 
-  if (!state) {
-    return false;
+  if (saved?.has(collapsible)) {
+    return saved.get(collapsible);
   }
-
-  if (state.expandedStates.has(collapsible)) {
-    return Boolean(state.expandedStates.get(collapsible));
-  }
-
-  /*
-   * First mobile entry follows the toggle's authored state.
-   *
-   * Current HTML uses aria-expanded="false", therefore disclosures naturally
-   * begin collapsed.
-   */
 
   const toggle = getToggleForCollapsible(elements, collapsible);
 
@@ -453,144 +334,99 @@ function getSavedMobileState(elements, collapsible) {
 }
 
 /* ==========================================================================
-   Synchronize One Toggle
+   Desktop / Tablet State
    ========================================================================== */
 
-function synchronizeToggle(elements, toggle, { dispatch = false } = {}) {
-  if (!elements || !toggle) {
-    return;
-  }
+/*
+ * Outside the inner-disclosure case everything is exposed and the control
+ * leaves the page (hidden also removes it from the tab order and the
+ * accessibility tree).
+ */
 
+function exposeDesktopDisclosure(elements, toggle) {
   const collapsible = getCollapsibleForToggle(elements, toggle);
 
   if (!collapsible) {
     return;
   }
 
-  if (!isMobile()) {
+  toggle.hidden = true;
+
+  setCollapsibleExposed(collapsible, true);
+}
+
+/* ==========================================================================
+   Synchronization
+   ========================================================================== */
+
+function synchronizeToggle(elements, toggle, { dispatch = false } = {}) {
+  const collapsible = getCollapsibleForToggle(elements, toggle);
+
+  if (!collapsible) {
+    return;
+  }
+
+  if (!usesInnerDisclosure(elements)) {
     exposeDesktopDisclosure(elements, toggle);
 
     return;
   }
 
-  const expanded = getSavedMobileState(elements, collapsible);
-
-  setMobileDisclosureState(elements, toggle, expanded, {
-    dispatch,
-  });
+  setMobileDisclosureState(
+    elements,
+    toggle,
+    getSavedMobileState(elements, collapsible),
+    { dispatch },
+  );
 }
 
-/* ==========================================================================
-   Synchronize Root
-   ========================================================================== */
-
-function synchronizeRoot(elements, { dispatch = false } = {}) {
-  if (!elements) {
-    return;
-  }
-
-  elements.toggles.forEach((toggle) => {
-    synchronizeToggle(elements, toggle, {
-      dispatch,
-    });
-  });
-}
-
-/* ==========================================================================
-   Toggle
-   ========================================================================== */
-
-function toggleMobileDisclosure(elements, toggle) {
-  if (!elements || !toggle || !isMobile()) {
-    return;
-  }
-
-  const collapsible = getCollapsibleForToggle(elements, toggle);
-
-  if (!collapsible) {
-    return;
-  }
-
-  const expanded = toggle.getAttribute("aria-expanded") === "true";
-
-  setMobileDisclosureState(elements, toggle, !expanded, {
-    dispatch: true,
-  });
-}
-
-/* ==========================================================================
-   Click
-   ========================================================================== */
-
-function handleClick(elements, event) {
-  const toggle = event.target.closest(SELECTORS.toggle);
-
-  if (!toggle || !elements.root.contains(toggle)) {
-    return;
-  }
-
-  /*
-   * Buttons above md are hidden and non-interactive, but guard the behavior
-   * here as well.
-   */
-
-  if (!isMobile()) {
-    return;
-  }
-
-  event.preventDefault();
-
-  toggleMobileDisclosure(elements, toggle);
-}
-
-/* ==========================================================================
-   Nested Tab Changes
-   ========================================================================== */
-
-/*
- * Funds / Derivatives may switch between independently collapsible views.
- *
- * Whenever a nested view becomes active, normalize its disclosure state for
- * the current breakpoint.
- */
-
-function handleTabChange(elements, event) {
-  if (!elements) {
-    return;
-  }
-
-  const panel = event.detail?.panel;
-
-  if (!(panel instanceof Element) || !elements.root.contains(panel)) {
-    return;
-  }
-
-  const toggles = Array.from(panel.querySelectorAll(SELECTORS.toggle));
-
+function synchronizeToggles(elements, toggles) {
   toggles.forEach((toggle) => {
     synchronizeToggle(elements, toggle);
   });
 }
 
 /* ==========================================================================
-   Outer Panel Changes
+   Events
    ========================================================================== */
 
-function handlePanelShown(elements, event) {
+function handleClick(elements, event) {
+  const toggle = event.target.closest(SELECTORS.toggle);
+
+  if (
+    !toggle ||
+    !elements.toggles.includes(toggle) ||
+    !usesInnerDisclosure(elements)
+  ) {
+    return;
+  }
+
+  event.preventDefault();
+
+  setMobileDisclosureState(
+    elements,
+    toggle,
+    toggle.getAttribute("aria-expanded") !== "true",
+  );
+}
+
+/*
+ * A nested view or an outer panel just became visible: normalize the
+ * disclosures inside it for the current breakpoint.
+ */
+
+function handlePanelChange(elements, event) {
   const panel = event.detail?.panel;
 
   if (!(panel instanceof Element) || !elements.root.contains(panel)) {
     return;
   }
 
-  panel.querySelectorAll(SELECTORS.toggle).forEach((toggle) => {
-    synchronizeToggle(elements, toggle);
-  });
+  synchronizeToggles(
+    elements,
+    elements.toggles.filter((toggle) => panel.contains(toggle)),
+  );
 }
-
-/* ==========================================================================
-   Root Events
-   ========================================================================== */
 
 function initializeRootEvents(elements) {
   const { root } = elements;
@@ -599,12 +435,10 @@ function initializeRootEvents(elements) {
     handleClick(elements, event);
   });
 
-  root.addEventListener(EVENTS.tabChange, (event) => {
-    handleTabChange(elements, event);
-  });
-
-  root.addEventListener(EVENTS.panelShown, (event) => {
-    handlePanelShown(elements, event);
+  [EVENTS.tabChange, EVENTS.panelShown].forEach((type) => {
+    root.addEventListener(type, (event) => {
+      handlePanelChange(elements, event);
+    });
   });
 }
 
@@ -627,8 +461,8 @@ function initializeRoot(root) {
     elements,
 
     /*
-     * Preserve each disclosure's mobile state while temporarily moving to
-     * desktop/tablet where all content is forcibly exposed.
+     * Each disclosure's mobile state, kept while desktop / tablet force
+     * everything open.
      */
 
     expandedStates: new WeakMap(),
@@ -638,49 +472,27 @@ function initializeRoot(root) {
 
   initializeRootEvents(elements);
 
-  synchronizeRoot(elements);
+  synchronizeToggles(elements, elements.toggles);
+}
+
+function getInitializedStates() {
+  return Array.from(document.querySelectorAll(SELECTORS.overview))
+    .map(getState)
+    .filter(Boolean);
 }
 
 /* ==========================================================================
-   Initialized Roots
-   ========================================================================== */
-
-function getInitializedRoots() {
-  return Array.from(document.querySelectorAll(SELECTORS.overview)).filter(
-    (root) => initializedRoots.has(root),
-  );
-}
-
-/* ==========================================================================
-   Breakpoint Change
+   Global Changes
    ========================================================================== */
 
 function handleBreakpointChange() {
-  getInitializedRoots().forEach((root) => {
-    const state = getState(root);
-
-    if (!state) {
-      return;
-    }
-
-    synchronizeRoot(state.elements);
+  getInitializedStates().forEach(({ elements }) => {
+    synchronizeToggles(elements, elements.toggles);
   });
 }
 
-/* ==========================================================================
-   Language Change
-   ========================================================================== */
-
 function updateAllLabels() {
-  getInitializedRoots().forEach((root) => {
-    const state = getState(root);
-
-    if (!state) {
-      return;
-    }
-
-    const { elements } = state;
-
+  getInitializedStates().forEach(({ elements }) => {
     elements.toggles.forEach((toggle) => {
       const collapsible = getCollapsibleForToggle(elements, toggle);
 
@@ -688,9 +500,9 @@ function updateAllLabels() {
         return;
       }
 
-      const expanded = isMobile()
-        ? toggle.getAttribute("aria-expanded") === "true"
-        : true;
+      const expanded =
+        !usesInnerDisclosure(elements) ||
+        toggle.getAttribute("aria-expanded") === "true";
 
       updateToggleLabel(toggle, collapsible, expanded);
     });
@@ -698,16 +510,10 @@ function updateAllLabels() {
 }
 
 function handlePreferenceChange(event) {
-  if (event.detail?.name !== "lang") {
-    return;
+  if (event.detail?.name === "lang") {
+    updateAllLabels();
   }
-
-  updateAllLabels();
 }
-
-/* ==========================================================================
-   Global Events
-   ========================================================================== */
 
 function initializeGlobalEvents() {
   if (globalEventsInitialized) {
@@ -716,21 +522,7 @@ function initializeGlobalEvents() {
 
   globalEventsInitialized = true;
 
-  const mediaQuery = getMobileMediaQuery();
-
-  /*
-   * Modern browsers.
-   */
-
-  if (mediaQuery.addEventListener) {
-    mediaQuery.addEventListener("change", handleBreakpointChange);
-  } else {
-    /*
-     * Legacy Safari compatibility.
-     */
-
-    mediaQuery.addListener?.(handleBreakpointChange);
-  }
+  onMediaQueryChange(getMobileMediaQuery(), handleBreakpointChange);
 
   document.addEventListener("languagechange", updateAllLabels);
 
@@ -750,7 +542,5 @@ export function initMarketDetailsMobile() {
 
   initializeGlobalEvents();
 
-  roots.forEach((root) => {
-    initializeRoot(root);
-  });
+  roots.forEach(initializeRoot);
 }

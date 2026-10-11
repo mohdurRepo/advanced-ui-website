@@ -11,6 +11,13 @@
  * only the primary family for the visitor's selected accent.
  *
  * High-contrast themes are loaded after this file and remain authoritative.
+ * That depends on specificity: high-contrast dark is html[a][b] (0,2,1)
+ * and comes later in the source. Keep every selector in this file at
+ * 0,2,1 or lower, or it will silently beat high contrast.
+ *
+ * Navy accent (light theme): primary becomes the body text colour, so links
+ * can only be told apart by their underline. Links must always be
+ * underlined, not only on hover.
  */
 
 /* ==========================================================================

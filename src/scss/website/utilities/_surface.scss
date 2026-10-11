@@ -11,6 +11,10 @@
  * Each surface creates a local semantic color environment. Components inside
  * these surfaces should consume semantic custom properties rather than
  * targeting the surface class directly.
+ *
+ * Every token a component inside a surface may read must be redefined here.
+ * A token left out falls back to the page theme, which is a light value on
+ * light pages and is usually unreadable on these dark surfaces.
  */
 
 /* ==========================================================================
@@ -23,17 +27,45 @@
   --color-heading: #ffffff;
   --color-text-muted: rgb(255 255 255 / 0.72);
 
+  /* Interactive surfaces (row hover, menu items, selected states) */
+  --color-surface-hover: rgb(255 255 255 / 0.08);
+  --color-surface-active: rgb(255 255 255 / 0.14);
+  --color-surface-selected: rgb(255 255 255 / 0.18);
+
   /* Links */
   --color-link: #ffffff;
   --color-link-hover: #59ff9e;
 
+  /* Status */
+  --color-success: #4ade80;
+  --color-success-hover: #86efac;
+  --color-on-success: #001f33;
+
+  --color-info: #7dd3fc;
+  --color-info-hover: #bae6fd;
+  --color-on-info: #001f33;
+
+  --color-attention: #fde68a;
+  --color-attention-hover: #fef3c7;
+  --color-on-attention: #001f33;
+
+  --color-warning: #fbbf24;
+  --color-warning-hover: #fde68a;
+  --color-on-warning: #001f33;
+
+  --color-danger: #fca5a5;
+  --color-danger-hover: #fecaca;
+  --color-on-danger: #001f33;
+
+  --color-warning-text: #fbbf24;
+
   /* Financial states */
   --color-market-positive: #4ade80;
-  --color-market-negative: #fb7185;
+  --color-market-negative: #fda4af;
   --color-market-neutral: var(--color-text-muted);
 
   --color-market-positive-bg: rgb(74 222 128 / 0.12);
-  --color-market-negative-bg: rgb(251 113 133 / 0.12);
+  --color-market-negative-bg: rgb(253 164 175 / 0.12);
   --color-market-neutral-bg: rgb(255 255 255 / 0.1);
 
   /* Forms */
@@ -81,6 +113,12 @@
 /* ==========================================================================
    Hero Surface
    ========================================================================== */
+
+/**
+ * The light end of the gradient (#0759aa) is too light for coloured text:
+ * market and status colours drop below 4.5:1 there. Place prices and
+ * statuses on the darker side, or inside a card that uses --color-surface.
+ */
 
 .surface-hero {
   --color-surface: #063f91;
@@ -140,13 +178,17 @@
  *
  * Links require this contextual rule because the base anchor style inherits
  * its foreground color.
+ *
+ * The whole selector is wrapped in :where() (zero specificity), so a
+ * component link class such as .card__link can still set its own colour.
  */
 
-:where(.surface-hero, .surface-insights, .surface-market) a:not(.btn) {
+:where(.surface-hero, .surface-insights, .surface-market) :where(a:not(.btn)) {
   color: var(--color-link);
 }
 
-:where(.surface-hero, .surface-insights, .surface-market) a:not(.btn):hover {
+:where(.surface-hero, .surface-insights, .surface-market)
+  :where(a:not(.btn):hover) {
   color: var(--color-link-hover);
 }
 
@@ -154,7 +196,7 @@
    RTL
    ========================================================================== */
 
-html[dir="rtl"] .surface-hero {
+.surface-hero:dir(rtl) {
   --surface-gradient-angle: 270deg;
 }
 
@@ -164,27 +206,9 @@ html[dir="rtl"] .surface-hero {
 
 /**
  * These branded sections intentionally remain dark in both page themes.
- * Dark mode applies only small tonal adjustments.
+ * Hero and insights look the same in both themes. Only the market surface
+ * gets small tonal adjustments.
  */
-
-html[data-theme="dark"] .surface-hero {
-  --color-surface: #063f91;
-  --color-surface-alt: #002c72;
-
-  --surface-background: linear-gradient(
-    var(--surface-gradient-angle),
-    #002c72 0%,
-    #063f91 58%,
-    #0759aa 100%
-  );
-}
-
-html[data-theme="dark"] .surface-insights {
-  --color-surface: #00243a;
-  --color-surface-alt: #0a3148;
-
-  --surface-background: #00243a;
-}
 
 html[data-theme="dark"] .surface-market {
   --color-surface: #102f45;
@@ -208,10 +232,20 @@ html[data-theme="dark"] .surface-market {
    High Contrast
    ========================================================================== */
 
+/**
+ * Surfaces turn black in both high-contrast themes, so they use the
+ * high-contrast dark values. The light high-contrast status colours
+ * (#006400, #b00020, …) would be unreadable on black.
+ */
+
 html[data-contrast="high"] {
   :where(.surface-hero, .surface-insights, .surface-market) {
     --color-surface: #000000;
     --color-surface-alt: #111111;
+
+    --color-surface-hover: #1f1f1f;
+    --color-surface-active: #2b2b2b;
+    --color-surface-selected: #172554;
 
     --color-text: #ffffff;
     --color-heading: #ffffff;
@@ -223,9 +257,33 @@ html[data-contrast="high"] {
     --color-link: #ffffff;
     --color-link-hover: #ffffff;
 
-    --color-market-positive: currentColor;
-    --color-market-negative: currentColor;
-    --color-market-neutral: currentColor;
+    /* Status */
+    --color-success: #86efac;
+    --color-success-hover: #bbf7d0;
+    --color-on-success: #000000;
+
+    --color-info: #93c5fd;
+    --color-info-hover: #bfdbfe;
+    --color-on-info: #000000;
+
+    --color-attention: #fde68a;
+    --color-attention-hover: #fef3c7;
+    --color-on-attention: #000000;
+
+    --color-warning: #fbbf24;
+    --color-warning-hover: #fde68a;
+    --color-on-warning: #000000;
+
+    --color-danger: #fca5a5;
+    --color-danger-hover: #fecaca;
+    --color-on-danger: #000000;
+
+    --color-warning-text: #fde68a;
+
+    /* Financial states */
+    --color-market-positive: #86efac;
+    --color-market-negative: #fca5a5;
+    --color-market-neutral: #ffffff;
 
     --color-market-positive-bg: transparent;
     --color-market-negative-bg: transparent;
@@ -237,7 +295,9 @@ html[data-contrast="high"] {
 
     --form-control-bg: #000000;
     --form-control-color: #ffffff;
-    --form-control-placeholder-color: #ffffff;
+
+    /* Dimmer than the value so an empty field does not look filled. */
+    --form-control-placeholder-color: rgb(255 255 255 / 0.78);
 
     --form-control-border-color: #ffffff;
     --form-control-hover-border-color: #ffffff;
@@ -249,16 +309,17 @@ html[data-contrast="high"] {
     --form-control-readonly-color: #ffffff;
     --form-control-readonly-border-color: #ffffff;
 
+    /* Visibly different from enabled controls. */
     --form-control-disabled-bg: #000000;
-    --form-control-disabled-color: #ffffff;
-    --form-control-disabled-border-color: #ffffff;
+    --form-control-disabled-color: #a3a3a3;
+    --form-control-disabled-border-color: #737373;
 
     --form-field-action-color: #ffffff;
     --form-field-action-hover-bg: transparent;
     --form-field-action-hover-color: #ffffff;
     --form-field-action-active-bg: transparent;
     --form-field-action-active-color: #ffffff;
-    --form-field-action-disabled-color: #ffffff;
+    --form-field-action-disabled-color: #a3a3a3;
 
     --focus-ring: #ffffff;
 

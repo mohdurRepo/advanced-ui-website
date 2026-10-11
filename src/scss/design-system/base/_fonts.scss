@@ -10,7 +10,16 @@
  * covers only its own script (unicode-range), so a page downloads only the
  * files its text actually uses.
  *
+ * Arabic pages also download the Latin faces: spaces, Western digits and
+ * punctuation fall in the Latin range. That is expected on market pages.
+ *
  * Formats are listed smallest first (woff2 → woff → otf).
+ *
+ * TODO: the Arabic faces have no woff2, and Arabic 400 (body text) has only
+ * an .otf. Converting them to woff2 is the largest font saving available.
+ *
+ * Paths are absolute: they assume the site is served from the domain root.
+ * Revisit them if Vite `base` ever points to a subpath.
  *
  * Weight coverage:
  *   Latin   400 · 500 · 900
@@ -32,8 +41,14 @@ $-latin-range: string.unquote(
   "U+0000-024F, U+1E00-1EFF, U+2000-206F, U+20A0-20CF"
 );
 
+/**
+ * U+200C-200F (ZWNJ, ZWJ, LRM, RLM) also appear in the Latin range.
+ * They occur inside Arabic words, so the Arabic faces must cover them too,
+ * or a word can be split into two font runs and lose its letter joining.
+ */
+
 $-arabic-range: string.unquote(
-  "U+0600-06FF, U+0750-077F, U+08A0-08FF, U+FB50-FDFF, U+FE70-FEFF"
+  "U+0600-06FF, U+0750-077F, U+08A0-08FF, U+200C-200F, U+FB50-FDFF, U+FE70-FEFF"
 );
 
 /* ==========================================================================

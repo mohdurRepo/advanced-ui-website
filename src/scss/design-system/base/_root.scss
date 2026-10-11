@@ -45,7 +45,7 @@ $-font-scales: (
   /* Focus */
   --focus-ring-width: 2px;
 
-  /* Header (desktop value set below) */
+  /* Header (see Header Height below) */
   --app-header-height: 4rem;
 
   /* Spacing */
@@ -79,14 +79,12 @@ $-font-scales: (
    ========================================================================== */
 
 /**
- * Used by the mega-menu height limit, the drawer header, sticky layouts and
- * anchor scrolling. These values are the fallback before JavaScript runs:
- * header.js then sets the header's measured height.
+ * --app-header-height (64px on every screen size) is used by the mega-menu
+ * height limit, the drawer header, sticky layouts and anchor scrolling.
  *
- * The breakpoint must match $nav-breakpoint in header/_header-config.scss.
+ * It is the fallback before JavaScript runs: header.js then sets the
+ * header's measured height.
  */
-
-/* Same height on every screen size (64px). */
 
 /* ==========================================================================
    Text-size Preference
@@ -137,13 +135,18 @@ body {
 /**
  * Removes token-based component transitions and smooth scrolling.
  *
+ * 0.01ms rather than 0ms: a transition with a zero total duration never
+ * starts, so `transitionend` never fires and any script waiting for it
+ * (drawer, mega-menu, accordion, toast) would get stuck. 0.01ms is not
+ * visible but still fires the event.
+ *
  * Motion primitives (reveal / text) and the market ticker have their own
  * rules; this only covers the shared --transition-* tokens.
  */
 
 html[data-motion-preference="reduce"] {
   @each $key, $value in ds.$motions {
-    --transition-#{$key}: 0ms;
+    --transition-#{$key}: 0.01ms;
   }
 
   scroll-behavior: auto;
@@ -174,6 +177,10 @@ html[data-contrast="high"] {
  * preferences.js adds this class for two frames while theme, accent,
  * contrast or text size change, so the whole interface does not animate
  * between the old and new token values at once.
+ *
+ * Only transitions are stopped. Setting `animation: none` here would
+ * restart every keyframe animation (market ticker, status dots) from its
+ * first frame on each preference change.
  */
 
 html.is-theme-switching,
@@ -181,6 +188,5 @@ html.is-theme-switching *,
 html.is-theme-switching *::before,
 html.is-theme-switching *::after {
   transition: none !important;
-  animation: none !important;
   scroll-behavior: auto !important;
 }

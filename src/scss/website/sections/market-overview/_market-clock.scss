@@ -11,12 +11,12 @@
  *
  * - Present the decorative analog clock.
  * - Present location, digital time, date, and day.
- * - Preserve predictable LTR analog-clock geometry.
- * - Provide responsive Summary composition.
+ * - Preserve LTR analog-clock geometry in both directions.
+ * - Provide the responsive clock-panel composition.
  *
  * This file does NOT own:
  *
- * - Summary rail geometry.
+ * - Summary rail geometry or grid placement.
  * - Market-card selection.
  * - Summary container width.
  * - Market countdown timers.
@@ -41,15 +41,15 @@
   --clock-panel-padding-block: var(--space-4, #{ds.space(4)});
   --clock-panel-padding-inline: var(--space-4, #{ds.space(4)});
 
+  --clock-panel-border-width: 0.125rem;
+
   /* -----------------------------------------------------------------------
      Surface
      -------------------------------------------------------------------- */
 
   /*
-   * Use the Summary surface contract instead of introducing another
-   * independent dark panel color.
-   *
-   * The analog face remains the decorative focal point.
+   * The Summary surface contract, not another independent dark color.
+   * The analog face stays the decorative focal point.
    */
 
   --clock-panel-bg: var(--market-summary-surface, var(--color-surface-alt));
@@ -78,6 +78,9 @@
     transparent
   );
 
+  --clock-face-shadow:
+    inset 0 0 0.375rem rgb(0 0 0 / 0.24), 0 0.125rem 0.375rem rgb(0 0 0 / 0.16);
+
   /* -----------------------------------------------------------------------
      Analog Foreground
      -------------------------------------------------------------------- */
@@ -89,6 +92,11 @@
   --clock-tick-major-color: rgb(255 255 255 / 0.72);
 
   --clock-hand-color: var(--market-summary-fg, #ffffff);
+
+  --clock-hand-shadow:
+    0 0.0625rem 0.125rem rgb(0 0 0 / 0.42), 0 0 0.125rem rgb(0 0 0 / 0.18);
+
+  /* Overview primary (accent-aware, readable on dark). */
 
   --clock-second-color: var(--color-primary);
 
@@ -103,7 +111,6 @@
     minmax(0, 1fr);
 
   align-items: center;
-  align-self: stretch;
 
   gap: var(--clock-panel-gap);
 
@@ -112,21 +119,17 @@
 
   block-size: 100%;
 
-  margin: 0;
-
   padding-block: var(--clock-panel-padding-block);
   padding-inline: var(--clock-panel-padding-inline);
 
   overflow: hidden;
 
-  border: 0.125rem solid var(--clock-panel-border);
+  border: var(--clock-panel-border-width) solid var(--clock-panel-border);
   border-radius: var(--radius-lg);
 
   /*
-   * Keep the panel itself restrained.
-   *
-   * The previous outer drop shadow made the clock compete visually with
-   * selected market cards.
+   * Restrained panel: an outer drop shadow would compete with the selected
+   * market cards.
    */
 
   background: var(--clock-panel-bg);
@@ -139,6 +142,11 @@
 /* ==========================================================================
    Clock Face
    ========================================================================== */
+
+/*
+ * The analog geometry always uses physical clock coordinates and never
+ * mirrors in RTL.
+ */
 
 .clock-face {
   position: relative;
@@ -164,24 +172,19 @@
     var(--clock-face-end) 72%
   );
 
-  /*
-   * Keep enough depth for the analog object without turning it into a
-   * separate elevated card.
-   */
-
-  box-shadow:
-    inset 0 0 0.375rem rgb(0 0 0 / 0.24),
-    0 0.125rem 0.375rem rgb(0 0 0 / 0.16);
-
-  /*
-   * Analog geometry always uses physical clock coordinates.
-   *
-   * It must never mirror in RTL.
-   */
+  box-shadow: var(--clock-face-shadow);
 
   direction: ltr;
 
   contain: layout paint;
+
+  /*
+   * Ticks, hands and the centre are drawn with background paint. Print
+   * would skip them by default.
+   */
+
+  print-color-adjust: exact;
+  -webkit-print-color-adjust: exact;
 }
 
 /* ==========================================================================
@@ -231,6 +234,10 @@
    Clock Numbers
    ========================================================================== */
 
+/*
+ * Only the quarter numbers are shown.
+ */
+
 .clock-number {
   display: none;
 
@@ -247,10 +254,12 @@
     rotate(calc(var(--clock-angle) * -1));
 }
 
-.clock-number--12,
-.clock-number--3,
-.clock-number--6,
-.clock-number--9 {
+.clock-number:is(
+  .clock-number--12,
+  .clock-number--3,
+  .clock-number--6,
+  .clock-number--9
+) {
   display: block;
 }
 
@@ -258,14 +267,16 @@
    Clock Hands
    ========================================================================== */
 
+/*
+ * market-clock.js writes each hand's rotation once per second.
+ */
+
 .clock-hand {
   border-radius: var(--radius-pill);
 
   background: var(--clock-hand-color);
 
-  box-shadow:
-    0 0.0625rem 0.125rem rgb(0 0 0 / 0.42),
-    0 0 0.125rem rgb(0 0 0 / 0.18);
+  box-shadow: var(--clock-hand-shadow);
 
   transform: translate(-50%, -100%) rotate(0deg);
 
@@ -291,6 +302,10 @@
 /* ==========================================================================
    Branded Second Hand
    ========================================================================== */
+
+/*
+ * An invisible rotating container that carries the brand icon at its tip.
+ */
 
 .clock-hand--second {
   z-index: 5;
@@ -324,13 +339,9 @@
   inline-size: var(--icon-size);
   block-size: var(--icon-size);
 
-  color: var(--color-primary);
+  color: var(--clock-second-color);
 
   filter: drop-shadow(0 0.0625rem 0.0625rem rgb(0 0 0 / 0.28));
-
-  /*
-   * Center the brand icon at the end of the rotating second-hand container.
-   */
 
   transform: translate(-50%, -10%) rotate(-45deg);
 
@@ -379,10 +390,6 @@
   text-align: start;
 }
 
-/* ==========================================================================
-   Time Group
-   ========================================================================== */
-
 .clock-info__time-group {
   display: grid;
 
@@ -392,10 +399,6 @@
 
   min-inline-size: 0;
 }
-
-/* ==========================================================================
-   Date Group
-   ========================================================================== */
 
 .clock-info__date-group {
   display: grid;
@@ -452,6 +455,10 @@
    Digital Time
    ========================================================================== */
 
+/*
+ * Both language modes display Latin numerals, isolated as LTR.
+ */
+
 .market-summary__time {
   color: var(--market-summary-fg);
 
@@ -465,10 +472,6 @@
 
   white-space: nowrap;
 
-  /*
-   * Both supported language modes currently display Latin numerals.
-   */
-
   direction: ltr;
 
   unicode-bidi: isolate;
@@ -480,6 +483,10 @@
 
 .market-summary__time-colon {
   animation: market-clock-colon-blink 1.6s ease-in-out infinite;
+
+  @include ds.reduced-motion {
+    animation: none;
+  }
 }
 
 @keyframes market-clock-colon-blink {
@@ -499,6 +506,10 @@
    Date and Day
    ========================================================================== */
 
+/*
+ * Date carries slightly stronger hierarchy; day is supporting context.
+ */
+
 .market-summary__date,
 .market-summary__day {
   display: block;
@@ -508,8 +519,6 @@
 
   overflow: hidden;
 
-  color: var(--market-summary-muted-strong, var(--market-summary-muted));
-
   font-size: var(--text-xs);
   line-height: var(--line-height-tight);
 
@@ -518,13 +527,9 @@
   white-space: nowrap;
 }
 
-/*
- * Date carries slightly stronger hierarchy.
- *
- * Day remains supporting calendar context beneath it.
- */
-
 .market-summary__date {
+  color: var(--market-summary-muted-strong, var(--market-summary-muted));
+
   font-weight: ds.font-weight("semibold");
 }
 
@@ -535,73 +540,21 @@
 }
 
 /* ==========================================================================
-   RTL
-   ========================================================================== */
-
-html[dir="rtl"] {
-  .market-summary__clock {
-    direction: rtl;
-  }
-
-  /*
-   * The clock face remains physical / clockwise.
-   */
-
-  .clock-face {
-    direction: ltr;
-  }
-
-  .clock-info,
-  .clock-info__time-group,
-  .clock-info__date-group {
-    text-align: start;
-  }
-
-  .market-summary__time {
-    direction: ltr;
-
-    unicode-bidi: isolate;
-  }
-}
-
-/* ==========================================================================
    Tablet / Mobile Summary Layout
    ========================================================================== */
 
 /*
- * At md and below the Summary places the clock above the market rail.
+ * At md and below the clock sits above the market rail and gains width:
  *
- * The clock therefore receives substantially more horizontal room.
- *
- * Use that room to create the requested:
- *
- *   Clock | Location / Time | Date / Day
- *
- * composition.
+ *   analog clock | location + time | date + day
  */
 
 @include ds.respond-down(md) {
   .market-summary__clock {
     --clock-size: 5.5rem;
 
-    --clock-panel-gap: var(--space-4, #{ds.space(4)});
-
     --clock-panel-padding-block: var(--space-3, #{ds.space(3)});
-    --clock-panel-padding-inline: var(--space-4, #{ds.space(4)});
-
-    grid-template-columns:
-      var(--clock-size)
-      minmax(0, 1fr);
-
-    align-items: center;
   }
-
-  /*
-   * Two information columns inside the second clock column create an
-   * effective three-zone panel:
-   *
-   * analog clock | location + time | date + day
-   */
 
   .clock-info {
     grid-template-columns:
@@ -616,16 +569,10 @@ html[dir="rtl"] {
 
   .clock-info__time-group {
     grid-column: 1;
-
-    align-self: center;
-
-    justify-items: start;
   }
 
   .clock-info__date-group {
     grid-column: 2;
-
-    align-self: center;
 
     justify-items: end;
 
@@ -638,9 +585,7 @@ html[dir="rtl"] {
    ========================================================================== */
 
 /*
- * Very narrow screens return the information area to one column.
- *
- * This prevents the date from compressing the location/time group.
+ * One information column, so the date never squeezes location / time.
  */
 
 @include ds.respond-down(sm) {
@@ -649,7 +594,6 @@ html[dir="rtl"] {
 
     --clock-panel-gap: var(--space-3, #{ds.space(3)});
 
-    --clock-panel-padding-block: var(--space-3, #{ds.space(3)});
     --clock-panel-padding-inline: var(--space-3, #{ds.space(3)});
 
     border-radius: var(--radius-md);
@@ -683,49 +627,43 @@ html[dir="rtl"] {
    High Contrast
    ========================================================================== */
 
+/*
+ * Depth is removed and every analog stroke uses the text color.
+ */
+
 html[data-contrast="high"] {
   .market-summary__clock {
-    --clock-panel-bg: var(--color-surface);
+    --clock-panel-border: var(--market-summary-border-strong);
 
-    --clock-panel-border: var(--color-border-strong);
+    --clock-face-start: var(--clock-panel-bg);
 
-    border-width: 2px;
+    --clock-face-end: var(--clock-panel-bg);
+
+    --clock-face-border: currentColor;
+
+    --clock-face-shadow: none;
+
+    --clock-hand-shadow: none;
+
+    --clock-number-color: currentColor;
+
+    --clock-tick-minor-color: currentColor;
+
+    --clock-tick-major-color: currentColor;
 
     box-shadow: none;
   }
 
   .clock-face {
-    --clock-face-border: currentColor;
-
     border-width: 2px;
-
-    background: var(--color-surface);
-
-    box-shadow: none;
-  }
-
-  .clock-hand,
-  .clock-center {
-    box-shadow: none;
   }
 
   .clock-hand__brand-icon {
-    color: currentColor;
-
     filter: none;
   }
 
-  .clock-tick,
-  .clock-tick--major,
-  .clock-hand {
-    background: currentColor;
-  }
-
-  .clock-number,
-  .market-summary__location,
-  .market-summary__date,
-  .market-summary__day {
-    color: currentColor;
+  .clock-center {
+    box-shadow: none;
   }
 }
 
@@ -733,77 +671,39 @@ html[data-contrast="high"] {
    Forced Colors
    ========================================================================== */
 
+/*
+ * The analog face is drawn with background paint, which forced colors
+ * would replace. It opts out and uses system colors explicitly.
+ */
+
 @media (forced-colors: active) {
   .market-summary__clock {
     --clock-panel-bg: Canvas;
     --clock-panel-border: CanvasText;
 
-    background: Canvas;
-
-    color: CanvasText;
-
     box-shadow: none;
-
-    forced-color-adjust: auto;
   }
 
   .clock-face {
-    border-color: CanvasText;
+    forced-color-adjust: none;
 
-    background: Canvas;
+    --clock-face-start: Canvas;
+    --clock-face-end: Canvas;
+    --clock-face-border: CanvasText;
+    --clock-face-shadow: none;
+    --clock-hand-shadow: none;
 
-    box-shadow: none;
-  }
-
-  .clock-tick,
-  .clock-tick--major,
-  .clock-hand {
-    background: CanvasText;
-  }
-
-  .clock-number,
-  .clock-hand__brand-icon,
-  .market-summary__location,
-  .market-summary__time,
-  .market-summary__date,
-  .market-summary__day {
-    color: CanvasText;
+    --clock-number-color: CanvasText;
+    --clock-tick-minor-color: CanvasText;
+    --clock-tick-major-color: CanvasText;
+    --clock-hand-color: CanvasText;
+    --clock-second-color: Highlight;
   }
 
   .clock-center {
     border-color: CanvasText;
 
-    background: Highlight;
-
     box-shadow: none;
-  }
-
-  .market-summary__location-icon {
-    color: Highlight;
-  }
-}
-
-/* ==========================================================================
-   Reduced Motion
-   ========================================================================== */
-
-@media (prefers-reduced-motion: reduce) {
-  .clock-hand {
-    transition: none;
-  }
-
-  .market-summary__time-colon {
-    animation: none;
-  }
-}
-
-html[data-motion-preference="reduce"] {
-  .clock-hand {
-    transition: none;
-  }
-
-  .market-summary__time-colon {
-    animation: none;
   }
 }
 
@@ -816,23 +716,23 @@ html[data-motion-preference="reduce"] {
     --clock-panel-bg: transparent;
     --clock-panel-border: #000000;
 
-    background: transparent;
+    --clock-face-start: #ffffff;
+    --clock-face-end: #ffffff;
+    --clock-face-border: #000000;
+    --clock-face-shadow: none;
+    --clock-hand-shadow: none;
+
+    --clock-number-color: #000000;
+    --clock-tick-minor-color: #000000;
+    --clock-tick-major-color: #000000;
+    --clock-hand-color: #000000;
+    --clock-second-color: #000000;
 
     color: #000000;
 
     box-shadow: none;
   }
 
-  .clock-face {
-    --clock-face-start: #ffffff;
-    --clock-face-end: #ffffff;
-    --clock-face-border: #000000;
-
-    box-shadow: none;
-  }
-
-  .clock-number,
-  .clock-hand__brand-icon,
   .market-summary__location,
   .market-summary__time,
   .market-summary__date,
@@ -840,16 +740,8 @@ html[data-motion-preference="reduce"] {
     color: #000000;
   }
 
-  .clock-tick,
-  .clock-tick--major,
-  .clock-hand {
-    background: #000000;
-  }
-
   .clock-center {
     border-color: #000000;
-
-    background: #000000;
 
     box-shadow: none;
   }

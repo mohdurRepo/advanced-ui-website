@@ -9,9 +9,10 @@
  * - Drive the decorative analog clock.
  * - Update the accessible digital time.
  * - Update day / date only when the Riyadh calendar date changes.
- * - Localize the location / day / date when language changes.
+ * - Localize location / day / date when the language changes.
  * - Generate analog clock ticks once.
- * - Share one second-aligned scheduler across all clock instances.
+ * - Share one second-aligned scheduler across all clock instances, paused
+ *   while the page is hidden.
  *
  * This module does NOT own:
  *
@@ -21,6 +22,8 @@
  * - Market Details.
  * - Bridge geometry.
  */
+
+import { getLanguage } from "./market-shared";
 
 /* ==========================================================================
    Selectors
@@ -53,10 +56,8 @@ const SELECTORS = {
 const MARKET_TIME_ZONE = "Asia/Riyadh";
 
 /*
- * Riyadh uses UTC+03:00 year-round.
- *
- * Intl remains the source of truth for displayed calendar/time values; this
- * constant is used only when constructing the <time datetime> value.
+ * Riyadh is UTC+03:00 year-round. Intl is the source of truth for every
+ * displayed value; this constant is used only for <time datetime>.
  */
 
 const MARKET_UTC_OFFSET = "+03:00";
@@ -66,10 +67,8 @@ const MARKET_UTC_OFFSET = "+03:00";
    ========================================================================== */
 
 /*
- * Keep Latin numerals in both language modes.
- *
- * This matches the existing financial-value / clock presentation and avoids
- * bidi surprises inside the LTR-isolated time value.
+ * Latin numerals in both languages, matching the financial values and
+ * avoiding bidi surprises inside the LTR-isolated time.
  */
 
 const LOCALES = {
@@ -100,15 +99,11 @@ const LABELS = {
    State
    ========================================================================== */
 
-const initializedRoots = new WeakSet();
-
 const rootStates = new WeakMap();
 
 /*
- * Keep initialized roots iterable.
- *
- * WeakSet / WeakMap are still used for ownership/state without preventing
- * garbage collection.
+ * Iterable set of live clocks. Disconnected roots are dropped on the next
+ * tick.
  */
 
 const roots = new Set();
@@ -117,100 +112,149 @@ let globalEventsInitialized = false;
 
 let schedulerTimer = null;
 
-/* ==========================================================================
-   Formatter Cache
-   ========================================================================== */
-
-const formatterCache = new Map();
-
-/* ==========================================================================
-   Language
-   ========================================================================== */
-
-function getLanguage() {
-  const language = document.documentElement.lang?.trim().toLowerCase() || "en";
-
-  return language.startsWith("ar") ? "ar" : "en";
-}
-
-function getLocale() {
-  return LOCALES[getLanguage()];
-}
-
-/* ==========================================================================
-   Formatter Factory
-   ========================================================================== */
-
-function getFormatter(key, options) {
-  const language = getLanguage();
-
-  const cacheKey = `${language}:${key}`;
-
-  if (formatterCache.has(cacheKey)) {
-    return formatterCache.get(cacheKey);
-  }
-
-  const formatter = new Intl.DateTimeFormat(LOCALES[language], {
-    timeZone: MARKET_TIME_ZONE,
-
-    ...options,
-  });
-
-  formatterCache.set(cacheKey, formatter);
-
-  return formatter;
+function getState(root) {
+  return rootStates.get(root) || null;
 }
 
 /* ==========================================================================
    Formatters
    ========================================================================== */
 
-function getClockPartsFormatter() {
-  return getFormatter("clock-parts", {
+/*
+ * Cached per language, so a language change simply resolves a different
+ * cached set; no invalidation is needed.
+ */
+
+const formatterCache = new Map();
+
+const FORMATTER_OPTIONS = {
+  clockParts: {
     hour: "2-digit",
-
     minute: "2-digit",
-
     second: "2-digit",
-
     hourCycle: "h23",
-  });
-}
+  },
 
-function getDigitalTimeFormatter() {
-  return getFormatter("digital-time", {
+  digitalTime: {
     hour: "2-digit",
-
     minute: "2-digit",
-
     hourCycle: "h23",
-  });
-}
+  },
 
-function getDayFormatter() {
-  return getFormatter("day", {
+  day: {
     weekday: "long",
-  });
-}
+  },
 
-function getDateFormatter() {
-  return getFormatter("date", {
+  date: {
     day: "2-digit",
-
     month: "long",
-
     year: "numeric",
-  });
+  },
+
+  dateKey: {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  },
+};
+
+function getFormatter(key) {
+  const language = getLanguage();
+
+  const cacheKey = `${language}:${key}`;
+
+  if (!formatterCache.has(cacheKey)) {
+    formatterCache.set(
+      cacheKey,
+      new Intl.DateTimeFormat(LOCALES[language], {
+        timeZone: MARKET_TIME_ZONE,
+
+        ...FORMATTER_OPTIONS[key],
+      }),
+    );
+  }
+
+  return formatterCache.get(cacheKey);
 }
 
-function getDateKeyFormatter() {
-  return getFormatter("date-key", {
-    year: "numeric",
+/*
+ * formatToParts → { type: value } for the requested part types.
+ */
 
-    month: "2-digit",
+function getParts(key, date, types) {
+  const values = {};
 
-    day: "2-digit",
-  });
+  getFormatter(key)
+    .formatToParts(date)
+    .forEach((part) => {
+      if (types.includes(part.type)) {
+        values[part.type] = part.value;
+      }
+    });
+
+  return values;
+}
+
+/* ==========================================================================
+   Riyadh Time
+   ========================================================================== */
+
+function getTimeParts(date) {
+  const {
+    hour = "00",
+    minute = "00",
+    second = "00",
+  } = getParts("clockParts", date, ["hour", "minute", "second"]);
+
+  return {
+    hour: hour.padStart(2, "0"),
+    minute: minute.padStart(2, "0"),
+    second: second.padStart(2, "0"),
+  };
+}
+
+/*
+ * YYYY-MM-DD without relying on locale-specific separators.
+ */
+
+function getDateKey(date) {
+  const {
+    year = "",
+    month = "",
+    day = "",
+  } = getParts("dateKey", date, ["year", "month", "day"]);
+
+  return `${year}-${month}-${day}`;
+}
+
+function getRiyadhDateTime(date, time) {
+  return `${getDateKey(date)}T${time.hour}:${time.minute}:${time.second}${MARKET_UTC_OFFSET}`;
+}
+
+/* ==========================================================================
+   Safe DOM Writes
+   ========================================================================== */
+
+/*
+ * Write only real changes: no needless mutations or live-region noise.
+ */
+
+function setText(element, value) {
+  if (element && element.textContent !== value) {
+    element.textContent = value;
+  }
+}
+
+function setAttribute(element, name, value) {
+  if (element && element.getAttribute(name) !== value) {
+    element.setAttribute(name, value);
+  }
+}
+
+function setTransform(element, value) {
+  if (element && element.style.transform !== value) {
+    element.style.transform = value;
+  }
 }
 
 /* ==========================================================================
@@ -218,83 +262,23 @@ function getDateKeyFormatter() {
    ========================================================================== */
 
 function collectElements(root) {
-  if (!root) {
-    return null;
-  }
-
-  return {
-    root,
-
-    ticks: root.querySelector(SELECTORS.ticks),
-
-    hourHand: root.querySelector(SELECTORS.hourHand),
-
-    minuteHand: root.querySelector(SELECTORS.minuteHand),
-
-    secondHand: root.querySelector(SELECTORS.secondHand),
-
-    time: root.querySelector(SELECTORS.time),
-
-    day: root.querySelector(SELECTORS.day),
-
-    date: root.querySelector(SELECTORS.date),
-
-    location: root.querySelector(SELECTORS.location),
-  };
-}
-
-function getState(root) {
-  return rootStates.get(root) || null;
-}
-
-/* ==========================================================================
-   Safe DOM Writes
-   ========================================================================== */
-
-function setText(element, value) {
-  if (!element || element.textContent === value) {
-    return;
-  }
-
-  element.textContent = value;
-}
-
-function setAttribute(element, name, value) {
-  if (!element) {
-    return;
-  }
-
-  if (element.getAttribute(name) === value) {
-    return;
-  }
-
-  element.setAttribute(name, value);
-}
-
-function setTransform(element, value) {
-  if (!element || element.style.transform === value) {
-    return;
-  }
-
-  element.style.transform = value;
+  return Object.fromEntries(
+    Object.entries(SELECTORS)
+      .filter(([key]) => key !== "root")
+      .map(([key, selector]) => [key, root.querySelector(selector)]),
+  );
 }
 
 /* ==========================================================================
    Clock Ticks
    ========================================================================== */
 
-function initializeTicks(elements) {
-  const container = elements?.ticks;
+/*
+ * Generated once; authored or previously generated ticks are kept.
+ */
 
-  if (!container) {
-    return;
-  }
-
-  /*
-   * Do not recreate authored or previously generated ticks.
-   */
-
-  if (container.querySelector(".clock-tick")) {
+function initializeTicks(container) {
+  if (!container || container.querySelector(".clock-tick")) {
     return;
   }
 
@@ -317,201 +301,66 @@ function initializeTicks(elements) {
 }
 
 /* ==========================================================================
-   Riyadh Time Parts
-   ========================================================================== */
-
-function getTimeParts(date) {
-  const parts = getClockPartsFormatter().formatToParts(date);
-
-  const values = {
-    hour: 0,
-
-    minute: 0,
-
-    second: 0,
-  };
-
-  parts.forEach((part) => {
-    if (
-      part.type === "hour" ||
-      part.type === "minute" ||
-      part.type === "second"
-    ) {
-      values[part.type] = Number(part.value);
-    }
-  });
-
-  return values;
-}
-
-/* ==========================================================================
    Analog Clock
    ========================================================================== */
 
-function updateAnalogClock(elements, date) {
-  if (!elements) {
-    return;
-  }
+/*
+ * Parent hands include the smaller units, so they move continuously rather
+ * than stepping once per minute / hour.
+ */
 
-  const { hour, minute, second } = getTimeParts(date);
+function updateAnalogClock(elements, time) {
+  const hour = Number(time.hour);
+  const minute = Number(time.minute);
+  const second = Number(time.second);
 
-  /*
-   * Include smaller units in the parent-hand positions so movement is
-   * continuous rather than stepping only once per minute/hour.
-   */
+  const angles = {
+    hourHand: (hour % 12) * 30 + minute * 0.5 + second / 120,
 
-  const secondAngle = second * 6;
+    minuteHand: minute * 6 + second * 0.1,
 
-  const minuteAngle = minute * 6 + second * 0.1;
-
-  const hourAngle = (hour % 12) * 30 + minute * 0.5 + second / 120;
-
-  setTransform(
-    elements.hourHand,
-    `translate(-50%, -100%) rotate(${hourAngle}deg)`,
-  );
-
-  setTransform(
-    elements.minuteHand,
-    `translate(-50%, -100%) rotate(${minuteAngle}deg)`,
-  );
-
-  setTransform(
-    elements.secondHand,
-    `translate(-50%, -100%) rotate(${secondAngle}deg)`,
-  );
-}
-
-/* ==========================================================================
-   Digital Time
-   ========================================================================== */
-
-function updateDigitalTime(elements, date) {
-  const time = elements?.time;
-
-  if (!time) {
-    return;
-  }
-
-  const formatted = getDigitalTimeFormatter().format(date);
-
-  setText(time, formatted);
-}
-
-/* ==========================================================================
-   Date Key
-   ========================================================================== */
-
-function getDateKey(date) {
-  /*
-   * formatToParts avoids relying on locale-specific separators.
-   */
-
-  const parts = getDateKeyFormatter().formatToParts(date);
-
-  let year = "";
-  let month = "";
-  let day = "";
-
-  parts.forEach((part) => {
-    switch (part.type) {
-      case "year":
-        year = part.value;
-        break;
-
-      case "month":
-        month = part.value;
-        break;
-
-      case "day":
-        day = part.value;
-        break;
-
-      default:
-        break;
-    }
-  });
-
-  return `${year}-${month}-${day}`;
-}
-
-/* ==========================================================================
-   ISO DateTime
-   ========================================================================== */
-
-function getRiyadhDateTime(date) {
-  const parts = getClockPartsFormatter().formatToParts(date);
-
-  const time = {
-    hour: "00",
-
-    minute: "00",
-
-    second: "00",
+    secondHand: second * 6,
   };
 
-  parts.forEach((part) => {
-    if (
-      part.type === "hour" ||
-      part.type === "minute" ||
-      part.type === "second"
-    ) {
-      time[part.type] = part.value.padStart(2, "0");
-    }
+  Object.entries(angles).forEach(([key, angle]) => {
+    setTransform(elements[key], `translate(-50%, -100%) rotate(${angle}deg)`);
   });
-
-  const dateKey = getDateKey(date);
-
-  return (
-    `${dateKey}` +
-    `T${time.hour}` +
-    `:${time.minute}` +
-    `:${time.second}` +
-    MARKET_UTC_OFFSET
-  );
 }
 
 /* ==========================================================================
-   Digital Time Metadata
+   Digital Time / Calendar / Location
    ========================================================================== */
 
-function updateTimeMetadata(elements, date) {
-  setAttribute(elements?.time, "datetime", getRiyadhDateTime(date));
+function updateDigitalTime(elements, date, time) {
+  setText(elements.time, getFormatter("digitalTime").format(date));
+
+  setAttribute(elements.time, "datetime", getRiyadhDateTime(date, time));
 }
 
-/* ==========================================================================
-   Day / Date
-   ========================================================================== */
+/*
+ * Day and date are reformatted only when the Riyadh date or the language
+ * changes.
+ */
 
-function updateCalendar(elements, date, { force = false } = {}) {
-  const state = getState(elements?.root);
-
-  if (!state) {
-    return;
-  }
+function updateCalendar(root, date, { force = false } = {}) {
+  const state = getState(root);
 
   const dateKey = getDateKey(date);
 
   const language = getLanguage();
 
-  /*
-   * Day and date do not need to be reformatted every second.
-   */
-
   if (!force && state.dateKey === dateKey && state.language === language) {
     return;
   }
 
-  const dayText = getDayFormatter().format(date);
+  const { elements } = state;
 
-  const dateText = getDateFormatter().format(date);
+  setText(elements.day, getFormatter("day").format(date));
 
-  setText(elements.day, dayText);
-
-  setText(elements.date, dateText);
+  setText(elements.date, getFormatter("date").format(date));
 
   /*
-   * The date element represents a calendar date, not a full instant.
+   * The date element represents a calendar date, not an instant.
    */
 
   setAttribute(elements.date, "datetime", dateKey);
@@ -521,51 +370,35 @@ function updateCalendar(elements, date, { force = false } = {}) {
   state.language = language;
 }
 
-/* ==========================================================================
-   Location
-   ========================================================================== */
+function updateLocation(root) {
+  const labels = LABELS[getLanguage()];
 
-function updateLocation(elements) {
-  if (!elements) {
-    return;
-  }
+  setText(getState(root).elements.location, labels.location);
 
-  const language = getLanguage();
-
-  const labels = LABELS[language];
-
-  setText(elements.location, labels.location);
-
-  setAttribute(elements.root, "aria-label", labels.aria);
+  setAttribute(root, "aria-label", labels.aria);
 }
 
 /* ==========================================================================
    Clock Update
    ========================================================================== */
 
-function updateClock(root, date = new Date(), { forceCalendar = false } = {}) {
+function updateClock(root, date, { forceCalendar = false } = {}) {
   const state = getState(root);
 
   if (!state) {
     return;
   }
 
-  const { elements } = state;
+  const time = getTimeParts(date);
 
-  updateAnalogClock(elements, date);
+  updateAnalogClock(state.elements, time);
 
-  updateDigitalTime(elements, date);
+  updateDigitalTime(state.elements, date, time);
 
-  updateTimeMetadata(elements, date);
-
-  updateCalendar(elements, date, {
+  updateCalendar(root, date, {
     force: forceCalendar,
   });
 }
-
-/* ==========================================================================
-   All Clocks
-   ========================================================================== */
 
 function updateAllClocks({ forceCalendar = false } = {}) {
   const now = new Date();
@@ -588,14 +421,17 @@ function updateAllClocks({ forceCalendar = false } = {}) {
    ========================================================================== */
 
 function clearScheduler() {
-  if (schedulerTimer === null) {
-    return;
+  if (schedulerTimer !== null) {
+    window.clearTimeout(schedulerTimer);
+
+    schedulerTimer = null;
   }
-
-  window.clearTimeout(schedulerTimer);
-
-  schedulerTimer = null;
 }
+
+/*
+ * Aligned to the next real second (+10ms) instead of drifting from the
+ * moment initialization happened to run.
+ */
 
 function scheduleNextTick() {
   clearScheduler();
@@ -604,14 +440,7 @@ function scheduleNextTick() {
     return;
   }
 
-  /*
-   * Align updates to the next real second rather than drifting from the time
-   * at which initMarketClock happened to execute.
-   */
-
-  const now = Date.now();
-
-  const delay = 1000 - (now % 1000) + 10;
+  const delay = 1000 - (Date.now() % 1000) + 10;
 
   schedulerTimer = window.setTimeout(() => {
     schedulerTimer = null;
@@ -622,19 +451,13 @@ function scheduleNextTick() {
   }, delay);
 }
 
-function startScheduler() {
-  if (document.hidden || !roots.size) {
-    return;
-  }
-
-  updateAllClocks();
-
-  scheduleNextTick();
-}
-
 /* ==========================================================================
-   Visibility
+   Global Events
    ========================================================================== */
+
+/*
+ * Catch up immediately when the page returns from the background.
+ */
 
 function handleVisibilityChange() {
   if (document.hidden) {
@@ -643,10 +466,6 @@ function handleVisibilityChange() {
     return;
   }
 
-  /*
-   * Immediately catch up after the page returns from the background.
-   */
-
   updateAllClocks({
     forceCalendar: true,
   });
@@ -654,26 +473,8 @@ function handleVisibilityChange() {
   scheduleNextTick();
 }
 
-/* ==========================================================================
-   Language
-   ========================================================================== */
-
 function refreshLocalizedContent() {
-  /*
-   * Cached formatters are keyed by language, so no cache invalidation is
-   * required. The newly active language automatically resolves a different
-   * cached formatter set.
-   */
-
-  roots.forEach((root) => {
-    const state = getState(root);
-
-    if (!state) {
-      return;
-    }
-
-    updateLocation(state.elements);
-  });
+  roots.forEach(updateLocation);
 
   updateAllClocks({
     forceCalendar: true,
@@ -681,52 +482,10 @@ function refreshLocalizedContent() {
 }
 
 function handlePreferenceChange(event) {
-  if (event.detail?.name !== "lang") {
-    return;
+  if (event.detail?.name === "lang") {
+    refreshLocalizedContent();
   }
-
-  refreshLocalizedContent();
 }
-
-/* ==========================================================================
-   Root Initialization
-   ========================================================================== */
-
-function initializeRoot(root) {
-  if (!root || initializedRoots.has(root)) {
-    return;
-  }
-
-  const elements = collectElements(root);
-
-  if (!elements) {
-    return;
-  }
-
-  rootStates.set(root, {
-    elements,
-
-    dateKey: null,
-
-    language: null,
-  });
-
-  initializedRoots.add(root);
-
-  roots.add(root);
-
-  initializeTicks(elements);
-
-  updateLocation(elements);
-
-  updateClock(root, new Date(), {
-    forceCalendar: true,
-  });
-}
-
-/* ==========================================================================
-   Global Events
-   ========================================================================== */
 
 function initializeGlobalEvents() {
   if (globalEventsInitialized) {
@@ -743,6 +502,36 @@ function initializeGlobalEvents() {
 }
 
 /* ==========================================================================
+   Root Initialization
+   ========================================================================== */
+
+function initializeRoot(root) {
+  if (!root || rootStates.has(root)) {
+    return;
+  }
+
+  const elements = collectElements(root);
+
+  rootStates.set(root, {
+    elements,
+
+    dateKey: null,
+
+    language: null,
+  });
+
+  roots.add(root);
+
+  initializeTicks(elements.ticks);
+
+  updateLocation(root);
+
+  updateClock(root, new Date(), {
+    forceCalendar: true,
+  });
+}
+
+/* ==========================================================================
    Public Initializer
    ========================================================================== */
 
@@ -755,9 +544,7 @@ export function initMarketClock() {
 
   initializeGlobalEvents();
 
-  clockRoots.forEach((root) => {
-    initializeRoot(root);
-  });
+  clockRoots.forEach(initializeRoot);
 
-  startScheduler();
+  scheduleNextTick();
 }

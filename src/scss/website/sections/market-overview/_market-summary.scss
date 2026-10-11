@@ -19,10 +19,18 @@
  *
  * - DOM order always remains logical market order.
  * - CSS logical properties own LTR / RTL placement.
- * - The outer grid uses one template in both directions.
- * - The browser mirrors inline-start / inline-end naturally.
- * - The actual rail direction is explicit for predictable scrolling.
+ * - One grid template serves both directions; the browser mirrors
+ *   inline-start / inline-end naturally.
  * - No row-reverse, column-reverse, or physical left/right positioning.
+ *
+ * Token strategy:
+ *
+ * - Every value comes from the .market-overview environment tokens.
+ * - The local semantic contract (--color-*) is published for nested
+ *   components, and is never read back by this file's own tokens. Reading
+ *   it back would create a custom-property cycle, which the browser treats
+ *   as invalid.
+ * - Primary, focus and financial colors are inherited from .market-overview.
  *
  * This file does NOT own:
  *
@@ -41,14 +49,6 @@
   /* -----------------------------------------------------------------------
      Surface Contract
      -------------------------------------------------------------------- */
-
-  /*
-   * Market Overview is the source of truth for this permanent-dark
-   * environment.
-   *
-   * Summary should consume that contract instead of independently repeating
-   * the same hex values.
-   */
 
   --market-summary-bg: var(--market-overview-bg, #0b2233);
 
@@ -92,18 +92,14 @@
   );
 
   /*
-   * The structural Clock → Markets gap should be slightly larger than the
-   * gap between individual market cards.
+   * The Clock → Markets gap is slightly larger than the gap between cards.
    */
 
   --market-summary-gap: var(--space-4, #{ds.space(4)});
 
   /*
-   * Clock is supporting market context rather than the primary Summary
-   * content.
-   *
-   * Give it enough room for the analog face and text without allowing it to
-   * dominate the market rail.
+   * The clock is supporting context: enough room for the analog face and
+   * text without dominating the market rail.
    */
 
   --market-summary-clock-width: clamp(18rem, 20vw, 19rem);
@@ -115,11 +111,6 @@
      -------------------------------------------------------------------- */
 
   --market-summary-card-width: 18.5rem;
-
-  /*
-   * Give adjacent market cards enough separation to read clearly while
-   * keeping the rail visually continuous as one navigation family.
-   */
 
   --market-summary-card-gap: var(--space-3, #{ds.space(3)});
 
@@ -145,13 +136,15 @@
 
   --market-summary-control-offset: var(--space-2, #{ds.space(2)});
 
+  --market-summary-control-border-width: 1px;
+
   /* -----------------------------------------------------------------------
      Local Semantic Contract
      -------------------------------------------------------------------- */
 
   /*
-   * Nested website/design-system utilities can safely consume ordinary
-   * semantic tokens inside this permanently dark surface.
+   * Published for nested utilities and components. Write-only from this
+   * file's point of view (see Token strategy above).
    */
 
   --color-surface: var(--market-summary-bg);
@@ -159,6 +152,10 @@
   --color-surface-alt: var(--market-summary-surface);
 
   --color-surface-hover: var(--market-summary-surface-hover);
+
+  --color-surface-active: rgb(255 255 255 / 0.14);
+
+  --color-surface-selected: rgb(255 255 255 / 0.18);
 
   --color-text: var(--market-summary-fg);
 
@@ -169,15 +166,6 @@
   --color-border: var(--market-summary-border);
 
   --color-border-strong: var(--market-summary-border-strong);
-
-  --color-market-positive: var(--market-overview-success, #4ade80);
-
-  --color-market-negative: var(--market-overview-danger, #fb7185);
-
-  --color-market-neutral: var(
-    --market-overview-neutral,
-    var(--market-summary-muted)
-  );
 
   /* -----------------------------------------------------------------------
      Root Geometry
@@ -205,10 +193,8 @@
    ========================================================================== */
 
 /*
- * Use the same logical grid in LTR and RTL.
- *
- * `direction` automatically changes which physical edge represents
- * inline-start.
+ * The same logical grid in LTR and RTL: `direction` decides which physical
+ * edge is inline-start.
  */
 
 .market-summary__container {
@@ -255,6 +241,15 @@
    Cards Area
    ========================================================================== */
 
+/*
+ * Positioning context for the edge fades and controls, NOT a scroll
+ * container. Only .market-summary__cards scrolls.
+ *
+ * (overflow-x: auto with overflow-y: visible computes to auto on both axes,
+ * which previously turned this wrapper into a second scroller around the
+ * rail.)
+ */
+
 .market-summary__cards-wrap {
   grid-area: rail;
 
@@ -271,8 +266,7 @@
 
   margin: 0;
 
-  overflow-x: auto; /* or hidden, if deliberate */
-  overflow-y: visible;
+  overflow: visible;
 }
 
 /* ==========================================================================
@@ -301,12 +295,8 @@
   padding-block: var(--market-summary-card-block-space);
 
   /*
-   * IMPORTANT:
-   *
-   * Do not physically inset the card rail.
-   *
-   * The first / last card must be able to reach the same logical container
-   * edge used by the bridge and Market Details.
+   * Do not inset the rail: the first / last card must reach the same
+   * logical container edge used by the bridge and Market Details.
    */
 
   padding-inline: 0;
@@ -317,8 +307,7 @@
   overscroll-behavior-inline: contain;
 
   /*
-   * Keep logical scroll breathing room without changing physical card
-   * geometry.
+   * Logical scroll breathing room without changing card geometry.
    */
 
   scroll-padding-inline: var(--market-summary-scroll-padding);
@@ -332,29 +321,6 @@
   touch-action: pan-x pan-y;
 
   -webkit-overflow-scrolling: touch;
-}
-
-/* ==========================================================================
-   Explicit Rail Direction
-   ========================================================================== */
-
-/*
- * Outer page composition inherits direction naturally.
- *
- * The actual scrolling element is explicit so browser scrolling and JS
- * visibility geometry agree about logical start / end.
- */
-
-:root[dir="ltr"] {
-  .market-summary__cards {
-    direction: ltr;
-  }
-}
-
-:root[dir="rtl"] {
-  .market-summary__cards {
-    direction: rtl;
-  }
 }
 
 /* ==========================================================================
@@ -373,33 +339,32 @@
    Scrollbar
    ========================================================================== */
 
-.market-summary__cards::-webkit-scrollbar {
-  block-size: var(--market-summary-scrollbar-size);
-}
+.market-summary__cards {
+  &::-webkit-scrollbar {
+    block-size: var(--market-summary-scrollbar-size);
+  }
 
-.market-summary__cards::-webkit-scrollbar-button {
-  display: none;
+  &::-webkit-scrollbar-button {
+    display: none;
 
-  inline-size: 0;
-  block-size: 0;
-}
+    inline-size: 0;
+    block-size: 0;
+  }
 
-.market-summary__cards::-webkit-scrollbar-track {
-  background: transparent;
-}
+  &::-webkit-scrollbar-track,
+  &::-webkit-scrollbar-corner {
+    background: transparent;
+  }
 
-.market-summary__cards::-webkit-scrollbar-thumb {
-  border-radius: var(--radius-pill);
+  &::-webkit-scrollbar-thumb {
+    border-radius: var(--radius-pill);
 
-  background: var(--market-summary-border-strong);
-}
+    background: var(--market-summary-border-strong);
+  }
 
-.market-summary__cards::-webkit-scrollbar-thumb:hover {
-  background: var(--market-summary-muted);
-}
-
-.market-summary__cards::-webkit-scrollbar-corner {
-  background: transparent;
+  &::-webkit-scrollbar-thumb:hover {
+    background: var(--market-summary-muted);
+  }
 }
 
 /* ==========================================================================
@@ -407,12 +372,7 @@
    ========================================================================== */
 
 /*
- * JS owns:
- *
- * - .has-overflow-start
- * - .has-overflow-end
- *
- * CSS only renders those states.
+ * JS owns .has-overflow-start / .has-overflow-end. CSS only renders them.
  */
 
 .market-summary__cards-wrap::before,
@@ -441,22 +401,15 @@
   @include ds.transition(opacity, "fast");
 }
 
-/* Logical start */
-
 .market-summary__cards-wrap::before {
   inset-inline-start: 0;
 }
-
-/* Logical end */
 
 .market-summary__cards-wrap::after {
   inset-inline-end: 0;
 }
 
-.market-summary__cards-wrap.has-overflow-start::before {
-  opacity: 1;
-}
-
+.market-summary__cards-wrap.has-overflow-start::before,
 .market-summary__cards-wrap.has-overflow-end::after {
   opacity: 1;
 }
@@ -483,7 +436,8 @@
 
   appearance: none;
 
-  border: 1px solid var(--market-summary-border-hover);
+  border: var(--market-summary-control-border-width) solid
+    var(--market-summary-border-hover);
 
   border-radius: var(--radius-pill);
 
@@ -492,8 +446,7 @@
   color: var(--market-summary-fg);
 
   /*
-   * Keep navigation controls above the rail without making them appear like
-   * floating primary actions.
+   * Above the rail without reading as a floating primary action.
    */
 
   box-shadow: var(--shadow-sm);
@@ -531,6 +484,10 @@
 
   &:active:not(:disabled) {
     transform: translateY(-50%) scale(0.96);
+
+    @include ds.reduced-motion {
+      transform: translateY(-50%);
+    }
   }
 
   &:disabled {
@@ -550,47 +507,25 @@
   }
 }
 
-/* ==========================================================================
-   Previous Control
-   ========================================================================== */
-
 /*
- * Previous = logical inline-start.
- *
- * LTR -> left
- * RTL -> right
+ * Previous = logical inline-start, Next = logical inline-end.
  */
 
 .market-summary__scroll-control--prev {
   inset-inline-start: var(--market-summary-control-offset);
 }
 
-/* ==========================================================================
-   Next Control
-   ========================================================================== */
-
-/*
- * Next = logical inline-end.
- *
- * LTR -> right
- * RTL -> left
- */
-
 .market-summary__scroll-control--next {
   inset-inline-end: var(--market-summary-control-offset);
 }
 
-/* ==========================================================================
-   RTL Control Icons
-   ========================================================================== */
+/*
+ * Mirror the chevrons in RTL through the icon system's own flip token.
+ * :dir() follows the nearest dir attribute.
+ */
 
-:root[dir="rtl"] {
-  .market-summary__scroll-control--prev,
-  .market-summary__scroll-control--next {
-    .has-icon {
-      transform: rotate(180deg);
-    }
-  }
+.market-summary__scroll-control:dir(rtl) .has-icon {
+  --icon-scale-x: -1;
 }
 
 /* ==========================================================================
@@ -598,10 +533,9 @@
    ========================================================================== */
 
 /*
- * This is a recovery affordance rather than a primary action.
- *
- * It appears only when the selected market has moved outside the visible
- * rail. Keep it visually quieter than the selected market card itself.
+ * A recovery affordance, not a primary action. It appears only when the
+ * selected market has scrolled out of the visible rail, and stays quieter
+ * than the selected card itself.
  */
 
 .market-summary__selected-market {
@@ -633,7 +567,8 @@
 
   appearance: none;
 
-  border: 1px solid var(--market-summary-border-hover);
+  border: var(--market-summary-control-border-width) solid
+    var(--market-summary-border-hover);
 
   border-radius: var(--radius-pill);
 
@@ -682,6 +617,10 @@
 
   &:active {
     transform: translateY(1px);
+
+    @include ds.reduced-motion {
+      transform: none;
+    }
   }
 }
 
@@ -743,8 +682,6 @@
     --market-summary-gap: var(--space-3, #{ds.space(3)});
 
     --market-summary-card-gap: var(--space-2, #{ds.space(2)});
-
-    --market-summary-padding-block: var(--space-1, #{ds.space(1)});
   }
 }
 
@@ -776,7 +713,7 @@
   }
 
   /*
-   * Mobile presents one focused card at a time more strongly than desktop.
+   * Mobile presents one focused card at a time.
    */
 
   .market-summary__cards {
@@ -795,12 +732,6 @@
     --market-summary-card-width: min(84vw, 17rem);
 
     --market-summary-card-gap: var(--space-1, #{ds.space(1)});
-
-    --market-summary-padding-block: var(--space-1, #{ds.space(1)});
-
-    --market-summary-scroll-padding: var(--space-1, #{ds.space(1)});
-
-    --market-summary-card-block-space: var(--space-1, #{ds.space(1)});
   }
 
   .market-summary__selected-market {
@@ -816,35 +747,20 @@
    High Contrast
    ========================================================================== */
 
-:root[data-contrast="high"] {
+/*
+ * Colors already follow the overview tokens, which high contrast
+ * strengthens. The Summary stays dark, consistent with Details.
+ */
+
+html[data-contrast="high"] {
   .market-summary {
-    --market-summary-bg: var(--color-bg);
-
-    --market-summary-surface: var(--color-surface);
-
-    --market-summary-surface-hover: var(--color-surface-hover);
-
-    --market-summary-fg: var(--color-text);
-
-    --market-summary-muted: var(--color-text-muted);
-
-    --market-summary-muted-strong: var(--color-text);
-
-    --market-summary-border: var(--color-border);
-
-    --market-summary-border-hover: var(--color-border-strong);
-
-    --market-summary-border-strong: var(--color-border-strong);
-
     --market-summary-edge-bg: var(--market-summary-bg);
 
-    color-scheme: normal;
+    --market-summary-control-border-width: 2px;
   }
 
   .market-summary__scroll-control,
   .market-summary__selected-market {
-    border-width: 2px;
-
     box-shadow: none;
   }
 }
@@ -879,7 +795,7 @@
   }
 
   /*
-   * Fades do not provide useful information in forced-colors environments.
+   * Fades carry no information in forced-colors environments.
    */
 
   .market-summary__cards-wrap::before,
@@ -896,67 +812,11 @@
     color: ButtonText;
 
     box-shadow: none;
-
-    forced-color-adjust: auto;
   }
 
   .market-summary__selected-market-icon,
   .market-summary__selected-market-indicator {
     background: Highlight;
-
-    forced-color-adjust: auto;
-  }
-}
-
-/* ==========================================================================
-   Reduced Motion
-   ========================================================================== */
-
-@media (prefers-reduced-motion: reduce) {
-  .market-summary__cards {
-    scroll-behavior: auto;
-  }
-
-  .market-summary__cards-wrap::before,
-  .market-summary__cards-wrap::after,
-  .market-summary__scroll-control,
-  .market-summary__selected-market {
-    transition: none;
-  }
-
-  .market-summary__scroll-control--prev:hover,
-  .market-summary__scroll-control--prev:active,
-  .market-summary__scroll-control--next:hover,
-  .market-summary__scroll-control--next:active {
-    transform: translateY(-50%);
-  }
-
-  .market-summary__selected-market:active {
-    transform: none;
-  }
-}
-
-:root[data-motion-preference="reduce"] {
-  .market-summary__cards {
-    scroll-behavior: auto;
-  }
-
-  .market-summary__cards-wrap::before,
-  .market-summary__cards-wrap::after,
-  .market-summary__scroll-control,
-  .market-summary__selected-market {
-    transition: none;
-  }
-
-  .market-summary__scroll-control--prev:hover,
-  .market-summary__scroll-control--prev:active,
-  .market-summary__scroll-control--next:hover,
-  .market-summary__scroll-control--next:active {
-    transform: translateY(-50%);
-  }
-
-  .market-summary__selected-market:active {
-    transform: none;
   }
 }
 
@@ -986,10 +846,6 @@
 
     overflow: visible;
 
-    background: #ffffff;
-
-    color: #000000;
-
     color-scheme: light;
   }
 
@@ -999,10 +855,6 @@
     grid-template-areas:
       "clock"
       "rail";
-  }
-
-  .market-summary__cards-wrap {
-    overflow: visible;
   }
 
   .market-summary__cards {

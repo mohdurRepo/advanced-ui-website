@@ -8,29 +8,34 @@
  * - Connect the active Summary market card to Market Details.
  * - Maintain bridge block geometry between the card and Details.
  * - Match the bridge bar exactly to the visible portion of the active card.
+ * - Publish .is-bridge-connected while a bar is actually drawn.
  * - Publish logical Details-edge states when the bridge reaches a rounded
  *   Details corner.
- * - Support horizontal Summary scrolling.
- * - Support LTR and RTL layouts.
- * - Refresh after market / panel / tab / disclosure changes.
- * - Refresh after resize, fonts and relevant preference changes.
+ * - Support horizontal Summary scrolling, LTR and RTL.
+ * - Refresh after market / panel / tab / disclosure changes, resize, fonts
+ *   and relevant preference changes.
+ *
+ * Whether a bridge exists at all is decided by CSS (Details open, md+, on
+ * every page variant). An unrendered bridge is treated as "no bridge" and
+ * every connected state is cleared.
  *
  * Important:
  *
- * Bridge block dimensions MUST be applied before measuring bridgeInner.
- * bridgeInner depends on the bridge's final rendered block dimensions.
+ * Bridge block dimensions MUST be applied before measuring bridgeInner,
+ * because bridgeInner depends on the bridge's final rendered block size.
  *
  * This module does NOT own:
  *
  * - market selection;
  * - Summary scrolling behavior;
  * - Details visibility;
- * - panel selection;
- * - nested tab selection;
+ * - panel or nested tab selection;
  * - mobile disclosure state;
  * - bridge visual styling;
- * - Details border-radius styling.
+ * - card or Details corner styling.
  */
+
+import { isElementRendered, isRTL } from "./market-shared";
 
 /* ==========================================================================
    Selectors
@@ -65,6 +70,8 @@ const SELECTORS = {
 const CLASSES = {
   active: "is-active",
 
+  bridgeConnected: "is-bridge-connected",
+
   bridgeAtInlineStart: "is-bridge-at-inline-start",
 
   bridgeAtInlineEnd: "is-bridge-at-inline-end",
@@ -94,16 +101,13 @@ const EVENTS = {
 
 const INLINE_TOLERANCE = 0.5;
 
-/*
- * Small tolerance for fractional-pixel layout differences.
- */
+/* Fractional-pixel layout differences. */
 
 const EDGE_TOLERANCE = 1.5;
 
 /*
- * Begin the bridge one physical pixel inside the selected card.
- *
- * This prevents fractional / antialiasing seams between card and connector.
+ * Begin the bridge one physical pixel inside the selected card, preventing
+ * antialiasing seams between card and connector.
  */
 
 const BLOCK_SEAM_OVERLAP = 1;
@@ -139,42 +143,28 @@ function collectElements(root) {
 
   const summary = root.querySelector(SELECTORS.summary);
 
-  const content = root.querySelector(SELECTORS.content);
-
-  const details = root.querySelector(SELECTORS.details);
-
-  const detailsContainer = root.querySelector(SELECTORS.detailsContainer);
-
   const bridge = root.querySelector(SELECTORS.bridge);
-
-  const scroller = summary?.querySelector(SELECTORS.scroller) || null;
-
-  const inner = bridge?.querySelector(SELECTORS.bridgeInner) || null;
-
-  const bar = bridge?.querySelector(SELECTORS.bridgeBar) || null;
-
-  const cards = Array.from(root.querySelectorAll(SELECTORS.card));
 
   return {
     root,
 
     summary,
 
-    content,
+    content: root.querySelector(SELECTORS.content),
 
-    details,
+    details: root.querySelector(SELECTORS.details),
 
-    detailsContainer,
+    detailsContainer: root.querySelector(SELECTORS.detailsContainer),
 
-    scroller,
+    scroller: summary?.querySelector(SELECTORS.scroller) || null,
 
-    cards,
+    cards: Array.from(root.querySelectorAll(SELECTORS.card)),
 
     bridge,
 
-    inner,
+    inner: bridge?.querySelector(SELECTORS.bridgeInner) || null,
 
-    bar,
+    bar: bridge?.querySelector(SELECTORS.bridgeBar) || null,
   };
 }
 
@@ -206,23 +196,6 @@ function getActiveCard(root) {
    Helpers
    ========================================================================== */
 
-function isRTL(element) {
-  if (!element) {
-    return false;
-  }
-
-  return window.getComputedStyle(element).direction === "rtl";
-}
-
-function isElementRendered(element) {
-  return Boolean(
-    element &&
-    element.isConnected &&
-    element.getClientRects().length &&
-    element.getBoundingClientRect().width,
-  );
-}
-
 function getPixelLength(element, property) {
   if (!element) {
     return 0;
@@ -236,28 +209,33 @@ function getPixelLength(element, property) {
 }
 
 /* ==========================================================================
+   Connected State
+   ========================================================================== */
+
+function setConnected(root, connected) {
+  root?.classList.toggle(CLASSES.bridgeConnected, connected);
+}
+
+function clearBridgeEdgeState(root) {
+  root?.classList.remove(
+    CLASSES.bridgeAtInlineStart,
+    CLASSES.bridgeAtInlineEnd,
+  );
+}
+
+/* ==========================================================================
    Bridge Edge State
    ========================================================================== */
 
 /*
- * CSS owns the actual Details corner radius.
- *
- * JS publishes only state:
+ * CSS owns the Details corner radius; JS publishes only:
  *
  * - .is-bridge-at-inline-start
  * - .is-bridge-at-inline-end
  *
- * The decision is based on whether the connector has entered the physical
- * rounded-corner zone of the real Details container.
+ * A corner is flattened as soon as the connector enters its radius zone,
+ * not only when it reaches the extreme outer edge.
  */
-
-function clearBridgeEdgeState(root) {
-  if (!root) {
-    return;
-  }
-
-  root.classList.remove(CLASSES.bridgeAtInlineStart, CLASSES.bridgeAtInlineEnd);
-}
 
 function updateBridgeEdgeState(
   root,
@@ -272,10 +250,7 @@ function updateBridgeEdgeState(
   const detailsRect = detailsContainer.getBoundingClientRect();
 
   /*
-   * Read the actual horizontal radius used by the rendered Details surface.
-   *
-   * parseFloat() intentionally takes the first value if the browser reports
-   * an elliptical radius such as "12px 12px".
+   * parseFloat() takes the first value of an elliptical radius.
    */
 
   const leftRadius = getPixelLength(detailsContainer, "border-top-left-radius");
@@ -285,15 +260,6 @@ function updateBridgeEdgeState(
     "border-top-right-radius",
   );
 
-  /*
-   * Do NOT wait until the connector reaches the extreme outer edge.
-   *
-   * A rounded corner occupies an inline zone BEFORE that edge.
-   *
-   * Flatten the matching Details corner as soon as the bridge enters that
-   * corner-radius zone.
-   */
-
   const touchesPhysicalLeft =
     visibleLeft <= detailsRect.left + leftRadius + EDGE_TOLERANCE;
 
@@ -301,17 +267,10 @@ function updateBridgeEdgeState(
     visibleRight >= detailsRect.right - rightRadius - EDGE_TOLERANCE;
 
   /*
-   * Convert physical geometry into logical state.
+   * Physical → logical:
    *
-   * LTR:
-   *
-   * inline-start = left
-   * inline-end   = right
-   *
-   * RTL:
-   *
-   * inline-start = right
-   * inline-end   = left
+   * LTR: inline-start = left,  inline-end = right
+   * RTL: inline-start = right, inline-end = left
    */
 
   const touchesInlineStart = rtl ? touchesPhysicalRight : touchesPhysicalLeft;
@@ -321,6 +280,22 @@ function updateBridgeEdgeState(
   root.classList.toggle(CLASSES.bridgeAtInlineStart, touchesInlineStart);
 
   root.classList.toggle(CLASSES.bridgeAtInlineEnd, touchesInlineEnd);
+}
+
+/* ==========================================================================
+   Bar Reset
+   ========================================================================== */
+
+function resetBar(bar) {
+  if (!bar) {
+    return;
+  }
+
+  bar.style.inlineSize = "0px";
+
+  bar.style.insetInlineStart = "0px";
+
+  bar.style.removeProperty("transform");
 }
 
 /* ==========================================================================
@@ -336,6 +311,8 @@ function clearBridge(root) {
 
   const { bridge, bar } = elements;
 
+  setConnected(root, false);
+
   clearBridgeEdgeState(root);
 
   if (bridge) {
@@ -344,13 +321,7 @@ function clearBridge(root) {
     bridge.style.removeProperty("block-size");
   }
 
-  if (bar) {
-    bar.style.inlineSize = "0px";
-
-    bar.style.insetInlineStart = "0px";
-
-    bar.style.removeProperty("transform");
-  }
+  resetBar(bar);
 }
 
 /* ==========================================================================
@@ -358,12 +329,8 @@ function clearBridge(root) {
    ========================================================================== */
 
 /*
- * IMPORTANT:
- *
- * Phase 1 writes the bridge block geometry.
- *
- * bridgeInner must be measured only AFTER this phase because its rendered
- * geometry depends on the bridge's final dimensions.
+ * Phase 1 writes the bridge block geometry. bridgeInner is measured only
+ * after this phase.
  */
 
 function updateBridgeBlockGeometry(elements, cardRect) {
@@ -376,10 +343,6 @@ function updateBridgeBlockGeometry(elements, cardRect) {
   const contentRect = content.getBoundingClientRect();
 
   const detailsRect = details.getBoundingClientRect();
-
-  /*
-   * Begin one physical pixel inside the active card.
-   */
 
   const bridgeStart = cardRect.bottom - BLOCK_SEAM_OVERLAP;
 
@@ -403,17 +366,9 @@ function updateBridgeBlockGeometry(elements, cardRect) {
    ========================================================================== */
 
 /*
- * Bridge width must remain EXACTLY equal to the visible selected-card width.
- *
- * Deliberately no:
- *
- * - inset;
- * - shoulder;
- * - radius compensation;
- * - Details clipping.
- *
- * If the bridge enters an outer Details corner, the Details component changes
- * only that corner through the logical edge-state classes published here.
+ * The bar is EXACTLY the visible selected-card width: no inset, shoulder,
+ * radius compensation or Details clipping. When it enters an outer Details
+ * corner, Details changes only that corner through the edge-state classes.
  */
 
 function updateBridgeInlineGeometry(elements, cardRect) {
@@ -423,21 +378,13 @@ function updateBridgeInlineGeometry(elements, cardRect) {
     return;
   }
 
-  /*
-   * Measure bridgeInner only after block geometry has been applied.
-   */
-
   const scrollerRect = scroller.getBoundingClientRect();
 
   const innerRect = inner.getBoundingClientRect();
 
   /*
-   * Resolve the physically visible portion of the selected card.
-   *
-   * The card can be clipped by:
-   *
-   * - the Summary horizontal scroller;
-   * - the shared Overview bounded container.
+   * The card can be clipped by the Summary scroller and by the shared
+   * Overview bounded container.
    */
 
   const visibleLeft = Math.max(
@@ -455,28 +402,20 @@ function updateBridgeInlineGeometry(elements, cardRect) {
   const visibleWidth = Math.max(0, visibleRight - visibleLeft);
 
   /*
-   * Active card may temporarily sit outside the visible Summary viewport.
-   *
-   * Hide only the connector bar and clear edge state.
+   * The active card may sit outside the visible Summary viewport.
    */
 
   if (visibleWidth <= INLINE_TOLERANCE) {
+    setConnected(root, false);
+
     clearBridgeEdgeState(root);
 
-    bar.style.inlineSize = "0px";
-
-    bar.style.insetInlineStart = "0px";
-
-    bar.style.removeProperty("transform");
+    resetBar(bar);
 
     return;
   }
 
   const rtl = isRTL(scroller);
-
-  /* -----------------------------------------------------------------------
-     Details Corner State
-     -------------------------------------------------------------------- */
 
   updateBridgeEdgeState(root, {
     visibleLeft,
@@ -488,14 +427,8 @@ function updateBridgeInlineGeometry(elements, cardRect) {
     rtl,
   });
 
-  /* -----------------------------------------------------------------------
-     Logical Position
-     -------------------------------------------------------------------- */
-
   /*
-   * getBoundingClientRect() uses physical coordinates.
-   *
-   * Convert the selected-card visible edge into logical inline positioning.
+   * Physical visible edge → logical inline offset.
    */
 
   const logicalOffset = rtl
@@ -504,25 +437,15 @@ function updateBridgeInlineGeometry(elements, cardRect) {
 
   const maximumOffset = Math.max(0, innerRect.width - visibleWidth);
 
-  const resolvedOffset = Math.min(
-    maximumOffset,
-
-    Math.max(0, logicalOffset),
-  );
-
-  /*
-   * Exact selected-card alignment.
-   */
+  const resolvedOffset = Math.min(maximumOffset, Math.max(0, logicalOffset));
 
   bar.style.inlineSize = `${visibleWidth}px`;
 
   bar.style.insetInlineStart = `${resolvedOffset}px`;
 
-  /*
-   * Remove stale geometry from earlier bridge implementations.
-   */
-
   bar.style.removeProperty("transform");
+
+  setConnected(root, true);
 }
 
 /* ==========================================================================
@@ -547,16 +470,13 @@ export function updateMarketBridge(root, card = getActiveCard(root)) {
   }
 
   /*
-   * Details may temporarily be unrendered during:
-   *
-   * - disclosure transitions;
-   * - responsive layout changes;
-   * - initialization.
-   *
-   * Never leave stale bridge geometry or Details edge state behind.
+   * CSS decides whether a bridge exists (variant, open state, breakpoint).
+   * Details may also be unrendered during transitions or initialization.
+   * Never leave stale geometry or connected state behind.
    */
 
   if (
+    !isElementRendered(bridge) ||
     !isElementRendered(scroller) ||
     !isElementRendered(content) ||
     !isElementRendered(details)
@@ -568,25 +488,15 @@ export function updateMarketBridge(root, card = getActiveCard(root)) {
 
   const cardRect = card.getBoundingClientRect();
 
-  /*
-   * Phase 1:
-   *
-   * Establish bridge block geometry.
-   */
+  /* Phase 1: block geometry. */
 
-  const hasBlockGeometry = updateBridgeBlockGeometry(elements, cardRect);
-
-  if (!hasBlockGeometry) {
+  if (!updateBridgeBlockGeometry(elements, cardRect)) {
     clearBridge(root);
 
     return;
   }
 
-  /*
-   * Phase 2:
-   *
-   * Resolve inline geometry only after bridge block geometry is final.
-   */
+  /* Phase 2: inline geometry, only after block geometry is final. */
 
   updateBridgeInlineGeometry(elements, cardRect);
 }
@@ -596,10 +506,6 @@ export function updateMarketBridge(root, card = getActiveCard(root)) {
    ========================================================================== */
 
 function requestBridgeUpdate(root, card = null) {
-  if (!root) {
-    return;
-  }
-
   const state = getState(root);
 
   if (!state) {
@@ -607,7 +513,7 @@ function requestBridgeUpdate(root, card = null) {
   }
 
   /*
-   * Preserve the newest explicit card reference supplied by market:change.
+   * Keep the newest explicit card reference supplied by market:change.
    */
 
   if (card instanceof Element && root.contains(card)) {
@@ -615,7 +521,7 @@ function requestBridgeUpdate(root, card = null) {
   }
 
   /*
-   * Collapse rapid updates into one geometry calculation per animation frame.
+   * One geometry calculation per animation frame.
    */
 
   if (state.animationFrame !== null) {
@@ -650,10 +556,6 @@ function requestBridgeUpdate(root, card = null) {
   });
 }
 
-/* ==========================================================================
-   All Roots
-   ========================================================================== */
-
 function requestAllBridgeUpdates() {
   getRoots().forEach((root) => {
     if (initializedRoots.has(root)) {
@@ -662,20 +564,12 @@ function requestAllBridgeUpdates() {
   });
 }
 
-/* ==========================================================================
-   Settled Update
-   ========================================================================== */
-
 /*
- * Some disclosure / tab transitions require two layout frames before their
+ * Some disclosure / tab transitions need two layout frames before their
  * final geometry is measurable.
  */
 
 function requestSettledBridgeUpdate(root) {
-  if (!root) {
-    return;
-  }
-
   window.requestAnimationFrame(() => {
     window.requestAnimationFrame(() => {
       requestBridgeUpdate(root);
@@ -705,15 +599,11 @@ function initializeResizeObserver(root) {
     requestBridgeUpdate(root);
   });
 
-  [scroller, content, details, detailsContainer, inner]
+  [scroller, content, details, detailsContainer, inner, ...cards]
     .filter(Boolean)
     .forEach((element) => {
       observer.observe(element);
     });
-
-  cards.forEach((card) => {
-    observer.observe(card);
-  });
 
   state.resizeObserver = observer;
 }
@@ -723,13 +613,10 @@ function initializeResizeObserver(root) {
    ========================================================================== */
 
 /*
- * market:change is the primary synchronization signal.
- *
- * This observer remains as a defensive compatibility fallback for another
- * integration directly changing:
- *
- * - aria-selected;
- * - .is-active.
+ * market:change is the primary signal. This observer is a fallback for
+ * integrations that change aria-selected / .is-active directly, and it
+ * follows data-market-details-state on the root, which changes the bridge's
+ * CSS visibility.
  */
 
 function initializeMutationObserver(root) {
@@ -755,53 +642,27 @@ function initializeMutationObserver(root) {
     });
   });
 
+  observer.observe(root, {
+    attributes: true,
+
+    attributeFilter: ["data-market-details-state"],
+  });
+
   state.mutationObserver = observer;
 }
 
 /* ==========================================================================
-   Summary Scroll
-   ========================================================================== */
-
-function initializeScrollerEvent(root) {
-  const elements = getElements(root);
-
-  if (!elements?.scroller) {
-    return;
-  }
-
-  elements.scroller.addEventListener(
-    "scroll",
-    () => {
-      requestBridgeUpdate(root);
-    },
-    {
-      passive: true,
-    },
-  );
-}
-
-/* ==========================================================================
-   Market Selection
+   Root Events
    ========================================================================== */
 
 function handleMarketChange(root, event) {
   const card = event.detail?.card;
 
-  requestBridgeUpdate(
-    root,
-
-    card instanceof Element ? card : getActiveCard(root),
-  );
+  requestBridgeUpdate(root, card instanceof Element ? card : null);
 }
 
-/* ==========================================================================
-   Overview Visibility
-   ========================================================================== */
-
 function handleOverviewChange(root, event) {
-  const open = Boolean(event.detail?.open);
-
-  if (!open) {
+  if (!event.detail?.open) {
     clearBridge(root);
 
     return;
@@ -810,12 +671,18 @@ function handleOverviewChange(root, event) {
   requestSettledBridgeUpdate(root);
 }
 
-/* ==========================================================================
-   Root Events
-   ========================================================================== */
-
 function initializeRootEvents(root) {
-  initializeScrollerEvent(root);
+  const { scroller } = getElements(root);
+
+  scroller?.addEventListener(
+    "scroll",
+    () => {
+      requestBridgeUpdate(root);
+    },
+    {
+      passive: true,
+    },
+  );
 
   root.addEventListener(EVENTS.marketChange, (event) => {
     handleMarketChange(root, event);
@@ -825,28 +692,20 @@ function initializeRootEvents(root) {
     handleOverviewChange(root, event);
   });
 
-  root.addEventListener(EVENTS.detailsShown, () => {
-    requestBridgeUpdate(root);
-  });
-
-  root.addEventListener(EVENTS.panelShown, () => {
-    requestBridgeUpdate(root);
-  });
-
   /*
-   * Nested view changes may alter Details dimensions.
+   * Visibility, panel, nested tab and mobile disclosure changes can all
+   * alter Details geometry.
    */
 
-  root.addEventListener(EVENTS.tabChange, () => {
-    requestBridgeUpdate(root);
-  });
-
-  /*
-   * Mobile disclosure can alter Details dimensions.
-   */
-
-  root.addEventListener(EVENTS.detailsExpanded, () => {
-    requestBridgeUpdate(root);
+  [
+    EVENTS.detailsShown,
+    EVENTS.panelShown,
+    EVENTS.tabChange,
+    EVENTS.detailsExpanded,
+  ].forEach((type) => {
+    root.addEventListener(type, () => {
+      requestBridgeUpdate(root);
+    });
   });
 }
 
@@ -862,7 +721,6 @@ function initializeRoot(root) {
   const elements = collectElements(root);
 
   if (
-    !elements ||
     !elements.scroller ||
     !elements.content ||
     !elements.details ||
@@ -900,16 +758,22 @@ function initializeRoot(root) {
    Preferences
    ========================================================================== */
 
-function handlePreferenceChange(event) {
-  const relevantPreferences = [
-    "lang",
-    "direction",
-    "fontSize",
-    "contrast",
-    "motion",
-  ];
+/*
+ * Theme, accent and ticker changes do not affect geometry. A reset
+ * (name: null) may change anything.
+ */
 
-  if (event.detail?.name && !relevantPreferences.includes(event.detail.name)) {
+const GEOMETRY_PREFERENCES = new Set([
+  "lang",
+  "direction",
+  "fontSize",
+  "contrast",
+]);
+
+function handlePreferenceChange(event) {
+  const name = event.detail?.name;
+
+  if (name && !GEOMETRY_PREFERENCES.has(name)) {
     return;
   }
 
@@ -921,10 +785,8 @@ function handlePreferenceChange(event) {
    ========================================================================== */
 
 /*
- * preferencechange remains the preferred application integration.
- *
- * This observer protects against integrations that update <html dir> or
- * <html lang> directly.
+ * Protects against integrations that update <html dir> or <html lang>
+ * directly instead of dispatching preferencechange.
  */
 
 function initializeDocumentObserver() {
@@ -932,40 +794,12 @@ function initializeDocumentObserver() {
     return;
   }
 
-  documentObserver = new MutationObserver((mutations) => {
-    const relevantChange = mutations.some(
-      (mutation) =>
-        mutation.type === "attributes" &&
-        (mutation.attributeName === "dir" || mutation.attributeName === "lang"),
-    );
-
-    if (!relevantChange) {
-      return;
-    }
-
-    requestAllBridgeUpdates();
-  });
+  documentObserver = new MutationObserver(requestAllBridgeUpdates);
 
   documentObserver.observe(document.documentElement, {
     attributes: true,
 
     attributeFilter: ["dir", "lang"],
-  });
-}
-
-/* ==========================================================================
-   Fonts
-   ========================================================================== */
-
-function initializeFontRefresh() {
-  const ready = document.fonts?.ready;
-
-  if (!ready) {
-    return;
-  }
-
-  ready.then(() => {
-    requestAllBridgeUpdates();
   });
 }
 
@@ -992,7 +826,7 @@ function initializeGlobalEvents() {
 
   initializeDocumentObserver();
 
-  initializeFontRefresh();
+  document.fonts?.ready?.then(requestAllBridgeUpdates);
 }
 
 /* ==========================================================================

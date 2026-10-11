@@ -1,10 +1,19 @@
-@use "variables" as var;
+@use "variables" as vars;
+
+/* ==========================================================================
+   Breakpoints
+   ========================================================================== */
+
+/**
+ * xs stays unitless (0): respond-up() and respond-down() compare it with
+ * `== 0`, and Dart Sass treats `0px == 0` as false.
+ */
 
 $breakpoints: (
-  "xs": var.$breakpoint-xs,
-  "sm": var.$breakpoint-sm,
-  "md": var.$breakpoint-md,
-  "lg": var.$breakpoint-lg,
-  "xl": var.$breakpoint-xl,
-  "xxl": var.$breakpoint-xxl,
+  "xs": vars.$breakpoint-xs,
+  "sm": vars.$breakpoint-sm,
+  "md": vars.$breakpoint-md,
+  "lg": vars.$breakpoint-lg,
+  "xl": vars.$breakpoint-xl,
+  "xxl": vars.$breakpoint-xxl,
 ) !default;

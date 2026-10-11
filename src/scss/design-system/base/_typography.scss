@@ -39,6 +39,12 @@ body {
    Headings
    ========================================================================== */
 
+/**
+ * break-word rather than anywhere: `anywhere` also shrinks the heading's
+ * min-content width, which lets flex and grid columns collapse and break
+ * words letter by letter.
+ */
+
 h1,
 h2,
 h3,
@@ -50,7 +56,7 @@ h6 {
   font-weight: ds.font-weight("heavy");
   line-height: var(--line-height-tight);
 
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
   text-wrap: balance;
 }
 

@@ -25,6 +25,11 @@ html[data-theme="light"] {
      Text
      ========================================================================== */
 
+  /**
+   * text-muted is ~4.7:1 on --color-bg and ~4.5:1 on --color-surface-alt.
+   * Do not place muted text on hover, active or darker grey surfaces.
+   */
+
   --color-text: #{ds.brand("navy")};
   --color-heading: #{ds.brand("navy")};
   --color-text-muted: #64707a;
@@ -56,6 +61,12 @@ html[data-theme="light"] {
   /* ==========================================================================
      Status
      ========================================================================== */
+
+  /**
+   * attention and warning are background colours for use with their on-*
+   * colour. They are too light to be used as text or meaningful icons on a
+   * light surface; use --color-warning-text for warning text.
+   */
 
   --color-success: #15803d;
   --color-success-hover: #166534;
@@ -92,6 +103,11 @@ html[data-theme="light"] {
   /* ==========================================================================
      Borders
      ========================================================================== */
+
+  /**
+   * Both border colours are below 3:1 on white. Use them for dividers and
+   * decoration, not as the only visible boundary of a form control.
+   */
 
   --color-border: #d7dde3;
   --color-border-strong: #b7c1c9;
@@ -132,8 +148,14 @@ html[data-theme="light"] {
      Market
      ========================================================================== */
 
-  --color-market-positive: #15803d;
-  --color-market-negative: #dc2626;
+  /**
+   * Text colours are darker than the success/danger tokens so they stay
+   * above 4.5:1 on their own 10% tints (~6.2 and ~5.5).
+   * The tints keep the original hues.
+   */
+
+  --color-market-positive: #166534;
+  --color-market-negative: #b91c1c;
   --color-market-neutral: var(--color-text-muted);
 
   --color-market-positive-bg: rgb(21 128 61 / 0.1);

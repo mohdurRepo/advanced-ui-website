@@ -19,7 +19,42 @@
  * Contextual surfaces may override the market tokens locally. This allows the
  * same utility to work on light pages, dark heroes, branded sections, tables,
  * cards, charts, and overlays.
+ *
+ * Apply these classes to the value itself, not to a wrapper that also holds
+ * Arabic text: the value is laid out LTR.
  */
+
+/* ==========================================================================
+   Non-color Cues
+   ========================================================================== */
+
+/**
+ * Used by high contrast, forced colors and print.
+ *
+ * Positive values receive a double underline.
+ * Negative values receive a solid underline.
+ * Neutral values receive no decoration.
+ */
+
+@mixin -direction-cues($thickness: 2px) {
+  .price-up {
+    text-decoration-line: underline;
+    text-decoration-style: double;
+    text-decoration-thickness: $thickness;
+    text-underline-offset: 0.18em;
+  }
+
+  .price-down {
+    text-decoration-line: underline;
+    text-decoration-style: solid;
+    text-decoration-thickness: $thickness;
+    text-underline-offset: 0.18em;
+  }
+
+  .price-neutral {
+    text-decoration: none;
+  }
+}
 
 /* ==========================================================================
    Shared Presentation
@@ -67,11 +102,13 @@
  * Icons, data elements, and ordinary inline content inherit the semantic
  * state from their price-state container.
  *
- * These selectors protect the semantic state from generic icon or data styles
- * without coupling this utility to individual website components.
+ * The outer :is() carries one class of specificity (0,1,0). This file loads
+ * after the design-system components, so it beats icon colour classes such
+ * as .icon-primary. A :where() here would have zero specificity and protect
+ * nothing.
  */
 
-:where(.price-up, .price-down, .price-neutral)
+:is(.price-up, .price-down, .price-neutral)
   :where(.has-icon, .svg-icon, data, output) {
   color: inherit;
 }
@@ -81,39 +118,16 @@
    ========================================================================== */
 
 /**
- * High-contrast mode must not rely on green and red alone.
- *
- * Positive values receive a double underline.
- * Negative values receive a solid underline.
- * Neutral values receive no decoration.
+ * The high-contrast themes define strong market colours (7:1 or more), so
+ * the colour is kept and the non-color cue is added on top.
  */
 
 html[data-contrast="high"] {
   :where(.price-up, .price-down, .price-neutral) {
-    --price-state-color: inherit;
-
-    color: inherit;
-
     font-weight: ds.font-weight("bold");
   }
 
-  .price-up {
-    text-decoration-line: underline;
-    text-decoration-style: double;
-    text-decoration-thickness: 2px;
-    text-underline-offset: 0.18em;
-  }
-
-  .price-down {
-    text-decoration-line: underline;
-    text-decoration-style: solid;
-    text-decoration-thickness: 2px;
-    text-underline-offset: 0.18em;
-  }
-
-  .price-neutral {
-    text-decoration: none;
-  }
+  @include -direction-cues(2px);
 }
 
 /* ==========================================================================
@@ -127,27 +141,9 @@ html[data-contrast="high"] {
     color: CanvasText;
 
     font-weight: ds.font-weight("bold");
-
-    forced-color-adjust: auto;
   }
 
-  .price-up {
-    text-decoration-line: underline;
-    text-decoration-style: double;
-    text-decoration-thickness: 2px;
-    text-underline-offset: 0.18em;
-  }
-
-  .price-down {
-    text-decoration-line: underline;
-    text-decoration-style: solid;
-    text-decoration-thickness: 2px;
-    text-underline-offset: 0.18em;
-  }
-
-  .price-neutral {
-    text-decoration: none;
-  }
+  @include -direction-cues(2px);
 }
 
 /* ==========================================================================
@@ -165,21 +161,5 @@ html[data-contrast="high"] {
     color: #000000;
   }
 
-  .price-up {
-    text-decoration-line: underline;
-    text-decoration-style: double;
-    text-decoration-thickness: 1px;
-    text-underline-offset: 0.18em;
-  }
-
-  .price-down {
-    text-decoration-line: underline;
-    text-decoration-style: solid;
-    text-decoration-thickness: 1px;
-    text-underline-offset: 0.18em;
-  }
-
-  .price-neutral {
-    text-decoration: none;
-  }
+  @include -direction-cues(1px);
 }

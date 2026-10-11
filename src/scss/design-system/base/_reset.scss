@@ -94,6 +94,11 @@ body {
    Hidden Content
    ========================================================================== */
 
-[hidden] {
+/**
+ * hidden="until-found" is excluded: the browser hides it itself and must be
+ * able to reveal it for find-in-page.
+ */
+
+[hidden]:not([hidden="until-found"]) {
   display: none !important;
 }

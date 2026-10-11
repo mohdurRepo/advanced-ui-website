@@ -6,12 +6,26 @@
  * Responsibilities:
  *
  * - Manage the outer Market Overview <details> disclosure.
- * - Support permanently visible home-page mode.
- * - Support collapsible inner-page mode.
- * - Synchronize disclosure accessibility state.
- * - Coordinate curtain open / close animation lifecycle.
+ * - Resolve the initial state from data-market-details-default:
+ *
+ *     auto    small screens: always closed on load, whatever is stored;
+ *             large screens: the visitor's stored choice, open by default
+ *     open    open on load
+ *     closed  closed on load
+ *
+ * - Support data-market-details-mode="always" (never collapses).
+ * - Publish data-market-details-state="open" | "closed" on the root.
+ * - Remember explicit toggles for "auto" overviews.
+ * - Coordinate the curtain open / close animation lifecycle.
+ * - Keep the handle in view after the visitor closes Details (when open,
+ *   the handle sits at the bottom of Details; closing moves it back up to
+ *   the Summary, which can be above the visible screen).
  * - Publish overview visibility events for dependent components.
- * - Localize the disclosure control label.
+ * - Localize the handle label.
+ *
+ * "auto" also follows the viewport: shrinking below AUTO_OPEN_QUERY closes
+ * Details; growing past it reopens them unless the visitor's stored choice
+ * is "closed".
  *
  * This module does NOT own:
  *
@@ -22,6 +36,17 @@
  * - Bridge geometry.
  * - Market clock behavior.
  */
+
+import {
+  createMediaQuery,
+  dispatchCompatibilityResize,
+  getLanguage,
+  getScrollBehavior,
+  onMediaQueryChange,
+  prefersReducedMotion,
+  readStorage,
+  writeStorage,
+} from "./market-shared";
 
 /* ==========================================================================
    Selectors
@@ -51,13 +76,49 @@ const CLASSES = {
 };
 
 /* ==========================================================================
-   Modes
+   Modes / Defaults / States
    ========================================================================== */
 
 const MODES = {
   always: "always",
   disclosure: "disclosure",
 };
+
+const DEFAULTS = {
+  auto: "auto",
+  open: "open",
+  closed: "closed",
+};
+
+const STATES = {
+  open: "open",
+  closed: "closed",
+};
+
+/* ==========================================================================
+   Automatic Default
+   ========================================================================== */
+
+/*
+ * "auto" opens Details only when the viewport has room for Summary and the
+ * Details canvas together: lg width and a laptop-plus height.
+ *
+ * Height matters as much as width: a wide but short laptop (1366 × 768)
+ * would otherwise open Details and push the page below the first screen.
+ */
+
+const AUTO_OPEN_QUERY = "(min-width: 992px) and (min-height: 820px)";
+
+/* ==========================================================================
+   Storage
+   ========================================================================== */
+
+/*
+ * The visitor's last explicit choice for "auto" overviews.
+ * Same "se-" naming convention as preferences.js.
+ */
+
+const STORAGE_KEY = "se-market-details";
 
 /* ==========================================================================
    Events
@@ -78,10 +139,8 @@ const ANIMATIONS = {
 };
 
 /*
- * CSS curtain motion is currently ~200ms.
- *
- * This timeout is only a defensive fallback for cases where animationend
- * never arrives.
+ * CSS curtain motion is ~200ms. This timeout is only a defensive fallback
+ * for cases where animationend never arrives.
  */
 
 const ANIMATION_FALLBACK = 350;
@@ -111,6 +170,14 @@ const initializedRoots = new WeakSet();
 const rootStates = new WeakMap();
 
 let globalEventsInitialized = false;
+
+let autoOpenQuery = null;
+
+function getAutoOpenQuery() {
+  autoOpenQuery ??= createMediaQuery(AUTO_OPEN_QUERY);
+
+  return autoOpenQuery;
+}
 
 /* ==========================================================================
    Element Collection
@@ -160,54 +227,111 @@ function getElements(root) {
 }
 
 /* ==========================================================================
-   Language
+   Mode / Default
    ========================================================================== */
-
-function getLanguage() {
-  const language = document.documentElement.lang?.trim().toLowerCase() || "en";
-
-  return language.startsWith("ar") ? "ar" : "en";
-}
-
-function getLabels() {
-  return LABELS[getLanguage()];
-}
-
-/* ==========================================================================
-   Motion
-   ========================================================================== */
-
-function prefersReducedMotion() {
-  if (document.documentElement.dataset.motionPreference === "reduce") {
-    return true;
-  }
-
-  return (
-    window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false
-  );
-}
-
-/* ==========================================================================
-   Mode
-   ========================================================================== */
-
-function getMode(elements) {
-  return elements?.root?.dataset.marketDetailsMode || MODES.disclosure;
-}
 
 function isAlwaysVisible(elements) {
-  return getMode(elements) === MODES.always;
+  return elements?.root?.dataset.marketDetailsMode === MODES.always;
+}
+
+function getDefault(elements) {
+  const value = elements?.root?.dataset.marketDetailsDefault;
+
+  return Object.values(DEFAULTS).includes(value) ? value : DEFAULTS.closed;
+}
+
+function isRemembered(elements) {
+  return getDefault(elements) === DEFAULTS.auto;
 }
 
 /* ==========================================================================
-   Disclosure Label
+   Initial State Resolution
+   ========================================================================== */
+
+function readStoredState() {
+  const value = readStorage(STORAGE_KEY);
+
+  return value === STATES.open || value === STATES.closed ? value : null;
+}
+
+function resolveInitialOpen(elements) {
+  switch (getDefault(elements)) {
+    case DEFAULTS.open:
+      return true;
+
+    case DEFAULTS.auto:
+      /*
+       * Small screens always start closed; the stored choice applies only
+       * where there is room for Details.
+       */
+
+      if (!(getAutoOpenQuery()?.matches ?? true)) {
+        return false;
+      }
+
+      return readStoredState() !== STATES.closed;
+
+    default:
+      return false;
+  }
+}
+
+function rememberState(elements, open) {
+  if (!isRemembered(elements)) {
+    return;
+  }
+
+  writeStorage(STORAGE_KEY, open ? STATES.open : STATES.closed);
+}
+
+/* ==========================================================================
+   Automatic Viewport Following
+   ========================================================================== */
+
+/*
+ * Fires only when the viewport crosses the threshold, never on ordinary
+ * resizing within one side of it.
+ *
+ * - Becoming small: Details close, whatever the stored choice (the choice
+ *   itself is kept, nothing is written).
+ * - Becoming large: Details reopen, unless the stored choice is "closed".
+ */
+
+function handleAutoOpenChange() {
+  const large = getAutoOpenQuery()?.matches ?? true;
+
+  const open = large && readStoredState() !== STATES.closed;
+
+  getInitializedRoots().forEach((root) => {
+    const elements = getElements(root);
+
+    if (
+      !elements ||
+      isAlwaysVisible(elements) ||
+      getDefault(elements) !== DEFAULTS.auto ||
+      elements.disclosure.open === open
+    ) {
+      return;
+    }
+
+    void (open ? openDisclosure(elements) : closeDisclosure(elements));
+  });
+}
+
+/* ==========================================================================
+   Handle Label
    ========================================================================== */
 
 function getDisclosureLabel(open) {
-  const labels = getLabels();
+  const labels = LABELS[getLanguage()];
 
   return open ? labels.hide : labels.show;
 }
+
+/*
+ * The label element is the accessible name. <summary> exposes its own
+ * expanded state, so no aria-expanded or aria-label is written.
+ */
 
 function updateDisclosureLabel(elements) {
   if (!elements) {
@@ -216,21 +340,19 @@ function updateDisclosureLabel(elements) {
 
   const { disclosure, toggle, toggleLabel } = elements;
 
-  const open = disclosure.open;
+  const label = getDisclosureLabel(disclosure.open);
 
-  const label = getDisclosureLabel(open);
+  toggle.removeAttribute("aria-expanded");
 
-  toggle.setAttribute("aria-expanded", String(open));
-
-  toggle.setAttribute("aria-label", label);
+  toggle.removeAttribute("aria-label");
 
   /*
-   * Preserve the existing project tooltip contract.
+   * Project tooltip convention (useful where the label is visually hidden).
    */
 
   toggle.setAttribute("data-tooltip", label);
 
-  if (toggleLabel) {
+  if (toggleLabel && toggleLabel.textContent !== label) {
     toggleLabel.textContent = label;
   }
 }
@@ -249,22 +371,32 @@ function updateDetailsAccessibility(elements) {
   const open = disclosure.open;
 
   /*
-   * Keep the wrapper rendered.
-   *
-   * Native <details> controls visual disclosure while the rendered wrapper is
-   * still needed by permanent mode and bridge/layout measurement.
+   * Keep the wrapper rendered: native <details> controls visual disclosure,
+   * and the wrapper is still needed for bridge/layout measurement.
    */
 
   details.hidden = false;
 
   details.setAttribute("aria-hidden", String(!open));
 
-  /*
-   * Closed inner-page Details must not expose interactive descendants.
-   */
-
   if ("inert" in details) {
     details.inert = !open;
+  }
+}
+
+/* ==========================================================================
+   Root State
+   ========================================================================== */
+
+function updateRootState(elements) {
+  if (!elements) {
+    return;
+  }
+
+  const value = elements.disclosure.open ? STATES.open : STATES.closed;
+
+  if (elements.root.dataset.marketDetailsState !== value) {
+    elements.root.dataset.marketDetailsState = value;
   }
 }
 
@@ -276,6 +408,8 @@ function synchronizeDisclosureState(elements) {
   updateDisclosureLabel(elements);
 
   updateDetailsAccessibility(elements);
+
+  updateRootState(elements);
 }
 
 /* ==========================================================================
@@ -328,11 +462,7 @@ function dispatchDetailsShown(elements) {
    ========================================================================== */
 
 function clearAnimationState(disclosure) {
-  if (!disclosure) {
-    return;
-  }
-
-  disclosure.classList.remove(
+  disclosure?.classList.remove(
     CLASSES.opening,
     CLASSES.closing,
     CLASSES.animating,
@@ -388,11 +518,9 @@ function waitForCurtainAnimation(element, animationName) {
     }
 
     function handleAnimationCancel(event) {
-      if (event.target !== element) {
-        return;
+      if (event.target === element) {
+        complete();
       }
-
-      complete();
     }
 
     element.addEventListener("animationend", handleAnimationEnd);
@@ -415,10 +543,8 @@ function refreshVisibleContent(elements) {
   const { root } = elements;
 
   /*
-   * Two frames intentionally allow:
-   *
-   * 1. disclosure/style state to render;
-   * 2. dependent layout geometry to settle.
+   * Two frames: 1. disclosure/style state renders; 2. dependent geometry
+   * settles.
    */
 
   window.requestAnimationFrame(() => {
@@ -429,34 +555,25 @@ function refreshVisibleContent(elements) {
 
       dispatchDetailsShown(elements);
 
-      /*
-       * Temporary compatibility event.
-       *
-       * Some chart/layout consumers still refresh themselves from a resize
-       * event after becoming visible.
-       *
-       * Remove this when those components consume explicit market events.
-       */
-
-      window.dispatchEvent(new Event("resize"));
+      dispatchCompatibilityResize();
     });
   });
 }
 
 /* ==========================================================================
-   Permanent Home Mode
+   Always-visible Mode
    ========================================================================== */
 
 function initializeAlwaysVisibleMode(elements) {
-  const { disclosure, toggle, details } = elements;
+  const { disclosure, toggle } = elements;
 
   clearAnimationState(disclosure);
 
   disclosure.open = true;
 
   /*
-   * Keep <summary> in the DOM for structural consistency but remove it from
-   * interaction/accessibility in permanent mode.
+   * <summary> stays in the DOM for structural consistency but leaves
+   * interaction and the accessibility tree.
    */
 
   toggle.hidden = true;
@@ -465,38 +582,19 @@ function initializeAlwaysVisibleMode(elements) {
 
   toggle.setAttribute("tabindex", "-1");
 
-  details.hidden = false;
-
-  details.setAttribute("aria-hidden", "false");
-
-  if ("inert" in details) {
-    details.inert = false;
-  }
-
-  updateDisclosureLabel(elements);
-
-  /*
-   * Immediate state event.
-   */
+  synchronizeDisclosureState(elements);
 
   dispatchOverviewChange(elements, true);
-
-  /*
-   * Deferred geometry event.
-   *
-   * Bridge/panel/chart initializers later in the same bootstrap cycle can
-   * observe this after their listeners are installed.
-   */
 
   refreshVisibleContent(elements);
 }
 
 /* ==========================================================================
-   Interactive Disclosure Mode
+   Disclosure Mode
    ========================================================================== */
 
-function initializeInteractiveMode(elements) {
-  const { root, disclosure, toggle, details } = elements;
+function initializeDisclosureMode(elements) {
+  const { disclosure, toggle } = elements;
 
   clearAnimationState(disclosure);
 
@@ -506,24 +604,14 @@ function initializeInteractiveMode(elements) {
 
   toggle.removeAttribute("tabindex");
 
-  details.hidden = false;
-
   /*
-   * Inner pages default closed.
-   *
-   * Pages may explicitly request:
-   *
-   * data-market-details-default="open"
+   * Normally already applied before first paint by the inline bootstrap;
+   * setting the same value again is a no-op.
    */
 
-  disclosure.open = root.dataset.marketDetailsDefault === "open";
+  disclosure.open = resolveInitialOpen(elements);
 
   synchronizeDisclosureState(elements);
-
-  /*
-   * If the page deliberately starts open, publish its initial state exactly
-   * like an interactively opened disclosure.
-   */
 
   if (disclosure.open) {
     dispatchOverviewChange(elements, true);
@@ -550,10 +638,8 @@ async function openDisclosure(elements) {
   }
 
   /*
-   * Increment operation version.
-   *
-   * If some external action changes the disclosure while the animation is
-   * pending, this completion becomes stale and safely exits.
+   * Operation version: if anything changes the disclosure while the
+   * animation is pending, this completion becomes stale and exits.
    */
 
   const operationId = state.operationId + 1;
@@ -565,8 +651,7 @@ async function openDisclosure(elements) {
   disclosure.classList.add(CLASSES.opening, CLASSES.animating);
 
   /*
-   * Open native <details> before running the curtain so contents can render
-   * and participate in layout.
+   * Open before the curtain runs so contents render and take part in layout.
    */
 
   disclosure.open = true;
@@ -591,10 +676,57 @@ async function openDisclosure(elements) {
 }
 
 /* ==========================================================================
+   Keep Handle In View
+   ========================================================================== */
+
+/*
+ * The sticky header covers the top of the viewport; the document's
+ * scroll-padding-block-start (set from --app-header-height) tells us how
+ * much. scrollIntoView() respects the same padding.
+ *
+ * Focus stays on the <summary> throughout, so keyboard users keep their
+ * place; only the scroll position is corrected.
+ */
+
+function getTopObstruction() {
+  const value = window
+    .getComputedStyle(document.documentElement)
+    .getPropertyValue("scroll-padding-block-start");
+
+  const number = Number.parseFloat(value);
+
+  return Number.isFinite(number) ? number : 0;
+}
+
+function keepHandleInView(elements) {
+  const { toggle } = elements;
+
+  const rect = toggle.getBoundingClientRect();
+
+  const outOfView =
+    rect.top < getTopObstruction() || rect.bottom > window.innerHeight;
+
+  if (!outOfView) {
+    return;
+  }
+
+  toggle.scrollIntoView({
+    behavior: getScrollBehavior(),
+
+    block: "nearest",
+  });
+}
+
+/* ==========================================================================
    Close Disclosure
    ========================================================================== */
 
-async function closeDisclosure(elements) {
+/*
+ * keepInView: true for visitor-initiated closes only. A close caused by the
+ * viewport crossing the threshold must not move the page.
+ */
+
+async function closeDisclosure(elements, { keepInView = false } = {}) {
   if (!elements || isAlwaysVisible(elements)) {
     return;
   }
@@ -616,7 +748,8 @@ async function closeDisclosure(elements) {
   disclosure.classList.add(CLASSES.closing, CLASSES.animating);
 
   /*
-   * Keep native <details> open during the closing animation.
+   * Native <details> stays open (and the root state stays "open") until the
+   * closing curtain has finished.
    */
 
   await waitForCurtainAnimation(animationTarget, ANIMATIONS.closing);
@@ -632,24 +765,41 @@ async function closeDisclosure(elements) {
   synchronizeDisclosureState(elements);
 
   dispatchOverviewChange(elements, false);
+
+  if (keepInView) {
+    keepHandleInView(elements);
+  }
 }
 
 /* ==========================================================================
    Toggle Disclosure
    ========================================================================== */
 
+/*
+ * The only entry point for visitor-initiated changes, therefore the only
+ * place a choice is remembered.
+ */
+
 function toggleDisclosure(elements) {
-  if (!elements || isAlwaysVisible(elements)) {
+  if (
+    !elements ||
+    isAlwaysVisible(elements) ||
+    isAnimating(elements.disclosure)
+  ) {
     return;
   }
 
-  if (elements.disclosure.open) {
-    void closeDisclosure(elements);
+  const nextOpen = !elements.disclosure.open;
+
+  rememberState(elements, nextOpen);
+
+  if (nextOpen) {
+    void openDisclosure(elements);
 
     return;
   }
 
-  void openDisclosure(elements);
+  void closeDisclosure(elements, { keepInView: true });
 }
 
 /* ==========================================================================
@@ -658,10 +808,8 @@ function toggleDisclosure(elements) {
 
 function handleSummaryClick(elements, event) {
   /*
-   * Prevent native immediate toggling.
-   *
-   * JS controls the timing so the closing curtain completes before <details>
-   * becomes closed.
+   * Prevent native immediate toggling: JS controls the timing so the
+   * closing curtain completes before <details> becomes closed.
    */
 
   event.preventDefault();
@@ -684,31 +832,16 @@ function handleNativeToggle(elements) {
 
   /*
    * Any externally triggered native change invalidates a pending animation
-   * completion.
+   * completion (find-in-page, another script, etc.).
    */
 
   if (!isAnimating(disclosure)) {
     state.operationId += 1;
   }
 
-  /*
-   * Permanent mode must always stay open.
-   */
-
-  if (isAlwaysVisible(elements)) {
-    if (!disclosure.open) {
-      disclosure.open = true;
-    }
-
-    synchronizeDisclosureState(elements);
-
-    return;
+  if (isAlwaysVisible(elements) && !disclosure.open) {
+    disclosure.open = true;
   }
-
-  /*
-   * Keep ARIA/inert synchronized when another consumer directly modifies the
-   * native `open` property.
-   */
 
   synchronizeDisclosureState(elements);
 }
@@ -753,7 +886,7 @@ function initializeRoot(root) {
   initializedRoots.add(root);
 
   /*
-   * Native synchronization must exist before initial mode/state is applied.
+   * Native synchronization must exist before the initial state is applied.
    */
 
   initializeDisclosureEvents(elements);
@@ -764,7 +897,7 @@ function initializeRoot(root) {
     return;
   }
 
-  initializeInteractiveMode(elements);
+  initializeDisclosureMode(elements);
 }
 
 /* ==========================================================================
@@ -783,13 +916,7 @@ function getInitializedRoots() {
 
 function updateAllDisclosureLabels() {
   getInitializedRoots().forEach((root) => {
-    const elements = getElements(root);
-
-    if (!elements) {
-      return;
-    }
-
-    updateDisclosureLabel(elements);
+    updateDisclosureLabel(getElements(root));
   });
 }
 
@@ -815,6 +942,8 @@ function initializeGlobalEvents() {
   document.addEventListener("languagechange", updateAllDisclosureLabels);
 
   document.addEventListener("preferencechange", handlePreferenceChange);
+
+  onMediaQueryChange(getAutoOpenQuery(), handleAutoOpenChange);
 }
 
 /* ==========================================================================
